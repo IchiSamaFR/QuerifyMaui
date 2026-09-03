@@ -2,7 +2,9 @@
   "profiles": {
     "Windows Machine": {
       "commandName": "Project",
-      "nativeDebugging": false
+      "nativeDebugging": false,
+      "configuration": "Debug",
+      "targetFramework": "net10.0-windows10.0.19041.0"
     }
   }
 }
