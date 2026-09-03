@@ -1,4 +1,5 @@
 ﻿
+using SqlToolManagerMaui.ViewModels;
 using SqlToolManagerMaui.ViewModels.Pages;
 using SqlToolManagerMaui.Views.Pages;
 
@@ -37,6 +38,7 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddShell(this IServiceCollection services)
     {
         services.AddSingleton<AppShell>();
+        services.AddSingleton<ShellVM>();
 
         return services;
     }
@@ -45,6 +47,9 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton<MainPage>();
         services.AddSingleton<MainVM>();
+
+        services.AddSingleton<QueryPage>();
+        services.AddSingleton<QueryVM>();
 
         return services;
     }

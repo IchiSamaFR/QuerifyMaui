@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mi="clr-namespace:MauiIcons.Core;assembly=MauiIcons.Core"
+             x:Class="SqlToolManagerMaui.Views.Controls.NavigationRailItem"
+             x:Name="Root">
+
+    <Border x:Name="Container"
+            Padding="0"
+            Margin="4,2"
+            StrokeThickness="0"
+            BackgroundColor="Transparent"
+            HeightRequest="40">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="4" />
+        </Border.StrokeShape>
+
+        <Border.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnTapped" />
+            <PointerGestureRecognizer PointerEntered="OnPointerEntered"
+                                      PointerExited="OnPointerExited" />
+        </Border.GestureRecognizers>
+
+        <Grid ColumnDefinitions="3,40,*"
+              VerticalOptions="Fill">
+
+            <!-- Pastille de selection (accent) -->
+            <Border Grid.Column="0"
+                    WidthRequest="3"
+                    HeightRequest="16"
+                    StrokeThickness="0"
+                    VerticalOptions="Center"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Accent}, Dark={StaticResource AccentDark}}"
+                    IsVisible="{Binding IsSelected, Source={x:Reference Root}}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="2" />
+                </Border.StrokeShape>
+            </Border>
+
+            <mi:MauiIcon Grid.Column="1"
+                         Icon="{Binding Icon, Source={x:Reference Root}}"
+                         IconSize="20"
+                         IconColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center" />
+
+            <Label Grid.Column="2"
+                   Text="{Binding Text, Source={x:Reference Root}}"
+                   FontSize="14"
+                   LineBreakMode="TailTruncation"
+                   VerticalOptions="Center"
+                   Margin="4,0,12,0"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                   IsVisible="{Binding IsLabelVisible, Source={x:Reference Root}}" />
+        </Grid>
+    </Border>
+</ContentView>

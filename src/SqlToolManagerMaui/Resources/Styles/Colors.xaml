@@ -27,6 +27,16 @@
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
 
+    <!-- Navigation laterale (style Windows 11 / NavigationView) -->
+    <Color x:Key="Accent">#0067C0</Color>
+    <Color x:Key="AccentDark">#60CDFF</Color>
+    <Color x:Key="NavPaneLight">#F3F3F3</Color>
+    <Color x:Key="NavPaneDark">#202020</Color>
+    <Color x:Key="NavItemHoverLight">#0A000000</Color>
+    <Color x:Key="NavItemHoverDark">#0FFFFFFF</Color>
+    <Color x:Key="NavItemSelectedLight">#14000000</Color>
+    <Color x:Key="NavItemSelectedDark">#19FFFFFF</Color>
+
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
     <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>

@@ -2,10 +2,24 @@
 <Shell x:Class="SqlToolManagerMaui.AppShell"
        xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-       Title="SqlToolManagerMaui">
+       xmlns:c="clr-namespace:SqlToolManagerMaui.Views.Controls"
+       xmlns:v="http://sqltoolmanagermaui.app/dotnet/maui/views"
+       xmlns:vm="http://sqltoolmanagermaui.app/dotnet/maui/viewmodels"
+       x:DataType="vm:ShellVM"
+       FlyoutBehavior="Locked"
+       FlyoutWidth="{Binding PaneWidth}"
+       FlyoutBackgroundColor="Transparent"
+       Shell.NavBarIsVisible="False"
+       Shell.TabBarIsVisible="False">
 
-    <ShellContent Title="Home"
-                  ContentTemplate="{DataTemplate v:MainPage}"
-                  Route="MainPage" />
+    <!-- Menu lateral personnalise (remplace la liste par defaut du flyout) -->
+    <Shell.FlyoutContent>
+        <c:NavigationRail />
+    </Shell.FlyoutContent>
 
+    <ShellContent ContentTemplate="{DataTemplate v:MainPage}"
+                  Route="{x:Static v:MainPage.PAGE_ROUTE}" />
+
+    <ShellContent ContentTemplate="{DataTemplate v:QueryPage}"
+                  Route="{x:Static v:QueryPage.PAGE_ROUTE}" />
 </Shell>
