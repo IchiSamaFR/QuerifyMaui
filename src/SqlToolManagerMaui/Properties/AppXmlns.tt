@@ -14,12 +14,14 @@
 	var nsMap = new List<(string Ns, string Suffix, string Prefix)>
 	{
 		( "SqlToolManagerMaui.ViewModels", "viewmodels", "vm" ),
-		( "SqlToolManagerMaui.Views", "views", "v" )
+		( "SqlToolManagerMaui.Views.Pages", "views", "v" ),
+		( "SqlToolManagerMaui.Views.Controls", "controls", "c" ),
 	};
 
 	var basePrefixMap = new Dictionary<string, string>(StringComparer.Ordinal)
 	{
-		{ "icons", "http://www.aathifmahir.com/dotnet/2022/maui/icons" }
+		{ "icons", "http://www.aathifmahir.com/dotnet/2022/maui/icons" },
+		{ "mi", "clr-namespace:MauiIcons.Core;assembly=MauiIcons.Core" },
 	};
 
 	// Récupère tous les namespaces déclarés dans les fichiers .cs du projet

@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Style x:Key="FilledButtonViewStyle"
+           TargetType="inp:ButtonView"
+           ApplyToDerivedTypes="True">
+        <Setter Property="HeightRequest"
+                Value="{DynamicResource InputHeight}" />
+        <Setter Property="DisabledOpacity"
+                Value="{DynamicResource DisabledOpacity}" />
+        <Setter Property="CornerRadius"
+                Value="14" />
+        <Setter Property="HoverBackgroundColor"
+                Value="{AppThemeBinding Light={StaticResource NavItemHoverLight}, Dark={StaticResource NavItemHoverDark}}" />
+    </Style>
+
+    <Style x:Key="OutlinedButtonViewStyle"
+           TargetType="inp:ButtonView"
+           BasedOn="{StaticResource FilledButtonViewStyle}">
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource Primary}" />
+        <Setter Property="BorderThickness"
+                Value="1" />
+    </Style>
+
+    <Style x:Key="TextButtonViewStyle"
+           TargetType="inp:ButtonView"
+           BasedOn="{StaticResource OutlinedButtonViewStyle}">
+        <Setter Property="BorderColor"
+                Value="Transparent" />
+        <Setter Property="BorderThickness"
+                Value="0" />
+    </Style>
+
+    <Style x:Key="FilledButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True">
+        <Setter Property="HeightRequest"
+                Value="{DynamicResource InputHeight}" />
+        <Setter Property="CornerRadius"
+                Value="14" />
+        <Setter Property="Background"
+                Value="{DynamicResource Primary}" />
+
+        <Setter Property="FontAttributes"
+                Value="Bold" />
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Default}" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource LabelPrimary}" />
+
+        <Style.Triggers>
+            <Trigger TargetType="Button"
+                     Property="IsEnabled"
+                     Value="False">
+                <Setter Property="TextColor"
+                        Value="{DynamicResource LabelDisabled}" />
+                <Setter Property="Background"
+                        Value="{DynamicResource InputDisabled}" />
+                <Setter Property="Opacity"
+                        Value="{DynamicResource DisabledOpacity}" />
+                <Setter Property="BorderWidth"
+                        Value="0" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="FilledCardButtonStyle"
+           TargetType="Button"
+           BasedOn="{StaticResource FilledButtonStyle}">
+        <Setter Property="Background"
+                Value="{DynamicResource ButtonBackground}" />
+
+        <Setter Property="BorderWidth"
+                Value="2" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource ButtonBorder}" />
+
+        <Setter Property="TextColor"
+                Value="{DynamicResource Primary}" />
+    </Style>
+
+    <Style x:Key="OutlinedButtonStyle"
+           TargetType="Button"
+           BasedOn="{StaticResource FilledButtonStyle}">
+        <Setter Property="Background"
+                Value="Transparent" />
+
+        <Setter Property="BorderWidth"
+                Value="1" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource Primary}" />
+
+        <Setter Property="TextColor"
+                Value="{DynamicResource Primary}" />
+    </Style>
+
+    <Style x:Key="TextButtonStyle"
+           TargetType="Button"
+           BasedOn="{StaticResource OutlinedButtonStyle}">
+        <Setter Property="Background"
+                Value="Transparent" />
+
+        <Setter Property="BorderWidth"
+                Value="0" />
+        <Setter Property="BorderColor"
+                Value="Transparent" />
+
+        <Style.Triggers>
+            <Trigger TargetType="Button"
+                     Property="IsEnabled"
+                     Value="False">
+                <Setter Property="Background"
+                        Value="Transparent" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="BelowInputButtonStyle"
+           TargetType="Button"
+           BasedOn="{StaticResource TextButtonStyle}">
+        <Setter Property="HorizontalOptions"
+                Value="End" />
+        <Setter Property="VerticalOptions"
+                Value="Center" />
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="HeightRequest"
+                Value="32" />
+
+        <Setter Property="Padding"
+                Value="8,0" />
+        <Setter Property="Margin"
+                Value="0" />
+
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Default}" />
+        <Setter Property="FontAttributes"
+                Value="None" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource Primary}" />
+    </Style>
+
+    <!-- Default Styles -->
+    <Style TargetType="Button"
+           BasedOn="{StaticResource FilledButtonStyle}" />
+
+    <Style TargetType="inp:ButtonView"
+           BasedOn="{StaticResource FilledButtonViewStyle}" />
+
+</ResourceDictionary>

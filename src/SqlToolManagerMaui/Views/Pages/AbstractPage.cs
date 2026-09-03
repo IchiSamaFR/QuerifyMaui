@@ -1,7 +1,7 @@
 ﻿
 using SqlToolManagerMaui.ViewModels;
 
-namespace SqlToolManagerMaui.Views;
+namespace SqlToolManagerMaui.Views.Pages;
 
 public abstract partial class AbstractPage : ContentPage
 {
@@ -9,7 +9,7 @@ public abstract partial class AbstractPage : ContentPage
 
     public AbstractVM ContextViewModel { get; }
 
-    public AbstractPage(AbstractVM dataContext)
+    protected AbstractPage(AbstractVM dataContext)
     {
         ContextViewModel = dataContext;
         BindingContext = dataContext;
@@ -21,7 +21,7 @@ public abstract partial class AbstractPage : ContentPage
         base.OnNavigatedTo(args);
 
         IsPageFocused = true;
-        var isPush = args.NavigationType == NavigationType.Push;
+        var isPush = args?.NavigationType == NavigationType.Push;
         HandlePageEntered(isPush);
     }
 
@@ -30,7 +30,7 @@ public abstract partial class AbstractPage : ContentPage
         base.OnNavigatedFrom(args);
 
         IsPageFocused = false;
-        var isPush = args.NavigationType == NavigationType.Push;
+        var isPush = args?.NavigationType == NavigationType.Push;
         HandlePageExited(isPush);
     }
 

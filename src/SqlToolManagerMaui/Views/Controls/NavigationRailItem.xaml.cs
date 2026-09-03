@@ -1,4 +1,4 @@
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Views.Controls;
 
@@ -23,8 +23,7 @@ public partial class NavigationRailItem : ContentView
             propertyChanged: OnSelectionSourceChanged);
 
     public static readonly BindableProperty IsSelectedProperty =
-        BindableProperty.Create(nameof(IsSelected), typeof(bool), typeof(NavigationRailItem), false,
-            propertyChanged: (b, o, n) => ((NavigationRailItem)b).UpdateBackground());
+        BindableProperty.Create(nameof(IsSelected), typeof(bool), typeof(NavigationRailItem), false);
 
     public static readonly BindableProperty IsLabelVisibleProperty =
         BindableProperty.Create(nameof(IsLabelVisible), typeof(bool), typeof(NavigationRailItem), true);
@@ -74,8 +73,6 @@ public partial class NavigationRailItem : ContentView
         set => SetValue(CommandProperty, value);
     }
 
-    private bool _isHovered;
-
     public NavigationRailItem()
     {
         InitializeComponent();
@@ -86,48 +83,5 @@ public partial class NavigationRailItem : ContentView
         var item = (NavigationRailItem)bindable;
         item.IsSelected = !string.IsNullOrEmpty(item.Route)
             && string.Equals(item.Route, item.SelectedRoute, StringComparison.Ordinal);
-    }
-
-    private void OnTapped(object? sender, TappedEventArgs e)
-    {
-        if (Command?.CanExecute(Route) == true)
-            Command.Execute(Route);
-    }
-
-    private void OnPointerEntered(object? sender, PointerEventArgs e)
-    {
-        _isHovered = true;
-        UpdateBackground();
-    }
-
-    private void OnPointerExited(object? sender, PointerEventArgs e)
-    {
-        _isHovered = false;
-        UpdateBackground();
-    }
-
-    private void UpdateBackground()
-    {
-        var key = (IsSelected, _isHovered) switch
-        {
-            (true, _) => "NavItemSelectedBrush",
-            (false, true) => "NavItemHoverBrush",
-            _ => null
-        };
-
-        if (key is null)
-        {
-            Container.SetAppThemeColor(BackgroundColorProperty, Colors.Transparent, Colors.Transparent);
-            return;
-        }
-
-        var light = key == "NavItemSelectedBrush" ? "NavItemSelectedLight" : "NavItemHoverLight";
-        var dark = key == "NavItemSelectedBrush" ? "NavItemSelectedDark" : "NavItemHoverDark";
-
-        if (Application.Current?.Resources.TryGetValue(light, out var lightColor) == true
-            && Application.Current?.Resources.TryGetValue(dark, out var darkColor) == true)
-        {
-            Container.SetAppThemeColor(BackgroundColorProperty, (Color)lightColor, (Color)darkColor);
-        }
     }
 }

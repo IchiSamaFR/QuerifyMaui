@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Style TargetType="inp:InputField"
+           x:Key="InputFieldStyleNoHeight"
+           ApplyToDerivedTypes="True">
+        <Setter Property="CornerRadius"
+                Value="4" />
+
+        <Setter Property="IsFloatedTitleFixed"
+                Value="True" />
+        
+        <Setter Property="FloatedTitleFontSize"
+                Value="{DynamicResource FontSize_Default}" />
+        <Setter Property="TitleFontSize"
+                Value="{DynamicResource FontSize_Default}" />
+        <Setter Property="TitleColor"
+                Value="{DynamicResource LabelPrimary}" />
+
+        <Setter Property="TextColor"
+                Value="{DynamicResource LabelPrimary}" />
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Default}" />
+
+        <Setter Property="BorderThickness"
+                Value="1" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource InputBorder}" />
+        <Setter Property="InputBackground"
+                Value="{DynamicResource InputBackground}" />
+
+        <Setter Property="AccentColor"
+                Value="{DynamicResource Primary}" />
+    </Style>
+    
+    <Style TargetType="inp:InputField"
+           x:Key="InputFieldStyle"
+           BasedOn="{StaticResource InputFieldStyleNoHeight}"
+           ApplyToDerivedTypes="True">
+        <Setter Property="HeightRequest"
+                Value="{DynamicResource SubInputHeight}" />
+    </Style>
+
+    <!-- Default Styles -->
+    <Style TargetType="inp:InputField"
+           BasedOn="{StaticResource InputFieldStyle}"
+           ApplyToDerivedTypes="True" />
+    
+</ResourceDictionary>

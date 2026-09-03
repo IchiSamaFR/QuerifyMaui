@@ -8,7 +8,7 @@
 		<ApplicationVersion>1</ApplicationVersion>
 		<WindowsPackageType>None</WindowsPackageType>
 	</PropertyGroup>
-	
+
 	<!-- ===================== General settings ===================== -->
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -60,7 +60,7 @@
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
 		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
-		
+
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
 
@@ -72,17 +72,22 @@
 	<ItemGroup>
 		<PackageReference Include="AathifMahir.Maui.MauiIcons.Fluent" Version="6.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
+		<PackageReference Include="CommunityToolkit.Maui.Markup" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.90" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\SqlToolManagerMaui.UI\SqlToolManagerMaui.UI.csproj" />
 	</ItemGroup>
 
 	<!-- ===================== Code generation (T4) ===================== -->
 	<ItemGroup>
-	  <None Update="Properties\AppXmlns.tt">
-	    <Generator>TextTemplatingFileGenerator</Generator>
-	    <LastGenOutput>AppXmlns.cs</LastGenOutput>
-	  </None>
-		
+		<None Update="Properties\AppXmlns.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>AppXmlns.cs</LastGenOutput>
+		</None>
+
 		<Compile Update="Properties\AppXmlns.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
@@ -93,10 +98,5 @@
 	<!-- ===================== Services ===================== -->
 	<ItemGroup>
 		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-	</ItemGroup>
-	<ItemGroup>
-	  <MauiXaml Update="Views\Pages\QueryPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	</ItemGroup>
 </Project>

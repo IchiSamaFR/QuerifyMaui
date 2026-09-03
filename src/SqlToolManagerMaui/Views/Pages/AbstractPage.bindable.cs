@@ -1,6 +1,6 @@
 ﻿using SqlToolManagerMaui.ViewModels;
 
-namespace SqlToolManagerMaui.Views;
+namespace SqlToolManagerMaui.Views.Pages;
 
 public abstract partial class AbstractPage
 {

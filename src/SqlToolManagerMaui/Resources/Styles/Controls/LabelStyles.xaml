@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+					xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+	<!-- Base Styles -->
+	<Style TargetType="Label"
+           x:Key="LabelStyle"
+           ApplyToDerivedTypes="True">
+		<Setter Property="FontSize"
+				Value="{DynamicResource FontSize_Default}" />
+		<Setter Property="VerticalTextAlignment"
+				Value="Center" />
+		<Setter Property="TextColor"
+				Value="{DynamicResource LabelPrimary}" />
+	</Style>
+
+	<Style TargetType="Label"
+		   x:Key="LabelSecondaryStyle"
+		   BasedOn="{StaticResource LabelStyle}">
+		<Setter Property="TextColor"
+				Value="{DynamicResource LabelSecondary}" />
+    </Style>
+
+    <Style TargetType="Label"
+           x:Key="LabelNormalStyle"
+           BasedOn="{StaticResource LabelSecondaryStyle}">
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Normal}" />
+    </Style>
+
+    <Style TargetType="Label"
+		   x:Key="LabelTertiaryStyle"
+		   BasedOn="{StaticResource LabelSecondaryStyle}">
+		<Setter Property="FontSize"
+				Value="{DynamicResource FontSize_Normal}" />
+		<Setter Property="TextColor"
+				Value="{DynamicResource LabelTertiary}" />
+	</Style>
+
+    <!-- Special Styles -->
+	<Style TargetType="Label"
+		   x:Key="LabelActionStyle"
+		   BasedOn="{StaticResource LabelStyle}">
+		<Setter Property="TextColor"
+                Value="{DynamicResource Primary}" />
+        <Setter Property="FontAttributes"
+                Value="Bold" />
+    </Style>
+
+	<Style TargetType="Label"
+		   x:Key="LabelHighlightStyle"
+		   BasedOn="{StaticResource LabelStyle}">
+		<Setter Property="TextColor"
+				Value="{DynamicResource Secondary}" />
+	</Style>
+
+    <Style TargetType="Label"
+           x:Key="LabelErrorStyle"
+           BasedOn="{StaticResource LabelStyle}">
+        <Setter Property="TextColor"
+                Value="Red" />
+    </Style>
+
+    <!-- Header Styles -->
+    <Style TargetType="Label"
+           x:Key="LabelHeaderHeroStyle"
+           BasedOn="{StaticResource LabelStyle}">
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Hero}" />
+        <Setter Property="FontAttributes"
+                Value="Bold" />
+    </Style>
+
+    <Style TargetType="Label"
+           x:Key="LabelHeaderTitleStyle"
+           BasedOn="{StaticResource LabelHeaderHeroStyle}">
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Title}" />
+    </Style>
+
+    <Style TargetType="Label"
+		   x:Key="LabelHeaderStyle"
+           BasedOn="{StaticResource LabelHeaderHeroStyle}">
+		<Setter Property="FontSize"
+				Value="{DynamicResource FontSize_XLarge}" />
+	</Style>
+
+	<Style TargetType="Label"
+		   x:Key="LabelSubHeaderStyle"
+		   BasedOn="{StaticResource LabelHeaderStyle}">
+		<Setter Property="FontSize"
+				Value="{DynamicResource FontSize_Medium}" />
+	</Style>
+
+	<Style TargetType="Label"
+		   x:Key="LabelThirdHeaderStyle"
+		   BasedOn="{StaticResource LabelSubHeaderStyle}">
+		<Setter Property="FontSize"
+				Value="{DynamicResource FontSize_Default}" />
+    </Style>
+    
+    <Style TargetType="Label"
+           x:Key="LabelFourthHeaderStyle"
+           BasedOn="{StaticResource LabelThirdHeaderStyle}">
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Small}" />
+    </Style>
+    
+    <Style TargetType="Label"
+           x:Key="LabelFifthHeaderStyle"
+           BasedOn="{StaticResource LabelFourthHeaderStyle}">
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Tiny}" />
+    </Style>
+
+    <Style TargetType="Label"
+		   x:Key="LabelThirdHeaderStyleHighlight"
+		   BasedOn="{StaticResource LabelThirdHeaderStyle}">
+		<Setter Property="TextColor"
+				Value="{DynamicResource Secondary}" />
+	</Style>
+
+    <!-- Default Styles -->
+    <Style TargetType="Label"
+           BasedOn="{StaticResource LabelStyle}" />
+
+</ResourceDictionary>

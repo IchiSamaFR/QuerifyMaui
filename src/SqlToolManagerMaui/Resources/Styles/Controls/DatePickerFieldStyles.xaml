@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Style TargetType="inp:DatePickerField"
+           x:Key="DatePickerFieldStyle"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource InputFieldStyle}">
+        <Setter Property="Icon"
+                Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.CalendarRtl20},
+                        IconSize=20,
+                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}}" />
+    </Style>
+
+    <Style TargetType="inp:TimePickerField"
+           x:Key="TimePickerFieldStyle"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource InputFieldStyle}">
+        <Setter Property="Icon"
+                Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.Clock20},
+                        IconSize=20,
+                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}}" />
+    </Style>
+
+    <Style TargetType="inp:DateTimePickerField"
+           x:Key="DateTimePickerFieldStyle"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource InputFieldStyle}">
+        <Setter Property="Icon"
+                Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.CalendarRtl20},
+                        IconSize=20,
+                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}}" />
+        <Setter Property="SecondIcon"
+                Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.Clock20},
+                        IconSize=20,
+                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}}" />
+    </Style>
+
+    <!-- Default Styles -->
+    <Style TargetType="inp:DatePickerField"
+           BasedOn="{StaticResource DatePickerFieldStyle}"
+           ApplyToDerivedTypes="True" />
+
+    <Style TargetType="inp:TimePickerField"
+           BasedOn="{StaticResource TimePickerFieldStyle}"
+           ApplyToDerivedTypes="True" />
+
+    <Style TargetType="inp:DateTimePickerField"
+           BasedOn="{StaticResource DateTimePickerFieldStyle}"
+           ApplyToDerivedTypes="True" />
+</ResourceDictionary>

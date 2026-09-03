@@ -1,0 +1,36 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Default Styles -->
+    <Style x:Key="StackSpacingStyle"
+           TargetType="StackBase"
+           ApplyToDerivedTypes="True">
+        <Setter Property="Spacing"
+                Value="{DynamicResource DefaultCollectionSpacing}" />
+    </Style>
+
+    <Style x:Key="VerticalStackLayoutSpacingStyle"
+           TargetType="VerticalStackLayout"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource StackSpacingStyle}" />
+
+    <Style x:Key="HorizontalStackLayoutSpacingStyle"
+           TargetType="HorizontalStackLayout"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource StackSpacingStyle}" />
+
+    <Style x:Key="StackLayoutSpacingStyle"
+           TargetType="StackLayout"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource StackSpacingStyle}" />
+
+    <Style x:Key="GridSpacingStyle"
+           TargetType="Grid"
+           ApplyToDerivedTypes="True">
+        <Setter Property="RowSpacing"
+                Value="{DynamicResource DefaultCollectionSpacing}" />
+        <Setter Property="ColumnSpacing"
+                Value="{DynamicResource DefaultCollectionSpacing}" />
+    </Style>
+
+</ResourceDictionary>

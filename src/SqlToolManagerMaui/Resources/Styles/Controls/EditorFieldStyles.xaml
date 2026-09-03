@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Style TargetType="inp:EditorField"
+           x:Key="EditorFieldStyle"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource InputFieldStyleNoHeight}">
+
+        <Setter Property="PlaceholderColor"
+                Value="{DynamicResource LabelPlaceHolder}" />
+
+        <Setter Property="BaseHeightRequest"
+                Value="{DynamicResource SubInputHeight}" />
+        <Setter Property="MaximumHeightByLines"
+                Value="4.5" />
+        <Setter Property="BorderThickness"
+                Value="1" />
+
+        <Setter Property="AccentColor"
+                Value="{DynamicResource Primary}" />
+        
+        <Setter Property="CursorColor"
+                Value="{DynamicResource Primary}" />
+    </Style>
+
+    <Style TargetType="inp:EditorField"
+           x:Key="ChatEditorFieldStyle"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource EditorFieldStyle}">
+
+        <Setter Property="MaximumHeightByLines"
+                Value="3.5" />
+        <Setter Property="Keyboard"
+                Value="Chat" />
+    </Style>
+
+    <!-- Default Styles -->
+    <Style TargetType="inp:EditorField"
+           BasedOn="{StaticResource EditorFieldStyle}"
+           ApplyToDerivedTypes="True" />
+    
+</ResourceDictionary>
