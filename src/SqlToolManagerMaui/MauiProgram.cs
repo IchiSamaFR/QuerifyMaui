@@ -17,11 +17,15 @@ namespace SqlToolManagerMaui
                 })
                 .UseFluentMauiIcons();
 
+            builder.Services.AddApplicationServices();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
 
-            return builder.Build();
+            MauiApp app = builder.Build();
+            // Locator statique, pour le peu de code qui ne peut pas recevoir ses dépendances.
+            Ioc.Initialize(app.Services);
+            return app;
         }
     }
 }

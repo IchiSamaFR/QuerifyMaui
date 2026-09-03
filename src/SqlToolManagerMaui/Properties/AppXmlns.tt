@@ -7,13 +7,14 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#
 	// Dossier du projet = dossier contenant ce .tt
-	var projectDir = Path.Combine(Path.GetDirectoryName(Host.TemplateFile), ".");
+	var projectDir = Path.Combine(Path.GetDirectoryName(Host.TemplateFile), "..");
 
 	// Liste de règles: Ns = préfixe de namespace à matcher (StartsWith),
 	// Suffix = suffixe d'URI XAML, Prefix = préfixe suggéré pour XAML (XmlnsPrefix)
 	var nsMap = new List<(string Ns, string Suffix, string Prefix)>
 	{
-		//( "SqlToolManagerMaui.ViewModels", "viewmodels", "vm" ),
+		( "SqlToolManagerMaui.ViewModels", "viewmodels", "vm" ),
+		( "SqlToolManagerMaui.Views", "views", "v" )
 	};
 
 	var basePrefixMap = new Dictionary<string, string>(StringComparer.Ordinal)
