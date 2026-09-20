@@ -19,4 +19,21 @@ public class BorderlessEditor : Editor
         get => (Color?)GetValue(CursorColorProperty);
         set => SetValue(CursorColorProperty, value);
     }
+
+    /// <summary>
+    /// Couleur d'accent du champ. Sur Windows, elle remplace l'accent systeme utilise par WinUI
+    /// pour la bordure basse du TextBox quand il a le focus (bleu par defaut).
+    /// </summary>
+    public static readonly BindableProperty AccentColorProperty = BindableProperty.Create(
+        nameof(AccentColor),
+        typeof(Color),
+        typeof(BorderlessEditor),
+        null,
+        propertyChanged: (bindable, _, _) => ((BorderlessEditor)bindable).Handler?.UpdateValue(nameof(AccentColor)));
+
+    public Color? AccentColor
+    {
+        get => (Color?)GetValue(AccentColorProperty);
+        set => SetValue(AccentColorProperty, value);
+    }
 }

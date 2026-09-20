@@ -86,6 +86,7 @@ public partial class IntField : InputField
         entry.SetBinding(InputView.IsReadOnlyProperty, new Binding(nameof(IsReadOnly), source: this));
 
         entry.SetBinding(BorderlessEntry.SelectionHighlightColorProperty, new Binding(nameof(SelectionHighlightColor), source: this));
+        entry.SetBinding(BorderlessEntry.AccentColorProperty, new Binding(nameof(AccentColor), source: this));
 
         entry.SetBinding(IsEnabledProperty, new Binding(nameof(IsEnabled), source: this));
 

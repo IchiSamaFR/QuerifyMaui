@@ -1,4 +1,5 @@
 ﻿
+using SqlToolManagerMaui.Services;
 using SqlToolManagerMaui.ViewModels;
 using SqlToolManagerMaui.ViewModels.Pages;
 using SqlToolManagerMaui.Views.Pages;
@@ -21,7 +22,9 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddApplicationDomainServices(this IServiceCollection services)
     {
 
-        return services.AddQueryProviders();
+        return services
+            .AddConnectionServices()
+            .AddQueryProviders();
     }
 
     /// <summary>
@@ -31,6 +34,20 @@ public static class ServiceCollectionExtensions
     /// </summary>
     private static IServiceCollection AddQueryProviders(this IServiceCollection services)
     {
+
+        return services;
+    }
+
+    /// <summary>
+    /// Persistance des connexions et testeurs par moteur. Un nouveau moteur s'ajoute
+    /// par un simple AddSingleton&lt;IConnectionTester, ...&gt; : le resolveur le decouvre seul.
+    /// </summary>
+    private static IServiceCollection AddConnectionServices(this IServiceCollection services)
+    {
+        services.AddSingleton<IConnectionStore, ConnectionStore>();
+
+        services.AddSingleton<IConnectionTester, SqlServerConnectionTester>();
+        services.AddSingleton<IConnectionTesterResolver, ConnectionTesterResolver>();
 
         return services;
     }
@@ -50,6 +67,9 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<QueryPage>();
         services.AddSingleton<QueryVM>();
+
+        services.AddSingleton<ConnectionsPage>();
+        services.AddSingleton<ConnectionsVM>();
 
         return services;
     }

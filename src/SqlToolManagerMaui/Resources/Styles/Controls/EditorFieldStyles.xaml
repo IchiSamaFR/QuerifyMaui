@@ -10,12 +10,8 @@
         <Setter Property="PlaceholderColor"
                 Value="{DynamicResource LabelPlaceHolder}" />
 
-        <Setter Property="BaseHeightRequest"
-                Value="{DynamicResource SubInputHeight}" />
         <Setter Property="MaximumHeightByLines"
                 Value="4.5" />
-        <Setter Property="BorderThickness"
-                Value="1" />
 
         <Setter Property="AccentColor"
                 Value="{DynamicResource Primary}" />

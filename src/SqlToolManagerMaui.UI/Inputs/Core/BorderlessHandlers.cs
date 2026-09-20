@@ -173,6 +173,26 @@ internal static class BorderlessHandlers
 #endif
         });
 
+        // Windows : la bordure basse du TextBox en focus utilise l'accent systeme (bleu).
+        // On la repeint avec l'AccentColor du champ.
+        EntryHandler.Mapper.AppendToMapping(nameof(BorderlessEntry.AccentColor), (handler, view) =>
+        {
+            if (view is not BorderlessEntry entry || entry.AccentColor is null)
+                return;
+#if WINDOWS
+            ApplyWindowsAccent(handler.PlatformView, entry.AccentColor);
+#endif
+        });
+
+        EditorHandler.Mapper.AppendToMapping(nameof(BorderlessEditor.AccentColor), (handler, view) =>
+        {
+            if (view is not BorderlessEditor editor || editor.AccentColor is null)
+                return;
+#if WINDOWS
+            ApplyWindowsAccent(handler.PlatformView, editor.AccentColor);
+#endif
+        });
+
         EditorHandler.Mapper.AppendToMapping("RemoveBlueCircle", (handler, view) =>
         {
 #if IOS
@@ -184,6 +204,20 @@ internal static class BorderlessHandlers
 #endif
         });
     }
+
+#if WINDOWS
+    /// <summary>
+    /// Surcharge la ressource WinUI qui pilote la bordure du TextBox en focus (accent systeme par
+    /// defaut). Les ressources sont posees sur le controle lui-meme : elles priment sur celles de
+    /// l'app sans affecter les autres TextBox.
+    /// </summary>
+    private static void ApplyWindowsAccent(Microsoft.UI.Xaml.Controls.TextBox textBox, Color accent)
+    {
+        var brush = new Microsoft.UI.Xaml.Media.SolidColorBrush(accent.ToWindowsColor());
+        textBox.Resources["TextControlBorderBrushFocused"] = brush;
+        textBox.Resources["TextControlBorderBrushFocusedPointerOver"] = brush;
+    }
+#endif
 }
 
 #if ANDROID

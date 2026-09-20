@@ -17,9 +17,9 @@ public partial class TextField : InputField
 
     public override View Content { get; set; } = new BorderlessEntry
     {
-        Margin = new Thickness(12, 0),
+        Margin = new Thickness(0, 0),
         BackgroundColor = Colors.Transparent,
-        VerticalOptions = LayoutOptions.Center,
+        VerticalOptions = LayoutOptions.Start,
         HorizontalOptions = LayoutOptions.Fill,
         VerticalTextAlignment = TextAlignment.Center,
     };
@@ -71,6 +71,7 @@ public partial class TextField : InputField
         EntryView.SetBinding(Entry.PlaceholderColorProperty, new Binding(nameof(PlaceholderColor), source: this));
         EntryView.SetBinding(BorderlessEntry.SelectionHighlightColorProperty, new Binding(nameof(SelectionHighlightColor), source: this));
         EntryView.SetBinding(BorderlessEntry.CursorColorProperty, new Binding(nameof(CursorColor), source: this));
+        EntryView.SetBinding(BorderlessEntry.AccentColorProperty, new Binding(nameof(AccentColor), source: this));
     }
 
     private void EntryView_TextChanged(object? sender, TextChangedEventArgs e)

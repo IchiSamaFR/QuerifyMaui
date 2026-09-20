@@ -5,7 +5,8 @@ namespace SqlToolManagerMaui.UI.Inputs.Core;
 /// <summary>
 /// Handler du Picker qui force le fond de la fenêtre de sélection, indépendamment du
 /// thème applicatif (neutralisé au runtime par UraniumUI Material / le mode jour forcé).
-/// Implémentations par plateforme : ThemedPickerHandler.Android.cs / ThemedPickerHandler.iOS.cs.
+/// Implémentations par plateforme : ThemedPickerHandler.Android.cs / ThemedPickerHandler.iOS.cs /
+/// ThemedPickerHandler.Windows.cs.
 /// </summary>
 public partial class ThemedPickerHandler : PickerHandler
 {

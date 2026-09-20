@@ -3,7 +3,34 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
+    <Color x:Key="LabelPrimary">#F3F3F3</Color>
+    <Color x:Key="LabelSecondary">#DBDBDB</Color>
+    <Color x:Key="LabelTertiary">#BFBFBF</Color>
+    <Color x:Key="LabelPlaceHolder">#BFBFBF</Color>
 
+    <!-- Dark equivalent for light theme -->
+    <Color x:Key="LabelPrimaryDark">#0D0D0D</Color>
+    <Color x:Key="LabelSecondaryDark">#2B2B2B</Color>
+    <Color x:Key="LabelTertiaryDark">#6B6B6B</Color>
+    <Color x:Key="LabelPlaceHolderDark">#9B9B9B</Color>
+
+    <Color x:Key="Background">#0C0C0C</Color>
+
+    <Color x:Key="CardBackground">#16161C</Color>
+
+    <Color x:Key="DialogBackgroundColor">#2F2F36</Color>
+
+    <Color x:Key="ButtonBackground">#16161C</Color>
+    <Color x:Key="ButtonBorder">#202020</Color>
+
+    <Color x:Key="InputBackground">#2F2F36</Color>
+    <Color x:Key="InputBorder">#2F2F36</Color>
+
+    <Color x:Key="Shadow">#000000</Color>
+
+    <Color x:Key="LabelDisabled">#7F7F7F</Color>
+    <Color x:Key="InputDisabled">#4E4E4E</Color>
+    
     <Color x:Key="Primary">#512BD4</Color>
     <Color x:Key="PrimaryDark">#ac99ea</Color>
     <Color x:Key="PrimaryDarkText">#242424</Color>
@@ -35,6 +62,11 @@
     <Color x:Key="NavItemHoverDark">#0FFFFFFF</Color>
     <Color x:Key="NavItemSelectedLight">#14000000</Color>
     <Color x:Key="NavItemSelectedDark">#19FFFFFF</Color>
+
+    <!-- Etats d'erreur (palette systeme Windows 11) -->
+    <Color x:Key="Error">#C42B1C</Color>
+    <Color x:Key="ErrorDark">#FF99A4</Color>
+    <Color x:Key="Warning">#FFA500</Color>
 
     <SolidColorBrush x:Key="PrimaryBrush"
                      Color="{StaticResource Primary}" />

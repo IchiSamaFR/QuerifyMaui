@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<v:AbstractPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                x:Class="SqlToolManagerMaui.Views.Pages.ConnectionsPage"
+                x:DataType="vm:ConnectionsVM">
+
+    <Grid ColumnDefinitions="320,*"
+          Padding="24,16,24,24"
+          ColumnSpacing="24">
+
+        <!-- ============ Colonne gauche : liste des connexions ============ -->
+        <Grid Grid.Column="0"
+              RowDefinitions="Auto,Auto,*"
+              RowSpacing="12">
+
+            <Label Grid.Row="0"
+                   Text="Connexions"
+                   Style="{StaticResource LabelHeaderTitleStyle}" />
+
+            <inp:ButtonView Grid.Row="1"
+                            Style="{StaticResource OutlinedButtonViewStyle}"
+                            Command="{Binding NewCommand}"
+                            ToolTipProperties.Text="Ajouter une connexion">
+                <HorizontalStackLayout Spacing="8"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Fill">
+                    <mi:MauiIcon Icon="{x:Static icons:FluentIcons.Add20}"
+                                 IconSize="18"
+                                 IconColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                    <Label Text="Nouvelle connexion"
+                           Style="{StaticResource LabelNormalStyle}" />
+                </HorizontalStackLayout>
+            </inp:ButtonView>
+
+            <!-- Etat vide -->
+            <Label Grid.Row="2"
+                   Text="Aucune connexion enregistree.&#10;Ajoutez-en une pour commencer."
+                   Style="{StaticResource LabelSecondaryStyle}"
+                   HorizontalTextAlignment="Center"
+                   VerticalOptions="Start"
+                   Margin="0,24,0,0"
+                   IsVisible="{Binding HasConnections, Converter={StaticResource BooleanInvertConverter}}" />
+
+            <CollectionView Grid.Row="2"
+                            ItemsSource="{Binding Connections}"
+                            SelectedItem="{Binding SelectedConnection, Mode=TwoWay}"
+                            SelectionMode="Single"
+                            IsVisible="{Binding HasConnections}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical"
+                                       ItemSpacing="4" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="m:DatabaseConnectionInfo">
+                        <Border Padding="16"
+                                StrokeThickness="0"
+                                BackgroundColor="Transparent">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="6" />
+                            </Border.StrokeShape>
+
+                            <HorizontalStackLayout Spacing="12">
+                                <mi:MauiIcon Icon="{x:Static icons:FluentIcons.DatabaseLink20}"
+                                             IconSize="20"
+                                             IconColor="{StaticResource LabelPrimary}"
+                                             VerticalOptions="Center" />
+
+                                <Label Text="{Binding Name}"
+                                       Style="{StaticResource LabelStyle}"
+                                       LineBreakMode="TailTruncation"/>
+                            </HorizontalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+
+        <!-- ============ Colonne droite : formulaire ============ -->
+        <Grid Grid.Column="1">
+
+            <!-- Aucun element selectionne -->
+            <VerticalStackLayout Spacing="8"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 IsVisible="{Binding IsFormClosed}">
+                <mi:MauiIcon Icon="{x:Static icons:FluentIcons.DatabaseLink20}"
+                             IconSize="40"
+                             IconColor="{StaticResource Gray500}"
+                             HorizontalOptions="Center" />
+                <Label Text="Selectionnez une connexion, ou creez-en une nouvelle."
+                       Style="{StaticResource LabelSecondaryStyle}"
+                       HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+
+            <ScrollView IsVisible="{Binding IsEditing}">
+                <VerticalStackLayout Spacing="16"
+                                     MaximumWidthRequest="720"
+                                     HorizontalOptions="Start">
+
+                    <Label Text="{Binding FormTitle}"
+                           Style="{StaticResource LabelHeaderStyle}" />
+
+                    <inp:TextField Title="Nom"
+                                   TitleColor="{StaticResource LabelPrimary}"
+                                   Text="{Binding EditName, Mode=TwoWay}"
+                                   Placeholder="Production, Recette, ..."
+                                   HorizontalOptions="Fill" />
+
+                    <inp:EditorField Title="Chaine de connexion"
+                                     Text="{Binding EditConnectionString, Mode=TwoWay}"
+                                     Placeholder="Server=.;Database=MaBase;Trusted_Connection=True;TrustServerCertificate=True"
+                                     HorizontalOptions="Fill" />
+
+                    <Label Text="Moteur : SQL Server. La chaine est conservee chiffree dans le coffre de Windows, jamais dans le fichier de configuration."
+                           Style="{StaticResource LabelTertiaryStyle}" />
+
+                    <!-- Message de validation / resultat du test -->
+                    <Label Text="{Binding StatusMessage}"
+                           IsVisible="{Binding HasStatusMessage}"
+                           LineBreakMode="WordWrap">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding IsStatusError}"
+                                         Value="True">
+                                <Setter Property="TextColor"
+                                        Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}"
+                                       HorizontalOptions="Start" />
+
+                    <!-- Actions -->
+                    <HorizontalStackLayout Spacing="12">
+                        <inp:IconButtonView Style="{StaticResource FilledIconButtonViewStyle}"
+                                            Command="{Binding SaveCommand}"
+                                            Text="Enregistrer"
+                                            Icon="{icons:Fluent Icon=Save20}" />
+
+                        <inp:IconButtonView Style="{StaticResource OutlinedIconButtonViewStyle}"
+                                            Command="{Binding TestCommand}"
+                                            Text="Tester"
+                                            Icon="{icons:Fluent Icon=PlugConnected20}" />
+
+                        <inp:IconButtonView Style="{StaticResource OutlinedIconButtonViewStyle}"
+                                            Command="{Binding CancelCommand}"
+                                            Text="Annuler" />
+
+                        <inp:IconButtonView Style="{StaticResource OutlinedIconButtonViewStyle}"
+                                            Command="{Binding DeleteCommand}"
+                                            CommandParameter="{Binding SelectedConnection}"
+                                            Text="Supprimer"
+                                            TextColor="{DynamicResource Error}"
+                                            BorderColor="{DynamicResource Error}"
+                                            Icon="{icons:Fluent Icon=Delete20}"
+                                            IsVisible="{Binding IsNew, Converter={StaticResource BooleanInvertConverter}}" />
+
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</v:AbstractPage>

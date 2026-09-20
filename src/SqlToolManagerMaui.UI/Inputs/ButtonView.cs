@@ -19,11 +19,20 @@ namespace SqlToolManagerMaui.UI.Inputs;
 /// ]]>
 /// </summary>
 [ContentProperty(nameof(Children))]
-public class ButtonView : Border
+public partial class ButtonView : Border
 {
-    private Layout _layout;
+    private Layout _layout = new Grid();
     private bool _isPressed;
-    private readonly Setter _hoverBackgroundSetter;
+    private readonly Grid _root;
+    private readonly BoxView _hoverOverlay = new BoxView
+    {
+        InputTransparent = true,
+        Opacity = 0,
+    };
+    private readonly RoundRectangle _shape = new RoundRectangle()
+    {
+        CornerRadius = 14
+    };
 
     /// <summary>Déclenché lors d'un tap complet (press + release sur le bouton).</summary>
     public event EventHandler? Clicked;
@@ -36,48 +45,76 @@ public class ButtonView : Border
 
     public ButtonView()
     {
-        Padding = 0;
-        StrokeThickness = 0;
-        Stroke = Colors.Transparent;
-        StrokeShape = new RoundRectangle { CornerRadius = new CornerRadius(8) };
+        _shape.CornerRadius = new CornerRadius(CornerRadius);
+        StrokeShape = _shape;
 
-        // Use SetDynamicResource so the color is resolved lazily from the app
-        // ResourceDictionary, avoiding resource access before the app is loaded.
-        this.SetDynamicResource(BackgroundColorProperty, "Background");
+        _hoverOverlay.CornerRadius = new CornerRadius(CornerRadius);
+        // La couleur du voile suit HoverOverlayColor ; seule son opacité est pilotée
+        // par les états visuels, ce qui évite d'avoir à maintenir un Setter à la main.
+        _hoverOverlay.SetBinding(BoxView.ColorProperty, new Binding(nameof(HoverOverlayColor), source: this));
+        UpdateOverlayMargin();
 
-        _layout = new Grid();
-        base.Content = _layout;
+        _root = new Grid { Children = { _layout, _hoverOverlay } };
+        base.Content = _root;
 
         AddTap();
         AddPointer();
 
-        _hoverBackgroundSetter = new Setter
-        {
-            Property = BackgroundProperty,
-            Value = HoverBackgroundColor
-        };
+        BindVisualStateGroups();
+    }
 
+    protected override void OnPropertyChanged(string? propertyName = null)
+    {
+        base.OnPropertyChanged(propertyName);
+
+        switch (propertyName)
+        {
+            case nameof(CornerRadius):
+                _shape.CornerRadius = new CornerRadius(CornerRadius);
+                _hoverOverlay.CornerRadius = new CornerRadius(CornerRadius);
+                break;
+            case nameof(IsEnabled):
+                Opacity = IsEnabled ? 1 : DisabledOpacity;
+                break;
+            case nameof(Padding):
+                UpdateOverlayMargin();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void BindVisualStateGroups()
+    {
         var visualStateGroups = new VisualStateGroupList
         {
             new VisualStateGroup
             {
-                Name = "CommonStates",
+                Name = "HoverStates",
                 States =
                 {
-                    new VisualState {
-                        Name = "Normal" },
+                    new VisualState
+                    {
+                        Name = "Normal",
+                        Setters =
+                        {
+                            new Setter { Property = OpacityProperty, Value = 0d },
+                        }
+                    },
                     new VisualState
                     {
                         Name = "PointerOver",
-                        Setters = {
-                            _hoverBackgroundSetter
+                        Setters =
+                        {
+                            new Setter { Property = OpacityProperty, Value = 1d },
                         }
                     }
                 }
             }
         };
 
-        VisualStateManager.SetVisualStateGroups(this, visualStateGroups);
+        // Les setters ciblent l'élément qui porte les groupes : le voile, pas le bouton.
+        VisualStateManager.SetVisualStateGroups(_hoverOverlay, visualStateGroups);
     }
 
     /// <summary>Les enfants du layout interne. Cible de la ContentProperty (XAML).</summary>
@@ -102,8 +139,8 @@ public class ButtonView : Border
             foreach (var child in existing)
                 value.Children.Add(child);
 
+            _root.Children[0] = value;
             _layout = value;
-            base.Content = _layout;
         }
     }
 
@@ -165,113 +202,19 @@ public class ButtonView : Border
         if (!IsEnabled)
             return;
 
-        VisualStateManager.GoToState(this, hovered ? "PointerOver" : "Normal");
+        VisualStateManager.GoToState(_hoverOverlay, hovered ? "PointerOver" : "Normal");
     }
 
-    protected override void OnPropertyChanged(string? propertyName = null)
+    /// <summary>
+    /// Le Padding du Border s'applique à son contenu, donc aussi au voile. Une marge négative
+    /// équivalente le fait ressortir jusqu'aux bords du bouton, où la StrokeShape le découpe.
+    /// </summary>
+    private void UpdateOverlayMargin()
     {
-        base.OnPropertyChanged(propertyName);
+        if (_hoverOverlay is null)
+            return;
 
-        if (propertyName == IsEnabledProperty.PropertyName)
-            Opacity = IsEnabled ? 1 : DisabledOpacity;
+        var padding = Padding;
+        _hoverOverlay.Margin = new Thickness(-padding.Left, -padding.Top, -padding.Right, -padding.Bottom);
     }
-
-    // ── Bindable Properties ──────────────────────────────────────────────
-
-    public ICommand? Command
-    {
-        get => (ICommand?)GetValue(CommandProperty);
-        set => SetValue(CommandProperty, value);
-    }
-
-    public static readonly BindableProperty CommandProperty = BindableProperty.Create(
-        nameof(Command), typeof(ICommand), typeof(ButtonView), null);
-
-    public object? CommandParameter
-    {
-        get => GetValue(CommandParameterProperty);
-        set => SetValue(CommandParameterProperty, value);
-    }
-
-    public static readonly BindableProperty CommandParameterProperty = BindableProperty.Create(
-        nameof(CommandParameter), typeof(object), typeof(ButtonView), null);
-
-    /// <summary>Opacité appliquée pendant l'état pressé.</summary>
-    public double PressedOpacity
-    {
-        get => (double)GetValue(PressedOpacityProperty);
-        set => SetValue(PressedOpacityProperty, value);
-    }
-
-    public static readonly BindableProperty PressedOpacityProperty = BindableProperty.Create(
-        nameof(PressedOpacity), typeof(double), typeof(ButtonView), 0.85d);
-
-    /// <summary>Opacité appliquée quand IsEnabled est false.</summary>
-    public double DisabledOpacity
-    {
-        get => (double)GetValue(DisabledOpacityProperty);
-        set => SetValue(DisabledOpacityProperty, value);
-    }
-
-    public static readonly BindableProperty DisabledOpacityProperty = BindableProperty.Create(
-        nameof(DisabledOpacity), typeof(double), typeof(ButtonView), 0.6d);
-
-    /// <summary>Couleur de fond appliquée pendant le survol (état PointerOver).</summary>
-    public Color? HoverBackgroundColor
-    {
-        get => (Color?)GetValue(HoverBackgroundColorProperty);
-        set => SetValue(HoverBackgroundColorProperty, value);
-    }
-
-    public static readonly BindableProperty HoverBackgroundColorProperty = BindableProperty.Create(
-        nameof(HoverBackgroundColor), typeof(Color), typeof(ButtonView), null,
-        propertyChanged: (bindable, _, newValue) =>
-        {
-            var btn = (ButtonView)bindable;
-            if (btn._hoverBackgroundSetter is null)
-                return;
-            btn._hoverBackgroundSetter.Value = newValue ?? btn.BackgroundColor;
-        });
-
-    /// <summary>Raccourci pour le rayon des coins (met à jour StrokeShape).</summary>
-    public double CornerRadius
-    {
-        get => (double)GetValue(CornerRadiusProperty);
-        set => SetValue(CornerRadiusProperty, value);
-    }
-
-    public static readonly BindableProperty CornerRadiusProperty = BindableProperty.Create(
-        nameof(CornerRadius), typeof(double), typeof(ButtonView), 8d,
-        propertyChanged: (bindable, _, newValue) =>
-            ((ButtonView)bindable).StrokeShape = new RoundRectangle
-            {
-                CornerRadius = new CornerRadius((double)newValue)
-            });
-
-    /// <summary>Couleur de la bordure (raccourci pour Stroke).</summary>
-    public Color? BorderColor
-    {
-        get => (Color?)GetValue(BorderColorProperty);
-        set => SetValue(BorderColorProperty, value);
-    }
-
-    public static readonly BindableProperty BorderColorProperty = BindableProperty.Create(
-        nameof(BorderColor), typeof(Color), typeof(ButtonView), Colors.Transparent,
-        propertyChanged: (bindable, _, newValue) =>
-        {
-            var btn = (ButtonView)bindable;
-            btn.Stroke = newValue is Color c ? c : Colors.Transparent;
-        });
-
-    /// <summary>Épaisseur de la bordure (raccourci pour StrokeThickness).</summary>
-    public double BorderThickness
-    {
-        get => (double)GetValue(BorderThicknessProperty);
-        set => SetValue(BorderThicknessProperty, value);
-    }
-
-    public static readonly BindableProperty BorderThicknessProperty = BindableProperty.Create(
-        nameof(BorderThickness), typeof(double), typeof(ButtonView), 0d,
-        propertyChanged: (bindable, _, newValue) =>
-            ((ButtonView)bindable).StrokeThickness = (double)newValue);
 }

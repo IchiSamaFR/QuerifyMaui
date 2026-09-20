@@ -2,17 +2,30 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
+    <!-- ButtonView Styles -->
     <Style x:Key="FilledButtonViewStyle"
            TargetType="inp:ButtonView"
            ApplyToDerivedTypes="True">
         <Setter Property="HeightRequest"
-                Value="{DynamicResource InputHeight}" />
+                Value="{DynamicResource SubInputHeight}" />
         <Setter Property="DisabledOpacity"
                 Value="{DynamicResource DisabledOpacity}" />
         <Setter Property="CornerRadius"
-                Value="14" />
-        <Setter Property="HoverBackgroundColor"
-                Value="{AppThemeBinding Light={StaticResource NavItemHoverLight}, Dark={StaticResource NavItemHoverDark}}" />
+                Value="12" />
+
+        <Setter Property="BackgroundColor"
+                Value="{DynamicResource Primary}" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource Primary}" />
+        <Setter Property="BorderThickness"
+                Value="1" />
+        <Setter Property="HoverOverlayColor"
+                Value="{DynamicResource NavItemHoverDark}" />
+
+        <Setter Property="VerticalOptions"
+                Value="Center" />
+        <Setter Property="Padding"
+                Value="16,0" />
     </Style>
 
     <Style x:Key="OutlinedButtonViewStyle"
@@ -20,10 +33,6 @@
            BasedOn="{StaticResource FilledButtonViewStyle}">
         <Setter Property="Background"
                 Value="Transparent" />
-        <Setter Property="BorderColor"
-                Value="{DynamicResource Primary}" />
-        <Setter Property="BorderThickness"
-                Value="1" />
     </Style>
 
     <Style x:Key="TextButtonViewStyle"
@@ -35,13 +44,66 @@
                 Value="0" />
     </Style>
 
+    <Style x:Key="NavTextButtonViewStyle"
+           TargetType="inp:ButtonView"
+           BasedOn="{StaticResource TextButtonViewStyle}">
+        <Setter Property="CornerRadius"
+                Value="4" />
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="HeightRequest"
+                Value="{DynamicResource SubInputHeight}" />
+    </Style>
+
+    <!-- IconButtonView Styles -->
+    <Style x:Key="FilledIconButtonViewStyle"
+           TargetType="inp:IconButtonView"
+           BasedOn="{StaticResource FilledButtonViewStyle}">
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Normal}" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource LabelPrimary}" />
+        <Setter Property="IconSize"
+                Value="20" />
+    </Style>
+
+    <Style x:Key="OutlinedIconButtonViewStyle"
+           TargetType="inp:IconButtonView"
+           BasedOn="{StaticResource OutlinedButtonViewStyle}">
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Normal}" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource LabelPrimary}" />
+        <Setter Property="IconSize"
+                Value="20" />
+    </Style>
+    
+    <Style x:Key="TextIconButtonViewStyle"
+           TargetType="inp:IconButtonView"
+           BasedOn="{StaticResource TextButtonViewStyle}">
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Normal}" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource Primary}" />
+        <Setter Property="IconSize"
+                Value="20" />
+    </Style>
+
+    <Style x:Key="NavTextIconButtonViewStyle"
+           TargetType="inp:IconButtonView"
+           BasedOn="{StaticResource NavTextButtonViewStyle}">
+        <Setter Property="TextColor"
+                Value="{DynamicResource LabelPrimary}" />
+    </Style>
+
+    <!-- Button Styles -->
     <Style x:Key="FilledButtonStyle"
            TargetType="Button"
            ApplyToDerivedTypes="True">
         <Setter Property="HeightRequest"
                 Value="{DynamicResource InputHeight}" />
         <Setter Property="CornerRadius"
-                Value="14" />
+                Value="12" />
         <Setter Property="Background"
                 Value="{DynamicResource Primary}" />
 
@@ -51,6 +113,11 @@
                 Value="{DynamicResource FontSize_Default}" />
         <Setter Property="TextColor"
                 Value="{DynamicResource LabelPrimary}" />
+
+        <Setter Property="VerticalOptions"
+                Value="Center" />
+        <Setter Property="Padding"
+                Value="16,0" />
 
         <Style.Triggers>
             <Trigger TargetType="Button"
@@ -75,7 +142,7 @@
                 Value="{DynamicResource ButtonBackground}" />
 
         <Setter Property="BorderWidth"
-                Value="2" />
+                Value="1" />
         <Setter Property="BorderColor"
                 Value="{DynamicResource ButtonBorder}" />
 
@@ -131,8 +198,6 @@
         <Setter Property="HeightRequest"
                 Value="32" />
 
-        <Setter Property="Padding"
-                Value="8,0" />
         <Setter Property="Margin"
                 Value="0" />
 
@@ -145,10 +210,13 @@
     </Style>
 
     <!-- Default Styles -->
-    <Style TargetType="Button"
-           BasedOn="{StaticResource FilledButtonStyle}" />
-
     <Style TargetType="inp:ButtonView"
            BasedOn="{StaticResource FilledButtonViewStyle}" />
+
+    <Style TargetType="inp:IconButtonView"
+           BasedOn="{StaticResource FilledIconButtonViewStyle}" />
+    
+    <Style TargetType="Button"
+           BasedOn="{StaticResource FilledButtonStyle}" />
 
 </ResourceDictionary>

@@ -23,7 +23,7 @@
 
     <Style TargetType="Label"
            x:Key="LabelNormalStyle"
-           BasedOn="{StaticResource LabelSecondaryStyle}">
+           BasedOn="{StaticResource LabelStyle}">
         <Setter Property="FontSize"
                 Value="{DynamicResource FontSize_Normal}" />
     </Style>

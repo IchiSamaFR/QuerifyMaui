@@ -27,6 +27,10 @@
                                   Icon="{x:Static icons:FluentIcons.DataUsage20}"
                                   Route="{x:Static v:QueryPage.PAGE_ROUTE}" />
 
+            <c:NavigationRailItem Text="Connexions"
+                                  Icon="{x:Static icons:FluentIcons.DatabaseLink20}"
+                                  Route="{x:Static v:ConnectionsPage.PAGE_ROUTE}" />
+
             <!-- Items ancres en bas du rail
             <c:NavigationRail.FooterItems>
                 <c:NavigationRailItem Text="Parametres"
@@ -42,4 +46,7 @@
 
     <ShellContent ContentTemplate="{DataTemplate v:QueryPage}"
                   Route="{x:Static v:QueryPage.PAGE_ROUTE}" />
+
+    <ShellContent ContentTemplate="{DataTemplate v:ConnectionsPage}"
+                  Route="{x:Static v:ConnectionsPage.PAGE_ROUTE}" />
 </Shell>

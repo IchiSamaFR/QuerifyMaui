@@ -24,11 +24,11 @@
                 Value="{DynamicResource FontSize_Default}" />
 
         <Setter Property="BorderThickness"
-                Value="1" />
+                Value="0" />
         <Setter Property="BorderColor"
-                Value="{DynamicResource InputBorder}" />
+                Value="Transparent" />
         <Setter Property="InputBackground"
-                Value="{DynamicResource InputBackground}" />
+                Value="Transparent" />
 
         <Setter Property="AccentColor"
                 Value="{DynamicResource Primary}" />

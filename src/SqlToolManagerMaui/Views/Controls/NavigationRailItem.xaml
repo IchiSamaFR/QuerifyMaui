@@ -12,7 +12,6 @@
         <BoxView x:Name="SelectionBackground"
                  InputTransparent="True"
                  CornerRadius="4"
-                 Margin="4,0"
                  BackgroundColor="Transparent">
             <BoxView.Triggers>
                 <DataTrigger TargetType="BoxView"
@@ -25,10 +24,9 @@
         </BoxView>
 
         <inp:ButtonView x:Name="Container"
-                        Margin="4,0"
                         CornerRadius="4"
                         HeightRequest="40"
-                        BackgroundColor="Transparent"
+                        Style="{StaticResource NavTextIconButtonViewStyle}"
                         ToolTipProperties.Text="{Binding Text, Source={x:Reference Root}}"
                         Command="{Binding Command, Source={x:Reference Root}}"
                         CommandParameter="{Binding Route, Source={x:Reference Root}}">

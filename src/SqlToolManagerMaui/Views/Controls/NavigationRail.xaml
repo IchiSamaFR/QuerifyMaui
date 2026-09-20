@@ -7,27 +7,16 @@
     <ContentView.Content>
         <Grid RowDefinitions="40,*,Auto"
               RowSpacing="4"
-              Padding="0,4"
+              Padding="4"
               BackgroundColor="{AppThemeBinding Light={StaticResource NavPaneLight}, Dark={StaticResource NavPaneDark}}">
 
             <!-- Bouton hamburger : bascule etendu / compact -->
-            <inp:ButtonView Grid.Row="0"
-                            x:Name="ToggleButton"
-                            Command="{Binding ToggleCommand, Source={x:Reference Root}}"
-                            Margin="4,0"
-                            CornerRadius="4"
-                            WidthRequest="40"
-                            HeightRequest="40"
-                            BackgroundColor="Transparent"
-                            HorizontalOptions="Start"
-                            ToolTipProperties.Text="Réduire / agrandir le menu"
-                            AutomationProperties.Name="Basculer le menu de navigation">
-                <mi:MauiIcon Icon="{x:Static icons:FluentIcons.Navigation20}"
-                             IconSize="20"
-                             IconColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
-                             HorizontalOptions="Center"
-                             VerticalOptions="Center" />
-            </inp:ButtonView>
+            <inp:IconButtonView Command="{Binding ToggleCommand, Source={x:Reference Root}}"
+                                Style="{StaticResource NavTextIconButtonViewStyle}"
+                                WidthRequest="{DynamicResource SubInputHeight}"
+                                Icon="{icons:Fluent Icon=Navigation20}"
+                                HorizontalOptions="Start"
+                                ToolTipProperties.Text="Réduire / agrandir le menu" />
 
             <!-- Items de navigation, alimentes par la propriete Items -->
             <ScrollView Grid.Row="1"

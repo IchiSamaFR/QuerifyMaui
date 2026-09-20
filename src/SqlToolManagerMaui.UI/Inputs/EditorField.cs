@@ -19,11 +19,12 @@ public partial class EditorField : InputField
 
     public override View Content { get; set; } = new BorderlessEditor
     {
-        Margin = new Thickness(16, 0),
+        Margin = new Thickness(0, 0),
         BackgroundColor = Colors.Transparent,
         AutoSize = EditorAutoSizeOption.TextChanges,
-        VerticalOptions = LayoutOptions.Fill,
-        HorizontalOptions = LayoutOptions.Fill
+        VerticalOptions = LayoutOptions.Start,
+        HorizontalOptions = LayoutOptions.Fill,
+        VerticalTextAlignment = TextAlignment.Center,
     };
 
     public override bool HasValue => !string.IsNullOrEmpty(Text);
@@ -68,6 +69,7 @@ public partial class EditorField : InputField
         EditorView.SetBinding(InputView.IsSpellCheckEnabledProperty, new Binding(nameof(IsSpellCheckEnabled), source: this));
 
         EditorView.SetBinding(BorderlessEditor.CursorColorProperty, new Binding(nameof(CursorColor), source: this));
+        EditorView.SetBinding(BorderlessEditor.AccentColorProperty, new Binding(nameof(AccentColor), source: this));
 
         EditorView.SetBinding(IsEnabledProperty, new Binding(nameof(IsEnabled), source: this));
     }
