@@ -1,8 +1,9 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.Data.SqlClient;
 using SqlToolManagerMaui.Models;
+using SqlToolManagerMaui.Models.Databases;
 
-namespace SqlToolManagerMaui.Services;
+namespace SqlToolManagerMaui.Services.Databases;
 
 /// <summary>
 /// Testeur SQL Server : s'appuie sur <see cref="SqlConnectionStringBuilder"/> pour

@@ -1,4 +1,4 @@
-namespace SqlToolManagerMaui.Models;
+﻿namespace SqlToolManagerMaui.Models.Databases;
 
 /// <summary>
 /// Moteur de base de donnees cible d'une connexion.

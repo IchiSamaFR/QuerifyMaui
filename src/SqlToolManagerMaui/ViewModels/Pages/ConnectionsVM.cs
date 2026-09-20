@@ -2,14 +2,16 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Models;
+using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Services;
+using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.UI.Extensions;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 
 /// <summary>
 /// Gestion des connexions enregistrees : liste a gauche, formulaire a droite.
-/// Le formulaire travaille sur un <see cref="ConnectionDraft"/> (clone du descripteur
+/// Le formulaire travaille sur un <see cref="DatabaseConnectionDraft"/> (clone du descripteur
 /// + chaine de connexion), afin qu'un abandon (Annuler) n'ait rien modifie dans la liste
 /// et que le secret ne touche jamais le type serialise.
 /// </summary>
@@ -23,7 +25,7 @@ public partial class ConnectionsVM : AbstractVM
 
     /// <summary>Formulaire ouvert, ou null quand aucune connexion n'est en cours d'edition.</summary>
     [ObservableProperty]
-    public partial ConnectionDraft? Draft { get; set; }
+    public partial DatabaseConnectionDraft? Draft { get; set; }
 
     /// <summary>Element selectionne dans la liste. Le setter charge le formulaire.</summary>
     [ObservableProperty]
@@ -73,7 +75,7 @@ public partial class ConnectionsVM : AbstractVM
     {
         SetStatus(string.Empty);
 
-        Draft = ConnectionDraft.ForExisting(info, await _store.GetConnectionStringAsync(info.Id, LifetimeToken));
+        Draft = DatabaseConnectionDraft.ForExisting(info, await _store.GetConnectionStringAsync(info.Id, LifetimeToken));
 
         if (!Draft.HasStoredConnectionString)
             SetStatus("Chaine introuvable dans le coffre : saisissez-la de nouveau.", isError: true);
@@ -93,7 +95,7 @@ public partial class ConnectionsVM : AbstractVM
     private void New()
     {
         ClearSelection();
-        Draft = ConnectionDraft.ForNew();
+        Draft = DatabaseConnectionDraft.ForNew();
 
         SetStatus(string.Empty);
     }

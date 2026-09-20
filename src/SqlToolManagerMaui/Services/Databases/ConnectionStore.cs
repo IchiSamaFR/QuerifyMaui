@@ -1,8 +1,9 @@
-﻿using System.Text.Json;
+﻿using Newtonsoft.Json;
 using SqlToolManagerMaui.Models;
+using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.UI.Extensions;
 
-namespace SqlToolManagerMaui.Services;
+namespace SqlToolManagerMaui.Services.Databases;
 
 /// <summary>
 /// Stockage mixte : le fichier connections.json (AppDataDirectory) ne contient que
@@ -124,10 +125,9 @@ public sealed class ConnectionStore : IConnectionStore
         try
         {
             await using var stream = File.OpenRead(_filePath);
-            var items = await JsonSerializer.DeserializeAsync(
-                stream,
-                ConnectionStoreJsonContext.Default.ListDatabaseConnectionInfo,
-                cancellationToken);
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync();
+            var items = JsonConvert.DeserializeObject<List<DatabaseConnectionInfo>>(json);
 
             return _cache = items ?? [];
         }
@@ -150,11 +150,9 @@ public sealed class ConnectionStore : IConnectionStore
         var tempPath = _filePath + ".tmp";
         await using (var stream = File.Create(tempPath))
         {
-            await JsonSerializer.SerializeAsync(
-                stream,
-                items,
-                ConnectionStoreJsonContext.Default.ListDatabaseConnectionInfo,
-                cancellationToken);
+            using var writer = new StreamWriter(stream);
+            var json = JsonConvert.SerializeObject(items);
+            await writer.WriteAsync(json);
         }
 
         File.Move(tempPath, _filePath, overwrite: true);

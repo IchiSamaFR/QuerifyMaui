@@ -1,6 +1,7 @@
-using SqlToolManagerMaui.Models;
+﻿using SqlToolManagerMaui.Models;
+using SqlToolManagerMaui.Models.Databases;
 
-namespace SqlToolManagerMaui.Services;
+namespace SqlToolManagerMaui.Services.Databases;
 
 /// <summary>
 /// Resout le testeur correspondant a un moteur. Un nouveau moteur se declare

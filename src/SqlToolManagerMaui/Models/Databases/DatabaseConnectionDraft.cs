@@ -2,7 +2,7 @@
 using SqlToolManagerMaui.UI.Converters;
 using SqlToolManagerMaui.UI.Extensions;
 
-namespace SqlToolManagerMaui.Models;
+namespace SqlToolManagerMaui.Models.Databases;
 
 /// <summary>
 /// Etat d'edition du formulaire de connexion.
@@ -12,7 +12,7 @@ namespace SqlToolManagerMaui.Models;
 /// dans connections.json. Le descripteur edite est un clone, pour qu'un abandon
 /// (Annuler) ne modifie rien dans la liste.
 /// </summary>
-public sealed partial class ConnectionDraft : ObservableObject
+public sealed partial class DatabaseConnectionDraft : ObservableObject
 {
     /// <summary>Chaine telle que lue dans le coffre, mot de passe compris.</summary>
     private readonly string _stored;
@@ -27,7 +27,7 @@ public sealed partial class ConnectionDraft : ObservableObject
     /// <summary>Faux quand le coffre n'a rendu aucune chaine pour cette connexion.</summary>
     public bool HasStoredConnectionString => !string.IsNullOrEmpty(_stored);
 
-    private ConnectionDraft(DatabaseConnectionInfo info, string stored)
+    private DatabaseConnectionDraft(DatabaseConnectionInfo info, string stored)
     {
         Info = info;
         _stored = stored;
@@ -35,12 +35,12 @@ public sealed partial class ConnectionDraft : ObservableObject
     }
 
     /// <summary>Formulaire de creation : descripteur vierge, aucune chaine.</summary>
-    public static ConnectionDraft ForNew() => new(
+    public static DatabaseConnectionDraft ForNew() => new(
         new DatabaseConnectionInfo { Provider = DatabaseProvider.SqlServer },
         string.Empty);
 
     /// <summary>Formulaire d'edition : le mot de passe arrive deja masque.</summary>
-    public static ConnectionDraft ForExisting(DatabaseConnectionInfo info, string? stored)
+    public static DatabaseConnectionDraft ForExisting(DatabaseConnectionInfo info, string? stored)
         => new(info.Clone(), stored ?? string.Empty);
 
     /// <summary>

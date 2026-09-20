@@ -1,4 +1,4 @@
-namespace SqlToolManagerMaui.Services;
+﻿namespace SqlToolManagerMaui.Services.Databases;
 
 /// <summary>Resultat d'un test d'ouverture de connexion.</summary>
 /// <param name="Success">Vrai si la connexion a pu etre ouverte.</param>

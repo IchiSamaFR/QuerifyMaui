@@ -1,6 +1,7 @@
-using SqlToolManagerMaui.Models;
+﻿using SqlToolManagerMaui.Models;
+using SqlToolManagerMaui.Models.Databases;
 
-namespace SqlToolManagerMaui.Services;
+namespace SqlToolManagerMaui.Services.Databases;
 
 /// <summary>
 /// Validation syntaxique et test d'ouverture d'une chaine de connexion.

@@ -1,6 +1,7 @@
-using SqlToolManagerMaui.Models;
+﻿using SqlToolManagerMaui.Models;
+using SqlToolManagerMaui.Models.Databases;
 
-namespace SqlToolManagerMaui.Services;
+namespace SqlToolManagerMaui.Services.Databases;
 
 /// <summary>
 /// Persistance des connexions : descripteurs en JSON, chaines de connexion en SecureStorage.

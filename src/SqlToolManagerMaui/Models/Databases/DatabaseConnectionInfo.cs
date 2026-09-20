@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace SqlToolManagerMaui.Models;
+namespace SqlToolManagerMaui.Models.Databases;
 
 /// <summary>
 /// Descripteur d'une connexion enregistree.
