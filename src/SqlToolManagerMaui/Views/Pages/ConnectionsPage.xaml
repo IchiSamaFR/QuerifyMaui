@@ -82,7 +82,7 @@
             <VerticalStackLayout Spacing="8"
                                  HorizontalOptions="Center"
                                  VerticalOptions="Center"
-                                 IsVisible="{Binding EditConnection, Converter={StaticResource IsNullObjectConverter}}">
+                                 IsVisible="{Binding Draft, Converter={StaticResource IsNullObjectConverter}}">
                 <mi:MauiIcon Icon="{x:Static icons:FluentIcons.DatabaseLink20}"
                              IconSize="40"
                              IconColor="{StaticResource Gray500}"
@@ -92,7 +92,7 @@
                        HorizontalTextAlignment="Center" />
             </VerticalStackLayout>
 
-            <ScrollView IsVisible="{Binding EditConnection, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}">
+            <ScrollView IsVisible="{Binding Draft, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}">
                 <VerticalStackLayout Spacing="16"
                                      MaximumWidthRequest="720"
                                      HorizontalOptions="Start">
@@ -102,12 +102,12 @@
 
                     <inp:TextField Title="Nom"
                                    TitleColor="{StaticResource LabelPrimary}"
-                                   Text="{Binding EditConnection.Name}"
+                                   Text="{Binding Draft.Info.Name}"
                                    Placeholder="Production, Recette, ..."
                                    HorizontalOptions="Fill" />
 
                     <inp:EditorField Title="Chaine de connexion"
-                                     Text="{Binding EditConnectionString, Mode=TwoWay}"
+                                     Text="{Binding Draft.ConnectionString, Mode=TwoWay}"
                                      Placeholder="Server=.;Database=MaBase;Trusted_Connection=True;TrustServerCertificate=True"
                                      HorizontalOptions="Fill" />
 
@@ -150,12 +150,12 @@
 
                         <inp:IconButtonView Style="{StaticResource OutlinedIconButtonViewStyle}"
                                             Command="{Binding DeleteCommand}"
-                                            CommandParameter="{Binding EditConnection}"
+                                            CommandParameter="{Binding Draft.Info}"
                                             Text="Supprimer"
                                             TextColor="{DynamicResource Error}"
                                             BorderColor="{DynamicResource Error}"
                                             Icon="{icons:Fluent Icon=Delete20}"
-                                            IsVisible="{Binding EditConnection.IsEditing}" />
+                                            IsVisible="{Binding Draft.Info.IsEditing}" />
 
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
