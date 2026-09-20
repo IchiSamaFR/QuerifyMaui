@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.ViewModels.Pages;
+﻿using System.ComponentModel;
+using SqlToolManagerMaui.ViewModels.Pages;
 
 namespace SqlToolManagerMaui.Views.Pages;
 
@@ -31,6 +32,30 @@ public partial class QueryPage : AbstractPage
         Editor.DocumentChanged += OnEditorDocumentChanged;
         Editor.ContentChanged += OnEditorContentChanged;
         Editor.SelectionChanged += OnEditorSelectionChanged;
+
+        // Les options d'affichage atteignent le controle natif mais pas la mesure MAUI.
+        ViewModel.DocumentConfiguration.PropertyChanged += OnDocumentConfigurationChanged;
+    }
+
+    private void OnDocumentConfigurationChanged(object? sender, PropertyChangedEventArgs e)
+        => RefreshEditorLayout();
+
+    /// <summary>
+    /// CodeEditor est un ContentView : quand WordWrap bascule, CodeEdit.Maui reconfigure le
+    /// RichEditBox natif mais MAUI conserve sa mesure en cache, et l'editeur garde donc
+    /// l'ancienne largeur. On force une remesure des deux cotes.
+    /// </summary>
+    private void RefreshEditorLayout()
+    {
+        ((IView)Editor).InvalidateMeasure();
+
+#if WINDOWS
+        if (Editor.Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement native)
+        {
+            native.InvalidateMeasure();
+            native.UpdateLayout();
+        }
+#endif
     }
 
     private void OnEditorDocumentChanged(object? sender, EventArgs e)

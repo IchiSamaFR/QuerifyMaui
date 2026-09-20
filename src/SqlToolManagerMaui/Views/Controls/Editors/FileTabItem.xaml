@@ -5,28 +5,63 @@
              HorizontalOptions="Start"
              VerticalOptions="Start"
              HeightRequest="{StaticResource SmallInputHeight}">
+
+    <ContentView.GestureRecognizers>
+        <PointerGestureRecognizer />
+    </ContentView.GestureRecognizers>
+
+    <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+            <VisualState x:Name="Normal">
+                <VisualState.Setters>
+                    <Setter TargetName="CloseButton"
+                            Property="Opacity"
+                            Value="0" />
+                </VisualState.Setters>
+            </VisualState>
+            <VisualState x:Name="PointerOver">
+                <VisualState.Setters>
+                    <Setter TargetName="CloseButton"
+                            Property="Opacity"
+                            Value="1" />
+                </VisualState.Setters>
+            </VisualState>
+            <VisualState x:Name="Selected">
+                <VisualState.Setters>
+                    <Setter TargetName="CloseButton"
+                            Property="Opacity"
+                            Value="1" />
+                </VisualState.Setters>
+            </VisualState>
+        </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
+
     <Border StrokeThickness="0"
             StrokeShape="RoundRectangle 6"
             BackgroundColor="Transparent">
+
         <Grid ColumnDefinitions="*,Auto"
               ColumnSpacing="8"
               Padding="15,0,6,0"
               HeightRequest="{StaticResource SmallInputHeight}">
+
             <Label Grid.Column="0"
-                   Text="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=Document.FallbackName, x:DataType=c:FileTabItem}"
+                   Text="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=Document.FileName, x:DataType=c:FileTabItem}"
                    Style="{StaticResource LabelStyle}" />
 
-            <inp:IconButtonView Grid.Column="1"
+            <inp:IconButtonView x:Name="CloseButton"
+                                Grid.Column="1"
                                 Style="{StaticResource SimpleTextIconButtonViewStyle}"
                                 Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=CloseCommand, x:DataType=c:FileTabItem}"
                                 CommandParameter="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=Document, x:DataType=c:FileTabItem}"
                                 Icon="{icons:Fluent Icon=Dismiss16}"
                                 TextColor="{StaticResource Error}"
-                                IconSize="16"
-                                WidthRequest="24"
-                                HeightRequest="24"
+                                IconSize="12"
+                                WidthRequest="20"
+                                HeightRequest="20"
                                 Padding="4"
                                 ToolTipProperties.Text="Fermer l'onglet" />
+
         </Grid>
     </Border>
 </ContentView>
