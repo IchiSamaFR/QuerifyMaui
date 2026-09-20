@@ -22,7 +22,11 @@
     
     <conv:IsDateTimeCompared x:Key="IsDateTimeCompared" />
 
+    <conv:ConnectionStringMaskerConverter x:Key="ConnectionStringMaskerConverter" />
+    
     <toolkit:IsListNotNullOrEmptyConverter x:Key="IsListNotNullOrEmptyConverter" />
+    <toolkit:IsListNullOrEmptyConverter x:Key="IsListNullOrEmptyConverter" />
+    
     <toolkit:VariableMultiValueConverter x:Key="AnyVariableMultiValueConverter"
                                          ConditionType="Any" />
     <toolkit:VariableMultiValueConverter x:Key="AllTrueMultiValueConverter"

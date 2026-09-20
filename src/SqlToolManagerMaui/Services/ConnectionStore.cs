@@ -1,5 +1,6 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using SqlToolManagerMaui.Models;
+using SqlToolManagerMaui.UI.Extensions;
 
 namespace SqlToolManagerMaui.Services;
 

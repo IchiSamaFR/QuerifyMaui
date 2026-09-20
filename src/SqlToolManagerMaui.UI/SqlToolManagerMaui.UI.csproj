@@ -31,6 +31,7 @@
 	<!-- ===================== NuGet references ===================== -->
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.90" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 	</ItemGroup>
 
 	<!-- ===================== Code generation (T4) ===================== -->

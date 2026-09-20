@@ -1,3 +1,4 @@
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Text.Json.Serialization;
 
 namespace SqlToolManagerMaui.Models;
@@ -9,20 +10,27 @@ namespace SqlToolManagerMaui.Models;
 /// (voir <see cref="Services.ConnectionStore"/>), seules les metadonnees d'affichage
 /// (serveur, base) sont recopiees ici.
 /// </summary>
-public sealed class DatabaseConnectionInfo
+public sealed partial class DatabaseConnectionInfo : ObservableObject
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNew))]
+    [NotifyPropertyChangedFor(nameof(IsEditing))]
+    public partial Guid Id { get; set; } = Guid.Empty;
 
     /// <summary>Libelle affiche dans la liste.</summary>
-    public string Name { get; set; } = string.Empty;
+    [ObservableProperty]
+    public partial string Name { get; set; } = string.Empty;
 
-    public DatabaseProvider Provider { get; set; } = DatabaseProvider.SqlServer;
+    [ObservableProperty]
+    public partial DatabaseProvider Provider { get; set; } = DatabaseProvider.SqlServer;
 
     /// <summary>Serveur extrait de la chaine, pour l'affichage uniquement.</summary>
-    public string Server { get; set; } = string.Empty;
+    [ObservableProperty]
+    public partial string Server { get; set; } = string.Empty;
 
     /// <summary>Base extraite de la chaine, pour l'affichage uniquement.</summary>
-    public string Database { get; set; } = string.Empty;
+    [ObservableProperty]
+    public partial string Database { get; set; } = string.Empty;
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now;
 
@@ -45,5 +53,6 @@ public sealed class DatabaseConnectionInfo
         _ => Provider.ToString(),
     };
 
-    public DatabaseConnectionInfo Clone() => (DatabaseConnectionInfo)MemberwiseClone();
+    public bool IsNew => Id == Guid.Empty;
+    public bool IsEditing => !IsNew;
 }

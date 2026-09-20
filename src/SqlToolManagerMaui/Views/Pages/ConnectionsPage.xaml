@@ -5,19 +5,15 @@
                 x:DataType="vm:ConnectionsVM">
 
     <Grid ColumnDefinitions="320,*"
-          Padding="24,16,24,24"
-          ColumnSpacing="24">
+          ColumnSpacing="24"
+          Style="{StaticResource ContentStyle}">
 
         <!-- ============ Colonne gauche : liste des connexions ============ -->
         <Grid Grid.Column="0"
-              RowDefinitions="Auto,Auto,*"
+              RowDefinitions="Auto,*"
               RowSpacing="12">
 
-            <Label Grid.Row="0"
-                   Text="Connexions"
-                   Style="{StaticResource LabelHeaderTitleStyle}" />
-
-            <inp:ButtonView Grid.Row="1"
+            <inp:ButtonView Grid.Row="0"
                             Style="{StaticResource OutlinedButtonViewStyle}"
                             Command="{Binding NewCommand}"
                             ToolTipProperties.Text="Ajouter une connexion">
@@ -33,19 +29,19 @@
             </inp:ButtonView>
 
             <!-- Etat vide -->
-            <Label Grid.Row="2"
+            <Label Grid.Row="1"
                    Text="Aucune connexion enregistree.&#10;Ajoutez-en une pour commencer."
                    Style="{StaticResource LabelSecondaryStyle}"
                    HorizontalTextAlignment="Center"
                    VerticalOptions="Start"
                    Margin="0,24,0,0"
-                   IsVisible="{Binding HasConnections, Converter={StaticResource BooleanInvertConverter}}" />
+                   IsVisible="{Binding Connections, Converter={StaticResource IsListNullOrEmptyConverter}}" />
 
-            <CollectionView Grid.Row="2"
+            <CollectionView Grid.Row="1"
                             ItemsSource="{Binding Connections}"
-                            SelectedItem="{Binding SelectedConnection, Mode=TwoWay}"
+                            SelectedItem="{Binding SelectedConnection}"
                             SelectionMode="Single"
-                            IsVisible="{Binding HasConnections}">
+                            IsVisible="{Binding Connections, Converter={StaticResource IsListNotNullOrEmptyConverter}}">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical"
                                        ItemSpacing="4" />
@@ -54,10 +50,8 @@
                     <DataTemplate x:DataType="m:DatabaseConnectionInfo">
                         <Border Padding="16"
                                 StrokeThickness="0"
+                                StrokeShape="RoundRectangle 6"
                                 BackgroundColor="Transparent">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="6" />
-                            </Border.StrokeShape>
 
                             <HorizontalStackLayout Spacing="12">
                                 <mi:MauiIcon Icon="{x:Static icons:FluentIcons.DatabaseLink20}"
@@ -65,9 +59,15 @@
                                              IconColor="{StaticResource LabelPrimary}"
                                              VerticalOptions="Center" />
 
-                                <Label Text="{Binding Name}"
-                                       Style="{StaticResource LabelStyle}"
-                                       LineBreakMode="TailTruncation"/>
+                                <HorizontalStackLayout Spacing="4">
+                                    <Label Text="{Binding Name}"
+                                           Style="{StaticResource LabelStyle}"
+                                           LineBreakMode="TailTruncation" />
+
+                                    <Label Text="{Binding ProviderLabel, StringFormat='({0})'}"
+                                           Style="{StaticResource LabelTertiaryStyle}"
+                                           LineBreakMode="TailTruncation" />
+                                </HorizontalStackLayout>
                             </HorizontalStackLayout>
                         </Border>
                     </DataTemplate>
@@ -82,7 +82,7 @@
             <VerticalStackLayout Spacing="8"
                                  HorizontalOptions="Center"
                                  VerticalOptions="Center"
-                                 IsVisible="{Binding IsFormClosed}">
+                                 IsVisible="{Binding EditConnection, Converter={StaticResource IsNullObjectConverter}}">
                 <mi:MauiIcon Icon="{x:Static icons:FluentIcons.DatabaseLink20}"
                              IconSize="40"
                              IconColor="{StaticResource Gray500}"
@@ -92,17 +92,17 @@
                        HorizontalTextAlignment="Center" />
             </VerticalStackLayout>
 
-            <ScrollView IsVisible="{Binding IsEditing}">
+            <ScrollView IsVisible="{Binding EditConnection, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}">
                 <VerticalStackLayout Spacing="16"
                                      MaximumWidthRequest="720"
                                      HorizontalOptions="Start">
 
-                    <Label Text="{Binding FormTitle}"
+                    <Label Text="Détails de la connexion"
                            Style="{StaticResource LabelHeaderStyle}" />
 
                     <inp:TextField Title="Nom"
                                    TitleColor="{StaticResource LabelPrimary}"
-                                   Text="{Binding EditName, Mode=TwoWay}"
+                                   Text="{Binding EditConnection.Name}"
                                    Placeholder="Production, Recette, ..."
                                    HorizontalOptions="Fill" />
 
@@ -150,12 +150,12 @@
 
                         <inp:IconButtonView Style="{StaticResource OutlinedIconButtonViewStyle}"
                                             Command="{Binding DeleteCommand}"
-                                            CommandParameter="{Binding SelectedConnection}"
+                                            CommandParameter="{Binding EditConnection}"
                                             Text="Supprimer"
                                             TextColor="{DynamicResource Error}"
                                             BorderColor="{DynamicResource Error}"
                                             Icon="{icons:Fluent Icon=Delete20}"
-                                            IsVisible="{Binding IsNew, Converter={StaticResource BooleanInvertConverter}}" />
+                                            IsVisible="{Binding EditConnection.IsEditing}" />
 
                     </HorizontalStackLayout>
                 </VerticalStackLayout>

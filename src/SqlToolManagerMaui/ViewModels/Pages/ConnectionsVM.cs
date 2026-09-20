@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Models;
 using SqlToolManagerMaui.Services;
+using SqlToolManagerMaui.UI.Converters;
+using SqlToolManagerMaui.UI.Extensions;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 
@@ -16,36 +18,28 @@ public partial class ConnectionsVM : AbstractVM
     private readonly IConnectionStore _store;
     private readonly IConnectionTesterResolver _testerResolver;
 
-    public ObservableCollection<DatabaseConnectionInfo> Connections { get; } = [];
+    [ObservableProperty]
+    public partial List<DatabaseConnectionInfo> Connections { get; set; } = new();
 
-    public bool HasConnections => Connections.Count > 0;
+    [ObservableProperty]
+    public partial DatabaseConnectionInfo? EditConnection { get; set; }
 
     /// <summary>Element selectionne dans la liste. Le setter charge le formulaire.</summary>
     [ObservableProperty]
     public partial DatabaseConnectionInfo? SelectedConnection { get; set; }
 
-    /// <summary>Vrai des qu'un formulaire (creation ou edition) est ouvert.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsFormClosed))]
-    [NotifyPropertyChangedFor(nameof(FormTitle))]
-    public partial bool IsEditing { get; set; }
+    /// <summary>Chaine complete (mot de passe inclus) telle que lue dans le coffre.</summary>
+    private string _cachedConnectionString { get; set; } = string.Empty;
 
-    public bool IsFormClosed => !IsEditing;
-
-    /// <summary>Vrai pour une creation, faux pour la modification d'une connexion existante.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(FormTitle))]
-    public partial bool IsNew { get; set; }
-
-    public string FormTitle => !IsEditing
-        ? string.Empty
-        : IsNew ? "Nouvelle connexion" : "Modifier la connexion";
-
-    [ObservableProperty]
-    public partial string EditName { get; set; } = string.Empty;
-
+    /// <summary>
+    /// Chaine affichee dans le formulaire. A la selection d'une connexion, le mot de passe
+    /// y est masque ; il n'est restitue qu'au moment d'enregistrer ou de tester, et
+    /// seulement si l'utilisateur a laisse le masque en place (voir
+    /// <see cref="ResolveConnectionString"/>).
+    /// </summary>
     [ObservableProperty]
     public partial string EditConnectionString { get; set; } = string.Empty;
+
 
     /// <summary>Message de validation ou de test, affiche sous le formulaire.</summary>
     [ObservableProperty]
@@ -57,11 +51,6 @@ public partial class ConnectionsVM : AbstractVM
     public partial bool IsStatusError { get; set; }
 
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
-
-    /// <summary>Id en cours d'edition : nouveau Guid en creation, Id existant sinon.</summary>
-    private Guid _editingId = Guid.Empty;
-
-    private DatabaseProvider _editingProvider = DatabaseProvider.SqlServer;
 
     /// <summary>Neutralise le handler de selection quand le VM repositionne lui-meme la liste.</summary>
     private bool _suppressSelectionHandling;
@@ -75,12 +64,7 @@ public partial class ConnectionsVM : AbstractVM
     protected override async Task LoadDatasBusyAsync()
     {
         var items = await _store.GetAllAsync(LifetimeToken);
-
-        Connections.Clear();
-        foreach (var item in items)
-            Connections.Add(item);
-
-        OnPropertyChanged(nameof(HasConnections));
+        Connections = new(items);
     }
 
     partial void OnSelectedConnectionChanged(DatabaseConnectionInfo? value)
@@ -90,8 +74,7 @@ public partial class ConnectionsVM : AbstractVM
 
         if (value is null)
         {
-            if (!IsNew)
-                CloseForm();
+            CloseForm();
             return;
         }
 
@@ -102,30 +85,36 @@ public partial class ConnectionsVM : AbstractVM
     {
         SetStatus(string.Empty);
 
-        _editingId = info.Id;
-        _editingProvider = info.Provider;
-        EditName = info.Name;
-        EditConnectionString = await _store.GetConnectionStringAsync(info.Id, LifetimeToken) ?? string.Empty;
+        EditConnection = info.Clone();
 
-        IsNew = false;
-        IsEditing = true;
+        _cachedConnectionString = await _store.GetConnectionStringAsync(info.Id, LifetimeToken) ?? string.Empty;
+        EditConnectionString = ConnectionStringMaskerConverter.Mask(_cachedConnectionString);
 
-        if (string.IsNullOrEmpty(EditConnectionString))
+        if (string.IsNullOrEmpty(_cachedConnectionString))
             SetStatus("Chaine introuvable dans le coffre : saisissez-la de nouveau.", isError: true);
+    }
+
+    private void ClearSelection()
+    {
+        _suppressSelectionHandling = true;
+        if (SelectedConnection is not null)
+            SelectedConnection = null;
+        if (EditConnection is not null)
+            EditConnection = null;
+        _suppressSelectionHandling = false;
     }
 
     [RelayCommand]
     private void New()
     {
-        SelectedConnection = null;
+        ClearSelection();
+        EditConnection = new()
+        {
+            Provider = DatabaseProvider.SqlServer
+        };
+        _cachedConnectionString = string.Empty;
+        EditConnectionString = _cachedConnectionString;
 
-        _editingId = Guid.NewGuid();
-        _editingProvider = DatabaseProvider.SqlServer;
-        EditName = string.Empty;
-        EditConnectionString = string.Empty;
-
-        IsNew = true;
-        IsEditing = true;
         SetStatus(string.Empty);
     }
 
@@ -137,29 +126,25 @@ public partial class ConnectionsVM : AbstractVM
 
     private async Task SaveBusyAsync()
     {
-        var name = EditName?.Trim() ?? string.Empty;
-        if (string.IsNullOrEmpty(name))
+        if (string.IsNullOrEmpty(EditConnection?.Name))
         {
             SetStatus("Donnez un nom a la connexion.", isError: true);
             return;
         }
 
-        var info = new DatabaseConnectionInfo
-        {
-            Id = _editingId,
-            Name = name,
-            Provider = _editingProvider,
-        };
-
-        var connectionString = EditConnectionString?.Trim() ?? string.Empty;
-        var error = _testerResolver.Resolve(_editingProvider).Validate(connectionString, info);
+        var connectionString = ResolveConnectionString();
+        var error = _testerResolver.Resolve(EditConnection?.Provider ?? DatabaseProvider.SqlServer)
+            .Validate(connectionString, EditConnection);
         if (error is not null)
         {
             SetStatus(error, isError: true);
             return;
         }
 
-        await _store.SaveAsync(info, connectionString, LifetimeToken);
+        var cachedConnection = EditConnection;
+        if (cachedConnection.IsNew)
+            cachedConnection.Id = Guid.NewGuid();
+        await _store.SaveAsync(cachedConnection, connectionString, LifetimeToken);
 
         // Rechargement complet : le store est seul maitre du tri et des dates.
         await LoadDatasBusyAsync();
@@ -168,7 +153,7 @@ public partial class ConnectionsVM : AbstractVM
 
         // Reouverture explicite (et non via le setter) : le handler de selection est
         // asynchrone et ecraserait le message de confirmation pose juste apres.
-        var saved = Connections.FirstOrDefault(c => c.Id == info.Id);
+        var saved = Connections.FirstOrDefault(c => c.Id == cachedConnection?.Id);
         if (saved is not null)
         {
             _suppressSelectionHandling = true;
@@ -178,7 +163,7 @@ public partial class ConnectionsVM : AbstractVM
             await OpenExistingAsync(saved);
         }
 
-        SetStatus($"Connexion \"{info.Name}\" enregistree.");
+        SetStatus($"Connexion \"{EditConnection?.Name}\" enregistree.");
     }
 
     [RelayCommand]
@@ -186,7 +171,6 @@ public partial class ConnectionsVM : AbstractVM
 
     private async Task DeleteBusyAsync(DatabaseConnectionInfo? info)
     {
-        info ??= SelectedConnection;
         if (info is null)
             return;
 
@@ -215,8 +199,8 @@ public partial class ConnectionsVM : AbstractVM
 
     private async Task TestBusyAsync()
     {
-        var connectionString = EditConnectionString?.Trim() ?? string.Empty;
-        var tester = _testerResolver.Resolve(_editingProvider);
+        var connectionString = ResolveConnectionString();
+        var tester = _testerResolver.Resolve(EditConnection?.Provider ?? DatabaseProvider.SqlServer);
 
         var probe = new DatabaseConnectionInfo();
         var error = tester.Validate(connectionString, probe);
@@ -234,21 +218,21 @@ public partial class ConnectionsVM : AbstractVM
             isError: !result.Success);
     }
 
+    /// <summary>
+    /// Chaine reellement utilisee : tant que le masque est en place, il vaut
+    /// "mot de passe inchange" et l'ancienne valeur est reinjectee. Un mot de passe
+    /// ressaisi remplace le masque, donc gagne.
+    /// </summary>
+    private string ResolveConnectionString()
+        => ConnectionStringMaskerConverter.Unmask(EditConnectionString?.Trim() ?? string.Empty, _cachedConnectionString);
+
     private void CloseForm()
     {
-        IsEditing = false;
-        IsNew = false;
-        _editingId = Guid.Empty;
-        EditName = string.Empty;
-        EditConnectionString = string.Empty;
-        SetStatus(string.Empty);
+        ClearSelection();
 
-        if (SelectedConnection is not null)
-        {
-            _suppressSelectionHandling = true;
-            SelectedConnection = null;
-            _suppressSelectionHandling = false;
-        }
+        EditConnectionString = string.Empty;
+        _cachedConnectionString = string.Empty;
+        SetStatus(string.Empty);
     }
 
     private void SetStatus(string message, bool isError = false)

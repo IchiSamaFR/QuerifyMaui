@@ -33,4 +33,11 @@
                 Value="{DynamicResource DefaultCollectionSpacing}" />
     </Style>
 
+    <Style x:Key="ContentStyle"
+           TargetType="Layout"
+           ApplyToDerivedTypes="True">
+        <Setter Property="Padding"
+                Value="24,16,24,24" />
+    </Style>
+
 </ResourceDictionary>
