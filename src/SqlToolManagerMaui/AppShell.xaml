@@ -14,7 +14,27 @@
 
     <!-- Menu lateral personnalise (remplace la liste par defaut du flyout) -->
     <Shell.FlyoutContent>
-        <c:NavigationRail />
+        <c:NavigationRail SelectedRoute="{Binding CurrentRoute}"
+                          IsLabelVisible="{Binding IsPaneOpen}"
+                          ItemCommand="{Binding NavigateCommand}"
+                          ToggleCommand="{Binding TogglePaneCommand}">
+
+            <c:NavigationRailItem Text="Accueil"
+                                  Icon="{x:Static icons:FluentIcons.Home20}"
+                                  Route="{x:Static v:MainPage.PAGE_ROUTE}" />
+
+            <c:NavigationRailItem Text="Requête"
+                                  Icon="{x:Static icons:FluentIcons.DataUsage20}"
+                                  Route="{x:Static v:QueryPage.PAGE_ROUTE}" />
+
+            <!-- Items ancres en bas du rail
+            <c:NavigationRail.FooterItems>
+                <c:NavigationRailItem Text="Parametres"
+                                      Icon="{x:Static icons:FluentIcons.Settings20}"
+                                      Route="{x:Static v:SettingsPage.PAGE_ROUTE}" />
+            </c:NavigationRail.FooterItems>
+            -->
+        </c:NavigationRail>
     </Shell.FlyoutContent>
 
     <ShellContent ContentTemplate="{DataTemplate v:MainPage}"

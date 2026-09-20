@@ -1,60 +1,48 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:DataType="vm:ShellVM"
-             x:Class="SqlToolManagerMaui.Views.Controls.NavigationRail">
+             x:Class="SqlToolManagerMaui.Views.Controls.NavigationRail"
+             x:Name="Root">
 
-    <Grid RowDefinitions="40,*,Auto"
-          RowSpacing="4"
-          Padding="0,4"
-          BackgroundColor="{AppThemeBinding Light={StaticResource NavPaneLight}, Dark={StaticResource NavPaneDark}}">
+    <ContentView.Content>
+        <Grid RowDefinitions="40,*,Auto"
+              RowSpacing="4"
+              Padding="0,4"
+              BackgroundColor="{AppThemeBinding Light={StaticResource NavPaneLight}, Dark={StaticResource NavPaneDark}}">
 
-        <!-- Bouton hamburger : bascule etendu / compact -->
-        <inp:ButtonView Grid.Row="0"
-                        x:Name="ToggleButton"
-                        Command="{Binding TogglePaneCommand}"
-                        Margin="4,0"
-                        CornerRadius="4"
-                        WidthRequest="40"
-                        HeightRequest="40"
-                        BackgroundColor="Transparent"
-                        HorizontalOptions="Start"
-                        ToolTipProperties.Text="Réduire / agrandir le menu"
-                        AutomationProperties.Name="Basculer le menu de navigation">
-            <mi:MauiIcon Icon="{x:Static icons:FluentIcons.Navigation20}"
-                         IconSize="20"
-                         IconColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
-                         HorizontalOptions="Center"
-                         VerticalOptions="Center" />
-        </inp:ButtonView>
+            <!-- Bouton hamburger : bascule etendu / compact -->
+            <inp:ButtonView Grid.Row="0"
+                            x:Name="ToggleButton"
+                            Command="{Binding ToggleCommand, Source={x:Reference Root}}"
+                            Margin="4,0"
+                            CornerRadius="4"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            BackgroundColor="Transparent"
+                            HorizontalOptions="Start"
+                            ToolTipProperties.Text="Réduire / agrandir le menu"
+                            AutomationProperties.Name="Basculer le menu de navigation">
+                <mi:MauiIcon Icon="{x:Static icons:FluentIcons.Navigation20}"
+                             IconSize="20"
+                             IconColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center" />
+            </inp:ButtonView>
 
-        <!-- Items de navigation -->
-        <ScrollView Grid.Row="1"
-                    Orientation="Vertical"
-                    HorizontalScrollBarVisibility="Never">
-            <VerticalStackLayout Spacing="4"
-                                 Margin="-4,0,0,0">
+            <!-- Items de navigation, alimentes par la propriete Items -->
+            <ScrollView Grid.Row="1"
+                        Orientation="Vertical"
+                        HorizontalScrollBarVisibility="Never">
+                <VerticalStackLayout x:Name="ItemsHost"
+                                     Spacing="4"
+                                     Margin="-4,0,0,0" />
+            </ScrollView>
 
-                <c:NavigationRailItem Text="Accueil"
-                                      Icon="{x:Static icons:FluentIcons.Home20}"
-                                      Route="{x:Static v:MainPage.PAGE_ROUTE}"
-                                      SelectedRoute="{Binding CurrentRoute}"
-                                      IsLabelVisible="{Binding IsPaneOpen}"
-                                      Command="{Binding NavigateCommand}" />
-
-                <c:NavigationRailItem Text="Requête"
-                                      Icon="{x:Static icons:FluentIcons.DataUsage20}"
-                                      Route="{x:Static v:QueryPage.PAGE_ROUTE}"
-                                      SelectedRoute="{Binding CurrentRoute}"
-                                      IsLabelVisible="{Binding IsPaneOpen}"
-                                      Command="{Binding NavigateCommand}" />
-
-            </VerticalStackLayout>
-        </ScrollView>
-
-        <!-- Zone basse (parametres, a brancher plus tard) -->
-        <VerticalStackLayout Grid.Row="2"
-                             Margin="0,0,0,4"
-                             Spacing="0" />
-    </Grid>
+            <!-- Zone basse, alimentee par la propriete FooterItems -->
+            <VerticalStackLayout Grid.Row="2"
+                                 x:Name="FooterHost"
+                                 Margin="-4,0,0,4"
+                                 Spacing="4" />
+        </Grid>
+    </ContentView.Content>
 </ContentView>

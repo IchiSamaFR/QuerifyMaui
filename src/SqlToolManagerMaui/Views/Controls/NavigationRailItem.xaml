@@ -29,6 +29,7 @@
                         CornerRadius="4"
                         HeightRequest="40"
                         BackgroundColor="Transparent"
+                        ToolTipProperties.Text="{Binding Text, Source={x:Reference Root}}"
                         Command="{Binding Command, Source={x:Reference Root}}"
                         CommandParameter="{Binding Route, Source={x:Reference Root}}">
 
