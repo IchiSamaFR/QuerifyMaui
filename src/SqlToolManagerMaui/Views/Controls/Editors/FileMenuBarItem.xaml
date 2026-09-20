@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<MenuBarItem xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SqlToolManagerMaui.Views.Controls.Editors.FileMenuBarItem"
+             Text="Fichier">
+    <MenuFlyoutItem Text="Nouveau"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileMenuBarItem}}, Path=NewCommand, x:DataType=c:FileMenuBarItem}">
+        <MenuFlyoutItem.KeyboardAccelerators>
+            <KeyboardAccelerator Modifiers="Ctrl"
+                                 Key="N" />
+        </MenuFlyoutItem.KeyboardAccelerators>
+    </MenuFlyoutItem>
+
+    <MenuFlyoutItem Text="Ouvrir..."
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileMenuBarItem}}, Path=OpenCommand, x:DataType=c:FileMenuBarItem}">
+        <MenuFlyoutItem.KeyboardAccelerators>
+            <KeyboardAccelerator Modifiers="Ctrl"
+                                 Key="O" />
+        </MenuFlyoutItem.KeyboardAccelerators>
+    </MenuFlyoutItem>
+
+    <MenuFlyoutSeparator />
+
+    <MenuFlyoutItem Text="Enregistrer"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileMenuBarItem}}, Path=SaveCommand, x:DataType=c:FileMenuBarItem}">
+        <MenuFlyoutItem.KeyboardAccelerators>
+            <KeyboardAccelerator Modifiers="Ctrl"
+                                 Key="S" />
+        </MenuFlyoutItem.KeyboardAccelerators>
+    </MenuFlyoutItem>
+
+    <MenuFlyoutItem Text="Enregistrer sous..."
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileMenuBarItem}}, Path=SaveAsCommand, x:DataType=c:FileMenuBarItem}">
+        <MenuFlyoutItem.KeyboardAccelerators>
+            <KeyboardAccelerator Modifiers="Ctrl,Shift"
+                                 Key="S" />
+        </MenuFlyoutItem.KeyboardAccelerators>
+    </MenuFlyoutItem>
+
+    <MenuFlyoutSeparator />
+
+    <MenuFlyoutItem Text="Fermer l'onglet"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileMenuBarItem}}, Path=CloseTabCommand, x:DataType=c:FileMenuBarItem}">
+        <MenuFlyoutItem.KeyboardAccelerators>
+            <KeyboardAccelerator Modifiers="Ctrl"
+                                 Key="W" />
+        </MenuFlyoutItem.KeyboardAccelerators>
+    </MenuFlyoutItem>
+
+    <MenuFlyoutItem Text="Quitter"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileMenuBarItem}}, Path=QuitCommand, x:DataType=c:FileMenuBarItem}" />
+</MenuBarItem>

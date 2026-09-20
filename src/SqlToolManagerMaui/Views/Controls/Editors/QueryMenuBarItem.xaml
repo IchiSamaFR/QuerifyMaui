@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<MenuBarItem xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SqlToolManagerMaui.Views.Controls.Editors.QueryMenuBarItem"
+             Text="Requête">
+    <MenuFlyoutItem Text="Exécuter"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:QueryMenuBarItem}}, Path=ExecuteCommand, x:DataType=c:QueryMenuBarItem}">
+        <MenuFlyoutItem.KeyboardAccelerators>
+            <KeyboardAccelerator Key="F5" />
+        </MenuFlyoutItem.KeyboardAccelerators>
+    </MenuFlyoutItem>
+
+    <MenuFlyoutSeparator />
+
+    <MenuFlyoutItem Text="Se déconnecter"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:QueryMenuBarItem}}, Path=DisconnectCommand, x:DataType=c:QueryMenuBarItem}" />
+</MenuBarItem>

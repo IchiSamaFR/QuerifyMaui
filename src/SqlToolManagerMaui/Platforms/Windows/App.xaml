@@ -5,4 +5,19 @@
     xmlns:maui="using:Microsoft.Maui"
     xmlns:local="using:SqlToolManagerMaui.WinUI">
 
+    <maui:MauiWinUIApplication.Resources>
+        <ResourceDictionary>
+            <!--
+              Ecart entre la colonne d'icone et le libelle des entrees de menu.
+              Le template WinUI de MenuFlyoutItem ne l'expose pas autrement : c'est la marge
+              gauche du TextBlock, alimentee par ces ressources de theme.
+              16 = largeur du Viewbox d'icone (figee par le template), 8 = ecart voulu.
+            -->
+            <Thickness x:Key="MenuFlyoutItemPlaceholderThemeThickness">16,0,0,0</Thickness>
+
+            <!-- Variante quand DEUX colonnes sont reservees (icone ET coche). -->
+            <Thickness x:Key="MenuFlyoutItemDoublePlaceholderThemeThickness">16,0,0,0</Thickness>
+        </ResourceDictionary>
+    </maui:MauiWinUIApplication.Resources>
+
 </maui:MauiWinUIApplication>

@@ -1,4 +1,4 @@
-using SqlToolManagerMaui.ViewModels.Pages;
+﻿using SqlToolManagerMaui.ViewModels.Pages;
 
 namespace SqlToolManagerMaui.Views.Pages;
 

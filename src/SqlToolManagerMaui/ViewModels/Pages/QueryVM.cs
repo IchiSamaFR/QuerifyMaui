@@ -27,10 +27,7 @@ public partial class QueryVM : AbstractVM
     public ObservableCollection<EditorDocument> Documents { get; } = new();
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasActiveDocument))]
     public partial EditorDocument? ActiveDocument { get; set; }
-
-    public bool HasActiveDocument => ActiveDocument is not null;
 
     /// <summary>
     /// Entree sentinelle placee en tete de <see cref="Connections"/> : la selectionner
@@ -195,6 +192,9 @@ public partial class QueryVM : AbstractVM
 
         if (ActiveDocument == document)
             ActiveDocument = Documents.Count == 0 ? null : Documents[Math.Min(index, Documents.Count - 1)];
+
+        if (Documents.Count == 0)
+            New();
     }
 
     /// <summary>Active l'onglet clique.</summary>

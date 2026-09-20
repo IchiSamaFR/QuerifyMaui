@@ -20,19 +20,28 @@ public partial class IconButtonView : ButtonView
         HorizontalOptions = LayoutOptions.Fill,
     };
 
-    private readonly Lazy<Image> _iconView = new (() => new Image
+    private readonly Lazy<Image> _iconView = new(() => new Image
     {
         StyleClass = new[] { "InputField.Icon" },
         HorizontalOptions = LayoutOptions.Start,
         VerticalOptions = LayoutOptions.Center,
+        Aspect = Aspect.AspectFit,
+        Margin = new Thickness(0, 0, 0, 0), // pour que l'icône ne touche pas la bordure du bas
     });
 
+    // Le centrage vertical passe par la boite, pas par les options de layout : avec
+    // VerticalOptions.Center la Label est haute comme son texte, et l'ecart d'ascendante
+    // / descendante de la police se voit directement. En Fill, elle occupe toute la
+    // hauteur du bouton et VerticalTextAlignment centre les glyphes dedans.
     private readonly Label _labelView = new()
     {
-        VerticalOptions = LayoutOptions.Center,
+        VerticalOptions = LayoutOptions.Fill,
         VerticalTextAlignment = TextAlignment.Center,
         HorizontalOptions = LayoutOptions.Fill,
+        HorizontalTextAlignment = TextAlignment.Start,
+        LineBreakMode = LineBreakMode.TailTruncation,
         IsVisible = false,
+        Margin = new Thickness(0, 0, 0, 0), // pour que le texte ne touche pas la bordure du bas
     };
 
     public IconButtonView() : base()

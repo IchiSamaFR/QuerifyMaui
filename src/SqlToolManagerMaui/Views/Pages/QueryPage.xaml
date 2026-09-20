@@ -6,138 +6,24 @@
                 x:DataType="vm:QueryVM"
                 Shell.NavBarIsVisible="True">
     <ContentPage.MenuBarItems>
-        <MenuBarItem Text="Fichier">
-            <MenuFlyoutItem Text="Nouveau"
-                            Command="{Binding NewCommand}">
-                <MenuFlyoutItem.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Ctrl"
-                                         Key="N" />
-                </MenuFlyoutItem.KeyboardAccelerators>
-            </MenuFlyoutItem>
+        <c:FileMenuBarItem NewCommand="{Binding NewCommand}"
+                           OpenCommand="{Binding OpenCommand}"
+                           SaveCommand="{Binding SaveCommand}"
+                           SaveAsCommand="{Binding SaveAsCommand}"
+                           CloseTabCommand="{Binding CloseActiveCommand}"
+                           QuitCommand="{Binding QuitCommand}" />
 
-            <MenuFlyoutItem Text="Ouvrir..."
-                            Command="{Binding OpenCommand}">
-                <MenuFlyoutItem.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Ctrl"
-                                         Key="O" />
-                </MenuFlyoutItem.KeyboardAccelerators>
-            </MenuFlyoutItem>
+        <c:EditMenuBarItem Editor="{Binding Source={x:Reference Editor}}" />
 
-            <MenuFlyoutSeparator />
+        <c:ViewMenuBarItem ToggleLineNumbersCommand="{Binding ToggleLineNumbersCommand}"
+                           AreLineNumbersVisible="{Binding DocumentConfiguration.IsLineDiplayed}"
+                           ToggleWordWrapCommand="{Binding ToggleWordWrapCommand}"
+                           IsWordWrapEnabled="{Binding DocumentConfiguration.IsWordWrapped}"
+                           ToggleTabIndentationCommand="{Binding ToggleUseTabsCommand}"
+                           IsTabIndentationEnabled="{Binding DocumentConfiguration.IsTabIndentation}" />
 
-            <MenuFlyoutItem Text="Enregistrer"
-                            Command="{Binding SaveCommand}">
-                <MenuFlyoutItem.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Ctrl"
-                                         Key="S" />
-                </MenuFlyoutItem.KeyboardAccelerators>
-            </MenuFlyoutItem>
-
-            <MenuFlyoutItem Text="Enregistrer sous..."
-                            Command="{Binding SaveAsCommand}">
-                <MenuFlyoutItem.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Ctrl,Shift"
-                                         Key="S" />
-                </MenuFlyoutItem.KeyboardAccelerators>
-            </MenuFlyoutItem>
-
-            <MenuFlyoutSeparator />
-
-            <MenuFlyoutItem Text="Fermer l'onglet"
-                            Command="{Binding CloseActiveCommand}">
-                <MenuFlyoutItem.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Ctrl"
-                                         Key="W" />
-                </MenuFlyoutItem.KeyboardAccelerators>
-            </MenuFlyoutItem>
-
-            <MenuFlyoutItem Text="Quitter"
-                            Command="{Binding QuitCommand}" />
-        </MenuBarItem>
-
-        <MenuBarItem Text="Édition">
-            <MenuFlyoutItem Text="Annuler"
-                            Command="{Binding Source={x:Reference Editor}, Path=Commands.Undo}" />
-            <MenuFlyoutItem Text="Rétablir"
-                            Command="{Binding Source={x:Reference Editor}, Path=Commands.Redo}" />
-
-            <MenuFlyoutSeparator />
-
-            <MenuFlyoutItem Text="Couper"
-                            Command="{Binding Source={x:Reference Editor}, Path=Commands.Cut}" />
-            <MenuFlyoutItem Text="Copier"
-                            Command="{Binding Source={x:Reference Editor}, Path=Commands.Copy}" />
-            <MenuFlyoutItem Text="Coller"
-                            Command="{Binding Source={x:Reference Editor}, Path=Commands.Paste}" />
-
-            <MenuFlyoutSeparator />
-
-            <MenuFlyoutItem Text="Tout sélectionner"
-                            Command="{Binding Source={x:Reference Editor}, Path=Commands.SelectAll}" />
-        </MenuBarItem>
-
-        <MenuBarItem Text="Affichage">
-            <MenuFlyoutItem Text="Afficher les numéros de ligne"
-                            Command="{Binding ToggleLineNumbersCommand}">
-                <MenuFlyoutItem.Style>
-                    <Style TargetType="MenuFlyoutItem">
-                        <Style.Triggers>
-                            <DataTrigger TargetType="MenuFlyoutItem"
-                                         Binding="{Binding DocumentConfiguration.IsLineDiplayed}"
-                                         Value="True">
-                                <Setter Property="Text"
-                                        Value="Masquer les numéros de ligne" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </MenuFlyoutItem.Style>
-            </MenuFlyoutItem>
-            <MenuFlyoutItem Text="Activer le retour à la ligne"
-                            Command="{Binding ToggleWordWrapCommand}">
-                <MenuFlyoutItem.Style>
-                    <Style TargetType="MenuFlyoutItem">
-                        <Style.Triggers>
-                            <DataTrigger TargetType="MenuFlyoutItem"
-                                         Binding="{Binding DocumentConfiguration.IsWordWrapped}"
-                                         Value="True">
-                                <Setter Property="Text"
-                                        Value="Désactiver le retour à la ligne" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </MenuFlyoutItem.Style>
-            </MenuFlyoutItem>
-            <MenuFlyoutItem Text="Activer l'indentation par tabulations"
-                            Command="{Binding ToggleUseTabsCommand}">
-                <MenuFlyoutItem.Style>
-                    <Style TargetType="MenuFlyoutItem">
-                        <Style.Triggers>
-                            <DataTrigger TargetType="MenuFlyoutItem"
-                                         Binding="{Binding DocumentConfiguration.IsTabIndentation}"
-                                         Value="True">
-                                <Setter Property="Text"
-                                        Value="Désactiver l'indentation par tabulations" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </MenuFlyoutItem.Style>
-            </MenuFlyoutItem>
-        </MenuBarItem>
-
-        <MenuBarItem Text="Requête">
-            <MenuFlyoutItem Text="Exécuter"
-                            Command="{Binding ExecuteQueryCommand}">
-                <MenuFlyoutItem.KeyboardAccelerators>
-                    <KeyboardAccelerator Key="F5" />
-                </MenuFlyoutItem.KeyboardAccelerators>
-            </MenuFlyoutItem>
-
-            <MenuFlyoutSeparator />
-
-            <MenuFlyoutItem Text="Se déconnecter"
-                            Command="{Binding DisconnectCommand}" />
-        </MenuBarItem>
-
+        <c:QueryMenuBarItem ExecuteCommand="{Binding ExecuteQueryCommand}"
+                            DisconnectCommand="{Binding DisconnectCommand}" />
     </ContentPage.MenuBarItems>
 
     <Grid RowDefinitions="Auto,*,Auto"
@@ -201,7 +87,7 @@
                              UseTabs="{Binding DocumentConfiguration.IsTabIndentation}"
                              LineCommentPrefix="--"
                              FontSize="{StaticResource FontSize_Normal}"
-                             IsVisible="{Binding HasActiveDocument}" />
+                             IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
         </Border>
 
         <!-- ============ Barre d'etat ============ -->

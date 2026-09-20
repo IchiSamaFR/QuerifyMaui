@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<MenuBarItem xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SqlToolManagerMaui.Views.Controls.Editors.ViewMenuBarItem"
+             Text="Affichage">
+
+    <c:CheckedMenuFlyoutItem Label="Numéros de ligne"
+                             IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=AreLineNumbersVisible, x:DataType=c:ViewMenuBarItem}"
+                             Command="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=ToggleLineNumbersCommand, x:DataType=c:ViewMenuBarItem}" />
+
+    <c:CheckedMenuFlyoutItem Label="Retour à la ligne"
+                             IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=IsWordWrapEnabled, x:DataType=c:ViewMenuBarItem}"
+                             Command="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=ToggleWordWrapCommand, x:DataType=c:ViewMenuBarItem}" />
+
+    <c:CheckedMenuFlyoutItem Label="Indentation par tabulations"
+                             IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=IsTabIndentationEnabled, x:DataType=c:ViewMenuBarItem}"
+                             Command="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=ToggleTabIndentationCommand, x:DataType=c:ViewMenuBarItem}" />
+</MenuBarItem>
