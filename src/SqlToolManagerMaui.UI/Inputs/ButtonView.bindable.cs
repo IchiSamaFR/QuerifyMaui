@@ -74,13 +74,9 @@ public partial class ButtonView
         set => SetValue(BorderColorProperty, value);
     }
 
+    // Stroke suit BorderColor par binding (voir ButtonView.RegisterBindings).
     public static readonly BindableProperty BorderColorProperty = BindableProperty.Create(
-        nameof(BorderColor), typeof(Color), typeof(ButtonView), Colors.Transparent,
-        propertyChanged: (bindable, _, newValue) =>
-        {
-            var btn = (ButtonView)bindable;
-            btn.Stroke = newValue is Color c ? c : Colors.Transparent;
-        });
+        nameof(BorderColor), typeof(Color), typeof(ButtonView), Colors.Transparent);
 
     /// <summary>Épaisseur de la bordure (raccourci pour StrokeThickness).</summary>
     public double BorderThickness
@@ -89,8 +85,30 @@ public partial class ButtonView
         set => SetValue(BorderThicknessProperty, value);
     }
 
+    // StrokeThickness suit BorderThickness par binding (voir ButtonView.RegisterBindings).
     public static readonly BindableProperty BorderThicknessProperty = BindableProperty.Create(
-        nameof(BorderThickness), typeof(double), typeof(ButtonView), 0d,
-        propertyChanged: (bindable, _, newValue) =>
-            ((ButtonView)bindable).StrokeThickness = (double)newValue);
+        nameof(BorderThickness), typeof(double), typeof(ButtonView), 0d);
+
+    /// <summary>
+    /// Alignement horizontal du contenu dans le bouton (Fill par defaut : le layout
+    /// interne occupe toute la largeur, comme aujourd'hui).
+    /// </summary>
+    public LayoutOptions ContentHorizontalOptions
+    {
+        get => (LayoutOptions)GetValue(ContentHorizontalOptionsProperty);
+        set => SetValue(ContentHorizontalOptionsProperty, value);
+    }
+
+    public static readonly BindableProperty ContentHorizontalOptionsProperty = BindableProperty.Create(
+        nameof(ContentHorizontalOptions), typeof(LayoutOptions), typeof(ButtonView), LayoutOptions.Center);
+
+    /// <summary>Alignement vertical du contenu dans le bouton (Fill par defaut).</summary>
+    public LayoutOptions ContentVerticalOptions
+    {
+        get => (LayoutOptions)GetValue(ContentVerticalOptionsProperty);
+        set => SetValue(ContentVerticalOptionsProperty, value);
+    }
+
+    public static readonly BindableProperty ContentVerticalOptionsProperty = BindableProperty.Create(
+        nameof(ContentVerticalOptions), typeof(LayoutOptions), typeof(ButtonView), LayoutOptions.Center);
 }

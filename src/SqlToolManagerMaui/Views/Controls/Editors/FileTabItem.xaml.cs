@@ -3,7 +3,7 @@ using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Views.Controls.Editors;
 
-public partial class FileTabItem : Border
+public partial class FileTabItem : ContentView
 {
 	public static readonly BindableProperty CloseCommandProperty = BindableProperty.Create(
         nameof(CloseCommand),

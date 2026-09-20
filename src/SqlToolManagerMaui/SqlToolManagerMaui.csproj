@@ -22,6 +22,7 @@
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<NoWarn>$(NoWarn);MVVMTK0045;CA2007;CA1515</NoWarn>
 	</PropertyGroup>
 

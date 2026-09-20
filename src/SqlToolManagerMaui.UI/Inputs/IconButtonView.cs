@@ -11,41 +11,42 @@
 ///                       Command="{Binding SaveCommand}" />
 /// ]]>
 /// </summary>
+[ContentProperty(nameof(Children))]
 public partial class IconButtonView : ButtonView
 {
-    private readonly HorizontalStackLayout _stack = new()
+    protected override Layout _layout { get; } = new HorizontalStackLayout
     {
-        HorizontalOptions = LayoutOptions.Center,
-        VerticalOptions = LayoutOptions.Center,
+        VerticalOptions = LayoutOptions.Fill,
+        HorizontalOptions = LayoutOptions.Fill,
     };
 
-    private readonly Image _iconView = new()
+    private readonly Lazy<Image> _iconView = new (() => new Image
     {
-        Aspect = Aspect.AspectFit,
+        StyleClass = new[] { "InputField.Icon" },
+        HorizontalOptions = LayoutOptions.Start,
         VerticalOptions = LayoutOptions.Center,
-        IsVisible = false,
-    };
+    });
 
     private readonly Label _labelView = new()
     {
         VerticalOptions = LayoutOptions.Center,
+        VerticalTextAlignment = TextAlignment.Center,
+        HorizontalOptions = LayoutOptions.Fill,
         IsVisible = false,
     };
 
-    public IconButtonView()
+    public IconButtonView() : base()
     {
-        _stack.Spacing = Spacing;
-
         _labelView.SetBinding(Label.TextProperty, new Binding(nameof(Text), source: this));
         _labelView.SetBinding(Label.TextColorProperty, new Binding(nameof(TextColor), source: this));
         _labelView.SetBinding(Label.FontSizeProperty, new Binding(nameof(FontSize), source: this));
         _labelView.SetBinding(Label.FontFamilyProperty, new Binding(nameof(FontFamily), source: this));
         _labelView.SetBinding(Label.FontAttributesProperty, new Binding(nameof(FontAttributes), source: this));
 
-        _stack.Children.Add(_iconView);
-        _stack.Children.Add(_labelView);
+        _layout.SetBinding(HorizontalStackLayout.SpacingProperty, new Binding(nameof(Spacing), source: this));
 
-        LayoutContent = _stack;
+        _layout.Children.Add(_iconView.Value);
+        _layout.Children.Add(_labelView);
     }
 
     protected override void OnPropertyChanged(string? propertyName = null)
@@ -64,9 +65,6 @@ public partial class IconButtonView : ButtonView
             case nameof(Text):
                 _labelView.IsVisible = !string.IsNullOrEmpty(Text);
                 break;
-            case nameof(Spacing):
-                _stack.Spacing = Spacing;
-                break;
             default:
                 break;
         }
@@ -78,8 +76,8 @@ public partial class IconButtonView : ButtonView
     /// </summary>
     private void UpdateIcon()
     {
-        _iconView.Source = Icon;
-        _iconView.IsVisible = Icon is not null;
+        _iconView.Value.Source = Icon;
+        _iconView.Value.IsVisible = Icon is not null;
 
         // IconSize <= 0 : on laisse la source décider (une FontImageSource porte déjà sa taille,
         // par exemple celle passée à {mi:MauiIcon IconSize=20}).
@@ -94,7 +92,7 @@ public partial class IconButtonView : ButtonView
                 font.Color = TextColor;
         }
 
-        _iconView.WidthRequest = IconSize > 0 ? IconSize : -1;
-        _iconView.HeightRequest = IconSize > 0 ? IconSize : -1;
+        _iconView.Value.WidthRequest = IconSize > 0 ? IconSize : -1;
+        _iconView.Value.HeightRequest = IconSize > 0 ? IconSize : -1;
     }
 }

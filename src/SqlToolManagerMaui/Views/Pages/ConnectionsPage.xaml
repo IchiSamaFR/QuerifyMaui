@@ -152,8 +152,8 @@
                                             Command="{Binding DeleteCommand}"
                                             CommandParameter="{Binding Draft.Info}"
                                             Text="Supprimer"
-                                            TextColor="{DynamicResource Error}"
-                                            BorderColor="{DynamicResource Error}"
+                                            TextColor="{StaticResource Error}"
+                                            BorderColor="{StaticResource Error}"
                                             Icon="{icons:Fluent Icon=Delete20}"
                                             IsVisible="{Binding Draft.Info.IsEditing}" />
 

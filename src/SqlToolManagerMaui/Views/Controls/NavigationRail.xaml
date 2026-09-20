@@ -13,8 +13,8 @@
             <!-- Bouton hamburger : bascule etendu / compact -->
             <inp:IconButtonView Command="{Binding ToggleCommand, Source={x:Reference Root}}"
                                 Style="{StaticResource NavTextIconButtonViewStyle}"
-                                WidthRequest="{DynamicResource SubInputHeight}"
                                 Icon="{icons:Fluent Icon=Navigation20}"
+                                WidthRequest="40"
                                 HorizontalOptions="Start"
                                 ToolTipProperties.Text="Réduire / agrandir le menu" />
 
@@ -24,14 +24,14 @@
                         HorizontalScrollBarVisibility="Never">
                 <VerticalStackLayout x:Name="ItemsHost"
                                      Spacing="4"
-                                     Margin="-4,0,0,0" />
+                                     HorizontalOptions="Fill"/>
             </ScrollView>
 
             <!-- Zone basse, alimentee par la propriete FooterItems -->
             <VerticalStackLayout Grid.Row="2"
                                  x:Name="FooterHost"
-                                 Margin="-4,0,0,4"
-                                 Spacing="4" />
+                                 Spacing="4"
+                                 HorizontalOptions="Fill" />
         </Grid>
     </ContentView.Content>
 </ContentView>

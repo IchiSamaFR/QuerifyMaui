@@ -4,10 +4,10 @@
              xmlns:mi="clr-namespace:MauiIcons.Core;assembly=MauiIcons.Core"
              xmlns:inp="http://sqltoolmanagermaui.app/dotnet/maui/inputs"
              x:Class="SqlToolManagerMaui.Views.Controls.NavigationRailItem"
-             x:Name="Root">
+             x:Name="Root"
+             HorizontalOptions="Fill">
 
-    <Grid Margin="4,0,0,0">
-
+    <Grid>
         <!-- Fond de selection, independant du hover -->
         <BoxView x:Name="SelectionBackground"
                  InputTransparent="True"
@@ -26,13 +26,15 @@
         <inp:ButtonView x:Name="Container"
                         CornerRadius="4"
                         HeightRequest="40"
-                        Style="{StaticResource NavTextIconButtonViewStyle}"
+                        Style="{StaticResource NavTextButtonViewStyle}"
+                        HorizontalOptions="Fill"
+                        ContentHorizontalOptions="Fill"
                         ToolTipProperties.Text="{Binding Text, Source={x:Reference Root}}"
                         Command="{Binding Command, Source={x:Reference Root}}"
                         CommandParameter="{Binding Route, Source={x:Reference Root}}">
 
             <Grid ColumnDefinitions="40,*"
-                  VerticalOptions="Fill">
+                  HorizontalOptions="Fill">
 
                 <!-- Pastille de selection (accent) -->
                 <Border Grid.Column="0"
@@ -61,6 +63,8 @@
                        Text="{Binding Text, Source={x:Reference Root}}"
                        Style="{StaticResource LabelNormalStyle}"
                        LineBreakMode="TailTruncation"
+                       HorizontalOptions="Start"
+                       VerticalOptions="Center"
                        Margin="0,0,12,2"
                        TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
                        IsVisible="{Binding IsLabelVisible, Source={x:Reference Root}}" />

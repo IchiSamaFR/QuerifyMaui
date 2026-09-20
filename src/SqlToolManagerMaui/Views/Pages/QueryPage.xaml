@@ -151,8 +151,7 @@
 
             <CollectionView ItemsSource="{Binding Documents}"
                             SelectedItem="{Binding ActiveDocument}"
-                            SelectionMode="Single"
-                            HeightRequest="{DynamicResource SubInputHeight}">
+                            SelectionMode="Single">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Horizontal"
                                        ItemSpacing="4" />
@@ -172,6 +171,7 @@
                 <Picker ItemsSource="{Binding Connections}"
                         SelectedItem="{Binding SelectedConnection}"
                         ItemDisplayBinding="{Binding Name, x:DataType=m:DatabaseConnectionInfo}"
+                        HeightRequest="{StaticResource SmallInputHeight}"
                         WidthRequest="220"
                         VerticalOptions="Center" />
 
@@ -180,8 +180,8 @@
                                     Icon="{icons:Fluent Icon=PlayCircle20}"
                                     IconSize="20"
                                     Padding="0"
-                                    WidthRequest="32"
-                                    HeightRequest="32"
+                                    WidthRequest="{StaticResource SmallInputHeight}"
+                                    HeightRequest="{StaticResource SmallInputHeight}"
                                     ToolTipProperties.Text="Disponible dans une prochaine version" />
             </HorizontalStackLayout>
         </Grid>
@@ -200,7 +200,7 @@
                              IndentSize="{Binding DocumentConfiguration.IdentationSize}"
                              UseTabs="{Binding DocumentConfiguration.IsTabIndentation}"
                              LineCommentPrefix="--"
-                             FontSize="{DynamicResource FontSize_Normal}"
+                             FontSize="{StaticResource FontSize_Normal}"
                              IsVisible="{Binding HasActiveDocument}" />
         </Border>
 

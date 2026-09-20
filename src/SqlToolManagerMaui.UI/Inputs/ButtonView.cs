@@ -1,5 +1,5 @@
-﻿using Microsoft.Maui.Controls.Shapes;
-using System.Windows.Input;
+﻿using SqlToolManagerMaui.UI.Converters;
+using SqlToolManagerMaui.UI.Inputs.Converters;
 
 namespace SqlToolManagerMaui.UI.Inputs;
 
@@ -21,17 +21,19 @@ namespace SqlToolManagerMaui.UI.Inputs;
 [ContentProperty(nameof(Children))]
 public partial class ButtonView : Border
 {
-    private Layout _layout = new Grid();
+    protected virtual Layout _layout { get; } = new Grid
+    {
+        VerticalOptions = LayoutOptions.Fill,
+        HorizontalOptions = LayoutOptions.Fill,
+    };
     private bool _isPressed;
     private readonly Grid _root;
     private readonly BoxView _hoverOverlay = new BoxView
     {
+        VerticalOptions = LayoutOptions.Fill,
+        HorizontalOptions = LayoutOptions.Fill,
         InputTransparent = true,
         Opacity = 0,
-    };
-    private readonly RoundRectangle _shape = new RoundRectangle()
-    {
-        CornerRadius = 14
     };
 
     /// <summary>Déclenché lors d'un tap complet (press + release sur le bouton).</summary>
@@ -45,15 +47,6 @@ public partial class ButtonView : Border
 
     public ButtonView()
     {
-        _shape.CornerRadius = new CornerRadius(CornerRadius);
-        StrokeShape = _shape;
-
-        _hoverOverlay.CornerRadius = new CornerRadius(CornerRadius);
-        // La couleur du voile suit HoverOverlayColor ; seule son opacité est pilotée
-        // par les états visuels, ce qui évite d'avoir à maintenir un Setter à la main.
-        _hoverOverlay.SetBinding(BoxView.ColorProperty, new Binding(nameof(HoverOverlayColor), source: this));
-        UpdateOverlayMargin();
-
         _root = new Grid { Children = { _layout, _hoverOverlay } };
         base.Content = _root;
 
@@ -61,27 +54,50 @@ public partial class ButtonView : Border
         AddPointer();
 
         BindVisualStateGroups();
+        RegisterBindings();
+    }
+
+    /// <summary>
+    /// Branche les parties internes (bordure, voile de survol) sur les proprietes bindables
+    /// du controle, plutot que de les resynchroniser a la main dans OnPropertyChanged :
+    /// meme approche que <c>InputField.RegisterBindings</c>.
+    /// </summary>
+    private void RegisterBindings()
+    {
+        // Bordure : les raccourcis CornerRadius / BorderColor / BorderThickness pilotent
+        // la StrokeShape, le Stroke et son epaisseur.
+        SetBinding(StrokeShapeProperty, new Binding(nameof(CornerRadius), source: this, converter: new CornerRadiusToStrokeShapeConverter()));
+        SetBinding(StrokeProperty, new Binding(nameof(BorderColor), source: this, converter: new ColorToBrushConverter()));
+        SetBinding(StrokeThicknessProperty, new Binding(nameof(BorderThickness), source: this));
+
+        // Voile de survol : couleur et arrondi suivent le bouton ; seule son opacite est
+        // pilotee par les etats visuels (voir BindVisualStateGroups).
+        _hoverOverlay.SetBinding(BoxView.ColorProperty, new Binding(nameof(HoverOverlayColor), source: this));
+        _hoverOverlay.SetBinding(BoxView.CornerRadiusProperty, new Binding(nameof(CornerRadius), source: this, converter: new DoubleToCornerRadiusConverter()));
+        _hoverOverlay.SetBinding(MarginProperty, new Binding(nameof(Padding), source: this, converter: new PaddingToNegativeMarginConverter()));
+
+        BindLayoutContent(_layout);
+    }
+
+    /// <summary>
+    /// Branche l'alignement du contenu sur le layout interne. La TAILLE, elle, n'est jamais
+    /// propagee : le controle EST le Border, une taille posee dessus contraint deja le
+    /// contenu, et la repercuter ferait compter le Padding deux fois.
+    /// </summary>
+    private void BindLayoutContent(Layout layout)
+    {
+        layout.SetBinding(HorizontalOptionsProperty, new Binding(nameof(ContentHorizontalOptions), source: this));
+        layout.SetBinding(VerticalOptionsProperty, new Binding(nameof(ContentVerticalOptions), source: this));
     }
 
     protected override void OnPropertyChanged(string? propertyName = null)
     {
         base.OnPropertyChanged(propertyName);
 
-        switch (propertyName)
-        {
-            case nameof(CornerRadius):
-                _shape.CornerRadius = new CornerRadius(CornerRadius);
-                _hoverOverlay.CornerRadius = new CornerRadius(CornerRadius);
-                break;
-            case nameof(IsEnabled):
-                Opacity = IsEnabled ? 1 : DisabledOpacity;
-                break;
-            case nameof(Padding):
-                UpdateOverlayMargin();
-                break;
-            default:
-                break;
-        }
+        // Seule l'opacite reste imperative : elle combine IsEnabled ET l'etat presse,
+        // qui n'est pas une propriete bindable.
+        if (propertyName is nameof(IsEnabled))
+            Opacity = IsEnabled ? 1 : DisabledOpacity;
     }
 
     private void BindVisualStateGroups()
@@ -119,30 +135,6 @@ public partial class ButtonView : Border
 
     /// <summary>Les enfants du layout interne. Cible de la ContentProperty (XAML).</summary>
     public IList<IView> Children => _layout.Children;
-
-    // ── Layout interne ──────────────────────────────────────────────
-
-    /// <summary>
-    /// Le layout qui héberge les enfants (Grid par défaut). Permet d'utiliser
-    /// un HorizontalStackLayout, VerticalStackLayout, FlexLayout, etc.
-    /// </summary>
-    public Layout LayoutContent
-    {
-        get => _layout;
-        set
-        {
-            if (value is null || ReferenceEquals(value, _layout))
-                return;
-
-            var existing = _layout.Children.ToList();
-            _layout.Children.Clear();
-            foreach (var child in existing)
-                value.Children.Add(child);
-
-            _root.Children[0] = value;
-            _layout = value;
-        }
-    }
 
     // ── Comportement bouton ──────────────────────────────────────────────
 
@@ -203,18 +195,5 @@ public partial class ButtonView : Border
             return;
 
         VisualStateManager.GoToState(_hoverOverlay, hovered ? "PointerOver" : "Normal");
-    }
-
-    /// <summary>
-    /// Le Padding du Border s'applique à son contenu, donc aussi au voile. Une marge négative
-    /// équivalente le fait ressortir jusqu'aux bords du bouton, où la StrokeShape le découpe.
-    /// </summary>
-    private void UpdateOverlayMargin()
-    {
-        if (_hoverOverlay is null)
-            return;
-
-        var padding = Padding;
-        _hoverOverlay.Margin = new Thickness(-padding.Left, -padding.Top, -padding.Right, -padding.Bottom);
     }
 }
