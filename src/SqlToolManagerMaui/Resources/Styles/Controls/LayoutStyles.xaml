@@ -40,4 +40,11 @@
                 Value="24,16,24,24" />
     </Style>
 
+    <Style x:Key="ContentNoTopStyle"
+           TargetType="Layout"
+           ApplyToDerivedTypes="True">
+        <Setter Property="Padding"
+                Value="24,8,24,24" />
+    </Style>
+
 </ResourceDictionary>

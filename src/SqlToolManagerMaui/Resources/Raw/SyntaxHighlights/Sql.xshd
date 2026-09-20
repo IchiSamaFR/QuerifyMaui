@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Coloration SQL (T-SQL) du prototype.
+  C'est ICI qu'on ajouterait plus tard les noms de tables / colonnes remontes
+  du schema : il suffit d'injecter un <Keywords> supplementaire genere a chaud.
+-->
+<SyntaxDefinition name="SQL" extensions=".sql" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+
+	<Color name="Comment" foreground="#6A9955" />
+	<Color name="String" foreground="#CE9178" />
+	<Color name="Number" foreground="#B5CEA8" />
+	<Color name="Keyword" foreground="#569CD6" fontWeight="normal" />
+	<Color name="DataType" foreground="#4EC9B0" />
+	<Color name="Function" foreground="#DCDCAA" />
+	<Color name="Variable" foreground="#9CDCFE" />
+	<Color name="Bracketed" foreground="#9CDCFE" />
+	<Color name="Operator" foreground="#D4D4D4" />
+
+	<RuleSet ignoreCase="true">
+
+		<Span color="Comment">
+			<Begin>--</Begin>
+		</Span>
+
+		<Span color="Comment" multiline="true">
+			<Begin>/\*</Begin>
+			<End>\*/</End>
+		</Span>
+
+		<!-- Chaine SQL : '' est un quote echappe, donc on ne ferme pas dessus -->
+		<Span color="String" multiline="true">
+			<Begin>'</Begin>
+			<End>'(?!')</End>
+		</Span>
+
+		<!-- Identifiant entre crochets : [Ma Table] -->
+		<Span color="Bracketed">
+			<Begin>\[</Begin>
+			<End>\]</End>
+		</Span>
+
+		<Keywords color="Keyword">
+			<Word>SELECT</Word><Word>FROM</Word><Word>WHERE</Word><Word>GROUP</Word><Word>BY</Word>
+			<Word>HAVING</Word><Word>ORDER</Word><Word>ASC</Word><Word>DESC</Word><Word>TOP</Word>
+			<Word>DISTINCT</Word><Word>INSERT</Word><Word>INTO</Word><Word>VALUES</Word><Word>UPDATE</Word>
+			<Word>SET</Word><Word>DELETE</Word><Word>MERGE</Word><Word>OUTPUT</Word><Word>TRUNCATE</Word>
+			<Word>CREATE</Word><Word>ALTER</Word><Word>DROP</Word><Word>TABLE</Word><Word>VIEW</Word>
+			<Word>INDEX</Word><Word>PROCEDURE</Word><Word>PROC</Word><Word>FUNCTION</Word><Word>TRIGGER</Word>
+			<Word>SCHEMA</Word><Word>DATABASE</Word><Word>CONSTRAINT</Word><Word>PRIMARY</Word><Word>FOREIGN</Word>
+			<Word>KEY</Word><Word>REFERENCES</Word><Word>UNIQUE</Word><Word>CHECK</Word><Word>DEFAULT</Word>
+			<Word>IDENTITY</Word><Word>CLUSTERED</Word><Word>NONCLUSTERED</Word>
+			<Word>JOIN</Word><Word>INNER</Word><Word>LEFT</Word><Word>RIGHT</Word><Word>FULL</Word>
+			<Word>OUTER</Word><Word>CROSS</Word><Word>APPLY</Word><Word>ON</Word><Word>AS</Word>
+			<Word>UNION</Word><Word>ALL</Word><Word>EXCEPT</Word><Word>INTERSECT</Word>
+			<Word>AND</Word><Word>OR</Word><Word>NOT</Word><Word>IN</Word><Word>EXISTS</Word>
+			<Word>BETWEEN</Word><Word>LIKE</Word><Word>IS</Word><Word>NULL</Word><Word>CASE</Word>
+			<Word>WHEN</Word><Word>THEN</Word><Word>ELSE</Word><Word>END</Word><Word>IIF</Word>
+			<Word>WITH</Word><Word>OVER</Word><Word>PARTITION</Word><Word>ROWS</Word><Word>RANGE</Word>
+			<Word>DECLARE</Word><Word>EXEC</Word><Word>EXECUTE</Word><Word>RETURN</Word><Word>BEGIN</Word>
+			<Word>IF</Word><Word>WHILE</Word><Word>BREAK</Word><Word>CONTINUE</Word><Word>GOTO</Word>
+			<Word>TRY</Word><Word>CATCH</Word><Word>THROW</Word><Word>RAISERROR</Word>
+			<Word>TRANSACTION</Word><Word>TRAN</Word><Word>COMMIT</Word><Word>ROLLBACK</Word><Word>SAVE</Word>
+			<Word>GRANT</Word><Word>REVOKE</Word><Word>DENY</Word><Word>USE</Word><Word>GO</Word>
+			<Word>OFFSET</Word><Word>FETCH</Word><Word>NEXT</Word><Word>ONLY</Word><Word>FIRST</Word>
+			<Word>NOLOCK</Word><Word>READUNCOMMITTED</Word>
+		</Keywords>
+
+		<Keywords color="DataType">
+			<Word>INT</Word><Word>BIGINT</Word><Word>SMALLINT</Word><Word>TINYINT</Word><Word>BIT</Word>
+			<Word>DECIMAL</Word><Word>NUMERIC</Word><Word>MONEY</Word><Word>FLOAT</Word><Word>REAL</Word>
+			<Word>DATE</Word><Word>DATETIME</Word><Word>DATETIME2</Word><Word>DATETIMEOFFSET</Word><Word>TIME</Word>
+			<Word>CHAR</Word><Word>VARCHAR</Word><Word>NCHAR</Word><Word>NVARCHAR</Word><Word>TEXT</Word>
+			<Word>NTEXT</Word><Word>BINARY</Word><Word>VARBINARY</Word><Word>UNIQUEIDENTIFIER</Word>
+			<Word>XML</Word><Word>SQL_VARIANT</Word><Word>MAX</Word>
+		</Keywords>
+
+		<Keywords color="Function">
+			<Word>COUNT</Word><Word>SUM</Word><Word>AVG</Word><Word>MIN</Word><Word>MAX</Word>
+			<Word>CAST</Word><Word>CONVERT</Word><Word>TRY_CAST</Word><Word>TRY_CONVERT</Word>
+			<Word>ISNULL</Word><Word>COALESCE</Word><Word>NULLIF</Word><Word>LEN</Word><Word>SUBSTRING</Word>
+			<Word>REPLACE</Word><Word>LTRIM</Word><Word>RTRIM</Word><Word>TRIM</Word><Word>UPPER</Word>
+			<Word>LOWER</Word><Word>CONCAT</Word><Word>FORMAT</Word><Word>GETDATE</Word><Word>SYSDATETIME</Word>
+			<Word>DATEADD</Word><Word>DATEDIFF</Word><Word>DATEPART</Word><Word>YEAR</Word><Word>MONTH</Word>
+			<Word>DAY</Word><Word>ROW_NUMBER</Word><Word>RANK</Word><Word>DENSE_RANK</Word><Word>NTILE</Word>
+			<Word>LAG</Word><Word>LEAD</Word><Word>STRING_AGG</Word><Word>NEWID</Word><Word>SCOPE_IDENTITY</Word>
+		</Keywords>
+
+		<!-- Variables et parametres : @x, @@ROWCOUNT -->
+		<Rule color="Variable">@@?[\w_]+</Rule>
+
+		<Rule color="Number">\b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?</Rule>
+
+		<Rule color="Operator">[?,.;()\[\]{}+\-/%*&lt;&gt;^+~!|&amp;=]+</Rule>
+	</RuleSet>
+</SyntaxDefinition>

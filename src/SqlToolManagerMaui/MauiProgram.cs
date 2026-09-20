@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Maui;
+﻿using CodeEdit.Maui;
+using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Markup;
 using MauiIcons.Fluent;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,7 @@ namespace SqlToolManagerMaui
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 })
                 .UseFluentMauiIcons()
+                .UseCodeEditor()
                 .UseMauiCommunityToolkit(options => options.SetShouldEnableSnackbarOnWindows(true))
                 .UseMauiCommunityToolkitMarkup();
 

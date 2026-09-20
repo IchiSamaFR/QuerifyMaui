@@ -1,6 +1,7 @@
 ﻿
 using SqlToolManagerMaui.Services;
 using SqlToolManagerMaui.Services.Databases;
+using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.ViewModels;
 using SqlToolManagerMaui.ViewModels.Pages;
 using SqlToolManagerMaui.Views.Pages;
@@ -35,6 +36,8 @@ public static class ServiceCollectionExtensions
     /// </summary>
     private static IServiceCollection AddQueryProviders(this IServiceCollection services)
     {
+        // Acces disque de l'editeur (FilePicker / FileSaver).
+        services.AddSingleton<IEditorFileService, EditorFileService>();
 
         return services;
     }

@@ -1,11 +1,247 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <v:AbstractPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="SqlToolManagerMaui.Views.Pages.QueryPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:code="clr-namespace:CodeEdit.Maui;assembly=CodeEdit.Maui"
+                x:Class="SqlToolManagerMaui.Views.Pages.QueryPage"
+                x:DataType="vm:QueryVM"
+                Shell.NavBarIsVisible="True">
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="Fichier">
+            <MenuFlyoutItem Text="Nouveau"
+                            Command="{Binding NewCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Ctrl"
+                                         Key="N" />
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+
+            <MenuFlyoutItem Text="Ouvrir..."
+                            Command="{Binding OpenCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Ctrl"
+                                         Key="O" />
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+
+            <MenuFlyoutSeparator />
+
+            <MenuFlyoutItem Text="Enregistrer"
+                            Command="{Binding SaveCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Ctrl"
+                                         Key="S" />
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+
+            <MenuFlyoutItem Text="Enregistrer sous..."
+                            Command="{Binding SaveAsCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Ctrl,Shift"
+                                         Key="S" />
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+
+            <MenuFlyoutSeparator />
+
+            <MenuFlyoutItem Text="Fermer l'onglet"
+                            Command="{Binding CloseActiveCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Ctrl"
+                                         Key="W" />
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+
+            <MenuFlyoutItem Text="Quitter"
+                            Command="{Binding QuitCommand}" />
+        </MenuBarItem>
+
+        <MenuBarItem Text="Édition">
+            <MenuFlyoutItem Text="Annuler"
+                            Command="{Binding Source={x:Reference Editor}, Path=Commands.Undo}" />
+            <MenuFlyoutItem Text="Rétablir"
+                            Command="{Binding Source={x:Reference Editor}, Path=Commands.Redo}" />
+
+            <MenuFlyoutSeparator />
+
+            <MenuFlyoutItem Text="Couper"
+                            Command="{Binding Source={x:Reference Editor}, Path=Commands.Cut}" />
+            <MenuFlyoutItem Text="Copier"
+                            Command="{Binding Source={x:Reference Editor}, Path=Commands.Copy}" />
+            <MenuFlyoutItem Text="Coller"
+                            Command="{Binding Source={x:Reference Editor}, Path=Commands.Paste}" />
+
+            <MenuFlyoutSeparator />
+
+            <MenuFlyoutItem Text="Tout sélectionner"
+                            Command="{Binding Source={x:Reference Editor}, Path=Commands.SelectAll}" />
+        </MenuBarItem>
+
+        <MenuBarItem Text="Affichage">
+            <MenuFlyoutItem Text="Afficher les numéros de ligne"
+                            Command="{Binding ToggleLineNumbersCommand}">
+                <MenuFlyoutItem.Style>
+                    <Style TargetType="MenuFlyoutItem">
+                        <Style.Triggers>
+                            <DataTrigger TargetType="MenuFlyoutItem"
+                                         Binding="{Binding DocumentConfiguration.IsLineDiplayed}"
+                                         Value="True">
+                                <Setter Property="Text"
+                                        Value="Masquer les numéros de ligne" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </MenuFlyoutItem.Style>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Activer le retour à la ligne"
+                            Command="{Binding ToggleWordWrapCommand}">
+                <MenuFlyoutItem.Style>
+                    <Style TargetType="MenuFlyoutItem">
+                        <Style.Triggers>
+                            <DataTrigger TargetType="MenuFlyoutItem"
+                                         Binding="{Binding DocumentConfiguration.IsWordWrapped}"
+                                         Value="True">
+                                <Setter Property="Text"
+                                        Value="Désactiver le retour à la ligne" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </MenuFlyoutItem.Style>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Activer l'indentation par tabulations"
+                            Command="{Binding ToggleUseTabsCommand}">
+                <MenuFlyoutItem.Style>
+                    <Style TargetType="MenuFlyoutItem">
+                        <Style.Triggers>
+                            <DataTrigger TargetType="MenuFlyoutItem"
+                                         Binding="{Binding DocumentConfiguration.IsTabIndentation}"
+                                         Value="True">
+                                <Setter Property="Text"
+                                        Value="Désactiver l'indentation par tabulations" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </MenuFlyoutItem.Style>
+            </MenuFlyoutItem>
+        </MenuBarItem>
+
+        <MenuBarItem Text="Requête">
+            <MenuFlyoutItem Text="Exécuter"
+                            Command="{Binding ExecuteQueryCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="F5" />
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+
+            <MenuFlyoutSeparator />
+
+            <MenuFlyoutItem Text="Se déconnecter"
+                            Command="{Binding DisconnectCommand}" />
+        </MenuBarItem>
+
+    </ContentPage.MenuBarItems>
+
+    <Grid RowDefinitions="Auto,*,Auto"
+          RowSpacing="8"
+          Style="{StaticResource ContentNoTopStyle}">
+
+        <!-- ============ Onglets + execution ============ -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="*,Auto"
+              ColumnSpacing="16">
+
+            <CollectionView ItemsSource="{Binding Documents}"
+                            SelectedItem="{Binding ActiveDocument}"
+                            SelectionMode="Single"
+                            HeightRequest="{DynamicResource SubInputHeight}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Horizontal"
+                                       ItemSpacing="4" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="m:EditorDocument">
+                        <c:FileTabItem Document="{Binding .}"
+                                       CloseCommand="{Binding Source={RelativeSource AncestorType={x:Type v:QueryPage}}, Path=ViewModel.CloseCommand, x:DataType=v:QueryPage}" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Execution : UI en place, branchement a venir -->
+            <HorizontalStackLayout Grid.Column="1"
+                                   Spacing="8"
+                                   VerticalOptions="Center">
+                <Picker ItemsSource="{Binding Connections}"
+                        SelectedItem="{Binding SelectedConnection}"
+                        ItemDisplayBinding="{Binding Name, x:DataType=m:DatabaseConnectionInfo}"
+                        WidthRequest="220"
+                        VerticalOptions="Center" />
+
+                <inp:IconButtonView Style="{StaticResource FilledIconButtonViewStyle}"
+                                    Command="{Binding ExecuteQueryCommand}"
+                                    Icon="{icons:Fluent Icon=PlayCircle20}"
+                                    IconSize="20"
+                                    Padding="0"
+                                    WidthRequest="32"
+                                    HeightRequest="32"
+                                    ToolTipProperties.Text="Disponible dans une prochaine version" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <!-- ============ Editeur ============ -->
+        <Border Grid.Row="1"
+                Padding="0"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 6"
+                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}">
+
+            <code:CodeEditor x:Name="Editor"
+                             Document="{Binding ActiveDocument.Document}"
+                             ShowLineNumbers="{Binding DocumentConfiguration.IsLineDiplayed}"
+                             WordWrap="{Binding DocumentConfiguration.IsWordWrapped}"
+                             IndentSize="{Binding DocumentConfiguration.IdentationSize}"
+                             UseTabs="{Binding DocumentConfiguration.IsTabIndentation}"
+                             LineCommentPrefix="--"
+                             FontSize="{DynamicResource FontSize_Normal}"
+                             IsVisible="{Binding HasActiveDocument}" />
+        </Border>
+
+        <!-- ============ Barre d'etat ============ -->
+        <Grid Grid.Row="2"
+              ColumnDefinitions="*,Auto"
+              ColumnSpacing="16">
+
+            <Label Grid.Column="0"
+                   Text="{Binding StatusMessage}"
+                   Style="{StaticResource LabelTertiaryStyle}"
+                   LineBreakMode="TailTruncation"
+                   VerticalOptions="Center">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label"
+                                 Binding="{Binding IsStatusError}"
+                                 Value="True">
+                        <Setter Property="TextColor"
+                                Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
+
+            <HorizontalStackLayout Grid.Column="1"
+                                   Spacing="16">
+                <Label Text="{Binding ActiveDocument.PathLabel}"
+                       Style="{StaticResource LabelTertiaryStyle}"
+                       LineBreakMode="HeadTruncation"
+                       MaximumWidthRequest="420"
+                       VerticalOptions="Center" />
+
+                <Label Style="{StaticResource LabelTertiaryStyle}"
+                       VerticalOptions="Center">
+                    <Label.Text>
+                        <MultiBinding StringFormat="Ln {0}, Col {1}">
+                            <Binding Path="CaretLine" />
+                            <Binding Path="CaretColumn" />
+                        </MultiBinding>
+                    </Label.Text>
+                </Label>
+            </HorizontalStackLayout>
+        </Grid>
+    </Grid>
 </v:AbstractPage>

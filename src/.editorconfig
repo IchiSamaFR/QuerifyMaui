@@ -1,0 +1,8 @@
+﻿# Supprimer la ligne ci-dessous si vous voulez hériter les paramètres .editorconfig des répertoires supérieurs
+root = true
+
+# Fichiers C#
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:warning
+
+dotnet_diagnostic.MVVMTK0042.severity = error
