@@ -27,11 +27,9 @@
 			<End>\*/</End>
 		</Span>
 
-		<!-- Chaine SQL : '' est un quote echappe, donc on ne ferme pas dessus -->
-		<Span color="String" multiline="true">
-			<Begin>'</Begin>
-			<End>'(?!')</End>
-		</Span>
+		<!-- Chaine SQL : '' est un quote echappe, il fait donc partie de la chaine.
+		     Le quote final est optionnel pour colorer aussi une chaine en cours de frappe. -->
+		<Rule color="String">'(?:[^']|'')*'?</Rule>
 
 		<!-- Identifiant entre crochets : [Ma Table] -->
 		<Span color="Bracketed">

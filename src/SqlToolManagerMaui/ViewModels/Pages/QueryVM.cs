@@ -68,12 +68,12 @@ public partial class QueryVM : AbstractVM
 
     // ---------- Options d'edition, liees directement au CodeEditor ----------
 
-    public EditorDocumentConfiguration DocumentConfiguration { get; } = new()
+    public EditorConfiguration EditorConfiguration { get; } = new()
     {
-        IsLineDiplayed = true,
+        IsLineDisplayed = true,
         IsWordWrapped = false,
         IsTabIndentation = false,
-        IdentationSize = 4
+        IndentationSize = 4
     };
 
     // ---------- Barre d'etat ----------

@@ -16,11 +16,11 @@
         <c:EditMenuBarItem Editor="{Binding Source={x:Reference Editor}}" />
 
         <c:ViewMenuBarItem ToggleLineNumbersCommand="{Binding ToggleLineNumbersCommand}"
-                           AreLineNumbersVisible="{Binding DocumentConfiguration.IsLineDiplayed}"
+                           AreLineNumbersVisible="{Binding EditorConfiguration.IsLineDisplayed}"
                            ToggleWordWrapCommand="{Binding ToggleWordWrapCommand}"
-                           IsWordWrapEnabled="{Binding DocumentConfiguration.IsWordWrapped}"
+                           IsWordWrapEnabled="{Binding EditorConfiguration.IsWordWrapped}"
                            ToggleTabIndentationCommand="{Binding ToggleUseTabsCommand}"
-                           IsTabIndentationEnabled="{Binding DocumentConfiguration.IsTabIndentation}" />
+                           IsTabIndentationEnabled="{Binding EditorConfiguration.IsTabIndentation}" />
 
         <c:QueryMenuBarItem ExecuteCommand="{Binding ExecuteQueryCommand}"
                             DisconnectCommand="{Binding DisconnectCommand}" />
@@ -81,10 +81,10 @@
 
             <code:CodeEditor x:Name="Editor"
                              Document="{Binding ActiveDocument.Document}"
-                             ShowLineNumbers="{Binding DocumentConfiguration.IsLineDiplayed}"
-                             WordWrap="{Binding DocumentConfiguration.IsWordWrapped}"
-                             IndentSize="{Binding DocumentConfiguration.IdentationSize}"
-                             UseTabs="{Binding DocumentConfiguration.IsTabIndentation}"
+                             ShowLineNumbers="{Binding EditorConfiguration.IsLineDisplayed}"
+                             WordWrap="{Binding EditorConfiguration.IsWordWrapped}"
+                             IndentSize="{Binding EditorConfiguration.IndentationSize}"
+                             UseTabs="{Binding EditorConfiguration.IsTabIndentation}"
                              LineCommentPrefix="--"
                              FontSize="{StaticResource FontSize_Normal}"
                              IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />

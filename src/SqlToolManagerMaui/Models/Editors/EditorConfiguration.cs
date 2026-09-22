@@ -6,10 +6,10 @@ namespace SqlToolManagerMaui.Models.Editors;
 /// Options d'affichage de l'editeur, partagees par tous les onglets.
 /// Les libelles du menu sont portes par ViewMenuBarItem : ce modele n'expose que l'etat.
 /// </summary>
-public partial class EditorDocumentConfiguration : ObservableObject
+public partial class EditorConfiguration : ObservableObject
 {
     [ObservableProperty]
-    public partial bool IsLineDiplayed { get; set; }
+    public partial bool IsLineDisplayed { get; set; }
 
     [ObservableProperty]
     public partial bool IsWordWrapped { get; set; }
@@ -18,5 +18,5 @@ public partial class EditorDocumentConfiguration : ObservableObject
     public partial bool IsTabIndentation { get; set; }
 
     [ObservableProperty]
-    public partial int IdentationSize { get; set; }
+    public partial int IndentationSize { get; set; }
 }

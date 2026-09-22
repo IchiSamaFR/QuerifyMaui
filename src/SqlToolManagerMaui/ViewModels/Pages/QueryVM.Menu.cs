@@ -125,14 +125,14 @@ public partial class QueryVM
 
     [RelayCommand]
     private void ToggleLineNumbers()
-        => DocumentConfiguration.IsLineDiplayed = !DocumentConfiguration.IsLineDiplayed;
+        => EditorConfiguration.IsLineDisplayed = !EditorConfiguration.IsLineDisplayed;
 
     [RelayCommand]
     private void ToggleWordWrap()
-        => DocumentConfiguration.IsWordWrapped = !DocumentConfiguration.IsWordWrapped;
+        => EditorConfiguration.IsWordWrapped = !EditorConfiguration.IsWordWrapped;
 
     [RelayCommand]
     private void ToggleUseTabs()
-        => DocumentConfiguration.IsTabIndentation = !DocumentConfiguration.IsTabIndentation;
+        => EditorConfiguration.IsTabIndentation = !EditorConfiguration.IsTabIndentation;
 
 }

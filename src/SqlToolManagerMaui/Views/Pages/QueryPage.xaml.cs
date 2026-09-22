@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
+using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.ViewModels.Pages;
+using SqlToolManagerMaui.Views.Controls.Editors;
 
 namespace SqlToolManagerMaui.Views.Pages;
 
@@ -11,6 +13,9 @@ namespace SqlToolManagerMaui.Views.Pages;
 public partial class QueryPage : AbstractPage
 {
     public static readonly string PAGE_ROUTE = nameof(QueryPage);
+
+    /// <summary>Nom du fichier .xshd charge pour l'editeur (Resources/Raw/SyntaxHighlights/Sql.xshd).</summary>
+    private const string SyntaxLanguage = "Sql";
     protected override string PageRoute => PAGE_ROUTE;
 
     /// <summary>Acces type au VM, utilise par les bindings des DataTemplate (x:Reference Root).</summary>
@@ -22,11 +27,17 @@ public partial class QueryPage : AbstractPage
     /// </summary>
     private bool _suppressContentChanged;
 
-    public QueryPage(QueryVM viewModel) : base(viewModel)
+    /// <summary>Coloration syntaxique : CodeEdit.Maui n'en fournit aucune, on la publie nous-memes.</summary>
+    private readonly SyntaxHighlightingController _highlighting;
+
+    public QueryPage(QueryVM viewModel, ISyntaxDefinitionStore syntaxDefinitions, ISyntaxHighlighter syntaxHighlighter) : base(viewModel)
     {
         ViewModel = viewModel;
 
         InitializeComponent();
+
+        _highlighting = new SyntaxHighlightingController(Editor, syntaxDefinitions, syntaxHighlighter);
+        _highlighting.Start(SyntaxLanguage);
 
         // Le document ne notifie pas la vue : on marque l'onglet modifie a chaque edition.
         Editor.DocumentChanged += OnEditorDocumentChanged;
@@ -34,7 +45,7 @@ public partial class QueryPage : AbstractPage
         Editor.SelectionChanged += OnEditorSelectionChanged;
 
         // Les options d'affichage atteignent le controle natif mais pas la mesure MAUI.
-        ViewModel.DocumentConfiguration.PropertyChanged += OnDocumentConfigurationChanged;
+        ViewModel.EditorConfiguration.PropertyChanged += OnDocumentConfigurationChanged;
     }
 
     private void OnDocumentConfigurationChanged(object? sender, PropertyChangedEventArgs e)
