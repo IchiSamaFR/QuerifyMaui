@@ -3,8 +3,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Models.Editors;
+using SqlToolManagerMaui.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
+using SqlToolManagerMaui.Services.Editors.Highlighting;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 
@@ -19,6 +21,7 @@ public partial class QueryVM : AbstractVM
 {
     private readonly IEditorFileService _files;
     private readonly IConnectionStore _connectionStore;
+    private readonly ISyntaxConfigurationStore _syntaxConfigurations;
 
     /// <summary>Compteur des documents "Sans titre" ouverts depuis le demarrage.</summary>
     private int _untitledCount;
@@ -84,14 +87,21 @@ public partial class QueryVM : AbstractVM
     [ObservableProperty]
     public partial int CaretColumn { get; set; } = 1;
 
-    public QueryVM(IEditorFileService files, IConnectionStore connectionStore)
+    /// <summary>Langage colore par l'editeur : pour l'instant toujours du T-SQL.</summary>
+    [ObservableProperty]
+    public partial SyntaxConfiguration? SyntaxConfiguration { get; set; }
+
+    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations)
     {
         _files = files;
         _connectionStore = connectionStore;
+        _syntaxConfigurations = syntaxConfigurations;
     }
 
     protected override async Task LoadDatasBusyAsync()
     {
+        SyntaxConfiguration ??= await _syntaxConfigurations.GetAsync(SyntaxLanguage.Sql, LifetimeToken);
+
         var stored = await _connectionStore.GetAllAsync(LifetimeToken);
 
         // La sentinelle "Aucune connexion" reste en tete : c'est l'option de deconnexion.
@@ -135,22 +145,6 @@ public partial class QueryVM : AbstractVM
     private void ExecuteQuery()
     {
         SetStatus("L'execution des requetes n'est pas encore disponible.");
-    }
-
-    // ---------- Appels depuis la vue ----------
-
-    /// <summary>Appele par la page a chaque edition du contenu.</summary>
-    public void MarkActiveDocumentDirty()
-    {
-        if (ActiveDocument is not null)
-            ActiveDocument.IsDirty = true;
-    }
-
-    /// <summary>Appele par la page a chaque deplacement du curseur.</summary>
-    public void UpdateCaret(int line, int column)
-    {
-        CaretLine = line;
-        CaretColumn = column;
     }
 
     public void SetStatus(string message, bool isError = false)

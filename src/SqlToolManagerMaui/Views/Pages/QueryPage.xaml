@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <v:AbstractPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-                xmlns:code="clr-namespace:CodeEdit.Maui;assembly=CodeEdit.Maui"
                 x:Class="SqlToolManagerMaui.Views.Pages.QueryPage"
                 x:DataType="vm:QueryVM"
                 Shell.NavBarIsVisible="True">
@@ -79,15 +78,13 @@
                 StrokeShape="RoundRectangle 6"
                 Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}">
 
-            <code:CodeEditor x:Name="Editor"
-                             Document="{Binding ActiveDocument.Document}"
-                             ShowLineNumbers="{Binding EditorConfiguration.IsLineDisplayed}"
-                             WordWrap="{Binding EditorConfiguration.IsWordWrapped}"
-                             IndentSize="{Binding EditorConfiguration.IndentationSize}"
-                             UseTabs="{Binding EditorConfiguration.IsTabIndentation}"
-                             LineCommentPrefix="--"
-                             FontSize="{StaticResource FontSize_Normal}"
-                             IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
+            <c:CodeEditor x:Name="Editor"
+                          Text="{Binding ActiveDocument.EditorText}"
+                          EditorConfiguration="{Binding EditorConfiguration}"
+                          SyntaxConfiguration="{Binding SyntaxConfiguration}"
+                          CaretLine="{Binding CaretLine}"
+                          CaretColumn="{Binding CaretColumn}"
+                          IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
         </Border>
 
         <!-- ============ Barre d'etat ============ -->

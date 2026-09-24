@@ -6,19 +6,22 @@ namespace SqlToolManagerMaui.Services.Editors.Highlighting;
 
 /// <summary>
 /// Lit les fichiers .xshd (format AvalonEdit) embarques dans les assets et les traduit
-/// en regles exploitables par le tokenizer. Le sous-ensemble supporte est celui utilise
-/// par nos fichiers : Color, RuleSet, Span, Keywords, Rule.
+/// en configuration exploitable par l'editeur. Le sous-ensemble supporte est celui utilise
+/// par nos fichiers : Property, Color, RuleSet, Span, Keywords, Rule.
 /// </summary>
-public sealed class XshdSyntaxDefinitionStore : ISyntaxDefinitionStore
+public sealed class XshdSyntaxConfigurationStore : ISyntaxConfigurationStore
 {
     private const string AssetFolder = "SyntaxHighlights";
+
+    /// <summary>Nom de la propriete .xshd portant le prefixe de commentaire de ligne.</summary>
+    private const string LineCommentProperty = "LineComment";
 
     private static readonly XNamespace Xshd = "http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008";
 
     private readonly SemaphoreSlim _gate = new(1, 1);
-    private readonly Dictionary<string, SyntaxDefinition?> _cache = [];
+    private readonly Dictionary<SyntaxLanguage, SyntaxConfiguration?> _cache = [];
 
-    public async Task<SyntaxDefinition?> GetAsync(string language, CancellationToken cancellationToken = default)
+    public async Task<SyntaxConfiguration?> GetAsync(SyntaxLanguage language, CancellationToken cancellationToken = default)
     {
         await _gate.WaitAsync(cancellationToken);
         try
@@ -26,9 +29,9 @@ public sealed class XshdSyntaxDefinitionStore : ISyntaxDefinitionStore
             if (_cache.TryGetValue(language, out var cached))
                 return cached;
 
-            var definition = await LoadAsync(language, cancellationToken);
-            _cache[language] = definition;
-            return definition;
+            var configuration = await LoadAsync(language, cancellationToken);
+            _cache[language] = configuration;
+            return configuration;
         }
         finally
         {
@@ -36,11 +39,11 @@ public sealed class XshdSyntaxDefinitionStore : ISyntaxDefinitionStore
         }
     }
 
-    private static async Task<SyntaxDefinition?> LoadAsync(string language, CancellationToken cancellationToken)
+    private static async Task<SyntaxConfiguration?> LoadAsync(SyntaxLanguage language, CancellationToken cancellationToken)
     {
         var assetPath = $"{AssetFolder}/{language}.xshd";
 
-        if (!await FileSystem.AppPackageFileExistsAsync(assetPath))
+        if (language == SyntaxLanguage.None || !await FileSystem.AppPackageFileExistsAsync(assetPath))
             return null;
 
         await using var stream = await FileSystem.OpenAppPackageFileAsync(assetPath);
@@ -49,13 +52,34 @@ public sealed class XshdSyntaxDefinitionStore : ISyntaxDefinitionStore
         return Parse(document, language);
     }
 
-    private static SyntaxDefinition? Parse(XDocument document, string language)
+    private static SyntaxConfiguration? Parse(XDocument document, SyntaxLanguage language)
     {
         var root = document.Root;
         var ruleSet = root?.Element(Xshd + "RuleSet");
         if (root is null || ruleSet is null)
             return null;
 
+        return new SyntaxConfiguration
+        {
+            Language = language,
+            Comments = ReadLineComment(root),
+            Definition = ParseDefinition(root, ruleSet, language)
+        };
+    }
+
+    /// <summary>Lit &lt;Property name="LineComment" value="--" /&gt;, avec le SQL comme valeur par defaut.</summary>
+    private static string ReadLineComment(XElement root)
+    {
+        var property = root.Elements(Xshd + "Property")
+                           .FirstOrDefault(e => string.Equals((string?)e.Attribute("name"), LineCommentProperty, StringComparison.OrdinalIgnoreCase));
+
+        var value = (string?)property?.Attribute("value");
+
+        return string.IsNullOrEmpty(value) ? "--" : value;
+    }
+
+    private static SyntaxDefinition ParseDefinition(XElement root, XElement ruleSet, SyntaxLanguage language)
+    {
         var colors = ReadColors(root);
 
         var ignoreCase = (bool?)ruleSet.Attribute("ignoreCase") ?? false;
@@ -81,7 +105,7 @@ public sealed class XshdSyntaxDefinitionStore : ISyntaxDefinitionStore
 
         return new SyntaxDefinition
         {
-            Name = (string?)root.Attribute("name") ?? language,
+            Name = (string?)root.Attribute("name") ?? language.ToString(),
             Extensions = ((string?)root.Attribute("extensions"))?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
             Rules = rules
         };

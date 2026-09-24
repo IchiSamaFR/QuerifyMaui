@@ -1,0 +1,15 @@
+namespace SqlToolManagerMaui.Models.Editors.Highlighting;
+
+/// <summary>
+/// Langages colores par l'editeur. Chaque valeur correspond a un fichier
+/// Resources/Raw/SyntaxHighlights/&lt;valeur&gt;.xshd : ajouter un langage, c'est
+/// ajouter une valeur ici et le fichier du meme nom.
+/// </summary>
+public enum SyntaxLanguage
+{
+    /// <summary>Aucune coloration.</summary>
+    None = 0,
+
+    /// <summary>T-SQL (Sql.xshd).</summary>
+    Sql
+}

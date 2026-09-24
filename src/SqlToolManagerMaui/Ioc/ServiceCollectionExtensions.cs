@@ -41,7 +41,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IEditorFileService, EditorFileService>();
 
         // Coloration syntaxique : definitions .xshd + tokenizer.
-        services.AddSingleton<ISyntaxDefinitionStore, XshdSyntaxDefinitionStore>();
+        services.AddSingleton<ISyntaxConfigurationStore, XshdSyntaxConfigurationStore>();
         services.AddSingleton<ISyntaxHighlighter, SyntaxHighlighter>();
 
         return services;

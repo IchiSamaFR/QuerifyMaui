@@ -1,6 +1,4 @@
-﻿using CodeEdit.Maui;
-
-namespace SqlToolManagerMaui.Views.Controls.Editors;
+﻿namespace SqlToolManagerMaui.Views.Controls.Editors;
 
 /// <summary>
 /// Menu "Edition" d'un editeur. Les commandes ne viennent pas d'un ViewModel mais du

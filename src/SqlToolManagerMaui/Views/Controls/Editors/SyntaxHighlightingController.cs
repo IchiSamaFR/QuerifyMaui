@@ -2,12 +2,13 @@ using CodeEdit.Maui;
 using RichEdit.Maui;
 using SqlToolManagerMaui.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
 namespace SqlToolManagerMaui.Views.Controls.Editors;
 
 /// <summary>
-/// Branche une definition .xshd sur un <see cref="CodeEditor"/>. CodeEdit.Maui ne colorie rien
-/// de lui-meme : la coloration se publie dans une couche de decorations, calculee hors du
+/// Publie une coloration sur un editeur natif CodeEdit.Maui. Le controle ne colorie rien
+/// de lui-meme : les couleurs passent par une couche de decorations, calculee hors du
 /// thread UI puis appliquee sur la revision du snapshot analyse.
 /// </summary>
 public sealed class SyntaxHighlightingController : IDisposable
@@ -15,8 +16,7 @@ public sealed class SyntaxHighlightingController : IDisposable
     /// <summary>Laisse passer une rafale de frappe avant de re-tokeniser tout le document.</summary>
     private static readonly TimeSpan DebounceDelay = TimeSpan.FromMilliseconds(150);
 
-    private readonly CodeEditor _editor;
-    private readonly ISyntaxDefinitionStore _definitions;
+    private readonly NativeCodeEditor _editor;
     private readonly ISyntaxHighlighter _highlighter;
     private readonly RichTextDecorationLayer _layer;
 
@@ -24,12 +24,11 @@ public sealed class SyntaxHighlightingController : IDisposable
     private CancellationTokenSource? _pending;
     private bool _isDisposed;
 
-    public SyntaxHighlightingController(CodeEditor editor, ISyntaxDefinitionStore definitions, ISyntaxHighlighter highlighter)
+    public SyntaxHighlightingController(NativeCodeEditor editor, ISyntaxHighlighter highlighter)
     {
         ArgumentNullException.ThrowIfNull(editor);
 
         _editor = editor;
-        _definitions = definitions;
         _highlighter = highlighter;
         _layer = editor.Decorations.CreateLayer();
 
@@ -37,21 +36,11 @@ public sealed class SyntaxHighlightingController : IDisposable
         _editor.DocumentChanged += OnEditorChanged;
     }
 
-    /// <summary>
-    /// Charge le langage puis colorie. Le chargement de l'asset est asynchrone : l'editeur
-    /// reste en noir et blanc pendant ce court instant.
-    /// </summary>
-    public void Start(string language)
+    /// <summary>Applique une definition et colorie le contenu courant.</summary>
+    public void Start(SyntaxDefinition definition)
     {
-        _ = StartAsync(language);
-    }
-
-    private async Task StartAsync(string language)
-    {
-        _definition = await _definitions.GetAsync(language);
-
-        if (!_isDisposed && _definition is not null)
-            Refresh();
+        _definition = definition;
+        Refresh();
     }
 
     private void OnEditorChanged(object? sender, EventArgs e) => Refresh();

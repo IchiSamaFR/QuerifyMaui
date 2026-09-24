@@ -24,7 +24,7 @@ public partial class QueryVM
     private void New()
     {
         _untitledCount++;
-        var document = new EditorDocument($"Sans titre {_untitledCount}", filePath: null, text: string.Empty);
+        var document = new EditorDocument($"Sans titre {_untitledCount}", filePath: null, fileText: string.Empty);
 
         Documents.Add(document);
         ActiveDocument = document;
@@ -68,7 +68,7 @@ public partial class QueryVM
 
         return RunAsBusyAsync(async token =>
         {
-            var text = document.Document.Text;
+            var text = document.EditorText;
 
             if (!forceSaveAs && document.HasPath)
             {
@@ -84,7 +84,7 @@ public partial class QueryVM
                 document.FilePath = path;
             }
 
-            document.IsDirty = false;
+            document.MarkSaved();
             SetStatus($"{document.FileName} enregistre.");
         });
     }
