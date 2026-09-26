@@ -81,8 +81,7 @@
                           Text="{Binding ActiveDocument.EditorText}"
                           EditorConfiguration="{Binding EditorConfiguration}"
                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
-                          CaretLine="{Binding CaretLine}"
-                          CaretColumn="{Binding CaretColumn}"
+                          Selection="{Binding Selection}"
                           IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
         </Border>
 
@@ -118,8 +117,8 @@
                        VerticalOptions="Center">
                     <Label.Text>
                         <MultiBinding StringFormat="Ln {0}, Col {1}">
-                            <Binding Path="CaretLine" />
-                            <Binding Path="CaretColumn" />
+                            <Binding Path="Selection.CaretLine" />
+                            <Binding Path="Selection.CaretColumn" />
                         </MultiBinding>
                     </Label.Text>
                 </Label>

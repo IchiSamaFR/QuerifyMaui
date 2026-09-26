@@ -81,11 +81,8 @@ public partial class QueryVM : AbstractVM
 
     // ---------- Barre d'etat ----------
 
-    [ObservableProperty]
-    public partial int CaretLine { get; set; } = 1;
-
-    [ObservableProperty]
-    public partial int CaretColumn { get; set; } = 1;
+    /// <summary>Curseur et texte selectionne, alimentes par le CodeEditor.</summary>
+    public EditorSelection Selection { get; } = new();
 
     /// <summary>Langage colore par l'editeur : pour l'instant toujours du T-SQL.</summary>
     [ObservableProperty]

@@ -11,7 +11,7 @@ namespace SqlToolManagerMaui.Views.Controls.Editors;
 /// <summary>
 /// Editeur de code de l'application. CodeEdit.Maui.CodeEditor etant scelle, ce controle
 /// l'encapsule et lui ajoute ce qui manque : un contenu en simple <see cref="Text"/>,
-/// les options d'affichage en un seul objet, la position du curseur bindable et la
+/// les options d'affichage en un seul objet, la selection (curseur + texte) bindable et la
 /// coloration syntaxique.
 /// </summary>
 public partial class CodeEditor : ContentView
@@ -52,24 +52,19 @@ public partial class CodeEditor : ContentView
         set => SetValue(SyntaxConfigurationProperty, value);
     }
 
-    public static readonly BindableProperty CaretLineProperty = BindableProperty.Create(
-        nameof(CaretLine), typeof(int), typeof(CodeEditor), 1, BindingMode.OneWayToSource);
+    public static readonly BindableProperty SelectionProperty = BindableProperty.Create(
+        nameof(Selection), typeof(EditorSelection), typeof(CodeEditor), null,
+        defaultValueCreator: _ => new EditorSelection(),
+        propertyChanged: (bindable, _, _) => ((CodeEditor)bindable).UpdateSelection());
 
-    /// <summary>Ligne du curseur (base 1), remontee vers l'hote pour la barre d'etat.</summary>
-    public int CaretLine
+    /// <summary>
+    /// Curseur et texte selectionne. L'objet appartient a l'hote (ou au controle a defaut) :
+    /// le controle se contente de mettre a jour ses proprietes.
+    /// </summary>
+    public EditorSelection? Selection
     {
-        get => (int)GetValue(CaretLineProperty);
-        private set => SetValue(CaretLineProperty, value);
-    }
-
-    public static readonly BindableProperty CaretColumnProperty = BindableProperty.Create(
-        nameof(CaretColumn), typeof(int), typeof(CodeEditor), 1, BindingMode.OneWayToSource);
-
-    /// <summary>Colonne du curseur (base 1, unites UTF-16).</summary>
-    public int CaretColumn
-    {
-        get => (int)GetValue(CaretColumnProperty);
-        private set => SetValue(CaretColumnProperty, value);
+        get => (EditorSelection?)GetValue(SelectionProperty);
+        set => SetValue(SelectionProperty, value);
     }
 
     private static readonly BindablePropertyKey CommandsPropertyKey = BindableProperty.CreateReadOnly(
@@ -213,14 +208,21 @@ public partial class CodeEditor : ContentView
 #endif
     }
 
-    // ---------- Curseur ----------
+    // ---------- Selection ----------
 
     private void OnNativeSelectionChanged(object? sender, RichTextSelectionChangedEventArgs e)
+        => UpdateSelection();
+
+    private void UpdateSelection()
     {
+        if (Selection is not { } selection)
+            return;
+
         // CaretPosition est en base 1 (ligne / colonne UTF-16).
         var position = Native.CaretPosition;
 
-        CaretLine = position.Line;
-        CaretColumn = position.Column;
+        selection.CaretLine = position.Line;
+        selection.CaretColumn = position.Column;
+        selection.SelectedText = Native.Selection.Text ?? string.Empty;
     }
 }
