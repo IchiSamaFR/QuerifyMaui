@@ -49,18 +49,16 @@
                    Text="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=Document.FileName, x:DataType=c:FileTabItem}"
                    Style="{StaticResource LabelStyle}" />
 
-            <inp:IconButtonView x:Name="CloseButton"
-                                Grid.Column="1"
-                                Style="{StaticResource SimpleTextIconButtonViewStyle}"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=CloseCommand, x:DataType=c:FileTabItem}"
-                                CommandParameter="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=Document, x:DataType=c:FileTabItem}"
-                                Icon="{icons:Fluent Icon=Dismiss16}"
-                                TextColor="{StaticResource Error}"
-                                IconSize="12"
-                                WidthRequest="20"
-                                HeightRequest="20"
-                                Padding="4"
-                                ToolTipProperties.Text="Fermer l'onglet" />
+            <Button x:Name="CloseButton"
+                    Grid.Column="1"
+                    Style="{StaticResource TextButton}"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=CloseCommand, x:DataType=c:FileTabItem}"
+                    CommandParameter="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=Document, x:DataType=c:FileTabItem}"
+                    ImageSource="{icons:Fluent Icon=Dismiss16, IconColor={StaticResource Danger}, IconSize=12}"
+                    WidthRequest="20"
+                    HeightRequest="20"
+                    Padding="0"
+                    ToolTipProperties.Text="Fermer l'onglet" />
 
         </Grid>
     </Border>

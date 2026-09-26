@@ -39,7 +39,7 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 * **Resources/Styles** : tokens (couleurs, tailles, épaisseurs) et styles par contrôle.
 
 **Bibliothèque UI (`SqlToolManagerMaui.UI`)** :
-* **Inputs** : contrôles de saisie maison (`ButtonView`, `IconButtonView`, `TextField`, `PickerField`, `IntField`, `PinInput`...), chacun scindé en `X.cs` + `X.bindable.cs`.
+* **Inputs** : contrôles de saisie maison (`ButtonView`, `TextField`, `PickerField`, `IntField`, `PinInput`...), chacun scindé en `X.cs` + `X.bindable.cs`.
 * **Converters** : convertisseurs XAML réutilisables.
 * **Behaviors / Attachments / Extensions** : comportements et helpers transverses.
 
@@ -181,7 +181,7 @@ public ICommand? ToggleLineNumbersCommand
 * **Le T4 ne tourne pas au build** : après l'ajout d'un dossier de namespace, mettre `AppXmlns.cs` à jour (relancer l'outil personnalisé ou éditer à la main).
 * **Bindings compilés** : `MauiStrictXamlCompilation` est actif. Toujours renseigner `x:DataType` (sur la page, ou en ligne dans le binding : `x:DataType=c:FileTabItem`).
 * **Un contrôle ne connaît pas les ViewModels** : il expose des `BindableProperty` et se lie à lui-même via `{Binding Source={RelativeSource AncestorType={x:Type c:MonControle}}, Path=MaProp, x:DataType=c:MonControle}`. C'est la page hôte qui branche le VM.
-* **Boutons** : utiliser `inp:ButtonView` / `inp:IconButtonView` plutôt que `Button`, `ImageButton` ou `Border` + TapGesture.
+* **Boutons** : utiliser `Button` (texte + icône via `ImageSource="{icons:Fluent Icon=Xxx, IconColor=..., IconSize=20}"`) avec les styles `PrimaryButton`, `SecondaryButton`, `DangerButton` (ou `TextButton` pour un bouton icône sans fond). `inp:ButtonView` reste réservé aux boutons à contenu personnalisé. Pas d'`ImageButton` ni de `Border` + TapGesture.
 * **Icônes** : `{icons:Fluent Icon=Xxx}` sur les contrôles connus de MauiIcons, `{x:Static fluent:FluentIcons.Xxx}` sur une propriété custom.
 * **Styles et couleurs** : passer par les tokens (`Resources/Styles/Tokens/`) et les styles existants, ne pas coder de couleur en dur.
 

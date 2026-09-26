@@ -20,8 +20,8 @@
 
     <Color x:Key="DialogBackgroundColor">#2F2F36</Color>
 
-    <Color x:Key="ButtonBackground">#16161C</Color>
-    <Color x:Key="ButtonBorder">#202020</Color>
+    <Color x:Key="ButtonBackground">#444444</Color>
+    <Color x:Key="ButtonBorder">#444444</Color>
 
     <Color x:Key="InputBackground">#2F2F36</Color>
     <Color x:Key="InputBorder">#2F2F36</Color>
@@ -31,12 +31,12 @@
     <Color x:Key="LabelDisabled">#7F7F7F</Color>
     <Color x:Key="InputDisabled">#4E4E4E</Color>
     
-    <Color x:Key="Primary">#512BD4</Color>
+    <Color x:Key="Primary">#8F6BFF</Color>
     <Color x:Key="PrimaryDark">#ac99ea</Color>
-    <Color x:Key="PrimaryDarkText">#242424</Color>
-    <Color x:Key="Secondary">#DFD8F7</Color>
+    <Color x:Key="PrimaryDarkText">#F3F3F3</Color>
+    <Color x:Key="Secondary">#B8AEE0</Color>
     <Color x:Key="SecondaryDarkText">#9880e5</Color>
-    <Color x:Key="Tertiary">#2B0B98</Color>
+    <Color x:Key="Tertiary">#5A3FCF</Color>
 
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
@@ -64,8 +64,8 @@
     <Color x:Key="NavItemSelectedDark">#19FFFFFF</Color>
 
     <!-- Etats d'erreur (palette systeme Windows 11) -->
-    <Color x:Key="Error">#C42B1C</Color>
-    <Color x:Key="ErrorDark">#FF99A4</Color>
+    <Color x:Key="Danger">#C42B1C</Color>
+    <Color x:Key="DangerDark">#FF99A4</Color>
     <Color x:Key="Warning">#FFA500</Color>
 
     <SolidColorBrush x:Key="PrimaryBrush"

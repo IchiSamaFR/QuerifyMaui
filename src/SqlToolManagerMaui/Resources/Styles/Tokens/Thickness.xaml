@@ -21,5 +21,6 @@
 
     <x:Int16 x:Key="CardCornerRadius">4</x:Int16>
     <x:Int16 x:Key="InputCornerRadius">4</x:Int16>
+    <x:Int16 x:Key="ButtonCornerRadius">4</x:Int16>
 
 </ResourceDictionary>

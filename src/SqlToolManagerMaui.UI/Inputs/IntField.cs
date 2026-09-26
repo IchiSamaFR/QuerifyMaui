@@ -101,8 +101,6 @@ public partial class IntField : InputField
             FontSize = 26,
         };
 
-        button.SetDynamicResource(StyleProperty, "TextButtonStyle");
-
         return button;
     }
 

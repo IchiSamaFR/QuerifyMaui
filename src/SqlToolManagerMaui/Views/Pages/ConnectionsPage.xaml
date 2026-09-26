@@ -123,7 +123,7 @@
                                          Binding="{Binding IsStatusError}"
                                          Value="True">
                                 <Setter Property="TextColor"
-                                        Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
+                                        Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
                             </DataTrigger>
                         </Label.Triggers>
                     </Label>
@@ -134,28 +134,26 @@
 
                     <!-- Actions -->
                     <HorizontalStackLayout Spacing="12">
-                        <inp:IconButtonView Style="{StaticResource FilledIconButtonViewStyle}"
-                                            Command="{Binding SaveCommand}"
-                                            Text="Enregistrer"
-                                            Icon="{icons:Fluent Icon=Save20}" />
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Command="{Binding SaveCommand}"
+                                Text="Enregistrer"
+                                ImageSource="{icons:Fluent Icon=Save20, IconColor={StaticResource LabelPrimary}, IconSize=20}" />
 
-                        <inp:IconButtonView Style="{StaticResource OutlinedIconButtonViewStyle}"
-                                            Command="{Binding TestCommand}"
-                                            Text="Tester"
-                                            Icon="{icons:Fluent Icon=PlugConnected20}" />
+                        <Button Style="{StaticResource SecondaryButton}"
+                                Command="{Binding TestCommand}"
+                                Text="Tester"
+                                ImageSource="{icons:Fluent Icon=PlugConnected20, IconColor={StaticResource LabelPrimary}, IconSize=20}" />
 
-                        <inp:IconButtonView Style="{StaticResource OutlinedIconButtonViewStyle}"
-                                            Command="{Binding CancelCommand}"
-                                            Text="Annuler" />
+                        <Button Style="{StaticResource SecondaryButton}"
+                                Command="{Binding CancelCommand}"
+                                Text="Annuler" />
 
-                        <inp:IconButtonView Style="{StaticResource OutlinedIconButtonViewStyle}"
-                                            Command="{Binding DeleteCommand}"
-                                            CommandParameter="{Binding Draft.Info}"
-                                            Text="Supprimer"
-                                            TextColor="{StaticResource Error}"
-                                            BorderColor="{StaticResource Error}"
-                                            Icon="{icons:Fluent Icon=Delete20}"
-                                            IsVisible="{Binding Draft.Info.IsEditing}" />
+                        <Button Style="{StaticResource DangerButton}"
+                                Command="{Binding DeleteCommand}"
+                                CommandParameter="{Binding Draft.Info}"
+                                Text="Supprimer"
+                                ImageSource="{icons:Fluent Icon=Delete20, IconColor={StaticResource LabelPrimary}, IconSize=20}"
+                                IsVisible="{Binding Draft.Info.IsEditing}" />
 
                     </HorizontalStackLayout>
                 </VerticalStackLayout>

@@ -11,7 +11,7 @@
         <Setter Property="DisabledOpacity"
                 Value="{DynamicResource DisabledOpacity}" />
         <Setter Property="CornerRadius"
-                Value="8" />
+                Value="{DynamicResource ButtonCornerRadius}" />
 
         <Setter Property="BackgroundColor"
                 Value="{DynamicResource Primary}" />
@@ -26,6 +26,16 @@
                 Value="Center" />
         <Setter Property="Padding"
                 Value="16,0" />
+    </Style>
+
+    <Style x:Key="SecondaryFilledButtonViewStyle"
+           TargetType="inp:ButtonView"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource FilledButtonViewStyle}">
+        <Setter Property="BackgroundColor"
+                Value="{DynamicResource ButtonBackground}" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource ButtonBorder}" />
     </Style>
 
     <Style x:Key="OutlinedButtonViewStyle"
@@ -51,191 +61,150 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource TextButtonViewStyle}">
         <Setter Property="CornerRadius"
-                Value="4" />
+                Value="{DynamicResource ButtonCornerRadius}" />
         <Setter Property="Padding"
                 Value="0" />
         <Setter Property="HeightRequest"
                 Value="{DynamicResource SubInputHeight}" />
     </Style>
 
-    <!-- IconButtonView Styles -->
-    <Style x:Key="FilledIconButtonViewStyle"
-           TargetType="inp:IconButtonView"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource FilledButtonViewStyle}">
-        <Setter Property="FontSize"
-                Value="{DynamicResource FontSize_Normal}" />
-        <Setter Property="TextColor"
-                Value="{DynamicResource LabelPrimary}" />
-        <Setter Property="IconSize"
-                Value="20" />
-    </Style>
-
-    <Style x:Key="OutlinedIconButtonViewStyle"
-           TargetType="inp:IconButtonView"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource OutlinedButtonViewStyle}">
-        <Setter Property="FontSize"
-                Value="{DynamicResource FontSize_Normal}" />
-        <Setter Property="TextColor"
-                Value="{DynamicResource LabelPrimary}" />
-        <Setter Property="IconSize"
-                Value="20" />
-    </Style>
-    
-    <Style x:Key="TextIconButtonViewStyle"
-           TargetType="inp:IconButtonView"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource TextButtonViewStyle}">
-        <Setter Property="FontSize"
-                Value="{DynamicResource FontSize_Normal}" />
-        <Setter Property="TextColor"
-                Value="{DynamicResource Primary}" />
-        <Setter Property="IconSize"
-                Value="20" />
-    </Style>
-
-    <Style x:Key="NavTextIconButtonViewStyle"
-           TargetType="inp:IconButtonView"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource NavTextButtonViewStyle}">
-        <Setter Property="TextColor"
-                Value="{DynamicResource LabelPrimary}" />
-        <Setter Property="Padding"
-                Value="0" />
-    </Style>
-
-    <Style x:Key="SimpleTextIconButtonViewStyle"
-           TargetType="inp:IconButtonView"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource NavTextButtonViewStyle}">
-        <Setter Property="TextColor"
-                Value="{DynamicResource LabelPrimary}" />
-        <Setter Property="Padding"
-                Value="0" />
-    </Style>
-
     <!-- Button Styles -->
-    <Style x:Key="FilledButtonStyle"
-           TargetType="Button"
-           ApplyToDerivedTypes="True">
+    <!-- Base commune : chaque variante ne redefinit que ses couleurs. -->
+    <Style x:Key="BaseButton"
+           TargetType="Button">
         <Setter Property="HeightRequest"
-                Value="{DynamicResource InputHeight}" />
+                Value="{DynamicResource SubInputHeight}" />
+        <Setter Property="MinimumWidthRequest"
+                Value="0" />
+        <Setter Property="MinimumHeightRequest"
+                Value="0" />
         <Setter Property="CornerRadius"
-                Value="8" />
-        <Setter Property="Background"
-                Value="{DynamicResource Primary}" />
+                Value="4" />
+        <Setter Property="BorderWidth"
+                Value="1" />
 
-        <Setter Property="FontAttributes"
-                Value="Bold" />
         <Setter Property="FontSize"
-                Value="{DynamicResource FontSize_Default}" />
+                Value="{DynamicResource FontSize_Normal}" />
         <Setter Property="TextColor"
                 Value="{DynamicResource LabelPrimary}" />
+
+        <!-- Icone (ImageSource) a gauche du texte -->
+        <Setter Property="ContentLayout"
+                Value="Left, 8" />
 
         <Setter Property="VerticalOptions"
                 Value="Center" />
         <Setter Property="Padding"
                 Value="16,0" />
 
-        <Style.Triggers>
-            <Trigger TargetType="Button"
-                     Property="IsEnabled"
-                     Value="False">
-                <Setter Property="TextColor"
-                        Value="{DynamicResource LabelDisabled}" />
-                <Setter Property="Background"
-                        Value="{DynamicResource InputDisabled}" />
-                <Setter Property="Opacity"
-                        Value="{DynamicResource DisabledOpacity}" />
-                <Setter Property="BorderWidth"
-                        Value="0" />
-            </Trigger>
-        </Style.Triggers>
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity"
+                                    Value="0.9" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity"
+                                    Value="0.75" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="TextColor"
+                                    Value="{DynamicResource LabelDisabled}" />
+                            <Setter Property="Background"
+                                    Value="{DynamicResource InputDisabled}" />
+                            <Setter Property="BorderColor"
+                                    Value="{DynamicResource InputDisabled}" />
+                            <Setter Property="Opacity"
+                                    Value="{DynamicResource DisabledOpacity}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
     </Style>
 
-    <Style x:Key="FilledCardButtonStyle"
+    <Style x:Key="PrimaryButton"
            TargetType="Button"
-           BasedOn="{StaticResource FilledButtonStyle}">
+           BasedOn="{StaticResource BaseButton}">
+        <Setter Property="Background"
+                Value="{DynamicResource Primary}" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource Primary}" />
+    </Style>
+
+    <Style x:Key="SecondaryButton"
+           TargetType="Button"
+           BasedOn="{StaticResource BaseButton}">
         <Setter Property="Background"
                 Value="{DynamicResource ButtonBackground}" />
-
-        <Setter Property="BorderWidth"
-                Value="1" />
         <Setter Property="BorderColor"
                 Value="{DynamicResource ButtonBorder}" />
-
-        <Setter Property="TextColor"
-                Value="{DynamicResource Primary}" />
     </Style>
 
-    <Style x:Key="OutlinedButtonStyle"
+    <Style x:Key="DangerButton"
            TargetType="Button"
-           BasedOn="{StaticResource FilledButtonStyle}">
+           BasedOn="{StaticResource BaseButton}">
         <Setter Property="Background"
-                Value="Transparent" />
-
-        <Setter Property="BorderWidth"
-                Value="1" />
+                Value="{DynamicResource Danger}" />
         <Setter Property="BorderColor"
-                Value="{DynamicResource Primary}" />
-
-        <Setter Property="TextColor"
-                Value="{DynamicResource Primary}" />
+                Value="{DynamicResource Danger}" />
     </Style>
 
-    <Style x:Key="TextButtonStyle"
+    <!-- Bouton sans fond ni bordure : boutons icone (menu, fermeture d'onglet, steps d'IntField) -->
+    <Style x:Key="TextButton"
            TargetType="Button"
-           BasedOn="{StaticResource OutlinedButtonStyle}">
+           BasedOn="{StaticResource BaseButton}">
         <Setter Property="Background"
                 Value="Transparent" />
-
-        <Setter Property="BorderWidth"
-                Value="0" />
         <Setter Property="BorderColor"
                 Value="Transparent" />
-
-        <Style.Triggers>
-            <Trigger TargetType="Button"
-                     Property="IsEnabled"
-                     Value="False">
-                <Setter Property="Background"
-                        Value="Transparent" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
-    <Style x:Key="BelowInputButtonStyle"
-           TargetType="Button"
-           BasedOn="{StaticResource TextButtonStyle}">
-        <Setter Property="HorizontalOptions"
-                Value="End" />
-        <Setter Property="VerticalOptions"
-                Value="Center" />
-        <Setter Property="Background"
-                Value="Transparent" />
-        <Setter Property="HeightRequest"
-                Value="32" />
-
-        <Setter Property="Margin"
+        <Setter Property="BorderWidth"
                 Value="0" />
-
-        <Setter Property="FontSize"
-                Value="{DynamicResource FontSize_Default}" />
-        <Setter Property="FontAttributes"
-                Value="None" />
         <Setter Property="TextColor"
                 Value="{DynamicResource Primary}" />
+
+        <!-- Desactive : le fond reste transparent, seul le texte grise -->
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Background"
+                                    Value="{DynamicResource NavItemHoverDark}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity"
+                                    Value="0.75" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="TextColor"
+                                    Value="{DynamicResource LabelDisabled}" />
+                            <Setter Property="Opacity"
+                                    Value="{DynamicResource DisabledOpacity}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
     </Style>
 
     <!-- Default Styles -->
     <Style TargetType="inp:ButtonView"
            BasedOn="{StaticResource FilledButtonViewStyle}" />
 
-    <Style TargetType="inp:IconButtonView"
-           BasedOn="{StaticResource FilledIconButtonViewStyle}" />
-    
     <Style TargetType="Button"
-           BasedOn="{StaticResource FilledButtonStyle}" />
+           BasedOn="{StaticResource SecondaryButton}" />
 
 </ResourceDictionary>

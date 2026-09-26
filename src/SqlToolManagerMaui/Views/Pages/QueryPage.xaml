@@ -60,14 +60,13 @@
                         WidthRequest="220"
                         VerticalOptions="Center" />
 
-                <inp:IconButtonView Style="{StaticResource FilledIconButtonViewStyle}"
-                                    Command="{Binding ExecuteQueryCommand}"
-                                    Icon="{icons:Fluent Icon=PlayCircle20}"
-                                    IconSize="20"
-                                    Padding="0"
-                                    WidthRequest="{StaticResource SmallInputHeight}"
-                                    HeightRequest="{StaticResource SmallInputHeight}"
-                                    ToolTipProperties.Text="Disponible dans une prochaine version" />
+                <Button Style="{StaticResource PrimaryButton}"
+                        Command="{Binding ExecuteQueryCommand}"
+                        ImageSource="{icons:Fluent Icon=PlayCircle20, IconColor={StaticResource LabelPrimary}, IconSize=20}"
+                        Padding="0"
+                        WidthRequest="{StaticResource SmallInputHeight}"
+                        HeightRequest="{StaticResource SmallInputHeight}"
+                        ToolTipProperties.Text="Disponible dans une prochaine version" />
             </HorizontalStackLayout>
         </Grid>
 
@@ -102,7 +101,7 @@
                                  Binding="{Binding IsStatusError}"
                                  Value="True">
                         <Setter Property="TextColor"
-                                Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
+                                Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
                     </DataTrigger>
                 </Label.Triggers>
             </Label>
