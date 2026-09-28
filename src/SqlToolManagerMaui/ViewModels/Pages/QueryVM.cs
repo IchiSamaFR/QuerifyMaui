@@ -85,9 +85,6 @@ public partial class QueryVM : AbstractVM
 
     // ---------- Barre d'etat ----------
 
-    /// <summary>Curseur et texte selectionne, alimentes par le CodeEditor.</summary>
-    public EditorSelection Selection { get; } = new();
-
     /// <summary>Langage colore par l'editeur : pour l'instant toujours du T-SQL.</summary>
     [ObservableProperty]
     public partial SyntaxConfiguration? SyntaxConfiguration { get; set; }
@@ -153,8 +150,9 @@ public partial class QueryVM : AbstractVM
         if (document is null || connection is null)
             return;
 
-        var isSelection = !string.IsNullOrWhiteSpace(Selection.SelectedText);
-        var script = isSelection ? Selection.SelectedText : document.EditorText;
+        var selectedText = document.Selection.SelectedText;
+        var isSelection = !string.IsNullOrWhiteSpace(selectedText);
+        var script = isSelection ? selectedText : document.EditorText;
         if (string.IsNullOrWhiteSpace(script))
         {
             SetStatus("Rien à exécuter : le document est vide.", isError: true);

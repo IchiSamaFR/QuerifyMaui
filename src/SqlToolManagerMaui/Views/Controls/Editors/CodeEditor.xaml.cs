@@ -55,11 +55,12 @@ public partial class CodeEditor : ContentView
     public static readonly BindableProperty SelectionProperty = BindableProperty.Create(
         nameof(Selection), typeof(EditorSelection), typeof(CodeEditor), null,
         defaultValueCreator: _ => new EditorSelection(),
-        propertyChanged: (bindable, _, _) => ((CodeEditor)bindable).UpdateSelection());
+        propertyChanged: (bindable, _, _) => ((CodeEditor)bindable).ScheduleSelectionRestore());
 
     /// <summary>
     /// Curseur et texte selectionne. L'objet appartient a l'hote (ou au controle a defaut) :
-    /// le controle se contente de mettre a jour ses proprietes.
+    /// le controle met a jour ses proprietes, et restaure la selection qu'il porte quand
+    /// l'hote en fournit une autre (changement d'onglet).
     /// </summary>
     public EditorSelection? Selection
     {
@@ -90,6 +91,12 @@ public partial class CodeEditor : ContentView
 
     /// <summary>Evite l'aller-retour Text -> document -> Text pendant une synchronisation.</summary>
     private bool _isSynchronizing;
+
+    /// <summary>
+    /// Vrai entre un changement de document / de Selection et la restauration : la selection
+    /// native, remise a zero par le changement de document, ne doit ecraser aucun modele.
+    /// </summary>
+    private bool _isRestoringSelection;
 
     public CodeEditor()
     {
@@ -145,6 +152,9 @@ public partial class CodeEditor : ContentView
         var text = value ?? string.Empty;
         if (_document.Text == text)
             return;
+
+        // Le nouveau document remet le curseur a 0 : on reapplique ensuite la selection de l'hote.
+        ScheduleSelectionRestore();
 
         _isSynchronizing = true;
         AttachDocument(text);
@@ -211,16 +221,56 @@ public partial class CodeEditor : ContentView
     // ---------- Selection ----------
 
     private void OnNativeSelectionChanged(object? sender, RichTextSelectionChangedEventArgs e)
-        => UpdateSelection();
+    {
+        if (!_isRestoringSelection)
+            UpdateSelection();
+    }
+
+    /// <summary>
+    /// Text et Selection changent tous deux au changement d'onglet, dans un ordre non garanti :
+    /// la restauration est differee apres les deux mises a jour de binding.
+    /// </summary>
+    private void ScheduleSelectionRestore()
+    {
+        if (_isRestoringSelection)
+            return;
+
+        _isRestoringSelection = true;
+        Dispatcher.Dispatch(RestoreSelection);
+    }
+
+    private void RestoreSelection()
+    {
+        try
+        {
+            if (Selection is { } selection)
+            {
+                var length = _document.Text.Length;
+                Native.SelectionState = new RichTextSelectionState(
+                    Math.Clamp(selection.Anchor, 0, length),
+                    Math.Clamp(selection.Active, 0, length));
+            }
+        }
+        finally
+        {
+            _isRestoringSelection = false;
+        }
+
+        // Recale ligne / colonne / texte sur l'etat reellement applique (offsets bornes).
+        UpdateSelection();
+    }
 
     private void UpdateSelection()
     {
         if (Selection is not { } selection)
             return;
 
+        var state = Native.SelectionState;
         // CaretPosition est en base 1 (ligne / colonne UTF-16).
         var position = Native.CaretPosition;
 
+        selection.Anchor = state.Anchor;
+        selection.Active = state.Active;
         selection.CaretLine = position.Line;
         selection.CaretColumn = position.Column;
         selection.SelectedText = Native.Selection.Text ?? string.Empty;

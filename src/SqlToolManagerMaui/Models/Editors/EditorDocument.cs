@@ -36,6 +36,10 @@ public sealed partial class EditorDocument : ObservableObject
     [NotifyPropertyChangedFor(nameof(FileName))]
     public partial string FallbackName { get; set; }
 
+    /// <summary>Selection propre a l'onglet, restauree par l'editeur quand l'onglet redevient actif.</summary>
+    [ObservableProperty]
+    public partial EditorSelection Selection { get; set; } = new();
+
     /// <summary>Resultat de la derniere execution lancee depuis cet onglet.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasResultsPanel))]

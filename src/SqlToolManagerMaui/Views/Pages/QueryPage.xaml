@@ -89,10 +89,10 @@
                 Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}">
 
             <c:CodeEditor x:Name="Editor"
-                          Text="{Binding ActiveDocument.EditorText}"
                           EditorConfiguration="{Binding EditorConfiguration}"
                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
-                          Selection="{Binding Selection}"
+                          Text="{Binding ActiveDocument.EditorText}"
+                          Selection="{Binding ActiveDocument.Selection}"
                           IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
         </Border>
 
@@ -136,8 +136,8 @@
                        VerticalOptions="Center">
                     <Label.Text>
                         <MultiBinding StringFormat="Ln {0}, Col {1}">
-                            <Binding Path="Selection.CaretLine" />
-                            <Binding Path="Selection.CaretColumn" />
+                            <Binding Path="ActiveDocument.Selection.CaretLine" />
+                            <Binding Path="ActiveDocument.Selection.CaretColumn" />
                         </MultiBinding>
                     </Label.Text>
                 </Label>
