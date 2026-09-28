@@ -10,6 +10,9 @@
         </MenuFlyoutItem.KeyboardAccelerators>
     </MenuFlyoutItem>
 
+    <MenuFlyoutItem Text="Annuler l'exécution"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:QueryMenuBarItem}}, Path=CancelCommand, x:DataType=c:QueryMenuBarItem}" />
+
     <MenuFlyoutSeparator />
 
     <MenuFlyoutItem Text="Se déconnecter"

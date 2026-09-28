@@ -16,7 +16,7 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 * **Requête** : éditeur de texte multi-onglets façon Notepad, posé sur `CodeEdit.Maui`. Nouveau / Ouvrir / Enregistrer / Enregistrer sous, options d'édition (retour à la ligne, numéros de ligne, indentation), barre d'état (chemin du fichier, Ln/Col).
 * **Connexions** : CRUD des chaînes de connexion en master/détail sur une seule page (pas de popup), avec test de connexion réel.
 * **Moteur supporté** : SQL Server uniquement (Microsoft.Data.SqlClient). L'architecture prévoit l'ajout d'autres moteurs.
-* **Exécution des requêtes** : l'UI est en place (picker de connexion + bouton Exécuter) mais le branchement reste à faire.
+* **Exécution des requêtes** : F5 / bouton Exécuter sur la connexion choisie. Exécute la sélection, ou tout le document à défaut. Découpage sur `GO` comme SSMS, résultats par onglet d'éditeur (un onglet par jeu de résultats + Messages), annulation possible.
 
 **Règles à respecter absolument** :
 * Ne jamais générer du code Xamarin.Forms — toujours les équivalents .NET MAUI.
@@ -58,10 +58,12 @@ SqlToolManagerMaui/
 │   │   │   └── ServiceCollectionExtensions.cs  # Enregistrement DI centralisé
 │   │   ├── Models/
 │   │   │   ├── Databases/                      # DatabaseConnectionInfo, Draft, Provider
-│   │   │   └── Editors/                        # EditorDocument, EditorDocumentConfiguration
+│   │   │   ├── Editors/                        # EditorDocument, EditorConfiguration, EditorSelection
+│   │   │   └── Queries/                        # QueryExecutionResult, QueryResultSet, QueryMessage
 │   │   ├── Services/
 │   │   │   ├── Databases/                      # ConnectionStore, testeurs par moteur
-│   │   │   └── Editors/                        # EditorFileService (FilePicker / FileSaver)
+│   │   │   ├── Editors/                        # EditorFileService (FilePicker / FileSaver)
+│   │   │   └── Queries/                        # Exécuteurs par moteur, découpage GO
 │   │   ├── ViewModels/
 │   │   │   ├── AbstractVM.cs                   # Base : navigation, chargement
 │   │   │   ├── AbstractVM_Busy.cs              # Base : gestion des tâches / IsBusy
@@ -237,6 +239,15 @@ Lors de la création d'une feature :
 * **Barre de menus** : les actions sont des contrôles `MenuBarItem` dédiés (`Views/Controls/Editors/*MenuBarItem`), branchés depuis `QueryPage` via leurs `BindableProperty`. Sous Windows, MAUI rend le MenuBar dans le `MauiToolbar` du Shell : la page doit porter `Shell.NavBarIsVisible="True"` **et** un `Title` non vide (cf. dotnet/maui#6303).
 * `MenuFlyoutItem` n'a pas d'état « coché » : les bascules changent leur libellé via un `DataTrigger` sur une propriété d'état du contrôle.
 
+### Exécution des requêtes
+
+* `QueryVM.ExecuteQueryCommand` (async, `IncludeCancelCommand`) : texte = `Selection.SelectedText` s'il n'est pas vide, sinon `ActiveDocument.EditorText`. Volontairement **hors** `RunAsBusyAsync`, qui désactiverait la page et donc le bouton Annuler.
+* **Ajouter un moteur** = un `AddSingleton<IQueryExecutor, ...>` dans `AddQueryExecutors` ; `QueryExecutorResolver` le découvre seul.
+* `SqlServerQueryExecutor` : une connexion par exécution (pas de session conservée entre deux F5), `CommandTimeout = 0`, lots `GO` / `GO n` découpés par `SqlBatchSplitter` (ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script exécuté. Les erreurs SQL sont rendues dans les messages, pas levées.
+* Plafond de `MaxRowsPerResultSet` (10 000) lignes par jeu, cellules converties en texte côté service (NULL = `null`).
+* Le résultat est rangé sur l'`EditorDocument` d'origine (`LastResult`, `IsExecuting`) : chaque onglet garde ses résultats.
+* `Views/Controls/Queries/QueryResultGrid` est construit en code (colonnes connues à l'exécution) ; les lignes (`QueryResultRowView`) sont remplies au recyclage, sans binding. Styles dans `Resources/Styles/Controls/QueryResultStyles.xaml`.
+
 ### Connexions
 
 * Stockage mixte : métadonnées dans `connections.json` (AppDataDirectory, écriture atomique via fichier `.tmp`), chaîne de connexion complète chiffrée dans le `SecureStorage` sous la clé `connectionstring:{id}`. `DatabaseConnectionInfo` ne contient **jamais** la chaîne complète.
@@ -280,4 +291,4 @@ dotnet build src/SqlToolManagerMaui.slnx
 
 ---
 
-**Dernière mise à jour** : 2026-09-20
+**Dernière mise à jour** : 2026-09-26

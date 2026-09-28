@@ -3,6 +3,7 @@ using SqlToolManagerMaui.Services;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using SqlToolManagerMaui.Services.Queries;
 using SqlToolManagerMaui.ViewModels;
 using SqlToolManagerMaui.ViewModels.Pages;
 using SqlToolManagerMaui.Views.Pages;
@@ -27,7 +28,8 @@ public static class ServiceCollectionExtensions
 
         return services
             .AddConnectionServices()
-            .AddQueryProviders();
+            .AddQueryProviders()
+            .AddQueryExecutors();
     }
 
     /// <summary>
@@ -43,6 +45,18 @@ public static class ServiceCollectionExtensions
         // Coloration syntaxique : definitions .xshd + tokenizer.
         services.AddSingleton<ISyntaxConfigurationStore, XshdSyntaxConfigurationStore>();
         services.AddSingleton<ISyntaxHighlighter, SyntaxHighlighter>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Execution des requetes. Un nouveau moteur s'ajoute par un simple
+    /// AddSingleton&lt;IQueryExecutor, ...&gt; : le resolveur le decouvre seul.
+    /// </summary>
+    private static IServiceCollection AddQueryExecutors(this IServiceCollection services)
+    {
+        services.AddSingleton<IQueryExecutor, SqlServerQueryExecutor>();
+        services.AddSingleton<IQueryExecutorResolver, QueryExecutorResolver>();
 
         return services;
     }

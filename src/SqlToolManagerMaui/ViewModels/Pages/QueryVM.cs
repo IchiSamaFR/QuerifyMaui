@@ -7,6 +7,7 @@ using SqlToolManagerMaui.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using SqlToolManagerMaui.Services.Queries;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 
@@ -14,14 +15,15 @@ namespace SqlToolManagerMaui.ViewModels.Pages;
 /// Editeur de texte multi-onglets (facon Notepad) pose sur CodeEdit.Maui.
 /// Chaque onglet est un <see cref="EditorDocument"/> ; la page n'affiche qu'un seul
 /// <c>CodeEditor</c>, dont la propriete Document suit <see cref="ActiveDocument"/>.
-/// Le choix de connexion et la commande Executer sont deja cables mais inactifs :
-/// l'execution des requetes viendra dans une etape ulterieure.
+/// L'execution porte sur le texte selectionne, ou sur tout le document a defaut, et son
+/// resultat est range sur l'onglet d'origine.
 /// </summary>
 public partial class QueryVM : AbstractVM
 {
     private readonly IEditorFileService _files;
     private readonly IConnectionStore _connectionStore;
     private readonly ISyntaxConfigurationStore _syntaxConfigurations;
+    private readonly IQueryExecutorResolver _executors;
 
     /// <summary>Compteur des documents "Sans titre" ouverts depuis le demarrage.</summary>
     private int _untitledCount;
@@ -30,6 +32,7 @@ public partial class QueryVM : AbstractVM
     public ObservableCollection<EditorDocument> Documents { get; } = new();
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ExecuteQueryCommand))]
     public partial EditorDocument? ActiveDocument { get; set; }
 
     /// <summary>
@@ -43,7 +46,7 @@ public partial class QueryVM : AbstractVM
     };
 
     /// <summary>
-    /// Connexions proposees pour la future execution. Le premier element est toujours
+    /// Connexions proposees pour l'execution. Le premier element est toujours
     /// <see cref="NoConnection"/>, pour que le Picker permette de se deconnecter.
     /// </summary>
     [ObservableProperty]
@@ -54,6 +57,7 @@ public partial class QueryVM : AbstractVM
     [NotifyPropertyChangedFor(nameof(ActiveConnection))]
     [NotifyPropertyChangedFor(nameof(IsConnected))]
     [NotifyCanExecuteChangedFor(nameof(DisconnectCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExecuteQueryCommand))]
     public partial DatabaseConnectionInfo? SelectedConnection { get; set; } = NoConnection;
 
     /// <summary>Connexion reellement retenue, ou null si l'utilisateur est deconnecte.</summary>
@@ -88,11 +92,12 @@ public partial class QueryVM : AbstractVM
     [ObservableProperty]
     public partial SyntaxConfiguration? SyntaxConfiguration { get; set; }
 
-    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations)
+    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors)
     {
         _files = files;
         _connectionStore = connectionStore;
         _syntaxConfigurations = syntaxConfigurations;
+        _executors = executors;
     }
 
     protected override async Task LoadDatasBusyAsync()
@@ -132,16 +137,69 @@ public partial class QueryVM : AbstractVM
             : $"Connexion active : {ActiveConnection.Name}.");
     }
 
-    // ---------- Execution (a venir) ----------
+    // ---------- Execution ----------
+
+    private bool CanExecuteQuery() => IsConnected && ActiveDocument is not null;
 
     /// <summary>
-    /// Volontairement inactive : l'UI est en place, l'execution sera branchee
-    /// sur la connexion selectionnee dans une prochaine etape.
+    /// Execute la selection, ou tout le document si rien n'est selectionne.
+    /// Volontairement hors RunAsBusyAsync : la page doit rester active pour pouvoir annuler.
     /// </summary>
-    [RelayCommand]
-    private void ExecuteQuery()
+    [RelayCommand(CanExecute = nameof(CanExecuteQuery), IncludeCancelCommand = true)]
+    private async Task ExecuteQueryAsync(CancellationToken token)
     {
-        SetStatus("L'execution des requetes n'est pas encore disponible.");
+        var document = ActiveDocument;
+        var connection = ActiveConnection;
+        if (document is null || connection is null)
+            return;
+
+        var isSelection = !string.IsNullOrWhiteSpace(Selection.SelectedText);
+        var script = isSelection ? Selection.SelectedText : document.EditorText;
+        if (string.IsNullOrWhiteSpace(script))
+        {
+            SetStatus("Rien à exécuter : le document est vide.", isError: true);
+            return;
+        }
+
+        document.LastResult = null;
+        document.IsExecuting = true;
+        SetStatus(isSelection
+            ? $"Exécution de la sélection sur {connection.Name}..."
+            : $"Exécution sur {connection.Name}...");
+
+        try
+        {
+            var connectionString = await _connectionStore.GetConnectionStringAsync(connection.Id, token);
+            if (connectionString is null)
+            {
+                SetStatus($"La chaîne de connexion de {connection.Name} est introuvable : réenregistrez-la depuis la page Connexions.", isError: true);
+                return;
+            }
+
+            var result = await _executors.Resolve(connection.Provider).ExecuteAsync(connectionString, script, token);
+            document.LastResult = result;
+            SetStatus(result.StatusLabel, isError: result.HasErrors || result.WasCancelled);
+        }
+        catch (OperationCanceledException)
+        {
+            SetStatus("Exécution annulée.", isError: true);
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"Échec de l'exécution : {ex.Message}", isError: true);
+        }
+        finally
+        {
+            document.IsExecuting = false;
+        }
+    }
+
+    /// <summary>Masque le panneau de resultats de l'onglet courant.</summary>
+    [RelayCommand]
+    private void CloseResults()
+    {
+        if (ActiveDocument is { IsExecuting: false } document)
+            document.LastResult = null;
     }
 
     public void SetStatus(string message, bool isError = false)

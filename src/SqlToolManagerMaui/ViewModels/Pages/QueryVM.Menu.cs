@@ -12,8 +12,7 @@ namespace SqlToolManagerMaui.ViewModels.Pages;
 /// Editeur de texte multi-onglets (facon Notepad) pose sur CodeEdit.Maui.
 /// Chaque onglet est un <see cref="EditorDocument"/> ; la page n'affiche qu'un seul
 /// <c>CodeEditor</c>, dont la propriete Document suit <see cref="ActiveDocument"/>.
-/// Le choix de connexion et la commande Executer sont deja cables mais inactifs :
-/// l'execution des requetes viendra dans une etape ulterieure.
+/// Partie "menus" : commandes fichier, onglets et affichage.
 /// </summary>
 public partial class QueryVM
 {

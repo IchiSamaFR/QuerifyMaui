@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using SqlToolManagerMaui.Models.Queries;
 
 namespace SqlToolManagerMaui.Models.Editors;
 
@@ -34,6 +35,19 @@ public sealed partial class EditorDocument : ObservableObject
     [NotifyPropertyChangedFor(nameof(Title))]
     [NotifyPropertyChangedFor(nameof(FileName))]
     public partial string FallbackName { get; set; }
+
+    /// <summary>Resultat de la derniere execution lancee depuis cet onglet.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasResultsPanel))]
+    public partial QueryExecutionResult? LastResult { get; set; }
+
+    /// <summary>Vrai tant qu'une execution lancee depuis cet onglet est en cours.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasResultsPanel))]
+    public partial bool IsExecuting { get; set; }
+
+    /// <summary>Le panneau de resultats n'apparait qu'apres une premiere execution.</summary>
+    public bool HasResultsPanel => IsExecuting || LastResult is not null;
 
     /// <summary>Vrai des que le contenu differe de la derniere version enregistree.</summary>
     public bool IsDirty => !string.Equals(FileText, EditorText, StringComparison.Ordinal);

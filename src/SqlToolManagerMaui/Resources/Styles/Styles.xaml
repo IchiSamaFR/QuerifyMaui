@@ -11,6 +11,7 @@
         <ResourceDictionary Source="./Controls/LayoutStyles.xaml" />
         <ResourceDictionary Source="./Controls/PickerStyles.xaml" />
         <ResourceDictionary Source="./Controls/PinInputStyles.xaml" />
+        <ResourceDictionary Source="./Controls/QueryResultStyles.xaml" />
         <ResourceDictionary Source="./Controls/StructStyles.xaml" />
         <ResourceDictionary Source="./Controls/TextFieldStyles.xaml" />
     </ResourceDictionary.MergedDictionaries>

@@ -22,10 +22,11 @@
                            IsTabIndentationEnabled="{Binding EditorConfiguration.IsTabIndentation}" />
 
         <c:QueryMenuBarItem ExecuteCommand="{Binding ExecuteQueryCommand}"
+                            CancelCommand="{Binding ExecuteQueryCancelCommand}"
                             DisconnectCommand="{Binding DisconnectCommand}" />
     </ContentPage.MenuBarItems>
 
-    <Grid RowDefinitions="Auto,*,Auto"
+    <Grid RowDefinitions="Auto,*,Auto,Auto"
           RowSpacing="8"
           Style="{StaticResource ContentNoTopStyle}">
 
@@ -49,7 +50,7 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <!-- Execution : UI en place, branchement a venir -->
+            <!-- Execution : la selection, ou tout le document -->
             <HorizontalStackLayout Grid.Column="1"
                                    Spacing="8"
                                    VerticalOptions="Center">
@@ -62,11 +63,21 @@
 
                 <Button Style="{StaticResource PrimaryButton}"
                         Command="{Binding ExecuteQueryCommand}"
+                        IsVisible="{Binding ExecuteQueryCommand.IsRunning, Converter={StaticResource BooleanInvertConverter}}"
                         ImageSource="{icons:Fluent Icon=PlayCircle20, IconColor={StaticResource LabelPrimary}, IconSize=20}"
                         Padding="0"
                         WidthRequest="{StaticResource SmallInputHeight}"
                         HeightRequest="{StaticResource SmallInputHeight}"
-                        ToolTipProperties.Text="Disponible dans une prochaine version" />
+                        ToolTipProperties.Text="Exécuter la sélection, ou tout le document (F5)" />
+
+                <Button Style="{StaticResource DangerButton}"
+                        Command="{Binding ExecuteQueryCancelCommand}"
+                        IsVisible="{Binding ExecuteQueryCommand.IsRunning}"
+                        ImageSource="{icons:Fluent Icon=Stop20, IconColor={StaticResource LabelPrimary}, IconSize=20}"
+                        Padding="0"
+                        WidthRequest="{StaticResource SmallInputHeight}"
+                        HeightRequest="{StaticResource SmallInputHeight}"
+                        ToolTipProperties.Text="Annuler l'exécution" />
             </HorizontalStackLayout>
         </Grid>
 
@@ -85,8 +96,16 @@
                           IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
         </Border>
 
+        <!-- ============ Resultats ============ -->
+        <c:QueryResultsPanel Grid.Row="2"
+                             HeightRequest="300"
+                             Result="{Binding ActiveDocument.LastResult}"
+                             IsExecuting="{Binding ActiveDocument.IsExecuting}"
+                             CloseCommand="{Binding CloseResultsCommand}"
+                             IsVisible="{Binding ActiveDocument.HasResultsPanel, FallbackValue=False}" />
+
         <!-- ============ Barre d'etat ============ -->
-        <Grid Grid.Row="2"
+        <Grid Grid.Row="3"
               ColumnDefinitions="*,Auto"
               ColumnSpacing="16">
 

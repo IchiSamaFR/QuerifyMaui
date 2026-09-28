@@ -19,8 +19,10 @@
 //------------------------------------------------------------------------------
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/controls", "SqlToolManagerMaui.Views.Controls")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/controls", "SqlToolManagerMaui.Views.Controls.Editors")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/controls", "SqlToolManagerMaui.Views.Controls.Queries")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Models.Databases")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Models.Editors")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Models.Queries")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/viewmodels", "SqlToolManagerMaui.ViewModels")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/viewmodels", "SqlToolManagerMaui.ViewModels.Pages")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.Views.Pages")]

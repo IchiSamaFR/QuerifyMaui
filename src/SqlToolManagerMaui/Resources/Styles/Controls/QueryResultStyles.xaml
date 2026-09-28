@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Grille de resultats : l'espacement de 1 laisse voir le fond de la ligne, qui trace le quadrillage -->
+    <x:Double x:Key="QueryResultRowHeight">26</x:Double>
+
+    <Style TargetType="Grid"
+           x:Key="QueryResultRowStyle">
+        <Setter Property="HeightRequest"
+                Value="{StaticResource QueryResultRowHeight}" />
+        <Setter Property="ColumnSpacing"
+                Value="1" />
+        <Setter Property="Padding"
+                Value="0,0,0,1" />
+        <Setter Property="BackgroundColor"
+                Value="{DynamicResource Gray600}" />
+    </Style>
+
+    <Style TargetType="Label"
+           x:Key="QueryResultCellStyle">
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Small}" />
+        <Setter Property="Padding"
+                Value="8,0" />
+        <Setter Property="MaxLines"
+                Value="1" />
+        <Setter Property="LineBreakMode"
+                Value="TailTruncation" />
+        <Setter Property="VerticalTextAlignment"
+                Value="Center" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource LabelPrimary}" />
+        <Setter Property="BackgroundColor"
+                Value="{DynamicResource CardBackground}" />
+    </Style>
+
+    <Style TargetType="Label"
+           x:Key="QueryResultNullCellStyle"
+           BasedOn="{StaticResource QueryResultCellStyle}">
+        <Setter Property="TextColor"
+                Value="{DynamicResource LabelTertiary}" />
+        <Setter Property="FontAttributes"
+                Value="Italic" />
+    </Style>
+
+    <Style TargetType="Label"
+           x:Key="QueryResultRowNumberStyle"
+           BasedOn="{StaticResource QueryResultCellStyle}">
+        <Setter Property="HorizontalTextAlignment"
+                Value="End" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource LabelTertiary}" />
+        <Setter Property="BackgroundColor"
+                Value="{DynamicResource InputBackground}" />
+    </Style>
+
+    <Style TargetType="Label"
+           x:Key="QueryResultHeaderStyle"
+           BasedOn="{StaticResource QueryResultCellStyle}">
+        <Setter Property="FontAttributes"
+                Value="Bold" />
+        <Setter Property="BackgroundColor"
+                Value="{DynamicResource InputBackground}" />
+    </Style>
+
+    <!-- Onglet Messages -->
+    <Style TargetType="Label"
+           x:Key="QueryMessageStyle">
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Small}" />
+        <Setter Property="FontFamily"
+                Value="Consolas" />
+        <Setter Property="LineBreakMode"
+                Value="WordWrap" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource LabelPrimary}" />
+    </Style>
+
+</ResourceDictionary>
