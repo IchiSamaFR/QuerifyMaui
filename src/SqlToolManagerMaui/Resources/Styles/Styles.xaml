@@ -9,6 +9,7 @@
         <ResourceDictionary Source="./Controls/ImageStyles.xaml" />
         <ResourceDictionary Source="./Controls/LabelStyles.xaml" />
         <ResourceDictionary Source="./Controls/LayoutStyles.xaml" />
+        <ResourceDictionary Source="./Controls/NativeStyles.xaml" />
         <ResourceDictionary Source="./Controls/PickerStyles.xaml" />
         <ResourceDictionary Source="./Controls/PinInputStyles.xaml" />
         <ResourceDictionary Source="./Controls/StructStyles.xaml" />

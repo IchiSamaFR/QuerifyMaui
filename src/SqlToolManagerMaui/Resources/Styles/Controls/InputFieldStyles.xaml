@@ -1,4 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- Champs calques sur le TextBox de WPF UI : fond ControlFillColorDefault, trait fin, accent Info au focus -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
@@ -6,32 +7,34 @@
            x:Key="InputFieldStyleNoHeight"
            ApplyToDerivedTypes="True">
         <Setter Property="CornerRadius"
-                Value="4" />
+                Value="{DynamicResource ControlCornerRadius}" />
 
         <Setter Property="IsFloatedTitleFixed"
                 Value="True" />
         
         <Setter Property="FloatedTitleFontSize"
-                Value="{DynamicResource FontSize_Default}" />
+                Value="{DynamicResource FontSize_Body}" />
         <Setter Property="TitleFontSize"
-                Value="{DynamicResource FontSize_Default}" />
+                Value="{DynamicResource FontSize_Body}" />
         <Setter Property="TitleColor"
-                Value="{DynamicResource LabelPrimary}" />
+                Value="{DynamicResource TextFillColorPrimary}" />
 
         <Setter Property="TextColor"
-                Value="{DynamicResource LabelPrimary}" />
+                Value="{DynamicResource TextFillColorPrimary}" />
         <Setter Property="FontSize"
-                Value="{DynamicResource FontSize_Default}" />
+                Value="{DynamicResource FontSize_Body}" />
 
         <Setter Property="BorderThickness"
-                Value="0" />
+                Value="1" />
         <Setter Property="BorderColor"
-                Value="Transparent" />
-        <Setter Property="InputBackground"
-                Value="Transparent" />
+                Value="{DynamicResource InputBorder}" />
+        <Setter Property="InputBackgroundColor"
+                Value="{DynamicResource InputBackground}" />
 
         <Setter Property="AccentColor"
-                Value="{DynamicResource Primary}" />
+                Value="{DynamicResource Info}" />
+        <Setter Property="ErrorColor"
+                Value="{DynamicResource ErrorDark}" />
     </Style>
     
     <Style TargetType="inp:InputField"
@@ -39,7 +42,7 @@
            BasedOn="{StaticResource InputFieldStyleNoHeight}"
            ApplyToDerivedTypes="True">
         <Setter Property="HeightRequest"
-                Value="{DynamicResource SubInputHeight}" />
+                Value="{DynamicResource TextFieldHeight}" />
     </Style>
 
     <!-- Default Styles -->

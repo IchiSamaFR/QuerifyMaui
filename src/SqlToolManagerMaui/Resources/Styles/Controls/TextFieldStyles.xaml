@@ -13,10 +13,10 @@
                 Value="{DynamicResource LabelPlaceHolder}" />
 
         <Setter Property="SelectionHighlightColor"
-                Value="{DynamicResource Primary}" />
+                Value="{DynamicResource Info}" />
 
         <Setter Property="CursorColor"
-                Value="{DynamicResource Primary}" />
+                Value="{DynamicResource Info}" />
     </Style>
 
     <Style TargetType="inp:PasswordTextField"
@@ -24,11 +24,11 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource InputFieldStyle}">
         <Setter Property="TextColor"
-                Value="{DynamicResource LabelPrimary}" />
+                Value="{DynamicResource TextFillColorPrimary}" />
         <Setter Property="SelectionHighlightColor"
-                Value="{DynamicResource Primary}" />
+                Value="{DynamicResource Info}" />
         <Setter Property="CursorColor"
-                Value="{DynamicResource Primary}" />
+                Value="{DynamicResource Info}" />
     </Style>
 
     <!-- Default Styles -->

@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Views.Pages;
 
@@ -21,7 +21,7 @@ public partial class ShellVM : ObservableObject
 
     /// <summary>Route de la page affichee, utilisee pour l'etat selectionne des items.</summary>
     [ObservableProperty]
-    public partial string CurrentRoute { get; set; } = MainPage.PAGE_ROUTE;
+    public partial string CurrentRoute { get; set; } = QueryPage.PAGE_ROUTE;
 
     [RelayCommand]
     private void TogglePane() => IsPaneOpen = !IsPaneOpen;

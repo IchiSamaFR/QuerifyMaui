@@ -1,7 +1,7 @@
 ﻿
-using SqlToolManagerMaui.ViewModels;
+using SqlToolManagerMaui.UI.ViewModels;
 
-namespace SqlToolManagerMaui.Views.Pages;
+namespace SqlToolManagerMaui.UI.Views;
 
 public abstract partial class AbstractPage : ContentPage
 {

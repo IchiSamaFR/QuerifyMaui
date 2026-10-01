@@ -1,3 +1,4 @@
+﻿using SqlToolManagerMaui.UI.Views;
 using SqlToolManagerMaui.ViewModels.Pages;
 
 namespace SqlToolManagerMaui.Views.Pages;

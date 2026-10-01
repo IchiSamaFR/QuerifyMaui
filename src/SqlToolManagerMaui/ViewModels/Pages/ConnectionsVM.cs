@@ -6,6 +6,7 @@ using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Services;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.UI.Extensions;
+using SqlToolManagerMaui.UI.ViewModels;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 

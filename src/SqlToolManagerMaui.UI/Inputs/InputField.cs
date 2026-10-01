@@ -294,8 +294,8 @@ public abstract partial class InputField : Grid, IValidatable
         }
         else if (hasError)
         {
-            border.Stroke = Colors.Red;
-            titleLabel.TextColor = Colors.Red;
+            border.Stroke = ErrorColor;
+            titleLabel.TextColor = ErrorColor;
         }
         else
         {

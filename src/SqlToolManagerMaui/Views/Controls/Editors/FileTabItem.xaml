@@ -3,8 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SqlToolManagerMaui.Views.Controls.Editors.FileTabItem"
              HorizontalOptions="Start"
-             VerticalOptions="Start"
-             HeightRequest="{StaticResource SmallInputHeight}">
+             VerticalOptions="Start">
 
     <ContentView.GestureRecognizers>
         <PointerGestureRecognizer />
@@ -36,31 +35,26 @@
         </VisualStateGroup>
     </VisualStateManager.VisualStateGroups>
 
-    <Border StrokeThickness="0"
-            StrokeShape="RoundRectangle 6"
+    <Border x:Name="TabBorder"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 4"
             BackgroundColor="Transparent">
 
         <Grid ColumnDefinitions="*,Auto"
               ColumnSpacing="8"
-              Padding="15,0,6,0"
-              HeightRequest="{StaticResource SmallInputHeight}">
+              Padding="15,0,6,0">
 
             <Label Grid.Column="0"
                    Text="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=Document.FileName, x:DataType=c:FileTabItem}"
                    Style="{StaticResource LabelStyle}" />
 
-            <inp:IconButtonView x:Name="CloseButton"
-                                Grid.Column="1"
-                                Style="{StaticResource SimpleTextIconButtonViewStyle}"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=CloseCommand, x:DataType=c:FileTabItem}"
-                                CommandParameter="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=Document, x:DataType=c:FileTabItem}"
-                                Icon="{icons:Fluent Icon=Dismiss16}"
-                                TextColor="{StaticResource Error}"
-                                IconSize="12"
-                                WidthRequest="20"
-                                HeightRequest="20"
-                                Padding="4"
-                                ToolTipProperties.Text="Fermer l'onglet" />
+            <Button x:Name="CloseButton"
+                    Grid.Column="1"
+                    Style="{StaticResource SimpleTextIconButtonStyle}"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=CloseCommand, x:DataType=c:FileTabItem}"
+                    CommandParameter="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=Document, x:DataType=c:FileTabItem}"
+                    ImageSource="{icons:Fluent Icon=Dismiss16, IconSize=16}"
+                    ToolTipProperties.Text="Fermer l'onglet" />
 
         </Grid>
     </Border>

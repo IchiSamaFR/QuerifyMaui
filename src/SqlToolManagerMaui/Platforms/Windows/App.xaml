@@ -8,6 +8,19 @@
     <maui:MauiWinUIApplication.Resources>
         <ResourceDictionary>
             <!--
+              Accent systeme WinUI remplace par "Info" (WPF UI PaletteLightBlueColor) :
+              ComboBox, MenuFlyout, focus, selection de texte suivent la meme couleur que l'app.
+              En theme sombre, WinUI utilise Light2 pour les fonds accentues et Light3 pour le texte.
+            -->
+            <Color x:Key="SystemAccentColor">#0288D1</Color>
+            <Color x:Key="SystemAccentColorLight1">#039BE5</Color>
+            <Color x:Key="SystemAccentColorLight2">#03A9F4</Color>
+            <Color x:Key="SystemAccentColorLight3">#4FC3F7</Color>
+            <Color x:Key="SystemAccentColorDark1">#0277BD</Color>
+            <Color x:Key="SystemAccentColorDark2">#01579B</Color>
+            <Color x:Key="SystemAccentColorDark3">#013A66</Color>
+
+            <!--
               Ecart entre la colonne d'icone et le libelle des entrees de menu.
               Le template WinUI de MenuFlyoutItem ne l'expose pas autrement : c'est la marge
               gauche du TextBlock, alimentee par ces ressources de theme.

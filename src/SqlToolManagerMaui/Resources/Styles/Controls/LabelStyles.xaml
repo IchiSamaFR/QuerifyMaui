@@ -1,4 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- Typographie Fluent (WPF UI) : Body 14, Caption 12, Subtitle 20 Semibold, Title 28 Semibold... -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
 					xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
@@ -7,34 +8,35 @@
            x:Key="LabelStyle"
            ApplyToDerivedTypes="True">
 		<Setter Property="FontSize"
-				Value="{DynamicResource FontSize_Default}" />
+				Value="{DynamicResource FontSize_Body}" />
 		<Setter Property="VerticalTextAlignment"
 				Value="Center" />
 		<Setter Property="TextColor"
-				Value="{DynamicResource LabelPrimary}" />
+				Value="{DynamicResource TextFillColorPrimary}" />
 	</Style>
 
 	<Style TargetType="Label"
 		   x:Key="LabelSecondaryStyle"
 		   BasedOn="{StaticResource LabelStyle}">
 		<Setter Property="TextColor"
-				Value="{DynamicResource LabelSecondary}" />
+				Value="{DynamicResource TextFillColorSecondary}" />
     </Style>
 
     <Style TargetType="Label"
            x:Key="LabelNormalStyle"
            BasedOn="{StaticResource LabelStyle}">
         <Setter Property="FontSize"
-                Value="{DynamicResource FontSize_Normal}" />
+                Value="{DynamicResource FontSize_Body}" />
     </Style>
 
+    <!-- Caption -->
     <Style TargetType="Label"
 		   x:Key="LabelTertiaryStyle"
 		   BasedOn="{StaticResource LabelSecondaryStyle}">
 		<Setter Property="FontSize"
-				Value="{DynamicResource FontSize_Normal}" />
+				Value="{DynamicResource FontSize_Caption}" />
 		<Setter Property="TextColor"
-				Value="{DynamicResource LabelTertiary}" />
+				Value="{DynamicResource TextFillColorTertiary}" />
 	</Style>
 
     <!-- Special Styles -->
@@ -42,68 +44,81 @@
 		   x:Key="LabelActionStyle"
 		   BasedOn="{StaticResource LabelStyle}">
 		<Setter Property="TextColor"
-                Value="{DynamicResource Primary}" />
-        <Setter Property="FontAttributes"
-                Value="Bold" />
+                Value="{DynamicResource InfoText}" />
+        <Setter Property="FontFamily"
+                Value="{DynamicResource FontFamily_Semibold}" />
     </Style>
 
 	<Style TargetType="Label"
 		   x:Key="LabelHighlightStyle"
 		   BasedOn="{StaticResource LabelStyle}">
 		<Setter Property="TextColor"
-				Value="{DynamicResource Secondary}" />
+				Value="{DynamicResource InfoText}" />
 	</Style>
 
     <Style TargetType="Label"
            x:Key="LabelErrorStyle"
            BasedOn="{StaticResource LabelStyle}">
         <Setter Property="TextColor"
-                Value="Red" />
+                Value="{DynamicResource ErrorDark}" />
+    </Style>
+
+    <Style TargetType="Label"
+           x:Key="LabelSuccessStyle"
+           BasedOn="{StaticResource LabelStyle}">
+        <Setter Property="TextColor"
+                Value="{DynamicResource Success}" />
     </Style>
 
     <!-- Header Styles -->
+    <!-- TitleLarge -->
     <Style TargetType="Label"
            x:Key="LabelHeaderHeroStyle"
            BasedOn="{StaticResource LabelStyle}">
         <Setter Property="FontSize"
-                Value="{DynamicResource FontSize_Hero}" />
-        <Setter Property="FontAttributes"
-                Value="Bold" />
+                Value="{DynamicResource FontSize_TitleLarge}" />
+        <Setter Property="FontFamily"
+                Value="{DynamicResource FontFamily_Semibold}" />
     </Style>
 
+    <!-- Title -->
     <Style TargetType="Label"
            x:Key="LabelHeaderTitleStyle"
            BasedOn="{StaticResource LabelHeaderHeroStyle}">
         <Setter Property="FontSize"
-                Value="{DynamicResource FontSize_Title}" />
+                Value="{DynamicResource FontSize_FluentTitle}" />
     </Style>
 
+    <!-- Subtitle -->
     <Style TargetType="Label"
 		   x:Key="LabelHeaderStyle"
            BasedOn="{StaticResource LabelHeaderHeroStyle}">
 		<Setter Property="FontSize"
-				Value="{DynamicResource FontSize_XLarge}" />
+				Value="{DynamicResource FontSize_Subtitle}" />
 	</Style>
 
+    <!-- BodyLarge Strong -->
 	<Style TargetType="Label"
 		   x:Key="LabelSubHeaderStyle"
 		   BasedOn="{StaticResource LabelHeaderStyle}">
 		<Setter Property="FontSize"
-				Value="{DynamicResource FontSize_Medium}" />
+				Value="{DynamicResource FontSize_BodyLarge}" />
 	</Style>
 
+    <!-- BodyStrong -->
 	<Style TargetType="Label"
 		   x:Key="LabelThirdHeaderStyle"
 		   BasedOn="{StaticResource LabelSubHeaderStyle}">
 		<Setter Property="FontSize"
-				Value="{DynamicResource FontSize_Default}" />
+				Value="{DynamicResource FontSize_Body}" />
     </Style>
     
+    <!-- Caption Strong -->
     <Style TargetType="Label"
            x:Key="LabelFourthHeaderStyle"
            BasedOn="{StaticResource LabelThirdHeaderStyle}">
         <Setter Property="FontSize"
-                Value="{DynamicResource FontSize_Small}" />
+                Value="{DynamicResource FontSize_Caption}" />
     </Style>
     
     <Style TargetType="Label"
@@ -117,7 +132,7 @@
 		   x:Key="LabelThirdHeaderStyleHighlight"
 		   BasedOn="{StaticResource LabelThirdHeaderStyle}">
 		<Setter Property="TextColor"
-				Value="{DynamicResource Secondary}" />
+				Value="{DynamicResource InfoText}" />
 	</Style>
 
     <!-- Default Styles -->

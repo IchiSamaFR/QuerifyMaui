@@ -11,9 +11,9 @@
               BackgroundColor="{AppThemeBinding Light={StaticResource NavPaneLight}, Dark={StaticResource NavPaneDark}}">
 
             <!-- Bouton hamburger : bascule etendu / compact -->
-            <inp:IconButtonView Command="{Binding ToggleCommand, Source={x:Reference Root}}"
-                                Style="{StaticResource NavTextIconButtonViewStyle}"
-                                Icon="{icons:Fluent Icon=Navigation20}"
+            <Button Command="{Binding ToggleCommand, Source={x:Reference Root}}"
+                                Style="{StaticResource NavTextIconButtonStyle}"
+                                ImageSource="{icons:Fluent Icon=Navigation20}"
                                 WidthRequest="40"
                                 HorizontalOptions="Start"
                                 ToolTipProperties.Text="Réduire / agrandir le menu" />

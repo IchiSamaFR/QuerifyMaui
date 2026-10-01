@@ -23,7 +23,7 @@ public partial class ThemedPickerHandler : PickerHandler
                 _dialogBackgroundHex = resource?.ToHex() ?? null;
             }
 
-            return _dialogBackgroundHex ?? "#2F2F36";
+            return _dialogBackgroundHex ?? "#2C2C2C";
         }
     }
 
@@ -40,7 +40,7 @@ public partial class ThemedPickerHandler : PickerHandler
                 _primaryHex = resource?.ToHex() ?? null;
             }
 
-            return _primaryHex ?? "#DD2983";
+            return _primaryHex ?? "#03A9F4";
         }
     }
 }

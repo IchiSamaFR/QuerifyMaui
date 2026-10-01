@@ -7,6 +7,7 @@ using SqlToolManagerMaui.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using SqlToolManagerMaui.UI.ViewModels;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 

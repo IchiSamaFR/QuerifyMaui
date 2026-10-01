@@ -25,106 +25,104 @@
                             DisconnectCommand="{Binding DisconnectCommand}" />
     </ContentPage.MenuBarItems>
 
-    <Grid RowDefinitions="Auto,*,Auto"
-          RowSpacing="8"
-          Style="{StaticResource ContentNoTopStyle}">
+    <Grid ColumnDefinitions="Auto,*">
 
-        <!-- ============ Onglets + execution ============ -->
-        <Grid Grid.Row="0"
-              ColumnDefinitions="*,Auto"
-              ColumnSpacing="16">
+        <!-- ============ Colonne gauche : liste des connexions ============ -->
+        <ContentPresenter x:Name="ConnectionExplorerHost" />
 
-            <CollectionView ItemsSource="{Binding Documents}"
-                            SelectedItem="{Binding ActiveDocument}"
-                            SelectionMode="Single">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Horizontal"
-                                       ItemSpacing="4" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="m:EditorDocument">
-                        <c:FileTabItem Document="{Binding .}"
-                                       CloseCommand="{Binding Source={RelativeSource AncestorType={x:Type v:QueryPage}}, Path=ViewModel.CloseCommand, x:DataType=v:QueryPage}" />
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+        <Grid Grid.Column="1"
+              RowDefinitions="Auto,*,Auto"
+              RowSpacing="8"
+              Style="{StaticResource ContentNoTopStyle}">
 
-            <!-- Execution : UI en place, branchement a venir -->
-            <HorizontalStackLayout Grid.Column="1"
-                                   Spacing="8"
-                                   VerticalOptions="Center">
-                <Picker ItemsSource="{Binding Connections}"
-                        SelectedItem="{Binding SelectedConnection}"
-                        ItemDisplayBinding="{Binding Name, x:DataType=m:DatabaseConnectionInfo}"
-                        HeightRequest="{StaticResource SmallInputHeight}"
-                        WidthRequest="220"
-                        VerticalOptions="Center" />
+            <!-- ============ Onglets + execution ============ -->
+            <Grid Grid.Row="0"
+                  ColumnDefinitions="*,Auto"
+                  ColumnSpacing="16">
 
-                <inp:IconButtonView Style="{StaticResource FilledIconButtonViewStyle}"
-                                    Command="{Binding ExecuteQueryCommand}"
-                                    Icon="{icons:Fluent Icon=PlayCircle20}"
-                                    IconSize="20"
-                                    Padding="0"
-                                    WidthRequest="{StaticResource SmallInputHeight}"
-                                    HeightRequest="{StaticResource SmallInputHeight}"
-                                    ToolTipProperties.Text="Disponible dans une prochaine version" />
-            </HorizontalStackLayout>
-        </Grid>
+                <CollectionView ItemsSource="{Binding Documents}"
+                                SelectedItem="{Binding ActiveDocument}"
+                                SelectionMode="Single">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal"
+                                           ItemSpacing="4" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="m:EditorDocument">
+                            <c:FileTabItem Document="{Binding .}"
+                                           CloseCommand="{Binding Source={RelativeSource AncestorType={x:Type v:QueryPage}}, Path=ViewModel.CloseCommand, x:DataType=v:QueryPage}" />
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
 
-        <!-- ============ Editeur ============ -->
-        <Border Grid.Row="1"
-                Padding="0"
-                StrokeThickness="1"
-                StrokeShape="RoundRectangle 6"
-                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}">
+                <!-- Execution : UI en place, branchement a venir -->
+                <HorizontalStackLayout Grid.Column="1"
+                                       Spacing="8"
+                                       VerticalOptions="Center">
+                    <Picker ItemsSource="{Binding Connections}"
+                            SelectedItem="{Binding SelectedConnection}"
+                            ItemDisplayBinding="{Binding Name, x:DataType=m:DatabaseConnectionInfo}"
+                            HeightRequest="{StaticResource SmallInputHeight}"
+                            WidthRequest="220"
+                            VerticalOptions="Center" />
 
-            <c:CodeEditor x:Name="Editor"
-                          Text="{Binding ActiveDocument.EditorText}"
-                          EditorConfiguration="{Binding EditorConfiguration}"
-                          SyntaxConfiguration="{Binding SyntaxConfiguration}"
-                          CaretLine="{Binding CaretLine}"
-                          CaretColumn="{Binding CaretColumn}"
-                          IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
-        </Border>
+                    <Button Style="{StaticResource PrimaryIconButtonStyle}"
+                            Command="{Binding ExecuteQueryCommand}"
+                            ImageSource="{icons:Fluent Icon=PlayCircle20, IconSize=20}"
+                            ToolTipProperties.Text="Disponible dans une prochaine version" />
+                </HorizontalStackLayout>
+            </Grid>
 
-        <!-- ============ Barre d'etat ============ -->
-        <Grid Grid.Row="2"
-              ColumnDefinitions="*,Auto"
-              ColumnSpacing="16">
+            <!-- ============ Editeur ============ -->
+            <Border Grid.Row="1"
+                    Style="{StaticResource SunkenSurfaceStyle}">
 
-            <Label Grid.Column="0"
-                   Text="{Binding StatusMessage}"
-                   Style="{StaticResource LabelTertiaryStyle}"
-                   LineBreakMode="TailTruncation"
-                   VerticalOptions="Center">
-                <Label.Triggers>
-                    <DataTrigger TargetType="Label"
-                                 Binding="{Binding IsStatusError}"
-                                 Value="True">
-                        <Setter Property="TextColor"
-                                Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
-                    </DataTrigger>
-                </Label.Triggers>
-            </Label>
+                <c:CodeEditor x:Name="Editor"
+                              Text="{Binding ActiveDocument.EditorText}"
+                              EditorConfiguration="{Binding EditorConfiguration}"
+                              SyntaxConfiguration="{Binding SyntaxConfiguration}"
+                              IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
+            </Border>
 
-            <HorizontalStackLayout Grid.Column="1"
-                                   Spacing="16">
-                <Label Text="{Binding ActiveDocument.PathLabel}"
+            <!-- ============ Barre d'etat ============ -->
+            <Grid Grid.Row="2"
+                  ColumnDefinitions="*,Auto"
+                  ColumnSpacing="16">
+
+                <Label Grid.Column="0"
+                       Text="{Binding StatusMessage}"
                        Style="{StaticResource LabelTertiaryStyle}"
-                       LineBreakMode="HeadTruncation"
-                       MaximumWidthRequest="420"
-                       VerticalOptions="Center" />
-
-                <Label Style="{StaticResource LabelTertiaryStyle}"
+                       LineBreakMode="TailTruncation"
                        VerticalOptions="Center">
-                    <Label.Text>
-                        <MultiBinding StringFormat="Ln {0}, Col {1}">
-                            <Binding Path="CaretLine" />
-                            <Binding Path="CaretColumn" />
-                        </MultiBinding>
-                    </Label.Text>
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label"
+                                     Binding="{Binding IsStatusError}"
+                                     Value="True">
+                            <Setter Property="TextColor"
+                                    Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
+                        </DataTrigger>
+                    </Label.Triggers>
                 </Label>
-            </HorizontalStackLayout>
+
+                <HorizontalStackLayout Grid.Column="1"
+                                       Spacing="16">
+                    <Label Text="{Binding ActiveDocument.PathLabel}"
+                           Style="{StaticResource LabelTertiaryStyle}"
+                           LineBreakMode="HeadTruncation"
+                           MaximumWidthRequest="420"
+                           VerticalOptions="Center" />
+
+                    <Label Style="{StaticResource LabelTertiaryStyle}"
+                           VerticalOptions="Center">
+                        <Label.Text>
+                            <MultiBinding StringFormat="Ln {0}, Col {1}">
+                                <Binding Path="CaretLine" />
+                                <Binding Path="CaretColumn" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                </HorizontalStackLayout>
+            </Grid>
         </Grid>
     </Grid>
 </v:AbstractPage>
