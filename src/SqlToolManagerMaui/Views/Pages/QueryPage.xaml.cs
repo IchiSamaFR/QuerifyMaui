@@ -9,6 +9,7 @@ namespace SqlToolManagerMaui.Views.Pages;
 /// du curseur et la coloration passent par des bindings sur le controle CodeEditor :
 /// la page n'a plus de logique propre.
 /// </summary>
+[AutoRegister]
 public partial class QueryPage : AbstractPage
 {
     public static readonly string PAGE_ROUTE = nameof(QueryPage);

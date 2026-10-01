@@ -14,6 +14,7 @@ namespace SqlToolManagerMaui.ViewModels.Pages.Connections;
 /// + chaine de connexion), afin qu'un abandon n'ait rien modifie et que le secret ne touche
 /// jamais le type serialise.
 /// </summary>
+[AutoRegister(Lifetime = ServiceLifetime.Transient)]
 public partial class ConnectionEditorVM : AbstractVM
 {
     private readonly IConnectionStore _store;

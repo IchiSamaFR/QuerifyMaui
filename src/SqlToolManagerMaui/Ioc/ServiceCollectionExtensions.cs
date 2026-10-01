@@ -1,109 +1,44 @@
-﻿
-using SqlToolManagerMaui.Services;
-using SqlToolManagerMaui.Services.Databases;
-using SqlToolManagerMaui.Services.Editors;
-using SqlToolManagerMaui.Services.Editors.Highlighting;
-using SqlToolManagerMaui.Services.Queries;
-using SqlToolManagerMaui.ViewModels;
-using SqlToolManagerMaui.ViewModels.Pages;
-using SqlToolManagerMaui.ViewModels.Pages.Connections;
-using SqlToolManagerMaui.Views.Pages;
-using SqlToolManagerMaui.Views.Pages.Connections;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 namespace SqlToolManagerMaui;
 
 /// <summary>
-/// Enregistrement centralisé des dépendances de l'application.
+/// Enregistrement centralise des dependances de l'application.
 /// </summary>
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         return services
-            .AddApplicationDomainServices()
-            .AddShell()
-            .AddPages();
-    }
-
-    private static IServiceCollection AddApplicationDomainServices(this IServiceCollection services)
-    {
-
-        return services
-            .AddConnectionServices()
-            .AddQueryProviders()
-            .AddQueryExecutors();
+            .AddAutoRegisteredServices(typeof(ServiceCollectionExtensions).Assembly);
     }
 
     /// <summary>
-    /// Enregistre les providers de requêtes et leur résolveur. Un nouveau langage
-    /// s'ajoute ici et nulle part ailleurs : le résolveur le découvre par son
-    /// enregistrement en tant que <see cref="QueryProviderBase"/>.
+    /// Enregistre toutes les classes marquees <see cref="AutoRegisterAttribute"/> de l'assembly.
+    /// Plusieurs implementations d'un meme service (testeurs, executeurs...) sont toutes
+    /// ajoutees : les resolveurs les recoivent en <c>IEnumerable</c>.
     /// </summary>
-    private static IServiceCollection AddQueryProviders(this IServiceCollection services)
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "App non publiee en trimmed : scan reflexif assume.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "App non publiee en trimmed : scan reflexif assume.")]
+    private static IServiceCollection AddAutoRegisteredServices(this IServiceCollection services, Assembly assembly)
     {
-        // Acces disque de l'editeur (FilePicker / FileSaver).
-        services.AddSingleton<IEditorFileService, EditorFileService>();
+        foreach (Type type in assembly.GetTypes().Where(t => t is { IsClass: true, IsAbstract: false }))
+        {
+            AutoRegisterAttribute? attribute = type.GetCustomAttribute<AutoRegisterAttribute>(inherit: false);
+            if (attribute is null)
+            {
+                continue;
+            }
 
-        // Coloration syntaxique : definitions .xshd + tokenizer.
-        services.AddSingleton<ISyntaxConfigurationStore, XshdSyntaxConfigurationStore>();
-        services.AddSingleton<ISyntaxHighlighter, SyntaxHighlighter>();
+            Type serviceType = attribute.As ?? type;
+            if (!serviceType.IsAssignableFrom(type))
+            {
+                throw new InvalidOperationException($"{type.Name} n'est pas assignable au service {serviceType.Name} declare dans [AutoRegister].");
+            }
 
-        return services;
-    }
-
-    /// <summary>
-    /// Execution des requetes. Un nouveau moteur s'ajoute par un simple
-    /// AddSingleton&lt;IQueryExecutor, ...&gt; : le resolveur le decouvre seul.
-    /// </summary>
-    private static IServiceCollection AddQueryExecutors(this IServiceCollection services)
-    {
-        services.AddSingleton<IQueryExecutor, SqlServerQueryExecutor>();
-        services.AddSingleton<IQueryExecutorResolver, QueryExecutorResolver>();
-
-        return services;
-    }
-
-    /// <summary>
-    /// Persistance des connexions et testeurs par moteur. Un nouveau moteur s'ajoute
-    /// par un simple AddSingleton&lt;IConnectionTester, ...&gt; : le resolveur le decouvre seul.
-    /// </summary>
-    private static IServiceCollection AddConnectionServices(this IServiceCollection services)
-    {
-        services.AddSingleton<IConnectionStore, ConnectionStore>();
-
-        services.AddSingleton<IConnectionTester, SqlServerConnectionTester>();
-        services.AddSingleton<IConnectionTesterResolver, ConnectionTesterResolver>();
-
-        // Catalogue de l'explorateur d'objets : un lecteur par moteur, comme les testeurs.
-        services.AddSingleton<IDatabaseSchemaReader, SqlServerSchemaReader>();
-        services.AddSingleton<IDatabaseSchemaReaderResolver, DatabaseSchemaReaderResolver>();
-
-        services.AddSingleton<IConnectionDialogService, ConnectionDialogService>();
-
-        return services;
-    }
-
-    private static IServiceCollection AddShell(this IServiceCollection services)
-    {
-        services.AddSingleton<AppShell>();
-        services.AddSingleton<ShellVM>();
-
-        return services;
-    }
-
-    private static IServiceCollection AddPages(this IServiceCollection services)
-    {
-        services.AddSingleton<QueryPage>();
-        services.AddSingleton<QueryVM>();
-
-        services.AddTransient<ConnectionExplorerView>();
-        services.AddSingleton<ConnectionExplorerVM>();
-
-        // Popup "Se connecter" : VM neuf a chaque ouverture.
-        services.AddTransient<ConnectionEditorVM>();
-
-        services.AddTransient<ConnectionExplorerView>();
-        services.AddSingleton<ConnectionExplorerVM>();
+            services.Add(new ServiceDescriptor(serviceType, type, attribute.Lifetime));
+        }
 
         return services;
     }

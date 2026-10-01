@@ -3,6 +3,7 @@ using SqlToolManagerMaui.Views.Pages.Connections;
 
 namespace SqlToolManagerMaui
 {
+    [AutoRegister]
     public partial class AppShell : Shell
     {
         public ShellVM ContextViewModel { get; }

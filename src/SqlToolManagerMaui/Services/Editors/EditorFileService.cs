@@ -4,6 +4,7 @@ using CommunityToolkit.Maui.Storage;
 namespace SqlToolManagerMaui.Services.Editors;
 
 /// <inheritdoc cref="IEditorFileService" />
+[AutoRegister(As = typeof(IEditorFileService))]
 public sealed class EditorFileService : IEditorFileService
 {
     // UTF-8 sans BOM : SQL Server Management Studio et les outils en ligne de commande

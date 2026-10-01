@@ -6,6 +6,7 @@ namespace SqlToolManagerMaui.Services.Editors.Highlighting;
 /// Tokenizer a balayage unique : a chaque position, la premiere regle qui reconnait
 /// quelque chose l'emporte, ce qui garantit des tokens ordonnes et disjoints.
 /// </summary>
+[AutoRegister(As = typeof(ISyntaxHighlighter))]
 public sealed class SyntaxHighlighter : ISyntaxHighlighter
 {
     public IReadOnlyList<SyntaxToken> Tokenize(SyntaxDefinition definition, string text, CancellationToken cancellationToken = default)

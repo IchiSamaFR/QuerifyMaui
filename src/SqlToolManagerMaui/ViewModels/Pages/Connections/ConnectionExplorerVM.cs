@@ -18,6 +18,7 @@ namespace SqlToolManagerMaui.ViewModels.Pages.Connections;
 /// chaque niveau est charge a la premiere ouverture du noeud. La creation et la modification
 /// des connexions passent par la popup "Se connecter" (<see cref="IConnectionDialogService"/>).
 /// </summary>
+[AutoRegister]
 public partial class ConnectionExplorerVM : AbstractVM
 {
     private readonly IConnectionStore _store;

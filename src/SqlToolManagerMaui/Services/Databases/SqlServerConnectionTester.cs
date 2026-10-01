@@ -10,6 +10,7 @@ namespace SqlToolManagerMaui.Services.Databases;
 /// l'analyse, puis ouvre la connexion avec un timeout court afin que le bouton
 /// "Tester" ne bloque pas l'UI pendant 30 secondes.
 /// </summary>
+[AutoRegister(As = typeof(IConnectionTester))]
 public sealed class SqlServerConnectionTester : IConnectionTester
 {
     private const int TestConnectTimeoutSeconds = 8;

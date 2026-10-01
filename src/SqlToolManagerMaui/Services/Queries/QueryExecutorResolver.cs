@@ -3,6 +3,7 @@ using SqlToolManagerMaui.Models.Databases;
 namespace SqlToolManagerMaui.Services.Queries;
 
 /// <inheritdoc cref="IQueryExecutorResolver"/>
+[AutoRegister(As = typeof(IQueryExecutorResolver))]
 public sealed class QueryExecutorResolver : IQueryExecutorResolver
 {
     private readonly Dictionary<DatabaseProvider, IQueryExecutor> _executors;

@@ -11,6 +11,7 @@ namespace SqlToolManagerMaui.Services.Databases;
 /// le SecureStorage de la plateforme sous la cle <c>connectionstring:{id}</c>.
 /// Toutes les ecritures passent par un semaphore : le fichier est reecrit en entier.
 /// </summary>
+[AutoRegister(As = typeof(IConnectionStore))]
 public sealed class ConnectionStore : IConnectionStore
 {
     private const string FileName = "connections.json";

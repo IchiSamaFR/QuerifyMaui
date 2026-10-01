@@ -7,6 +7,7 @@ namespace SqlToolManagerMaui.ViewModels;
 /// <summary>
 /// Etat de la navigation principale (rail lateral facon Windows 11 NavigationView).
 /// </summary>
+[AutoRegister]
 public partial class ShellVM : ObservableObject
 {
     public const double ExpandedPaneWidth = 260d;

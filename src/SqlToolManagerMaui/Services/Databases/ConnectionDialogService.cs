@@ -9,6 +9,7 @@ using SqlToolManagerMaui.Views.Pages.Connections;
 namespace SqlToolManagerMaui.Services.Databases;
 
 /// <inheritdoc cref="IConnectionDialogService"/>
+[AutoRegister(As = typeof(IConnectionDialogService))]
 public sealed class ConnectionDialogService : IConnectionDialogService
 {
     private readonly IServiceProvider _services;

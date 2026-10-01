@@ -9,6 +9,7 @@ namespace SqlToolManagerMaui.Services.Editors.Highlighting;
 /// en configuration exploitable par l'editeur. Le sous-ensemble supporte est celui utilise
 /// par nos fichiers : Property, Color, RuleSet, Span, Keywords, Rule.
 /// </summary>
+[AutoRegister(As = typeof(ISyntaxConfigurationStore))]
 public sealed class XshdSyntaxConfigurationStore : ISyntaxConfigurationStore
 {
     private const string AssetFolder = "SyntaxHighlights";

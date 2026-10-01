@@ -20,6 +20,7 @@ namespace SqlToolManagerMaui.ViewModels.Pages;
 /// L'execution porte sur le texte selectionne, ou sur tout le document a defaut, et son
 /// resultat est range sur l'onglet d'origine.
 /// </summary>
+[AutoRegister]
 public partial class QueryVM : AbstractVM
 {
     private readonly IEditorFileService _files;

@@ -13,6 +13,7 @@ public interface IConnectionTesterResolver
 }
 
 /// <inheritdoc cref="IConnectionTesterResolver"/>
+[AutoRegister(As = typeof(IConnectionTesterResolver))]
 public sealed class ConnectionTesterResolver : IConnectionTesterResolver
 {
     private readonly Dictionary<DatabaseProvider, IConnectionTester> _testers;

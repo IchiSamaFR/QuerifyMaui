@@ -4,6 +4,7 @@ using SqlToolManagerMaui.Models.Databases;
 namespace SqlToolManagerMaui.Services.Databases;
 
 /// <summary>Catalogue SQL Server lu dans les vues systeme (sys.databases, sys.objects).</summary>
+[AutoRegister(As = typeof(IDatabaseSchemaReader))]
 public sealed class SqlServerSchemaReader : IDatabaseSchemaReader
 {
     private const int ConnectTimeoutSeconds = 8;

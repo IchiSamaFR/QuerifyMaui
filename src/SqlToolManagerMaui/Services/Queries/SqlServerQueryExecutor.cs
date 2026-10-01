@@ -11,6 +11,7 @@ namespace SqlToolManagerMaui.Services.Queries;
 /// echec n'empeche pas les suivants, messages PRINT et nombre de lignes affectees remontes.
 /// Une connexion est ouverte pour chaque execution.
 /// </summary>
+[AutoRegister(As = typeof(IQueryExecutor))]
 public sealed class SqlServerQueryExecutor : IQueryExecutor
 {
     /// <summary>Plafond par jeu de resultats, pour ne pas saturer la memoire ni la grille.</summary>

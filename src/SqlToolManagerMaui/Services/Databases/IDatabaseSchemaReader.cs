@@ -27,6 +27,7 @@ public interface IDatabaseSchemaReaderResolver
 }
 
 /// <inheritdoc cref="IDatabaseSchemaReaderResolver"/>
+[AutoRegister(As = typeof(IDatabaseSchemaReaderResolver))]
 public sealed class DatabaseSchemaReaderResolver : IDatabaseSchemaReaderResolver
 {
     private readonly Dictionary<DatabaseProvider, IDatabaseSchemaReader> _readers;

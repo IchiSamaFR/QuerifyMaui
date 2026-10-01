@@ -55,7 +55,7 @@ SqlToolManagerMaui/
 │   ├── SqlToolManagerMaui/                     # Projet MAUI principal (Windows)
 │   │   ├── Ioc/
 │   │   │   ├── Ioc.cs                          # Service locator statique
-│   │   │   └── ServiceCollectionExtensions.cs  # Enregistrement DI centralisé
+│   │   │   └── ServiceCollectionExtensions.cs  # Scan des classes [AutoRegister]
 │   │   ├── Models/
 │   │   │   ├── Databases/                      # DatabaseConnectionInfo, Draft, Provider
 │   │   │   ├── Editors/                        # EditorDocument, EditorConfiguration, EditorSelection
@@ -109,7 +109,7 @@ SqlToolManagerMaui/
 
 ## Injection de dépendances
 
-* Tous les services, pages et ViewModels sont enregistrés dans `Ioc/ServiceCollectionExtensions.cs`, via des méthodes privées par domaine (`AddConnectionServices`, `AddQueryProviders`, `AddShell`, `AddPages`).
+* Services, pages et ViewModels se déclarent eux-mêmes avec `[AutoRegister]` (`Ioc/AutoRegisterAttribute.cs`) : singleton et type concret par défaut, `Lifetime = ServiceLifetime.Transient` et/ou `As = typeof(IMonService)` au besoin. `Ioc/ServiceCollectionExtensions.cs` scanne l'assembly ; plusieurs classes `As` la même interface sont toutes enregistrées.
 * Injection **par constructeur** exclusivement.
 * `Ioc.GetRequiredService<T>()` est un dernier recours, réservé au code qui ne peut pas recevoir ses dépendances (code-behind, factories).
 * Pages et ViewModels sont enregistrés en **singleton** (application desktop mono-fenêtre).
@@ -217,7 +217,7 @@ Lors de la création d'une feature :
 5. **Page XAML** — créer dans `Views/Pages/`, hériter de `AbstractPage`, exposer `PAGE_ROUTE`.
 6. **Contrôles** — extraire un contrôle dès qu'un bloc XAML pollue la page ou devient réutilisable (`Views/Controls/[Domaine]/`) ; générique et sans métier → `SqlToolManagerMaui.UI`.
 7. **Navigation** — déclarer un `ShellContent` dans `AppShell.xaml` PUIS un `c:NavigationRailItem` dans le rail.
-8. **Enregistrement DI** — ajouter Service, Page et ViewModel dans `ServiceCollectionExtensions.cs`.
+8. **Enregistrement DI** — marquer Service, Page et ViewModel avec `[AutoRegister]`.
 9. **Namespaces XAML** — si un nouveau dossier est créé, mettre `AppXmlns.cs` à jour.
 10. **Compilation & validation** — `dotnet build` (voir Validation).
 
@@ -242,7 +242,7 @@ Lors de la création d'une feature :
 ### Exécution des requêtes
 
 * `QueryVM.ExecuteQueryCommand` (async, `IncludeCancelCommand`) : texte = `Selection.SelectedText` s'il n'est pas vide, sinon `ActiveDocument.EditorText`. Volontairement **hors** `RunAsBusyAsync`, qui désactiverait la page et donc le bouton Annuler.
-* **Ajouter un moteur** = un `AddSingleton<IQueryExecutor, ...>` dans `AddQueryExecutors` ; `QueryExecutorResolver` le découvre seul.
+* **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(IQueryExecutor))]` ; `QueryExecutorResolver` le découvre seul.
 * `SqlServerQueryExecutor` : une connexion par exécution (pas de session conservée entre deux F5), `CommandTimeout = 0`, lots `GO` / `GO n` découpés par `SqlBatchSplitter` (ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script exécuté. Les erreurs SQL sont rendues dans les messages, pas levées.
 * Plafond de `MaxRowsPerResultSet` (10 000) lignes par jeu, cellules converties en texte côté service (NULL = `null`).
 * Le résultat est rangé sur l'`EditorDocument` d'origine (`LastResult`, `IsExecuting`) : chaque onglet garde ses résultats.
@@ -252,11 +252,11 @@ Lors de la création d'une feature :
 
 * Stockage mixte : métadonnées dans `connections.json` (AppDataDirectory, écriture atomique via fichier `.tmp`), chaîne de connexion complète chiffrée dans le `SecureStorage` sous la clé `connectionstring:{id}`. `DatabaseConnectionInfo` ne contient **jamais** la chaîne complète.
 * Toutes les écritures passent par un sémaphore, le fichier est réécrit en entier.
-* **Ajouter un moteur** = un `AddSingleton<IConnectionTester, ...>` dans `AddConnectionServices` ; `ConnectionTesterResolver` le découvre seul.
+* **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(IConnectionTester))]` ; `ConnectionTesterResolver` le découvre seul.
 * La popup « Se connecter » (`ConnectionEditorPopup` + `ConnectionEditorVM`, transient) travaille sur un `DatabaseConnectionDraft` (clone) pour qu'« Annuler » ne modifie rien. Elle est ouverte par `IConnectionDialogService.EditAsync` et fermée par le VM via `IPopupService.ClosePopupAsync(shell, Guid?)` (Id enregistré, ou null).
 * Après un ajout / une modification / une suppression, `ConnectionsChangedMessage` est publié (WeakReferenceMessenger) : `QueryVM` recharge son Picker.
 * **Explorateur** : `ConnectionExplorerVM` garde l'arbre (`Roots`), affiché par le contrôle générique `v:TreeView` de `SqlToolManagerMaui.UI/Views` (MAUI n'en fournit pas) : nœuds imbriqués, `ChildrenPath` / `IsExpandedPath` / `CanExpandPath`, `ExpandingCommand` appelé à chaque ouverture pour le chargement paresseux. Aucun `ExplorerNode` ne porte la chaîne : elle est relue dans le coffre à chaque chargement. Une erreur de chargement devient un nœud « Erreur : ... ».
-* **Catalogue d'un moteur** = un `AddSingleton<IDatabaseSchemaReader, ...>` (résolu par `DatabaseSchemaReaderResolver`), sur le modèle des testeurs.
+* **Catalogue d'un moteur** = une classe `[AutoRegister(As = typeof(IDatabaseSchemaReader))]` (résolu par `DatabaseSchemaReaderResolver`), sur le modèle des testeurs.
 
 ### Pièges connus
 

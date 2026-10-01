@@ -30,7 +30,7 @@ Cette source unique est partagée entre Claude et Copilot. Consulte ce fichier p
 Respecter **absolument** :
 1. L'architecture MVVM — les ViewModels héritent de `AbstractVM`, les pages de `AbstractPage`
 2. La stratification des couches — Views, ViewModels, Services, Models, et `SqlToolManagerMaui.UI` pour le générique
-3. L'injection de dépendances — enregistrement dans `Ioc/ServiceCollectionExtensions.cs`, injection par constructeur
+3. L'injection de dépendances — déclaration par `[AutoRegister]` sur la classe (scan dans `Ioc/ServiceCollectionExtensions.cs`), injection par constructeur
 4. Les anti-patterns à éviter — pas de logique dans le code-behind, pas de ViewModel connu d'un contrôle, pas d'API Xamarin.Forms
 
 ---
@@ -96,7 +96,7 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 2. ViewModel dans `ViewModels/Pages/` (hérite de `AbstractVM`)
 3. Page XAML dans `Views/Pages/` (hérite de `AbstractPage`, expose `PAGE_ROUTE`)
 4. `ShellContent` dans `AppShell.xaml` PUIS `c:NavigationRailItem` dans le rail
-5. Enregistrer service, page et VM dans `ServiceCollectionExtensions.cs`
+5. Marquer service, page et VM avec `[AutoRegister]` (`As = typeof(IService)` pour un service, `Lifetime = ServiceLifetime.Transient` si besoin)
 6. Compiler : `dotnet build src/SqlToolManagerMaui.slnx`
 
 ### Extraire un contrôle
