@@ -208,7 +208,7 @@ public sealed class CompletionController : IDisposable
 
         var text = _editor.Document.Text;
         var caret = _editor.SelectionState.Active;
-        _ = StartSessionAsync(CompletionTrigger.Explicit, text, caret, CompletionRequest.FindWordStart(text, caret));
+        _ = StartSessionAsync(CompletionTrigger.Explicit, text, caret, CompletionRequest.FindWordStart(text, caret), false);
     }
 
     /// <summary>TextChanged et SelectionChanged arrivent ensemble a chaque frappe : un seul recalcul.</summary>
@@ -263,7 +263,7 @@ public sealed class CompletionController : IDisposable
         Show(_service.Filter(_session.Candidates, text[wordStart..caret]));
     }
 
-    private async Task StartSessionAsync(CompletionTrigger trigger, string text, int caret, int wordStart)
+    private async Task StartSessionAsync(CompletionTrigger trigger, string text, int caret, int wordStart, bool isDelay = true)
     {
         CancelPending();
         var cancellation = new CancellationTokenSource();
@@ -279,6 +279,8 @@ public sealed class CompletionController : IDisposable
             Connection = _connection()
         };
 
+        if (isDelay)
+            await Task.Delay(150, cancellation.Token);
         IReadOnlyList<CompletionItem> candidates;
         try
         {

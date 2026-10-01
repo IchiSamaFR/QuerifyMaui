@@ -138,7 +138,8 @@ public class EfModelGeneratorTests
         return (model, assembly.GetType($"{model.Namespace}.{model.ContextClassName}", throwOnError: true)!);
     }
 
-    private static DatabaseSchemaSnapshot SampleSnapshot() => new()
+    /// <summary>Catalogue de test, partage avec <see cref="LinqCompilerTests"/>.</summary>
+    internal static DatabaseSchemaSnapshot SampleSnapshot() => new()
     {
         Database = "RaveOnDb",
         Objects =

@@ -17,7 +17,11 @@
 		<Compile Include="..\SqlToolManagerMaui\Models\Databases\DatabaseProvider.cs" Link="Linked\DatabaseProvider.cs" />
 		<Compile Include="..\SqlToolManagerMaui\Models\Databases\DatabaseObjectKind.cs" Link="Linked\DatabaseObjectKind.cs" />
 		<Compile Include="..\SqlToolManagerMaui\Models\Databases\DatabaseSchemaSnapshot.cs" Link="Linked\DatabaseSchemaSnapshot.cs" />
-		<Compile Include="..\SqlToolManagerMaui\Services\Linq\*.cs" LinkBase="Linked\Linq" />
+		<!-- Pas de joker : LinqQueryExecutor depend du cache de catalogue et des modeles de resultats. -->
+		<Compile Include="..\SqlToolManagerMaui\Services\Linq\IEfModelGenerator.cs" Link="Linked\Linq\IEfModelGenerator.cs" />
+		<Compile Include="..\SqlToolManagerMaui\Services\Linq\EfModelGenerator.cs" Link="Linked\Linq\EfModelGenerator.cs" />
+		<Compile Include="..\SqlToolManagerMaui\Services\Linq\ILinqCompiler.cs" Link="Linked\Linq\ILinqCompiler.cs" />
+		<Compile Include="..\SqlToolManagerMaui\Services\Linq\LinqCompiler.cs" Link="Linked\Linq\LinqCompiler.cs" />
 		<Compile Include="..\SqlToolManagerMaui\Models\Editors\Completion\CompletionContext.cs" Link="Linked\CompletionContext.cs" />
 		<Compile Include="..\SqlToolManagerMaui\Models\Editors\Completion\CompletionContextKind.cs" Link="Linked\CompletionContextKind.cs" />
 		<Compile Include="..\SqlToolManagerMaui\Models\Editors\Completion\CompletionRequest.cs" Link="Linked\CompletionRequest.cs" />

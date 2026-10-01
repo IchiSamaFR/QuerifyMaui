@@ -9,6 +9,7 @@ using SqlToolManagerMaui.Models.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using SqlToolManagerMaui.Services.Linq;
 using SqlToolManagerMaui.Services.Queries;
 using SqlToolManagerMaui.UI.ViewModels;
 
@@ -28,6 +29,7 @@ public partial class QueryVM : AbstractVM
     private readonly IConnectionStore _connectionStore;
     private readonly ISyntaxConfigurationStore _syntaxConfigurations;
     private readonly IQueryExecutorResolver _executors;
+    private readonly ILinqQueryExecutor _linqExecutor;
 
     /// <summary>Compteur des documents "Sans titre" ouverts depuis le demarrage.</summary>
     private int _untitledCount;
@@ -83,13 +85,14 @@ public partial class QueryVM : AbstractVM
     public SyntaxConfiguration? SyntaxConfiguration
         => ActiveDocument is { } document && _syntaxByLanguage.TryGetValue(document.Language, out var configuration) ? configuration : null;
 
-    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors)
+    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors, ILinqQueryExecutor linqExecutor)
     {
         _files = files;
         _connectionStore = connectionStore;
         _connectionStore.Subscribe(ApplyConnections);
         _syntaxConfigurations = syntaxConfigurations;
         _executors = executors;
+        _linqExecutor = linqExecutor;
 
         // Ajout, modification ou suppression depuis l'explorateur : le Picker suit le coffre.
         WeakReferenceMessenger.Default.Register<QueryVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
@@ -168,12 +171,6 @@ public partial class QueryVM : AbstractVM
         if (document is null || connection is null)
             return;
 
-        if (document.Language == SyntaxLanguage.Linq)
-        {
-            SetStatus("L'exécution des requêtes LINQ arrive avec le DbContext généré.", isError: true);
-            return;
-        }
-
         var selectedText = document.Selection.SelectedText;
         var isSelection = !string.IsNullOrWhiteSpace(selectedText);
         var script = isSelection ? selectedText : document.EditorText;
@@ -198,7 +195,10 @@ public partial class QueryVM : AbstractVM
                 return;
             }
 
-            var result = await _executors.Resolve(connection.Provider).ExecuteAsync(connection.ConnectionString!, script, token);
+            // LINQ : la premiere execution sur une base genere et compile son DbContext (quelques secondes).
+            var result = document.Language == SyntaxLanguage.Linq
+                ? await _linqExecutor.ExecuteAsync(connection, script, token)
+                : await _executors.Resolve(connection.Provider).ExecuteAsync(connection.ConnectionString!, script, token);
             document.LastResult = result;
             SetStatus(result.StatusLabel, isError: result.HasErrors || result.WasCancelled);
         }
