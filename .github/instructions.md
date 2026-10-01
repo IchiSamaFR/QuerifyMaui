@@ -1,4 +1,4 @@
-# SqlToolManagerMaui - Instructions Partagées
+﻿# SqlToolManagerMaui - Instructions Partagées
 
 **Source centralisée pour Claude et Copilot. À consulter en priorité.**
 
@@ -244,7 +244,7 @@ Lors de la création d'une feature :
 * **Ajouter un moteur** = un `AddSingleton<IConnectionTester, ...>` dans `AddConnectionServices` ; `ConnectionTesterResolver` le découvre seul.
 * La popup « Se connecter » (`ConnectionEditorPopup` + `ConnectionEditorVM`, transient) travaille sur un `DatabaseConnectionDraft` (clone) pour qu'« Annuler » ne modifie rien. Elle est ouverte par `IConnectionDialogService.EditAsync` et fermée par le VM via `IPopupService.ClosePopupAsync(shell, Guid?)` (Id enregistré, ou null).
 * Après un ajout / une modification / une suppression, `ConnectionsChangedMessage` est publié (WeakReferenceMessenger) : `QueryVM` recharge son Picker.
-* **Explorateur** : `ConnectionExplorerVM` garde l'arbre (`Roots`) et sa projection à plat (`VisibleNodes`, indentée par `LevelToIndentConverter`) — MAUI n'a pas de TreeView. Aucun `ExplorerNode` ne porte la chaîne : elle est relue dans le coffre à chaque chargement. Une erreur de chargement devient un nœud « Erreur : ... ».
+* **Explorateur** : `ConnectionExplorerVM` garde l'arbre (`Roots`), affiché par le contrôle générique `v:TreeView` de `SqlToolManagerMaui.UI/Views` (MAUI n'en fournit pas) : nœuds imbriqués, `ChildrenPath` / `IsExpandedPath` / `CanExpandPath`, `ExpandingCommand` appelé à chaque ouverture pour le chargement paresseux. Aucun `ExplorerNode` ne porte la chaîne : elle est relue dans le coffre à chaque chargement. Une erreur de chargement devient un nœud « Erreur : ... ».
 * **Catalogue d'un moteur** = un `AddSingleton<IDatabaseSchemaReader, ...>` (résolu par `DatabaseSchemaReaderResolver`), sur le modèle des testeurs.
 
 ### Pièges connus

@@ -13,8 +13,9 @@ namespace SqlToolManagerMaui.ViewModels.Pages.Connections;
 
 /// <summary>
 /// Explorateur d'objets facon SSMS : Serveur > Bases (+ dossier systeme) > Tables / Vues /
-/// Procedures stockees > objets. Chaque niveau est charge a la premiere ouverture du noeud.
-/// L'arbre est rendu a plat dans <see cref="VisibleNodes"/> ; la creation et la modification
+/// Procedures stockees > objets, affiche par le TreeView de SqlToolManagerMaui.UI.
+/// Le TreeView gere l'ouverture (IsExpanded) et appelle <see cref="ExpandNodeCommand"/> :
+/// chaque niveau est charge a la premiere ouverture du noeud. La creation et la modification
 /// des connexions passent par la popup "Se connecter" (<see cref="IConnectionDialogService"/>).
 /// </summary>
 public partial class ConnectionExplorerVM : AbstractVM
@@ -25,9 +26,6 @@ public partial class ConnectionExplorerVM : AbstractVM
 
     /// <summary>Noeuds racines : une entree par connexion enregistree.</summary>
     public ObservableCollection<ExplorerNode> Roots { get; } = [];
-
-    /// <summary>Arbre aplati : racines et descendants des noeuds deplies, dans l'ordre d'affichage.</summary>
-    public ObservableCollection<ExplorerNode> VisibleNodes { get; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsConnectionSelected))]
@@ -67,13 +65,13 @@ public partial class ConnectionExplorerVM : AbstractVM
         }
 
         OnPropertyChanged(nameof(HasConnections));
-        RebuildVisibleNodes();
 
         SelectedNode = Roots.FirstOrDefault(r => r.Connection.Id == selectedId);
 
         // En parallele et sans bloquer : un serveur injoignable ne doit pas retenir les autres.
+        // IsExpanded passe a vrai : le TreeView declenche ExpandNodeCommand pour chacune.
         foreach (var root in Roots.Where(r => expanded.Contains(r.Connection.Id)))
-            StartAsBusy(() => ExpandAsync(root), blocking: false);
+            root.IsExpanded = true;
     }
 
     [RelayCommand]
@@ -123,19 +121,14 @@ public partial class ConnectionExplorerVM : AbstractVM
 
     // ---------- Arbre ----------
 
+    /// <summary>Appele par le TreeView a chaque ouverture : ne charge que la premiere fois.</summary>
     [RelayCommand]
-    private Task ToggleNodeAsync(ExplorerNode? node)
+    private Task ExpandNodeAsync(ExplorerNode? node)
     {
-        if (node is null || !node.CanExpand)
+        if (node is null || node.IsLoaded || node.IsLoading)
             return Task.CompletedTask;
 
-        if (node.IsExpanded)
-        {
-            Collapse(node);
-            return Task.CompletedTask;
-        }
-
-        return RunAsBusyAsync(() => ExpandAsync(node), blocking: false);
+        return RunAsBusyAsync(() => LoadAsync(node), blocking: false);
     }
 
     /// <summary>Recharge le noeud selectionne (ou toutes les connexions si rien n'est selectionne).</summary>
@@ -151,66 +144,31 @@ public partial class ConnectionExplorerVM : AbstractVM
         if (node is null)
             return RunAsBusyAsync(ReloadConnectionsAsync, blocking: false);
 
-        Collapse(node);
         node.IsLoaded = false;
         node.Children.Clear();
 
-        return RunAsBusyAsync(() => ExpandAsync(node), blocking: false);
-    }
+        if (node.IsExpanded)
+            return RunAsBusyAsync(() => LoadAsync(node), blocking: false);
 
-    private async Task ExpandAsync(ExplorerNode node)
-    {
-        if (!node.IsLoaded)
-        {
-            node.IsLoading = true;
-            try
-            {
-                var children = await LoadChildrenAsync(node);
-                node.Children.Clear();
-                foreach (var child in children)
-                    node.Children.Add(child);
-                node.IsLoaded = true;
-            }
-            finally
-            {
-                node.IsLoading = false;
-            }
-        }
-
+        // L'ouverture declenche ExpandNodeCommand, qui recharge le noeud.
         node.IsExpanded = true;
-        InsertDescendants(node);
+        return Task.CompletedTask;
     }
 
-    private void Collapse(ExplorerNode node)
+    private async Task LoadAsync(ExplorerNode node)
     {
-        if (!node.IsExpanded)
-            return;
-
-        // Retire les descendants visibles AVANT de replier, puisque VisibleDescendants depend de IsExpanded.
-        foreach (var descendant in node.VisibleDescendants().ToList())
-            VisibleNodes.Remove(descendant);
-
-        node.IsExpanded = false;
-    }
-
-    private void InsertDescendants(ExplorerNode node)
-    {
-        var index = VisibleNodes.IndexOf(node);
-        if (index < 0)
-            return;
-
-        foreach (var descendant in node.VisibleDescendants())
-            VisibleNodes.Insert(++index, descendant);
-    }
-
-    private void RebuildVisibleNodes()
-    {
-        VisibleNodes.Clear();
-        foreach (var root in Roots)
+        node.IsLoading = true;
+        try
         {
-            VisibleNodes.Add(root);
-            foreach (var descendant in root.VisibleDescendants())
-                VisibleNodes.Add(descendant);
+            var children = await LoadChildrenAsync(node);
+            node.Children.Clear();
+            foreach (var child in children)
+                node.Children.Add(child);
+            node.IsLoaded = true;
+        }
+        finally
+        {
+            node.IsLoading = false;
         }
     }
 

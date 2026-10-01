@@ -109,7 +109,50 @@ public partial class CodeEditor : ContentView
         // a chaque chargement, sinon un retour sur la page laisserait le texte sans couleur.
         Loaded += (_, _) => StartHighlighting();
         Unloaded += (_, _) => StopHighlighting();
+
+#if WINDOWS
+        DisableWindowsHoverState();
+#endif
     }
+
+#if WINDOWS
+    // Brosses mutables : les ressources du template se figent au chargement, on recale leur couleur ensuite.
+    private readonly Microsoft.UI.Xaml.Media.SolidColorBrush _hoverBackground = new(Microsoft.UI.Colors.Transparent);
+    private readonly Microsoft.UI.Xaml.Media.SolidColorBrush _hoverBorder = new(Microsoft.UI.Colors.Transparent);
+
+    // Le handler de CodeEdit n'est qu'un conteneur : le RichEditBox natif est celui du RichEditor interne.
+    private void DisableWindowsHoverState()
+    {
+        var editor = Native.GetVisualTreeDescendants().OfType<RichEditor>().FirstOrDefault();
+        if (editor is null)
+            return;
+
+        editor.HandlerChanged += (_, _) => AttachHoverResources(editor);
+        AttachHoverResources(editor);
+    }
+
+    private void AttachHoverResources(RichEditor editor)
+    {
+        if (editor.Handler?.PlatformView is not Microsoft.UI.Xaml.Controls.Control box)
+            return;
+
+        // Ressources posees avant l'application du template, sinon ignorees.
+        box.Resources["TextControlBackgroundPointerOver"] = _hoverBackground;
+        box.Resources["TextControlBorderBrushPointerOver"] = _hoverBorder;
+        box.Resources["TextControlBorderThemeThickness"] = new Microsoft.UI.Xaml.Thickness(1,0,0,0);
+        box.Resources["TextControlBorderThemeThicknessFocused"] = new Microsoft.UI.Xaml.Thickness(1,0,0,0);
+        box.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+
+        box.Loaded += (_, _) => SyncHoverBrushes(box);
+        box.ActualThemeChanged += (_, _) => SyncHoverBrushes(box);
+    }
+
+    private void SyncHoverBrushes(Microsoft.UI.Xaml.Controls.Control box)
+    {
+        _hoverBackground.Color = (box.Background as Microsoft.UI.Xaml.Media.SolidColorBrush)?.Color ?? Microsoft.UI.Colors.Transparent;
+        _hoverBorder.Color = (box.BorderBrush as Microsoft.UI.Xaml.Media.SolidColorBrush)?.Color ?? Microsoft.UI.Colors.Transparent;
+    }
+#endif
 
     // ---------- Contenu ----------
 

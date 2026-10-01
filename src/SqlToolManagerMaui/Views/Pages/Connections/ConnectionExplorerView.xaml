@@ -45,35 +45,18 @@
                    Margin="0,16,0,0"
                    IsVisible="{Binding HasConnections, Converter={StaticResource BooleanInvertConverter}}" />
 
-            <!-- ============ Arbre (rendu a plat, indente par niveau) ============ -->
-            <CollectionView Grid.Row="2"
-                            ItemsSource="{Binding VisibleNodes}"
-                            SelectedItem="{Binding SelectedNode}"
-                            SelectionMode="Single"
-                            IsVisible="{Binding HasConnections}">
-                <CollectionView.ItemTemplate>
+            <!-- ============ Arbre ============ -->
+            <v:TreeView Grid.Row="2"
+                        ItemsSource="{Binding Roots}"
+                        SelectedItem="{Binding SelectedNode}"
+                        ExpandingCommand="{Binding ExpandNodeCommand}"
+                        IsVisible="{Binding HasConnections}">
+                <v:TreeView.ItemTemplate>
                     <DataTemplate x:DataType="m:ExplorerNode">
-                        <Grid ColumnDefinitions="Auto,20,*,Auto"
-                              ColumnSpacing="4"
-                              HeightRequest="28"
-                              Padding="{Binding Level, Converter={StaticResource LevelToIndentConverter}}">
+                        <Grid ColumnDefinitions="20,*,Auto"
+                              ColumnSpacing="6">
 
-                            <!-- Chevron : deplie / replie -->
-                            <inp:ButtonView Grid.Column="0"
-                                            Style="{StaticResource TextButtonViewStyle}"
-                                            WidthRequest="20"
-                                            HeightRequest="20"
-                                            Margin="8,0,0,0"
-                                            Padding="0"
-                                            IsVisible="{Binding CanExpand}"
-                                            Command="{Binding Source={x:Reference Root}, Path=ViewModel.ToggleNodeCommand, x:DataType=v:ConnectionExplorerView}"
-                                            CommandParameter="{Binding .}">
-                                <mi:MauiIcon Icon="{Binding ChevronIcon}"
-                                             IconSize="12"
-                                             IconColor="{StaticResource LabelSecondary}" />
-                            </inp:ButtonView>
-
-                            <mi:MauiIcon Grid.Column="1"
+                            <mi:MauiIcon Grid.Column="0"
                                          Icon="{Binding Icon}"
                                          IconSize="16"
                                          WidthRequest="16"
@@ -82,7 +65,7 @@
                                          HorizontalOptions="Center"
                                          VerticalOptions="Center" />
 
-                            <HorizontalStackLayout Grid.Column="2"
+                            <HorizontalStackLayout Grid.Column="1"
                                                    Spacing="6"
                                                    VerticalOptions="Center">
                                 <Label Text="{Binding Title}"
@@ -103,7 +86,7 @@
                                        IsVisible="{Binding Detail, Converter={StaticResource IsStringNullOrEmptyConverter}, ConverterParameter=invert}" />
                             </HorizontalStackLayout>
 
-                            <ActivityIndicator Grid.Column="3"
+                            <ActivityIndicator Grid.Column="2"
                                                IsRunning="{Binding IsLoading}"
                                                IsVisible="{Binding IsLoading}"
                                                WidthRequest="14"
@@ -111,8 +94,8 @@
                                                Margin="0,0,4,0" />
                         </Grid>
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                </v:TreeView.ItemTemplate>
+            </v:TreeView>
         </Grid>
     </Border>
 </v:AbstractContentView>

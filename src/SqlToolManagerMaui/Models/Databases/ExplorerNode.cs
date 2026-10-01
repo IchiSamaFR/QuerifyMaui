@@ -5,8 +5,8 @@ using MauiIcons.Fluent;
 namespace SqlToolManagerMaui.Models.Databases;
 
 /// <summary>
-/// Noeud de l'explorateur d'objets (facon SSMS). L'arbre est affiche a plat :
-/// <see cref="Level"/> pilote l'indentation, les enfants sont inseres sous le parent a l'ouverture.
+/// Noeud de l'explorateur d'objets (facon SSMS), affiche par le TreeView de SqlToolManagerMaui.UI
+/// via <see cref="Children"/>, <see cref="IsExpanded"/> et <see cref="CanExpand"/>.
 /// Aucun noeud ne porte la chaine de connexion : elle est relue dans le coffre a chaque chargement.
 /// </summary>
 public sealed partial class ExplorerNode : ObservableObject
@@ -17,7 +17,6 @@ public sealed partial class ExplorerNode : ObservableObject
         Title = title;
         Connection = connection;
         Parent = parent;
-        Level = parent is null ? 0 : parent.Level + 1;
         Database = parent?.Database;
     }
 
@@ -28,8 +27,6 @@ public sealed partial class ExplorerNode : ObservableObject
     public DatabaseConnectionInfo Connection { get; }
 
     public ExplorerNode? Parent { get; }
-
-    public int Level { get; }
 
     /// <summary>Base a laquelle appartient le noeud (herite du parent).</summary>
     public string? Database { get; init; }
@@ -44,7 +41,6 @@ public sealed partial class ExplorerNode : ObservableObject
     public ObservableCollection<ExplorerNode> Children { get; } = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ChevronIcon))]
     [NotifyPropertyChangedFor(nameof(Icon))]
     public partial bool IsExpanded { get; set; }
 
@@ -68,8 +64,6 @@ public sealed partial class ExplorerNode : ObservableObject
         _ => null,
     };
 
-    public FluentIcons ChevronIcon => IsExpanded ? FluentIcons.ChevronDown12 : FluentIcons.ChevronRight12;
-
     public FluentIcons Icon => Kind switch
     {
         ExplorerNodeKind.Connection => FluentIcons.Server20,
@@ -81,17 +75,4 @@ public sealed partial class ExplorerNode : ObservableObject
         _ => IsExpanded ? FluentIcons.FolderOpen20 : FluentIcons.Folder20,
     };
 
-    /// <summary>Noeud et tous ses descendants actuellement deplies, dans l'ordre d'affichage.</summary>
-    public IEnumerable<ExplorerNode> VisibleDescendants()
-    {
-        if (!IsExpanded)
-            yield break;
-
-        foreach (var child in Children)
-        {
-            yield return child;
-            foreach (var descendant in child.VisibleDescendants())
-                yield return descendant;
-        }
-    }
 }
