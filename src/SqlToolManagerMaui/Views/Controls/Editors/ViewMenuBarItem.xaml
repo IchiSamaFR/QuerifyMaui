@@ -15,4 +15,18 @@
     <c:CheckedMenuFlyoutItem Label="Indentation par tabulations"
                              IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=IsTabIndentationEnabled, x:DataType=c:ViewMenuBarItem}"
                              Command="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=ToggleTabIndentationCommand, x:DataType=c:ViewMenuBarItem}" />
+
+    <MenuFlyoutSeparator />
+
+    <MenuFlyoutSubItem Text="Langage">
+        <c:CheckedMenuFlyoutItem Label="SQL (T-SQL)"
+                                 IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=Language, Converter={StaticResource IsEqualConverter}, ConverterParameter={x:Static m:SyntaxLanguage.Sql}, x:DataType=c:ViewMenuBarItem}"
+                                 Command="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=SetLanguageCommand, x:DataType=c:ViewMenuBarItem}"
+                                 CommandParameter="{x:Static m:SyntaxLanguage.Sql}" />
+
+        <c:CheckedMenuFlyoutItem Label="LINQ (Entity Framework)"
+                                 IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=Language, Converter={StaticResource IsEqualConverter}, ConverterParameter={x:Static m:SyntaxLanguage.Linq}, x:DataType=c:ViewMenuBarItem}"
+                                 Command="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=SetLanguageCommand, x:DataType=c:ViewMenuBarItem}"
+                                 CommandParameter="{x:Static m:SyntaxLanguage.Linq}" />
+    </MenuFlyoutSubItem>
 </MenuBarItem>

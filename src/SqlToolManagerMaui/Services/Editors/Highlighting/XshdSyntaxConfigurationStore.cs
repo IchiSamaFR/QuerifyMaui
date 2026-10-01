@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using SqlToolManagerMaui.Models.Editors.Highlighting;
 
@@ -38,6 +38,22 @@ public sealed class XshdSyntaxConfigurationStore : ISyntaxConfigurationStore
         {
             _gate.Release();
         }
+    }
+
+    public async Task<SyntaxLanguage?> FindLanguageAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var extension = Path.GetExtension(filePath);
+        if (string.IsNullOrEmpty(extension))
+            return null;
+
+        foreach (var language in Enum.GetValues<SyntaxLanguage>().Where(l => l != SyntaxLanguage.None))
+        {
+            var configuration = await GetAsync(language, cancellationToken);
+            if (configuration?.Definition.Extensions.Contains(extension, StringComparer.OrdinalIgnoreCase) == true)
+                return language;
+        }
+
+        return null;
     }
 
     private static async Task<SyntaxConfiguration?> LoadAsync(SyntaxLanguage language, CancellationToken cancellationToken)

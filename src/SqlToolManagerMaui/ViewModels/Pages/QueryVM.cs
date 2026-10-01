@@ -37,6 +37,7 @@ public partial class QueryVM : AbstractVM
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ExecuteQueryCommand))]
+    [NotifyPropertyChangedFor(nameof(SyntaxConfiguration))]
     public partial EditorDocument? ActiveDocument { get; set; }
 
     /// <summary>Connexions proposees pour l'execution : les instances partagees du store.</summary>
@@ -75,9 +76,12 @@ public partial class QueryVM : AbstractVM
 
     // ---------- Barre d'etat ----------
 
-    /// <summary>Langage colore par l'editeur : pour l'instant toujours du T-SQL.</summary>
-    [ObservableProperty]
-    public partial SyntaxConfiguration? SyntaxConfiguration { get; set; }
+    /// <summary>Configurations de tous les langages, chargees une fois : changer d'onglet ne relit aucun .xshd.</summary>
+    private readonly Dictionary<SyntaxLanguage, SyntaxConfiguration> _syntaxByLanguage = [];
+
+    /// <summary>Langage de l'onglet actif (coloration, commentaires, autocompletion).</summary>
+    public SyntaxConfiguration? SyntaxConfiguration
+        => ActiveDocument is { } document && _syntaxByLanguage.TryGetValue(document.Language, out var configuration) ? configuration : null;
 
     public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors)
     {
@@ -93,7 +97,16 @@ public partial class QueryVM : AbstractVM
 
     protected override async Task LoadDatasBusyAsync()
     {
-        SyntaxConfiguration ??= await _syntaxConfigurations.GetAsync(SyntaxLanguage.Sql, LifetimeToken);
+        if (_syntaxByLanguage.Count == 0)
+        {
+            foreach (var language in Enum.GetValues<SyntaxLanguage>())
+            {
+                if (await _syntaxConfigurations.GetAsync(language, LifetimeToken) is { } configuration)
+                    _syntaxByLanguage[language] = configuration;
+            }
+
+            OnPropertyChanged(nameof(SyntaxConfiguration));
+        }
 
         await ReloadConnectionsAsync();
 
@@ -154,6 +167,12 @@ public partial class QueryVM : AbstractVM
         var connection = ActiveConnection;
         if (document is null || connection is null)
             return;
+
+        if (document.Language == SyntaxLanguage.Linq)
+        {
+            SetStatus("L'exécution des requêtes LINQ arrive avec le DbContext généré.", isError: true);
+            return;
+        }
 
         var selectedText = document.Selection.SelectedText;
         var isSelection = !string.IsNullOrWhiteSpace(selectedText);

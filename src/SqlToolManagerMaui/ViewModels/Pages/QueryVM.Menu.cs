@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Models.Editors;
+using SqlToolManagerMaui.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 
@@ -48,7 +49,8 @@ public partial class QueryVM
             return;
         }
 
-        var document = new EditorDocument(Path.GetFileName(content.FilePath), content.FilePath, content.Text);
+        var language = await _syntaxConfigurations.FindLanguageAsync(content.FilePath, token) ?? SyntaxLanguage.Sql;
+        var document = new EditorDocument(Path.GetFileName(content.FilePath), content.FilePath, content.Text, language);
         Documents.Add(document);
         ActiveDocument = document;
         SetStatus($"{document.FileName} ouvert.");
@@ -75,7 +77,7 @@ public partial class QueryVM
             }
             else
             {
-                var suggested = document.HasPath ? document.FileName : $"{document.FallbackName}.sql";
+                var suggested = document.HasPath ? document.FileName : $"{document.FallbackName}{DefaultExtension(document.Language)}";
                 var path = await _files.SaveAsAsync(suggested, text, token);
                 if (path is null)
                     return;
@@ -87,6 +89,12 @@ public partial class QueryVM
             SetStatus($"{document.FileName} enregistre.");
         });
     }
+
+    /// <summary>Premiere extension declaree par le .xshd du langage.</summary>
+    private string DefaultExtension(SyntaxLanguage language)
+        => _syntaxByLanguage.TryGetValue(language, out var configuration) && configuration.Definition.Extensions.Count > 0
+            ? configuration.Definition.Extensions[0]
+            : ".sql";
 
     /// <summary>Ferme un onglet. Un document modifie doit etre confirme par la page.</summary>
     [RelayCommand]
@@ -123,6 +131,18 @@ public partial class QueryVM
     private void CloseActive() => Close(ActiveDocument);
 
     // ---------- Menu Affichage ----------
+
+    /// <summary>Change le langage de l'onglet actif ; le texte n'est pas touche.</summary>
+    [RelayCommand]
+    private void SetLanguage(SyntaxLanguage language)
+    {
+        if (ActiveDocument is not { } document || document.Language == language)
+            return;
+
+        document.Language = language;
+        OnPropertyChanged(nameof(SyntaxConfiguration));
+        SetStatus($"Langage de l'onglet : {SyntaxConfiguration?.Definition.Name ?? language.ToString()}.");
+    }
 
     [RelayCommand]
     private void ToggleLineNumbers()

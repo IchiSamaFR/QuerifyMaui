@@ -1,4 +1,5 @@
 ﻿using System.Windows.Input;
+using SqlToolManagerMaui.Models.Editors.Highlighting;
 
 namespace SqlToolManagerMaui.Views.Controls.Editors;
 
@@ -67,6 +68,26 @@ public partial class ViewMenuBarItem : MenuBarItem
     {
         get => (bool)GetValue(IsTabIndentationEnabledProperty);
         set => SetValue(IsTabIndentationEnabledProperty, value);
+    }
+
+    public static readonly BindableProperty LanguageProperty = BindableProperty.Create(
+        nameof(Language), typeof(SyntaxLanguage), typeof(ViewMenuBarItem), SyntaxLanguage.Sql);
+
+    /// <summary>Langage de l'onglet actif, coche dans le sous-menu.</summary>
+    public SyntaxLanguage Language
+    {
+        get => (SyntaxLanguage)GetValue(LanguageProperty);
+        set => SetValue(LanguageProperty, value);
+    }
+
+    public static readonly BindableProperty SetLanguageCommandProperty = BindableProperty.Create(
+        nameof(SetLanguageCommand), typeof(ICommand), typeof(ViewMenuBarItem), null);
+
+    /// <summary>Change le langage de l'onglet actif ; parametre : la valeur de <see cref="SyntaxLanguage"/>.</summary>
+    public ICommand? SetLanguageCommand
+    {
+        get => (ICommand?)GetValue(SetLanguageCommandProperty);
+        set => SetValue(SetLanguageCommandProperty, value);
     }
 
     public ViewMenuBarItem()

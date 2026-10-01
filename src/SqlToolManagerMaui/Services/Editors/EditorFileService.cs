@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using CommunityToolkit.Maui.Storage;
 
 namespace SqlToolManagerMaui.Services.Editors;
@@ -14,9 +14,9 @@ public sealed class EditorFileService : IEditorFileService
     private static readonly FilePickerFileType TextFileTypes = new(
         new Dictionary<DevicePlatform, IEnumerable<string>>
         {
-            [DevicePlatform.WinUI] = [".sql", ".txt", ".cs", ".json", ".xml", ".md", ".csv"],
-            [DevicePlatform.macOS] = ["sql", "txt", "cs", "json", "xml", "md", "csv"],
-            [DevicePlatform.MacCatalyst] = ["sql", "txt", "cs", "json", "xml", "md", "csv"],
+            [DevicePlatform.WinUI] = [".sql", ".linq", ".csx", ".txt", ".cs", ".json", ".xml", ".md", ".csv"],
+            [DevicePlatform.macOS] = ["sql", "linq", "csx", "txt", "cs", "json", "xml", "md", "csv"],
+            [DevicePlatform.MacCatalyst] = ["sql", "linq", "csx", "txt", "cs", "json", "xml", "md", "csv"],
         });
 
     public async Task<EditorFileContent?> OpenAsync(CancellationToken cancellationToken = default)

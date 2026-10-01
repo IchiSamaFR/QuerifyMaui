@@ -19,7 +19,9 @@
                            ToggleWordWrapCommand="{Binding ToggleWordWrapCommand}"
                            IsWordWrapEnabled="{Binding EditorConfiguration.IsWordWrapped}"
                            ToggleTabIndentationCommand="{Binding ToggleUseTabsCommand}"
-                           IsTabIndentationEnabled="{Binding EditorConfiguration.IsTabIndentation}" />
+                           IsTabIndentationEnabled="{Binding EditorConfiguration.IsTabIndentation}"
+                           Language="{Binding ActiveDocument.Language, FallbackValue={x:Static m:SyntaxLanguage.Sql}}"
+                           SetLanguageCommand="{Binding SetLanguageCommand}" />
 
         <c:QueryMenuBarItem ExecuteCommand="{Binding ExecuteQueryCommand}"
                             DisconnectCommand="{Binding DisconnectCommand}" />
@@ -114,6 +116,10 @@
 
                 <HorizontalStackLayout Grid.Column="1"
                                        Spacing="16">
+                    <Label Text="{Binding SyntaxConfiguration.Definition.Name}"
+                           Style="{StaticResource LabelTertiaryStyle}"
+                           VerticalOptions="Center" />
+
                     <Label Text="{Binding ActiveDocument.PathLabel}"
                            Style="{StaticResource LabelTertiaryStyle}"
                            LineBreakMode="HeadTruncation"

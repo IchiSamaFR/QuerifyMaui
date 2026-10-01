@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Models.Editors.Completion;
+using SqlToolManagerMaui.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 
@@ -34,7 +35,8 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
 
-        if (request.Connection is not { IsConnected: true } connection)
+        // Le schema SQL n'a pas de sens en LINQ : c'est le DbContext genere qui y repondra.
+        if (request.Language != SyntaxLanguage.Sql || request.Connection is not { IsConnected: true } connection)
             return [];
 
         _reservedWords ??= await LoadReservedWordsAsync(request, cancellationToken);

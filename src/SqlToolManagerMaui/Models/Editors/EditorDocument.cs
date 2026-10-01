@@ -1,4 +1,5 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using SqlToolManagerMaui.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Models.Queries;
 
 namespace SqlToolManagerMaui.Models.Editors;
@@ -36,6 +37,10 @@ public sealed partial class EditorDocument : ObservableObject
     [NotifyPropertyChangedFor(nameof(FileName))]
     public partial string FallbackName { get; set; }
 
+    /// <summary>Langage de l'onglet : coloration, autocompletion et moteur d'execution en dependent.</summary>
+    [ObservableProperty]
+    public partial SyntaxLanguage Language { get; set; }
+
     /// <summary>Selection propre a l'onglet, restauree par l'editeur quand l'onglet redevient actif.</summary>
     [ObservableProperty]
     public partial EditorSelection Selection { get; set; } = new();
@@ -66,8 +71,9 @@ public sealed partial class EditorDocument : ObservableObject
     /// <summary>Chemin affiche dans la barre d'etat.</summary>
     public string PathLabel => HasPath ? FilePath! : "Non enregistre";
 
-    public EditorDocument(string fallbackName, string? filePath, string fileText)
+    public EditorDocument(string fallbackName, string? filePath, string fileText, SyntaxLanguage language = SyntaxLanguage.Sql)
     {
+        Language = language;
         FallbackName = fallbackName;
         FileText = Normalize(fileText);
         EditorText = FileText;

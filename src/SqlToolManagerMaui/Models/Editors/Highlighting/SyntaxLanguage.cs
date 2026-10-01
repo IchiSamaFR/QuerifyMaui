@@ -1,4 +1,4 @@
-namespace SqlToolManagerMaui.Models.Editors.Highlighting;
+﻿namespace SqlToolManagerMaui.Models.Editors.Highlighting;
 
 /// <summary>
 /// Langages colores par l'editeur. Chaque valeur correspond a un fichier
@@ -11,5 +11,8 @@ public enum SyntaxLanguage
     None = 0,
 
     /// <summary>T-SQL (Sql.xshd).</summary>
-    Sql
+    Sql,
+
+    /// <summary>Requete LINQ en C# sur un DbContext Entity Framework genere (Linq.xshd).</summary>
+    Linq
 }

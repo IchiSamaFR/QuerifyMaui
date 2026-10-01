@@ -62,7 +62,7 @@ public sealed class KeywordCompletionProvider : ICompletionProvider
         Kind = keyword.Category switch
         {
             "Function" => CompletionItemKind.Function,
-            "DataType" => CompletionItemKind.DataType,
+            "DataType" or "Type" => CompletionItemKind.DataType,
             _ => CompletionItemKind.Keyword,
         },
     };
