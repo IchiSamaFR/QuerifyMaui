@@ -3,7 +3,7 @@
                        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                        x:Class="SqlToolManagerMaui.Views.Pages.Connections.ConnectionExplorerView"
                        x:DataType="vm:ConnectionExplorerVM"
-                       x:Name="Root"
+                       x:Name="root"
                        WidthRequest="340"
                        Padding="8">
     <Border Style="{StaticResource CardStyle}"
@@ -44,22 +44,35 @@
                    HorizontalTextAlignment="Center"
                    VerticalOptions="Start"
                    Margin="0,16,0,0"
-                   IsVisible="{Binding HasConnections, Converter={StaticResource BooleanInvertConverter}}" />
+                   IsVisible="{Binding Roots.Count, Converter={StaticResource IsEqualConverter}, ConverterParameter=0}" />
 
             <!-- ============ Arbre ============ -->
             <v:TreeView Grid.Row="2"
                         ItemsSource="{Binding Roots}"
                         SelectedItem="{Binding SelectedNode}"
                         ExpandingCommand="{Binding ExpandNodeCommand}"
-                        IsVisible="{Binding HasConnections}">
+                        DeleteCommand="{Binding DeleteConnectionCommand}"
+                        IsVisible="{Binding Roots.Count, Converter={StaticResource IsNotEqualConverter}, ConverterParameter=0}">
                 <v:TreeView.ItemTemplate>
                     <DataTemplate x:DataType="m:ExplorerNode">
                         <Grid ColumnDefinitions="20,*,Auto"
                               ColumnSpacing="6"
                               BackgroundColor="Transparent">
-
                             <!-- Menu contextuel selon le type de noeud -->
                             <Grid.Triggers>
+                                <DataTrigger TargetType="Grid"
+                                             Binding="{Binding Kind, Converter={StaticResource IsNotEqualConverter}, ConverterParameter='Connection'}"
+                                             Value="True">
+                                    <Setter Property="FlyoutBase.ContextFlyout">
+                                        <Setter.Value>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="Actualiser"
+                                                                Command="{Binding ViewModel.RefreshCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
+                                                                CommandParameter="{Binding .}" />
+                                            </MenuFlyout>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
                                 <DataTrigger TargetType="Grid"
                                              Binding="{Binding Kind}"
                                              Value="{x:Static m:ExplorerNodeKind.Connection}">
@@ -67,14 +80,17 @@
                                         <Setter.Value>
                                             <MenuFlyout>
                                                 <MenuFlyoutItem Text="Actualiser"
-                                                                Command="{Binding ViewModel.RefreshCommand, Source={x:Reference Root}, x:DataType=v:ConnectionExplorerView}"
+                                                                Command="{Binding ViewModel.RefreshCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
                                                                 CommandParameter="{Binding .}" />
                                                 <MenuFlyoutItem Text="Modifier"
-                                                                Command="{Binding ViewModel.EditConnectionCommand, Source={x:Reference Root}, x:DataType=v:ConnectionExplorerView}"
+                                                                Command="{Binding ViewModel.EditConnectionCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
+                                                                CommandParameter="{Binding .}" />
+                                                <MenuFlyoutItem Text="Se deconnecter"
+                                                                Command="{Binding ViewModel.CloseConnectionCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
                                                                 CommandParameter="{Binding .}" />
                                                 <MenuFlyoutSeparator />
                                                 <MenuFlyoutItem Text="Supprimer"
-                                                                Command="{Binding ViewModel.DeleteConnectionCommand, Source={x:Reference Root}, x:DataType=v:ConnectionExplorerView}"
+                                                                Command="{Binding ViewModel.DeleteConnectionCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
                                                                 CommandParameter="{Binding .}" />
                                             </MenuFlyout>
                                         </Setter.Value>
@@ -86,11 +102,15 @@
                                     <Setter Property="FlyoutBase.ContextFlyout">
                                         <Setter.Value>
                                             <MenuFlyout>
+                                                <MenuFlyoutItem Text="Actualiser"
+                                                                Command="{Binding ViewModel.RefreshCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
+                                                                CommandParameter="{Binding .}" />
+                                                <MenuFlyoutSeparator />
                                                 <MenuFlyoutItem Text="Selectionner 1"
-                                                                Command="{Binding ViewModel.SelectTop1Command, Source={x:Reference Root}, x:DataType=v:ConnectionExplorerView}"
+                                                                Command="{Binding ViewModel.SelectTop1Command, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
                                                                 CommandParameter="{Binding .}" />
                                                 <MenuFlyoutItem Text="Selectionner 100"
-                                                                Command="{Binding ViewModel.SelectTop100Command, Source={x:Reference Root}, x:DataType=v:ConnectionExplorerView}"
+                                                                Command="{Binding ViewModel.SelectTop100Command, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
                                                                 CommandParameter="{Binding .}" />
                                             </MenuFlyout>
                                         </Setter.Value>
@@ -106,6 +126,22 @@
                                          IconColor="{Binding IconColor}"
                                          HorizontalOptions="Center"
                                          VerticalOptions="Center" />
+
+                            <Ellipse Grid.Column="0"
+                                     HorizontalOptions="End"
+                                     VerticalOptions="End"
+                                     WidthRequest="8"
+                                     HeightRequest="8"
+                                     BackgroundColor="{DynamicResource Success}">
+                                <Ellipse.IsVisible>
+                                    <MultiBinding Converter="{StaticResource IsAllTrueConverter}">
+                                        <Binding Path="Connection.IsConnected" />
+                                        <Binding Path="Kind" 
+                                                 Converter="{StaticResource IsEqualConverter}"
+                                                 ConverterParameter="Connection"/>
+                                    </MultiBinding>
+                                </Ellipse.IsVisible>
+                            </Ellipse>
 
                             <HorizontalStackLayout Grid.Column="1"
                                                    Spacing="6"

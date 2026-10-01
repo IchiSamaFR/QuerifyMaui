@@ -9,6 +9,7 @@ using SqlToolManagerMaui.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using SqlToolManagerMaui.UI.Extensions;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Connections;
 
@@ -26,6 +27,9 @@ public partial class ConnectionExplorerVM : AbstractVM
     private readonly IDatabaseSchemaReaderResolver _schemaReaders;
     private readonly IConnectionDialogService _dialogs;
 
+    /// <summary>Rechargement lance par <see cref="ConnectionsChangedMessage"/>, attendu par l'edition pour reselectionner.</summary>
+    private Task _connectionsReload = Task.CompletedTask;
+
     /// <summary>Noeuds racines : une entree par connexion enregistree.</summary>
     public ObservableCollection<ExplorerNode> Roots { get; } = [];
 
@@ -37,11 +41,10 @@ public partial class ConnectionExplorerVM : AbstractVM
 
     public bool IsConnectionSelected => SelectedNode?.IsConnection == true;
 
-    public bool HasConnections => Roots.Count > 0;
-
     public ConnectionExplorerVM(IConnectionStore store, IDatabaseSchemaReaderResolver schemaReaders, IConnectionDialogService dialogs)
     {
         _store = store;
+        _store.Subscribe(ApplyConnections);
         _schemaReaders = schemaReaders;
         _dialogs = dialogs;
     }
@@ -50,30 +53,61 @@ public partial class ConnectionExplorerVM : AbstractVM
 
     // ---------- Connexions ----------
 
+    private void ApplyConnections(IReadOnlyList<DatabaseConnectionInfo> connections)
+    {
+        // On conserve la selection si possible.
+        var selectedId = SelectedNode?.Connection.Id;
+
+        // On supprime les racines dont la connexion a ete supprimee.
+        var connectionIds = connections.Select(c => c.Id).ToHashSet();
+
+        var removedNodes = Roots
+            .Where(r => !connectionIds.Contains(r.Connection.Id))
+            .ToList();
+        Roots.RemoveRange(removedNodes);
+
+        // On ajoute les nouvelles connexions, sans toucher aux racines deja presentes (et eventuellement ouvertes).
+        var missingConnections = connections
+            .Where(c => !Roots.Any(r => r.Connection.Id == c.Id))
+            .ToList();
+        foreach (var c in missingConnections.OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            var node = new ExplorerNode(ExplorerNodeKind.Connection, c.Name, c) { Detail = c.Server };
+            var insertIndex = Roots.ToList().FindIndex(r => string.Compare(r.Connection.Name, c.Name, StringComparison.OrdinalIgnoreCase) > 0);
+            if (insertIndex < 0)
+            {
+                Roots.Add(node);
+            }
+            else
+            {
+                Roots.Insert(insertIndex, node);
+            }
+        }
+
+        // On reordonne les racines existantes si un nom a change (sans recreer les noeuds, pour preserver IsExpanded).
+        var orderedIds = Roots
+            .OrderBy(r => r.Connection.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(r => r.Connection.Id)
+            .ToList();
+        for (var targetIndex = 0; targetIndex < orderedIds.Count; targetIndex++)
+        {
+            var currentIndex = Roots.ToList().FindIndex(r => r.Connection.Id == orderedIds[targetIndex]);
+            if (currentIndex != targetIndex)
+            {
+                Roots.Move(currentIndex, targetIndex);
+            }
+        }
+
+        // On reselectionne la connexion precedemment selectionnee si elle existe toujours.
+        SelectedNode = Roots.FirstOrDefault(r => r.Connection.Id == selectedId);
+    }
+
     /// <summary>Reconstruit les racines en conservant l'ouverture des connexions deja deployees.</summary>
     private async Task ReloadConnectionsAsync()
     {
-        var connections = await _store.GetAllAsync(LifetimeToken);
-        var expanded = Roots.Where(r => r.IsExpanded).Select(r => r.Connection.Id).ToHashSet();
-        var selectedId = SelectedNode?.Connection.Id;
-
-        Roots.Clear();
-        foreach (var connection in connections)
-        {
-            Roots.Add(new ExplorerNode(ExplorerNodeKind.Connection, connection.Name, connection)
-            {
-                Detail = connection.Server,
-            });
-        }
-
-        OnPropertyChanged(nameof(HasConnections));
-
-        SelectedNode = Roots.FirstOrDefault(r => r.Connection.Id == selectedId);
-
-        // En parallele et sans bloquer : un serveur injoignable ne doit pas retenir les autres.
-        // IsExpanded passe a vrai : le TreeView declenche ExpandNodeCommand pour chacune.
-        foreach (var root in Roots.Where(r => expanded.Contains(r.Connection.Id)))
-            root.IsExpanded = true;
+        // RefreshAsync notifie les abonnes (ApplyConnections), qui ajoute/supprime
+        // les racines sans toucher aux noeuds existants : IsExpanded est donc preserve.
+        await _store.RefreshAsync(LifetimeToken);
     }
 
     [RelayCommand]
@@ -91,8 +125,25 @@ public partial class ConnectionExplorerVM : AbstractVM
         if (savedId is null)
             return;
 
-        await ReloadConnectionsAsync();
+        // La popup a publie ConnectionsChangedMessage : on attend le rechargement qu'il a lance.
+        await _connectionsReload;
         SelectedNode = Roots.FirstOrDefault(r => r.Connection.Id == savedId);
+    }
+
+    /// <summary>Ferme la connexion : vide la chaine en memoire et replie l'arbre du serveur.</summary>
+    [RelayCommand(CanExecute = nameof(CanEditConnection))]
+    private void CloseConnection(ExplorerNode? node)
+    {
+        var root = node ?? SelectedNode;
+        if (root is not { IsConnection: true })
+            return;
+
+        _store.CloseConnection(root.Connection);
+
+        root.IsExpanded = false;
+        root.Children.Clear();
+        root.IsLoaded = false;
+        root.Detail = root.Connection.Server;
     }
 
     [RelayCommand(CanExecute = nameof(CanEditConnection))]
@@ -118,10 +169,8 @@ public partial class ConnectionExplorerVM : AbstractVM
         }
 
         await _store.DeleteAsync(info.Id, LifetimeToken);
-        WeakReferenceMessenger.Default.Send(new ConnectionsChangedMessage());
 
         SelectedNode = null;
-        await ReloadConnectionsAsync();
     }
 
     // ---------- Arbre ----------
@@ -243,10 +292,11 @@ public partial class ConnectionExplorerVM : AbstractVM
 
     private async Task<IReadOnlyList<ExplorerNode>> LoadDatabasesAsync(ExplorerNode server)
     {
-        var connectionString = await GetConnectionStringAsync(server.Connection);
-        if (connectionString is null)
+        // Ouvre la connexion a la demande : l'expansion du serveur vaut connexion.
+        if (!await _store.OpenConnectionAsync(server.Connection, LifetimeToken))
             return [Message(server, "Chaine introuvable dans le coffre : modifiez la connexion.")];
 
+        var connectionString = server.Connection.ConnectionString!;
         var databases = await _schemaReaders.Resolve(server.Connection.Provider)
             .GetDatabasesAsync(connectionString, LifetimeToken);
 
@@ -281,9 +331,9 @@ public partial class ConnectionExplorerVM : AbstractVM
 
     private async Task<IReadOnlyList<ExplorerNode>> LoadObjectsAsync(ExplorerNode folder, DatabaseObjectKind kind)
     {
-        var connectionString = await GetConnectionStringAsync(folder.Connection);
-        if (connectionString is null || folder.Database is null)
-            return [Message(folder, "Chaine introuvable dans le coffre : modifiez la connexion.")];
+        var connectionString = folder.Connection.ConnectionString;
+        if (string.IsNullOrWhiteSpace(connectionString) || folder.Database is null)
+            return [Message(folder, "Connexion fermee : rouvrez le serveur.")];
 
         var objects = await _schemaReaders.Resolve(folder.Connection.Provider)
             .GetObjectsAsync(connectionString, folder.Database, kind, LifetimeToken);
@@ -306,9 +356,9 @@ public partial class ConnectionExplorerVM : AbstractVM
 
     private async Task<IReadOnlyList<ExplorerNode>> LoadColumnsAsync(ExplorerNode folder)
     {
-        var connectionString = await GetConnectionStringAsync(folder.Connection);
-        if (connectionString is null || folder.Database is null || folder.Schema is null || folder.ObjectName is null)
-            return [Message(folder, "Chaine introuvable dans le coffre : modifiez la connexion.")];
+        var connectionString = folder.Connection.ConnectionString;
+        if (string.IsNullOrWhiteSpace(connectionString) || folder.Database is null || folder.Schema is null || folder.ObjectName is null)
+            return [Message(folder, "Connexion fermee : rouvrez le serveur.")];
 
         var columns = await _schemaReaders.Resolve(folder.Connection.Provider)
             .GetColumnsAsync(connectionString, folder.Database, folder.Schema, folder.ObjectName, LifetimeToken);
@@ -329,7 +379,4 @@ public partial class ConnectionExplorerVM : AbstractVM
 
     private static ExplorerNode Message(ExplorerNode parent, string text)
         => new(ExplorerNodeKind.Message, text, parent.Connection, parent);
-
-    private Task<string?> GetConnectionStringAsync(DatabaseConnectionInfo connection)
-        => _store.GetConnectionStringAsync(connection.Id, LifetimeToken);
 }

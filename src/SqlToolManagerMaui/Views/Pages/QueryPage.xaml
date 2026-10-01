@@ -62,9 +62,7 @@
                     <Picker ItemsSource="{Binding Connections}"
                             SelectedItem="{Binding SelectedConnection}"
                             ItemDisplayBinding="{Binding Name, x:DataType=m:DatabaseConnectionInfo}"
-                            HeightRequest="{StaticResource SmallInputHeight}"
-                            WidthRequest="220"
-                            VerticalOptions="Center" />
+                            WidthRequest="220" />
 
                     <Button Style="{StaticResource PrimaryIconButtonStyle}"
                             Command="{Binding ExecuteQueryCommand}"
@@ -125,8 +123,8 @@
                            VerticalOptions="Center">
                         <Label.Text>
                             <MultiBinding StringFormat="Ln {0}, Col {1}">
-                                <Binding Path="CaretLine" />
-                                <Binding Path="CaretColumn" />
+                                <Binding Path="ActiveDocument.Selection.CaretLine" />
+                                <Binding Path="ActiveDocument.Selection.CaretColumn" />
                             </MultiBinding>
                         </Label.Text>
                     </Label>

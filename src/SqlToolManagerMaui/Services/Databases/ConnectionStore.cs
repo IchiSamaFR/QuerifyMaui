@@ -21,24 +21,9 @@ public sealed class ConnectionStore : IConnectionStore
     private readonly string _filePath = Path.Combine(FileSystem.AppDataDirectory, FileName);
 
     private List<DatabaseConnectionInfo>? _cache;
+    private Action<IReadOnlyList<DatabaseConnectionInfo>>? _onChanged = null;
 
-    public async Task<IReadOnlyList<DatabaseConnectionInfo>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        await _gate.WaitAsync(cancellationToken);
-        try
-        {
-            var items = await LoadUnsafeAsync(cancellationToken);
-            return items
-                .Select(i => i.Clone())
-                .OrderBy(i => i.Name, StringComparer.CurrentCultureIgnoreCase)
-                .ToList();
-        }
-        finally
-        {
-            _gate.Release();
-        }
-    }
-
+    /// <inheritdoc/>
     public async Task<string?> GetConnectionStringAsync(Guid id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -54,6 +39,70 @@ public sealed class ConnectionStore : IConnectionStore
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<bool> RefreshAsync(CancellationToken cancellationToken = default)
+    {
+        await _gate.WaitAsync(cancellationToken);
+        try
+        {
+            var items = await LoadUnsafeAsync(cancellationToken);
+            _onChanged?.Invoke(items.OrderBy(c => c.Name).ToList());
+            return true;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> Subscribe(Action<IReadOnlyList<DatabaseConnectionInfo>> action, CancellationToken cancellationToken = default)
+    {
+        await _gate.WaitAsync(cancellationToken);
+        try
+        {
+            _onChanged += action;
+            var items = await LoadUnsafeAsync(cancellationToken);
+            _onChanged?.Invoke(items.OrderBy(c => c.Name).ToList());
+            return true;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> Unsubscribe(Action<IReadOnlyList<DatabaseConnectionInfo>> action)
+    {
+        _onChanged -= action;
+        return true;
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> OpenConnectionAsync(DatabaseConnectionInfo info, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(info);
+
+        if (info.IsConnected)
+            return true;
+
+        var connectionString = await GetConnectionStringAsync(info.Id, cancellationToken);
+        if (string.IsNullOrWhiteSpace(connectionString))
+            return false;
+
+        info.ConnectionString = connectionString;
+        return true;
+    }
+
+    /// <inheritdoc/>
+    public bool CloseConnection(DatabaseConnectionInfo info)
+    {
+        ArgumentNullException.ThrowIfNull(info);
+        return info.CloseConnection();
+    }
+
+    /// <inheritdoc/>
     public async Task SaveAsync(DatabaseConnectionInfo info, string connectionString, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(info);
@@ -71,15 +120,28 @@ public sealed class ConnectionStore : IConnectionStore
             info.UpdatedAt = DateTimeOffset.Now;
             if (index >= 0)
             {
-                info.CreatedAt = items[index].CreatedAt;
-                items[index] = info.Clone();
+                // Mise a jour sur place : l'instance en cache est partagee avec l'explorateur
+                // et le Picker, ils voient les changements sans rechargement.
+                var existing = items[index];
+                info.CreatedAt = existing.CreatedAt;
+                existing.Name = info.Name;
+                existing.Provider = info.Provider;
+                existing.Server = info.Server;
+                existing.Database = info.Database;
+                existing.UpdatedAt = info.UpdatedAt;
+
+                // Connexion deja ouverte : la nouvelle chaine remplace l'ancienne.
+                if (existing.IsConnected)
+                    existing.ConnectionString = connectionString;
             }
             else
             {
+                // Le descripteur du formulaire est un brouillon : le cache garde sa propre instance.
                 items.Add(info.Clone());
             }
 
             await SaveUnsafeAsync(items, cancellationToken);
+            _onChanged?.Invoke(items.OrderBy(c => c.Name).ToList());
         }
         finally
         {
@@ -87,16 +149,21 @@ public sealed class ConnectionStore : IConnectionStore
         }
     }
 
+    /// <inheritdoc/>
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         await _gate.WaitAsync(cancellationToken);
         try
         {
             var items = await LoadUnsafeAsync(cancellationToken);
-            if (items.RemoveAll(i => i.Id == id) > 0)
+            var removed = items.FirstOrDefault(i => i.Id == id);
+            if (removed is not null)
             {
+                items.Remove(removed);
+                removed.CloseConnection();
                 await SaveUnsafeAsync(items, cancellationToken);
             }
+            _onChanged?.Invoke(items.OrderBy(c => c.Name).ToList());
         }
         finally
         {

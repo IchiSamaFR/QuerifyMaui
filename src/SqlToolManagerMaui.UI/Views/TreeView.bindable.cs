@@ -77,6 +77,19 @@ public partial class TreeView
         set => SetValue(ExpandingCommandProperty, value);
     }
 
+    public static readonly BindableProperty DeleteCommandProperty = BindableProperty.Create(
+        nameof(DeleteCommand), typeof(ICommand), typeof(TreeView), null);
+
+    /// <summary>
+    /// Execute avec l'element selectionne quand l'utilisateur appuie sur Suppr (Windows).
+    /// <see cref="ICommand.CanExecute"/> sert de filtre : s'il refuse l'element, la touche est ignoree.
+    /// </summary>
+    public ICommand? DeleteCommand
+    {
+        get => (ICommand?)GetValue(DeleteCommandProperty);
+        set => SetValue(DeleteCommandProperty, value);
+    }
+
     public static readonly BindableProperty IndentProperty = BindableProperty.Create(
         nameof(Indent), typeof(double), typeof(TreeView), 16d,
         propertyChanged: (b, _, _) => ((TreeView)b).RebuildNodes());

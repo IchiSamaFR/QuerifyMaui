@@ -39,34 +39,20 @@ public partial class QueryVM : AbstractVM
     [NotifyCanExecuteChangedFor(nameof(ExecuteQueryCommand))]
     public partial EditorDocument? ActiveDocument { get; set; }
 
-    /// <summary>
-    /// Entree sentinelle placee en tete de <see cref="Connections"/> : la selectionner
-    /// equivaut a se deconnecter. Son Id vide la distingue d'une vraie connexion.
-    /// </summary>
-    public static DatabaseConnectionInfo NoConnection { get; } = new()
-    {
-        Id = Guid.Empty,
-        Name = "Aucune connexion",
-    };
-
-    /// <summary>
-    /// Connexions proposees pour l'execution. Le premier element est toujours
-    /// <see cref="NoConnection"/>, pour que le Picker permette de se deconnecter.
-    /// </summary>
+    /// <summary>Connexions proposees pour l'execution : les instances partagees du store.</summary>
     [ObservableProperty]
-    public partial List<DatabaseConnectionInfo> Connections { get; set; } = [NoConnection];
+    public partial List<DatabaseConnectionInfo> Connections { get; set; } = [];
 
-    /// <summary>Element selectionne dans le Picker, jamais null : <see cref="NoConnection"/> par defaut.</summary>
+    /// <summary>Element selectionne dans le Picker ; null = aucune connexion (Title du Picker).</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ActiveConnection))]
     [NotifyPropertyChangedFor(nameof(IsConnected))]
     [NotifyCanExecuteChangedFor(nameof(DisconnectCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExecuteQueryCommand))]
-    public partial DatabaseConnectionInfo? SelectedConnection { get; set; } = NoConnection;
+    public partial DatabaseConnectionInfo? SelectedConnection { get; set; }
 
     /// <summary>Connexion reellement retenue, ou null si l'utilisateur est deconnecte.</summary>
-    public DatabaseConnectionInfo? ActiveConnection
-        => SelectedConnection is null || SelectedConnection.Id == Guid.Empty ? null : SelectedConnection;
+    public DatabaseConnectionInfo? ActiveConnection => SelectedConnection;
 
     public bool IsConnected => ActiveConnection is not null;
 
@@ -97,9 +83,11 @@ public partial class QueryVM : AbstractVM
     {
         _files = files;
         _connectionStore = connectionStore;
+        _connectionStore.Subscribe(ApplyConnections);
         _syntaxConfigurations = syntaxConfigurations;
         _executors = executors;
 
+        // Ajout, modification ou suppression depuis l'explorateur : le Picker suit le coffre.
         WeakReferenceMessenger.Default.Register<QueryVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
     }
 
@@ -115,14 +103,7 @@ public partial class QueryVM : AbstractVM
 
     private async Task ReloadConnectionsAsync()
     {
-        var stored = await _connectionStore.GetAllAsync(LifetimeToken);
-        var activeId = ActiveConnection?.Id;
-
-        // La sentinelle "Aucune connexion" reste en tete : c'est l'option de deconnexion.
-        Connections = [NoConnection, .. stored];
-
-        // Les descripteurs sont des clones : on reselectionne par Id, ou on deconnecte si supprime.
-        SelectedConnection = stored.FirstOrDefault(c => c.Id == activeId) ?? NoConnection;
+        await _connectionStore.RefreshAsync(LifetimeToken);
     }
 
     /// <summary>Ferme l'application (entree Fichier > Quitter).</summary>
@@ -131,11 +112,21 @@ public partial class QueryVM : AbstractVM
 
     // ---------- Connexion ----------
 
-    /// <summary>Repasse le Picker sur "Aucune connexion".</summary>
+    private void ApplyConnections(IReadOnlyList<DatabaseConnectionInfo> connections)
+    {
+        var selectedConnectionId = SelectedConnection?.Id;
+
+        Connections = connections.ToList();
+
+        if (selectedConnectionId is not null)
+            SelectedConnection = Connections.FirstOrDefault(c => c.Id == selectedConnectionId) ?? SelectedConnection;
+    }
+
+    /// <summary>Reinitialise la selection du Picker (aucune connexion).</summary>
     [RelayCommand(CanExecute = nameof(IsConnected))]
     private void Disconnect()
     {
-        SelectedConnection = NoConnection;
+        SelectedConnection = null;
     }
 
     partial void OnSelectedConnectionChanged(DatabaseConnectionInfo? value)
@@ -178,14 +169,14 @@ public partial class QueryVM : AbstractVM
 
         try
         {
-            var connectionString = await _connectionStore.GetConnectionStringAsync(connection.Id, token);
-            if (connectionString is null)
+            // Ouverture a la demande : la connexion est partagee avec l'explorateur.
+            if (!await _connectionStore.OpenConnectionAsync(connection, token))
             {
                 SetStatus($"La chaîne de connexion de {connection.Name} est introuvable : réenregistrez-la depuis la page Connexions.", isError: true);
                 return;
             }
 
-            var result = await _executors.Resolve(connection.Provider).ExecuteAsync(connectionString, script, token);
+            var result = await _executors.Resolve(connection.Provider).ExecuteAsync(connection.ConnectionString!, script, token);
             document.LastResult = result;
             SetStatus(result.StatusLabel, isError: result.HasErrors || result.WasCancelled);
         }

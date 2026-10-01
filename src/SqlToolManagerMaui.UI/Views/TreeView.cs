@@ -23,6 +23,7 @@ namespace SqlToolManagerMaui.UI.Views;
 public partial class TreeView : ContentView
 {
     private readonly VerticalStackLayout _rootHost = new();
+    private readonly ScrollView _scrollView;
     private TreeViewNode? _selectedNode;
 
     public TreeView()
@@ -30,12 +31,54 @@ public partial class TreeView : ContentView
         _rootHost.SetBinding(BindableLayout.ItemsSourceProperty, new Binding(nameof(ItemsSource), source: this));
         RebuildNodes();
 
-        Content = new ScrollView
+        _scrollView = new ScrollView
         {
             Orientation = ScrollOrientation.Vertical,
             Content = _rootHost,
         };
+        Content = _scrollView;
+
+#if WINDOWS
+        _scrollView.HandlerChanged += (_, _) => AttachKeyboard();
+        AttachKeyboard();
+#endif
     }
+
+#if WINDOWS
+    private global::Microsoft.UI.Xaml.Controls.ScrollViewer? _nativeScroll;
+
+    // Les noeuds ne sont pas focalisables : le ScrollViewer natif sert de cible au clavier.
+    private void AttachKeyboard()
+    {
+        if (_nativeScroll is not null)
+            _nativeScroll.KeyDown -= OnNativeKeyDown;
+
+        _nativeScroll = _scrollView.Handler?.PlatformView as global::Microsoft.UI.Xaml.Controls.ScrollViewer;
+        if (_nativeScroll is null)
+            return;
+
+        _nativeScroll.IsTabStop = true;
+        _nativeScroll.UseSystemFocusVisuals = false;
+        _nativeScroll.KeyDown += OnNativeKeyDown;
+    }
+
+    // Un clic sur un noeud donne le focus clavier a l'arbre (FocusState.Pointer : pas de cadre de focus).
+    private void FocusTree()
+        => _nativeScroll?.Focus(global::Microsoft.UI.Xaml.FocusState.Pointer);
+
+    private void OnNativeKeyDown(object sender, global::Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+        if (e.Key != global::Windows.System.VirtualKey.Delete)
+            return;
+
+        // CanExecute decide si l'element supporte la suppression (le VM filtre par type de noeud).
+        if (SelectedItem is { } item && DeleteCommand is { } command && command.CanExecute(item))
+        {
+            command.Execute(item);
+            e.Handled = true;
+        }
+    }
+#endif
 
     // ItemTemplate et Indent sont lus a la creation des noeuds : en XAML, ItemsSource peut
     // etre resolu avant que l'ItemTemplate (element de propriete) ne soit affecte.
@@ -49,6 +92,10 @@ public partial class TreeView : ContentView
     internal void Select(TreeViewNode node)
     {
         SelectedItem = node.BindingContext;
+
+#if WINDOWS
+        FocusTree();
+#endif
 
         // Element present plusieurs fois ou SelectedItem refuse par le binding : on force l'etat visuel.
         if (_selectedNode != node)

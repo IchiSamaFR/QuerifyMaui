@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SqlToolManagerMaui.Models.Databases;
 
@@ -7,8 +7,11 @@ namespace SqlToolManagerMaui.Models.Databases;
 /// Descripteur d'une connexion enregistree.
 /// ATTENTION : cet objet est serialise en clair dans connections.json.
 /// La chaine de connexion complete n'y figure jamais : elle vit dans le SecureStorage
-/// (voir <see cref="Services.ConnectionStore"/>), seules les metadonnees d'affichage
+/// (voir <see cref="Services.Databases.ConnectionStore"/>), seules les metadonnees d'affichage
 /// (serveur, base) sont recopiees ici.
+/// <see cref="ConnectionString"/> n'est renseignee qu'en memoire, quand la connexion est
+/// ouverte (<see cref="IsConnected"/>) ; l'attribut Newtonsoft [JsonIgnore] l'exclut du fichier
+/// (celui de System.Text.Json serait ignore par Newtonsoft).
 /// </summary>
 public sealed partial class DatabaseConnectionInfo : ObservableObject
 {
@@ -36,6 +39,15 @@ public sealed partial class DatabaseConnectionInfo : ObservableObject
 
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.Now;
 
+    /// <summary>Chaine complete, en memoire uniquement : renseignee = connecte, null = deconnecte.</summary>
+    [JsonIgnore]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsConnected))]
+    public partial string? ConnectionString { get; set; }
+
+    [JsonIgnore]
+    public bool IsConnected => !string.IsNullOrWhiteSpace(ConnectionString);
+
     /// <summary>Sous-titre de la liste : "serveur / base", ou l'un des deux.</summary>
     [JsonIgnore]
     public string Subtitle => (Server, Database) switch
@@ -55,4 +67,14 @@ public sealed partial class DatabaseConnectionInfo : ObservableObject
 
     public bool IsNew => Id == Guid.Empty;
     public bool IsEditing => !IsNew;
+
+    public bool CloseConnection()
+    {
+        if (IsConnected)
+        {
+            ConnectionString = null;
+            return true;
+        }
+        return false;
+    }
 }

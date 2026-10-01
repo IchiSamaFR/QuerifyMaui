@@ -90,7 +90,6 @@ public partial class ConnectionEditorVM : AbstractVM
             info.Id = Guid.NewGuid();
         await _store.SaveAsync(info, connectionString, LifetimeToken);
 
-        WeakReferenceMessenger.Default.Send(new ConnectionsChangedMessage());
         await CloseAsync(info.Id);
     }
 

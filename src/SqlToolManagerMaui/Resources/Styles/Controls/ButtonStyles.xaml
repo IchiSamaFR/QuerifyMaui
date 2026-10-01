@@ -196,12 +196,8 @@
                     </VisualState>
                     <VisualState x:Name="Disabled">
                         <VisualState.Setters>
-                            <Setter Property="BackgroundColor"
-                                    Value="{DynamicResource ControlFillColorDisabled}" />
-                            <Setter Property="BorderColor"
-                                    Value="Transparent" />
-                            <Setter Property="TextColor"
-                                    Value="{DynamicResource TextFillColorDisabled}" />
+                            <Setter Property="Opacity"
+                                    Value="{DynamicResource DisabledOpacity}" />
                         </VisualState.Setters>
                     </VisualState>
                 </VisualStateGroup>
@@ -215,36 +211,6 @@
            BasedOn="{StaticResource PrimaryButtonStyle}">
         <Setter Property="BackgroundColor"
                 Value="{DynamicResource Danger}" />
-
-        <Setter Property="VisualStateManager.VisualStateGroups">
-            <VisualStateGroupList>
-                <VisualStateGroup x:Name="CommonStates">
-                    <VisualState x:Name="Normal" />
-                    <VisualState x:Name="PointerOver">
-                        <VisualState.Setters>
-                            <Setter Property="Opacity"
-                                    Value="0.9" />
-                        </VisualState.Setters>
-                    </VisualState>
-                    <VisualState x:Name="Pressed">
-                        <VisualState.Setters>
-                            <Setter Property="Opacity"
-                                    Value="0.7" />
-                        </VisualState.Setters>
-                    </VisualState>
-                    <VisualState x:Name="Disabled">
-                        <VisualState.Setters>
-                            <Setter Property="BackgroundColor"
-                                    Value="{DynamicResource ControlFillColorDisabled}" />
-                            <Setter Property="BorderColor"
-                                    Value="Transparent" />
-                            <Setter Property="TextColor"
-                                    Value="{DynamicResource TextFillColorDisabled}" />
-                        </VisualState.Setters>
-                    </VisualState>
-                </VisualStateGroup>
-            </VisualStateGroupList>
-        </Setter>
     </Style>
 
     <Style x:Key="FilledCardButtonStyle"
@@ -282,10 +248,8 @@
                     </VisualState>
                     <VisualState x:Name="Disabled">
                         <VisualState.Setters>
-                            <Setter Property="BackgroundColor"
-                                    Value="Transparent" />
-                            <Setter Property="TextColor"
-                                    Value="{DynamicResource TextFillColorDisabled}" />
+                            <Setter Property="Opacity"
+                                    Value="{DynamicResource DisabledOpacity}" />
                         </VisualState.Setters>
                     </VisualState>
                 </VisualStateGroup>
