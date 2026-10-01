@@ -5,6 +5,9 @@ using CommunityToolkit.Mvvm.Messaging;
 using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.UI.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Connections;
 
@@ -289,7 +292,7 @@ public partial class ConnectionExplorerVM : AbstractVM
             return [Message(folder, "(aucun element)")];
 
         var nodeKind = kind switch
-        {
+{
             DatabaseObjectKind.Table => ExplorerNodeKind.Table,
             DatabaseObjectKind.View => ExplorerNodeKind.View,
             _ => ExplorerNodeKind.StoredProcedure,

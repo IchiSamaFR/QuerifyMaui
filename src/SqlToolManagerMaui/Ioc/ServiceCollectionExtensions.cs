@@ -88,6 +88,9 @@ public static class ServiceCollectionExtensions
         // Popup "Se connecter" : VM neuf a chaque ouverture.
         services.AddTransient<ConnectionEditorVM>();
 
+        services.AddTransient<ConnectionExplorerView>();
+        services.AddSingleton<ConnectionExplorerVM>();
+
         return services;
     }
 }
