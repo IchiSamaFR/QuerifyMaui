@@ -4,11 +4,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Models.Queries;
-using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Queries;
 
 namespace SqlToolManagerMaui.Services.Linq;
@@ -34,17 +32,12 @@ public sealed class LinqQueryExecutor : ILinqQueryExecutor
     private static readonly MethodInfo QueryableTake = typeof(Queryable).GetMethods()
         .Single(m => m.Name == nameof(Queryable.Take) && m.GetParameters()[1].ParameterType == typeof(int));
 
-    private readonly IDatabaseSchemaCache _schemas;
-    private readonly IEfModelGenerator _generator;
+    private readonly ILinqModelCache _models;
     private readonly ILinqCompiler _compiler;
 
-    /// <summary>Un modele compile par catalogue charge : recharger le catalogue recompile le modele.</summary>
-    private readonly ConditionalWeakTable<DatabaseSchemaSnapshot, Task<LinqModelAssembly>> _models = new();
-
-    public LinqQueryExecutor(IDatabaseSchemaCache schemas, IEfModelGenerator generator, ILinqCompiler compiler)
+    public LinqQueryExecutor(ILinqModelCache models, ILinqCompiler compiler)
     {
-        _schemas = schemas;
-        _generator = generator;
+        _models = models;
         _compiler = compiler;
     }
 
@@ -61,10 +54,8 @@ public sealed class LinqQueryExecutor : ILinqQueryExecutor
 
         try
         {
-            // Base par defaut de la connexion : c'est elle qui donne son nom au contexte.
-            var snapshot = await _schemas.GetSchemaAsync(connection, null, cancellationToken);
-            var model = await GetModelAsync(snapshot).WaitAsync(cancellationToken);
-            messages.Add(new QueryMessage($"Contexte {model.Model.ContextVariableName} : {model.Model.EntityClassNames.Count} table(s) et vue(s) de la base {snapshot.Database}."));
+            var model = await _models.GetModelAsync(connection, cancellationToken);
+            messages.Add(new QueryMessage($"Contexte {model.Model.ContextVariableName} ({model.Model.ContextClassName}) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
 
             var compiled = await Task.Run(() => _compiler.CompileQuery(model, query), cancellationToken);
             if (!compiled.Success)
@@ -108,20 +99,6 @@ public sealed class LinqQueryExecutor : ILinqQueryExecutor
         messages.Add(new QueryMessage($"Heure de fin : {DateTime.Now:yyyy-MM-dd HH:mm:ss} (durée {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff})"));
 
         return new QueryExecutionResult(resultSets, messages, stopwatch.Elapsed, hasErrors, wasCancelled);
-    }
-
-    /// <summary>Generation et compilation partagees entre requetes ; un echec n'est pas garde en cache.</summary>
-    private Task<LinqModelAssembly> GetModelAsync(DatabaseSchemaSnapshot snapshot)
-    {
-        var task = _models.GetValue(snapshot, s => Task.Run(() => _compiler.CompileModel(_generator.Generate(s))));
-
-        if (task.IsFaulted)
-        {
-            _models.Remove(snapshot);
-            task = _models.GetValue(snapshot, s => Task.Run(() => _compiler.CompileModel(_generator.Generate(s))));
-        }
-
-        return task;
     }
 
     // ---------- Execution ----------

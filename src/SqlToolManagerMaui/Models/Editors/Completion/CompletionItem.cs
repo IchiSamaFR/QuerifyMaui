@@ -28,7 +28,11 @@ public sealed class CompletionItem
         CompletionItemKind.Database => FluentIcons.Database20,
         CompletionItemKind.Function => FluentIcons.MathFormula16,
         CompletionItemKind.DataType => FluentIcons.NumberSymbol16,
-        CompletionItemKind.Snippet => FluentIcons.Braces16,
+        CompletionItemKind.Snippet or CompletionItemKind.Namespace => FluentIcons.Braces16,
+        CompletionItemKind.Property or CompletionItemKind.Field => FluentIcons.Textbox16,
+        CompletionItemKind.Method => FluentIcons.Cube16,
+        CompletionItemKind.Variable => FluentIcons.DocumentText16,
+        CompletionItemKind.Type => FluentIcons.Shapes16,
         CompletionItemKind.Text => FluentIcons.TextT20,
         _ => FluentIcons.TextFont16,
     };
@@ -41,6 +45,10 @@ public sealed class CompletionItem
         CompletionItemKind.Database => Color.FromArgb("#4FC3F7"),
         CompletionItemKind.Function or CompletionItemKind.Procedure => Color.FromArgb("#DCDCAA"),
         CompletionItemKind.Text => Color.FromArgb("#9E9E9E"),
+        CompletionItemKind.Property or CompletionItemKind.Field or CompletionItemKind.Variable => Color.FromArgb("#9CDCFE"),
+        CompletionItemKind.Method => Color.FromArgb("#B180D7"),
+        CompletionItemKind.Type => Color.FromArgb("#4EC9B0"),
+        CompletionItemKind.Namespace => Color.FromArgb("#D4D4D4"),
         _ => Color.FromArgb("#569CD6"),
     };
 }

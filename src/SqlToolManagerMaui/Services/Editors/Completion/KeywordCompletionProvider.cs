@@ -26,6 +26,10 @@ public sealed class KeywordCompletionProvider : ICompletionProvider
     public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
+
+        // En LINQ, Roslyn propose deja les mots-cles C#, et au bon endroit.
+        if (request.Language == SyntaxLanguage.Linq)
+            return [];
         ArgumentNullException.ThrowIfNull(context);
 
         // Table, base, membre ou procedure : place reservee aux objets du schema.

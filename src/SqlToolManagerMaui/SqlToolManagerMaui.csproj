@@ -90,6 +90,8 @@
 		<!-- Requetes LINQ : DbContext genere puis compile en memoire. -->
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+		<!-- IntelliSense C# des onglets LINQ (CompletionService de Roslyn). -->
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="5.0.0" />
 		<PackageReference Include="CodeEdit.Maui" Version="0.4.0-preview.2" />
 	</ItemGroup>
 	<ItemGroup>

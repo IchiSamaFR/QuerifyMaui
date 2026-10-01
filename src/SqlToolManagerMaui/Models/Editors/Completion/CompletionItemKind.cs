@@ -9,6 +9,15 @@ public enum CompletionItemKind
     Procedure,
     Schema,
     Database,
+
+    // Membres C# des requetes LINQ
+    Property,
+    Field,
+    Method,
+    Variable,
+    Type,
+    Namespace,
+
     Function,
     Keyword,
     DataType,

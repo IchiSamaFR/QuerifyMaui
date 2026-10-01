@@ -27,7 +27,10 @@ public sealed class LinqCompiler : ILinqCompiler
     /// Assemblies de la plateforme et d'EF contre lesquelles on compile, prises dans le runtime
     /// charge (comme LINQPad) : pas de packs de reference a embarquer. Liste couteuse : calculee une fois.
     /// </summary>
-    private static readonly Lazy<IReadOnlyList<MetadataReference>> PlatformReferences = new(LoadPlatformReferences);
+    private static readonly Lazy<IReadOnlyList<MetadataReference>> PlatformReferencesCache = new(LoadPlatformReferences);
+
+    /// <summary>References communes a la compilation et a l'autocompletion.</summary>
+    internal static IReadOnlyList<MetadataReference> PlatformReferences => PlatformReferencesCache.Value;
 
     private static readonly string[] ReferencedAssemblyPrefixes =
     [
@@ -38,7 +41,7 @@ public sealed class LinqCompiler : ILinqCompiler
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        var image = Emit($"EfModel_{Guid.NewGuid():N}", model.Source, PlatformReferences.Value, out var errors);
+        var image = Emit($"EfModel_{Guid.NewGuid():N}", model.Source, PlatformReferences, out var errors);
         if (image is null)
             throw new LinqCompilationException($"Le modele genere pour {model.ContextVariableName} ne compile pas.", errors);
 
@@ -60,8 +63,8 @@ public sealed class LinqCompiler : ILinqCompiler
         ArgumentNullException.ThrowIfNull(model);
         ArgumentNullException.ThrowIfNull(query);
 
-        var source = WrapQuery(model.Model, query);
-        var image = Emit($"LinqQuery_{Guid.NewGuid():N}", source, [.. PlatformReferences.Value, model.Reference], out var errors);
+        var (source, _) = BuildQuerySource(model.Model, query);
+        var image = Emit($"LinqQuery_{Guid.NewGuid():N}", source, [.. PlatformReferences, model.Reference], out var errors);
         if (image is null)
             return new LinqCompiledQuery { Errors = errors };
 
@@ -84,17 +87,20 @@ public sealed class LinqCompiler : ILinqCompiler
     }
 
     /// <summary>
-    /// L'expression devient le retour d'une methode dont le parametre porte le nom de la base.
+    /// L'expression devient le retour d'une methode ou une variable porte le nom de la base.
     /// #line recale les diagnostics sur le texte de l'onglet ; le ";" final tolere un ";" saisi.
+    /// Sans modele (pas de connexion), le source reste valide pour l'autocompletion C#.
     /// </summary>
-    private static string WrapQuery(EfGeneratedModel model, string query)
+    /// <returns>Le source et la position du texte de la requete dans ce source.</returns>
+    internal static (string Source, int QueryStart) BuildQuerySource(EfGeneratedModel? model, string query)
     {
         var code = new StringBuilder();
         code.AppendLine("using System;");
         code.AppendLine("using System.Collections.Generic;");
         code.AppendLine("using System.Linq;");
         code.AppendLine("using Microsoft.EntityFrameworkCore;");
-        code.AppendLine($"using {model.Namespace};");
+        if (model is not null)
+            code.AppendLine($"using {model.Namespace};");
         code.AppendLine();
         code.AppendLine($"namespace {QueryNamespace};");
         code.AppendLine();
@@ -102,15 +108,19 @@ public sealed class LinqCompiler : ILinqCompiler
         code.AppendLine("{");
         code.AppendLine($"    public static object {QueryMethod}(DbContext __context)");
         code.AppendLine("    {");
-        code.AppendLine($"        var {model.ContextVariableName} = ({model.ContextClassName})__context;");
+        if (model is not null)
+            code.AppendLine($"        var {model.ContextVariableName} = ({model.ContextClassName})__context;");
+
         code.AppendLine("        return");
         code.AppendLine($"#line 1 \"{QueryFileName}\"");
+
+        var queryStart = code.Length;
         code.AppendLine(query);
         code.AppendLine("#line default");
         code.AppendLine("        ;");
         code.AppendLine("    }");
         code.AppendLine("}");
-        return code.ToString();
+        return (code.ToString(), queryStart);
     }
 
     private static byte[]? Emit(string assemblyName, string source, IEnumerable<MetadataReference> references, out IReadOnlyList<LinqDiagnostic> errors)

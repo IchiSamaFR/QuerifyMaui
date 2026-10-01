@@ -22,6 +22,7 @@
 		<Compile Include="..\SqlToolManagerMaui\Services\Linq\EfModelGenerator.cs" Link="Linked\Linq\EfModelGenerator.cs" />
 		<Compile Include="..\SqlToolManagerMaui\Services\Linq\ILinqCompiler.cs" Link="Linked\Linq\ILinqCompiler.cs" />
 		<Compile Include="..\SqlToolManagerMaui\Services\Linq\LinqCompiler.cs" Link="Linked\Linq\LinqCompiler.cs" />
+		<Compile Include="..\SqlToolManagerMaui\Services\Linq\LinqCompletionEngine.cs" Link="Linked\Linq\LinqCompletionEngine.cs" />
 		<Compile Include="..\SqlToolManagerMaui\Models\Editors\Completion\CompletionContext.cs" Link="Linked\CompletionContext.cs" />
 		<Compile Include="..\SqlToolManagerMaui\Models\Editors\Completion\CompletionContextKind.cs" Link="Linked\CompletionContextKind.cs" />
 		<Compile Include="..\SqlToolManagerMaui\Models\Editors\Completion\CompletionRequest.cs" Link="Linked\CompletionRequest.cs" />
@@ -34,6 +35,7 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="5.0.0" />
 		<!-- Apporte aussi Microsoft.Extensions.DependencyInjection.Abstractions (ServiceLifetime d'AutoRegister). -->
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
