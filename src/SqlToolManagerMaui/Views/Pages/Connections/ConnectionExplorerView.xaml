@@ -61,7 +61,7 @@
                                          IconSize="16"
                                          WidthRequest="16"
                                          HeightRequest="16"
-                                         IconColor="{StaticResource LabelSecondary}"
+                                         IconColor="{Binding IconColor}"
                                          HorizontalOptions="Center"
                                          VerticalOptions="Center" />
 
@@ -72,6 +72,18 @@
                                        Style="{StaticResource LabelStyle}"
                                        LineBreakMode="TailTruncation">
                                     <Label.Triggers>
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding Kind}"
+                                                     Value="{x:Static m:ExplorerNodeKind.Connection}">
+                                            <Setter Property="FontAttributes"
+                                                    Value="Bold" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding Kind}"
+                                                     Value="{x:Static m:ExplorerNodeKind.Database}">
+                                            <Setter Property="FontAttributes"
+                                                    Value="Bold" />
+                                        </DataTrigger>
                                         <DataTrigger TargetType="Label"
                                                      Binding="{Binding Kind}"
                                                      Value="{x:Static m:ExplorerNodeKind.Message}">

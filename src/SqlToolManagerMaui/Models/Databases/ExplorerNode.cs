@@ -89,4 +89,19 @@ public sealed partial class ExplorerNode : ObservableObject
         _ => IsExpanded ? FluentIcons.FolderOpen20 : FluentIcons.Folder20,
     };
 
+    /// <summary>Couleur de l'icone, propre a chaque type d'objet pour les distinguer dans l'arbre.</summary>
+    public Color IconColor => Kind switch
+    {
+        ExplorerNodeKind.Connection => Color.FromArgb("#4FC3F7"),
+        ExplorerNodeKind.Database => Color.FromArgb("#FF8A65"),
+        ExplorerNodeKind.Table => Color.FromArgb("#81C784"),
+        ExplorerNodeKind.View => Color.FromArgb("#BA68C8"),
+        ExplorerNodeKind.StoredProcedure => Color.FromArgb("#F06292"),
+        ExplorerNodeKind.Column when IsPrimaryKey => Color.FromArgb("#FFD54F"),
+        ExplorerNodeKind.Column when IsForeignKey => Color.FromArgb("#64B5F6"),
+        ExplorerNodeKind.Column => Color.FromArgb("#B0BEC5"),
+        ExplorerNodeKind.Message => Color.FromArgb("#87FFFFFF"),
+        _ => Color.FromArgb("#E8C468"),
+    };
+
 }
