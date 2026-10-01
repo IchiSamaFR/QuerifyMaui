@@ -45,6 +45,22 @@ public class LinqCompletionEngineTests
     }
 
     [Fact]
+    public async Task Statements_LocalVariableMembers()
+    {
+        var items = await CompleteAsync("var ids = RaveOnDb.AspNetUsers.Select(u => u.Id);\nreturn ids.Wh|");
+
+        Assert.Contains(items, i => i.InsertText == "Where");
+    }
+
+    [Fact]
+    public async Task Statements_DeclarationInProgress()
+    {
+        var items = await CompleteAsync("var users = RaveOnDb.|");
+
+        Assert.Contains(items, i => i.InsertText == "AspNetUsers");
+    }
+
+    [Fact]
     public async Task WithoutModel_StillCompletesCSharp()
     {
         var caret = "DateTime.".Length;

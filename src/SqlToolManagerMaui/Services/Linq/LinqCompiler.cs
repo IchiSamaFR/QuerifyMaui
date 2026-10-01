@@ -87,8 +87,10 @@ public sealed class LinqCompiler : ILinqCompiler
     }
 
     /// <summary>
-    /// L'expression devient le retour d'une methode ou une variable porte le nom de la base.
-    /// #line recale les diagnostics sur le texte de l'onglet ; le ";" final tolere un ";" saisi.
+    /// La requete devient le corps d'une methode ou une variable porte le nom de la base :
+    /// une expression seule est retournee telle quelle (le ";" final est tolere), des
+    /// instructions avec "return" forment le corps lui-meme (voir <see cref="IsStatementBlock"/>).
+    /// #line recale les diagnostics sur le texte de l'onglet.
     /// Sans modele (pas de connexion), le source reste valide pour l'autocompletion C#.
     /// </summary>
     /// <returns>Le source et la position du texte de la requete dans ce source.</returns>
@@ -111,16 +113,41 @@ public sealed class LinqCompiler : ILinqCompiler
         if (model is not null)
             code.AppendLine($"        var {model.ContextVariableName} = ({model.ContextClassName})__context;");
 
-        code.AppendLine("        return");
+        var isStatementBlock = IsStatementBlock(query);
+        if (!isStatementBlock)
+            code.AppendLine("        return");
+
         code.AppendLine($"#line 1 \"{QueryFileName}\"");
 
         var queryStart = code.Length;
         code.AppendLine(query);
         code.AppendLine("#line default");
-        code.AppendLine("        ;");
+
+        // Instructions sans return sur tous les chemins : rien a afficher plutot qu'une erreur CS0161.
+        code.AppendLine(isStatementBlock ? "        return null;" : "        ;");
         code.AppendLine("    }");
         code.AppendLine("}");
         return (code.ToString(), queryStart);
+    }
+
+    /// <summary>
+    /// Instructions plutot qu'expression : un "return", une declaration en tete (var ids = ...)
+    /// ou un ";" suivi d'autre chose. Une expression terminee par ";" reste une expression.
+    /// </summary>
+    internal static bool IsStatementBlock(string query)
+    {
+        var tokens = SyntaxFactory.ParseTokens(query)
+            .Where(t => !t.IsKind(SyntaxKind.EndOfFileToken))
+            .ToArray();
+
+        if (tokens.Length == 0)
+            return false;
+
+        if ((tokens[0].IsKind(SyntaxKind.IdentifierToken) && tokens[0].ValueText == "var")
+            || tokens.Any(t => t.IsKind(SyntaxKind.ReturnKeyword)))
+            return true;
+
+        return tokens.SkipLast(1).Any(t => t.IsKind(SyntaxKind.SemicolonToken));
     }
 
     private static byte[]? Emit(string assemblyName, string source, IEnumerable<MetadataReference> references, out IReadOnlyList<LinqDiagnostic> errors)

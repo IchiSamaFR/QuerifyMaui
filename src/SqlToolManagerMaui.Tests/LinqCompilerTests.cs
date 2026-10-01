@@ -59,6 +59,56 @@ public class LinqCompilerTests
     }
 
     [Fact]
+    public void Statements_ReturnVariable()
+    {
+        var sql = Translate("""
+            var ids = RaveOnDb.AspNetUsers.Select(u => u.Id);
+            return ids;
+            """);
+
+        Assert.Contains("[Id]", sql, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Statements_ComposeBeforeReturn()
+    {
+        var sql = Translate("""
+            var counts = RaveOnDb.AspNetUsers.Select(u => u.AccessFailedCount);
+            return counts.Where(i => i > 10);
+            """);
+
+        Assert.Contains("> 10", sql, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Statements_WithoutReturnGiveNull()
+    {
+        var compiled = Compile("var ids = RaveOnDb.AspNetUsers.Select(u => u.Id);");
+
+        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        Assert.Null(compiled.Run!(context));
+    }
+
+    [Fact]
+    public void Statements_ErrorsPointToQueryText()
+    {
+        var compiled = Compiler.CompileQuery(Model.Value, "var users = RaveOnDb.AspNetUsers;\nreturn users.Wher(u => true);");
+
+        Assert.False(compiled.Success);
+        Assert.Equal(2, compiled.Errors[0].Line);
+    }
+
+    [Theory]
+    [InlineData("RaveOnDb.AspNetUsers", false)]
+    [InlineData("RaveOnDb.AspNetUsers;", false)]
+    [InlineData("RaveOnDb.AspNetUsers.Where(u => u.Email == \"a;b\")", false)]
+    [InlineData("return RaveOnDb.AspNetUsers;", true)]
+    [InlineData("var ids = RaveOnDb.AspNetUsers", true)]
+    [InlineData("var a = 1; a", true)]
+    public void StatementDetection(string query, bool expected)
+        => Assert.Equal(expected, LinqCompiler.IsStatementBlock(query));
+
+    [Fact]
     public void Errors_PointToQueryText()
     {
         var compiled = Compiler.CompileQuery(Model.Value, "RaveOnDb.AspNetUsers\n    .Wher(u => true)");
