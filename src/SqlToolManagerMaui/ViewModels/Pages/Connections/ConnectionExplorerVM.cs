@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using SqlToolManagerMaui.Models.Databases;
+using SqlToolManagerMaui.Models.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.UI.ViewModels;
 using System;
@@ -78,8 +79,11 @@ public partial class ConnectionExplorerVM : AbstractVM
     [RelayCommand]
     private Task AddConnectionAsync() => EditAsync(null);
 
-    [RelayCommand(CanExecute = nameof(IsConnectionSelected))]
-    private Task EditConnectionAsync() => EditAsync(SelectedNode?.Connection);
+    // Parametre fourni par le menu contextuel ; null depuis la barre d'outils (noeud selectionne).
+    private bool CanEditConnection(ExplorerNode? node) => (node ?? SelectedNode)?.IsConnection == true;
+
+    [RelayCommand(CanExecute = nameof(CanEditConnection))]
+    private Task EditConnectionAsync(ExplorerNode? node) => EditAsync((node ?? SelectedNode)?.Connection);
 
     private async Task EditAsync(DatabaseConnectionInfo? connection)
     {
@@ -91,12 +95,12 @@ public partial class ConnectionExplorerVM : AbstractVM
         SelectedNode = Roots.FirstOrDefault(r => r.Connection.Id == savedId);
     }
 
-    [RelayCommand(CanExecute = nameof(IsConnectionSelected))]
-    private Task DeleteConnectionAsync() => RunAsBusyAsync(DeleteBusyAsync, skipIfBusy: true);
+    [RelayCommand(CanExecute = nameof(CanEditConnection))]
+    private Task DeleteConnectionAsync(ExplorerNode? node)
+        => RunAsBusyAsync(() => DeleteBusyAsync((node ?? SelectedNode)?.Connection), skipIfBusy: true);
 
-    private async Task DeleteBusyAsync()
+    private async Task DeleteBusyAsync(DatabaseConnectionInfo? info)
     {
-        var info = SelectedNode?.Connection;
         if (info is null)
             return;
 
@@ -132,11 +136,11 @@ public partial class ConnectionExplorerVM : AbstractVM
         return RunAsBusyAsync(() => LoadAsync(node), blocking: false);
     }
 
-    /// <summary>Recharge le noeud selectionne (ou toutes les connexions si rien n'est selectionne).</summary>
+    /// <summary>Recharge le noeud donne ou selectionne (ou toutes les connexions a defaut).</summary>
     [RelayCommand]
-    private Task RefreshAsync()
+    private Task RefreshAsync(ExplorerNode? node)
     {
-        var node = SelectedNode;
+        node ??= SelectedNode;
 
         // Feuilles et dossier systeme (rempli par le serveur) : on recharge le parent.
         while (node is not null && (!node.CanExpand || node.Kind == ExplorerNodeKind.SystemDatabasesFolder))
@@ -171,6 +175,26 @@ public partial class ConnectionExplorerVM : AbstractVM
             node.IsExpanded = false;
         }
     }
+
+    // ---------- Requetes ----------
+
+    [RelayCommand]
+    private void SelectTop1(ExplorerNode? table) => SendSelectTop(table, 1);
+
+    [RelayCommand]
+    private void SelectTop100(ExplorerNode? table) => SendSelectTop(table, 100);
+
+    private static void SendSelectTop(ExplorerNode? table, int count)
+    {
+        if (table is not { Kind: ExplorerNodeKind.Table, Database: { } database, Schema: { } schema, ObjectName: { } name })
+            return;
+
+        // Nom complet avec la base : la requete reste valable quelle que soit la base par defaut.
+        var query = $"SELECT TOP ({count}) *\nFROM {Quote(database)}.{Quote(schema)}.{Quote(name)};";
+        WeakReferenceMessenger.Default.Send(new InsertQueryMessage(table.Connection, query));
+    }
+
+    private static string Quote(string identifier) => $"[{identifier.Replace("]", "]]")}]";
 
     private async Task LoadAsync(ExplorerNode node)
     {

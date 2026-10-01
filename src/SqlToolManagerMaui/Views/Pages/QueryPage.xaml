@@ -79,6 +79,7 @@
 
                 <c:CodeEditor x:Name="Editor"
                               Text="{Binding ActiveDocument.EditorText}"
+                              Selection="{Binding ActiveDocument.Selection}"
                               EditorConfiguration="{Binding EditorConfiguration}"
                               SyntaxConfiguration="{Binding SyntaxConfiguration}"
                               IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />

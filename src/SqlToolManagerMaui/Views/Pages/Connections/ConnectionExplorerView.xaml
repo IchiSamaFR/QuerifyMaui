@@ -55,7 +55,48 @@
                 <v:TreeView.ItemTemplate>
                     <DataTemplate x:DataType="m:ExplorerNode">
                         <Grid ColumnDefinitions="20,*,Auto"
-                              ColumnSpacing="6">
+                              ColumnSpacing="6"
+                              BackgroundColor="Transparent">
+
+                            <!-- Menu contextuel selon le type de noeud -->
+                            <Grid.Triggers>
+                                <DataTrigger TargetType="Grid"
+                                             Binding="{Binding Kind}"
+                                             Value="{x:Static m:ExplorerNodeKind.Connection}">
+                                    <Setter Property="FlyoutBase.ContextFlyout">
+                                        <Setter.Value>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="Actualiser"
+                                                                Command="{Binding ViewModel.RefreshCommand, Source={x:Reference Root}, x:DataType=v:ConnectionExplorerView}"
+                                                                CommandParameter="{Binding .}" />
+                                                <MenuFlyoutItem Text="Modifier"
+                                                                Command="{Binding ViewModel.EditConnectionCommand, Source={x:Reference Root}, x:DataType=v:ConnectionExplorerView}"
+                                                                CommandParameter="{Binding .}" />
+                                                <MenuFlyoutSeparator />
+                                                <MenuFlyoutItem Text="Supprimer"
+                                                                Command="{Binding ViewModel.DeleteConnectionCommand, Source={x:Reference Root}, x:DataType=v:ConnectionExplorerView}"
+                                                                CommandParameter="{Binding .}" />
+                                            </MenuFlyout>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Grid"
+                                             Binding="{Binding Kind}"
+                                             Value="{x:Static m:ExplorerNodeKind.Table}">
+                                    <Setter Property="FlyoutBase.ContextFlyout">
+                                        <Setter.Value>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="Selectionner 1"
+                                                                Command="{Binding ViewModel.SelectTop1Command, Source={x:Reference Root}, x:DataType=v:ConnectionExplorerView}"
+                                                                CommandParameter="{Binding .}" />
+                                                <MenuFlyoutItem Text="Selectionner 100"
+                                                                Command="{Binding ViewModel.SelectTop100Command, Source={x:Reference Root}, x:DataType=v:ConnectionExplorerView}"
+                                                                CommandParameter="{Binding .}" />
+                                            </MenuFlyout>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Grid.Triggers>
 
                             <mi:MauiIcon Grid.Column="0"
                                          Icon="{Binding Icon}"

@@ -1,4 +1,4 @@
-using SqlToolManagerMaui.Models.Queries;
+﻿using SqlToolManagerMaui.Models.Queries;
 
 namespace SqlToolManagerMaui.Views.Controls.Queries;
 
@@ -47,6 +47,7 @@ public sealed class QueryResultGrid : ContentView
             SelectionMode = SelectionMode.None,
             ItemSizingStrategy = ItemSizingStrategy.MeasureFirstItem,
             WidthRequest = RowNumberWidth + widths.Sum() + widths.Count,
+            HorizontalOptions = LayoutOptions.Start,
         };
 
         var layout = new Grid
@@ -56,6 +57,7 @@ public sealed class QueryResultGrid : ContentView
                 new RowDefinition(GridLength.Auto),
                 new RowDefinition(GridLength.Star),
             },
+            HorizontalOptions = LayoutOptions.Start,
         };
         layout.Add(CreateHeader(resultSet, widths), 0, 0);
         layout.Add(rows, 0, 1);
@@ -64,6 +66,7 @@ public sealed class QueryResultGrid : ContentView
         {
             Orientation = ScrollOrientation.Horizontal,
             Content = layout,
+            HorizontalOptions = LayoutOptions.Start,
         };
     }
 

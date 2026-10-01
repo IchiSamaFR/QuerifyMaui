@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Models.Editors;
 using SqlToolManagerMaui.Models.Editors.Highlighting;
+using SqlToolManagerMaui.Models.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
@@ -98,6 +99,8 @@ public partial class QueryVM : AbstractVM
         _connectionStore = connectionStore;
         _syntaxConfigurations = syntaxConfigurations;
         _executors = executors;
+
+        WeakReferenceMessenger.Default.Register<QueryVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
     }
 
     protected override async Task LoadDatasBusyAsync()
@@ -198,6 +201,35 @@ public partial class QueryVM : AbstractVM
         {
             document.IsExecuting = false;
         }
+    }
+
+    // ---------- Insertion depuis l'explorateur ----------
+
+    /// <summary>Colle la requete au curseur (a la place de la selection) et bascule sur sa connexion.</summary>
+    private void InsertQuery(InsertQueryMessage message)
+    {
+        if (ActiveDocument is null)
+            New();
+
+        if (ActiveDocument is not { } document)
+            return;
+
+        SelectedConnection = Connections.FirstOrDefault(c => c.Id == message.Connection.Id) ?? SelectedConnection;
+
+        var text = document.EditorText ?? string.Empty;
+        var newLine = text.Contains("\r\n") ? "\r\n" : text.Contains('\r') ? "\r" : Environment.NewLine;
+
+        var selection = document.Selection;
+        var start = Math.Clamp(Math.Min(selection.Anchor, selection.Active), 0, text.Length);
+        var end = Math.Clamp(Math.Max(selection.Anchor, selection.Active), 0, text.Length);
+
+        // Curseur en milieu de ligne : la requete part sur une nouvelle ligne.
+        var prefix = start > 0 && text[start - 1] is not ('\n' or '\r') ? newLine : string.Empty;
+        var query = prefix + message.Query.Replace("\n", newLine) + newLine;
+
+        // Selection d'abord : l'editeur la restaure apres le changement de texte (curseur apres la requete).
+        selection.Anchor = selection.Active = start + query.Length;
+        document.EditorText = text[..start] + query + text[end..];
     }
 
     /// <summary>Masque le panneau de resultats de l'onglet courant.</summary>
