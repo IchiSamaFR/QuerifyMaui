@@ -1,4 +1,5 @@
 ﻿using SqlToolManagerMaui.Models.Editors.Completion;
+using SqlToolManagerMaui.Models.Editors.Highlighting;
 
 namespace SqlToolManagerMaui.Services.Editors.Completion;
 
@@ -10,21 +11,43 @@ public sealed class CompletionService : ICompletionService
     private const int MaxResults = 50;
 
     private readonly IReadOnlyList<ICompletionProvider> _providers;
+    private readonly Dictionary<SyntaxLanguage, ICompletionContextAnalyzer> _analyzers;
 
-    public CompletionService(IEnumerable<ICompletionProvider> providers)
+    public CompletionService(IEnumerable<ICompletionProvider> providers, IEnumerable<ICompletionContextAnalyzer> analyzers)
     {
         ArgumentNullException.ThrowIfNull(providers);
+        ArgumentNullException.ThrowIfNull(analyzers);
+
         _providers = providers.ToArray();
+        _analyzers = analyzers.ToDictionary(a => a.Language);
     }
 
     public async Task<IReadOnlyList<CompletionItem>> GetCandidatesAsync(CompletionRequest request, CancellationToken cancellationToken = default)
     {
-        var results = await Task.WhenAll(_providers.Select(provider => provider.GetItemsAsync(request, cancellationToken)));
+        ArgumentNullException.ThrowIfNull(request);
 
-        // MAX est a la fois un type et une fonction : on garde les deux, mais pas deux fois le meme.
-        return results.SelectMany(items => items)
-                      .DistinctBy(item => (item.Label.ToUpperInvariant(), item.Kind))
-                      .ToArray();
+        // Langage sans analyseur : on propose tout, comme avant l'analyse de contexte.
+        var context = _analyzers.TryGetValue(request.Language, out var analyzer)
+            ? await Task.Run(() => analyzer.Analyze(request), cancellationToken)
+            : CompletionContext.General;
+
+        if (context.Kind == CompletionContextKind.None)
+            return [];
+
+        var results = await Task.WhenAll(_providers.Select(provider => provider.GetItemsAsync(request, context, cancellationToken)));
+
+        // MAX est a la fois type et fonction, Users peut exister dans deux schemas : seuls les vrais doublons partent.
+        var items = results.SelectMany(batch => batch)
+                           .DistinctBy(item => (item.Label.ToUpperInvariant(), item.Kind, item.Detail))
+                           .ToArray();
+
+        // Un mot du document deja connu du schema ou des mots-cles ferait doublon, sans type ni icone.
+        var known = items.Where(item => item.Kind != CompletionItemKind.Text)
+                         .Select(item => item.Label)
+                         .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return items.Where(item => item.Kind != CompletionItemKind.Text || !known.Contains(item.Label.Trim('[', ']')))
+                    .ToArray();
     }
 
     public IReadOnlyList<CompletionItem> Filter(IReadOnlyList<CompletionItem> candidates, string prefix)

@@ -80,6 +80,7 @@
                               Selection="{Binding ActiveDocument.Selection}"
                               EditorConfiguration="{Binding EditorConfiguration}"
                               SyntaxConfiguration="{Binding SyntaxConfiguration}"
+                              Connection="{Binding ActiveConnection}"
                               IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
             </Border>
 

@@ -134,6 +134,9 @@ public partial class QueryVM : AbstractVM
         SetStatus(ActiveConnection is null
             ? "Deconnecte."
             : $"Connexion active : {ActiveConnection.Name}.");
+
+        if (ActiveConnection != null)
+            _connectionStore.OpenConnectionAsync(ActiveConnection);
     }
 
     // ---------- Execution ----------

@@ -1,5 +1,6 @@
 ﻿using CodeEdit.Maui;
 using RichEdit.Maui;
+using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Models.Editors.Completion;
 using SqlToolManagerMaui.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Editors.Completion;
@@ -23,6 +24,7 @@ public sealed class CompletionController : IDisposable
     private readonly View _host;
     private readonly ICompletionService _service;
     private readonly SyntaxLanguage _language;
+    private readonly Func<DatabaseConnectionInfo?> _connection;
     private readonly RichTextLayout _layout;
     private readonly RichEditor? _focusTarget;
 
@@ -34,13 +36,15 @@ public sealed class CompletionController : IDisposable
     private bool _isDisposed;
 
     /// <param name="host">Conteneur commun a l'editeur et au popup : repere des coordonnees du popup.</param>
-    public CompletionController(NativeCodeEditor editor, CompletionPopup popup, View host, ICompletionService service, SyntaxLanguage language)
+    /// <param name="connection">Lue a chaque ouverture : l'onglet peut changer de connexion entre deux.</param>
+    public CompletionController(NativeCodeEditor editor, CompletionPopup popup, View host, ICompletionService service, SyntaxLanguage language, Func<DatabaseConnectionInfo?> connection)
     {
         _editor = editor;
         _popup = popup;
         _host = host;
         _service = service;
         _language = language;
+        _connection = connection;
         _layout = editor.TextLayout.CreateRelativeTo(host);
 
         // Le focus est porte par le RichEditor interne, pas par le conteneur CodeEdit.
@@ -271,7 +275,8 @@ public sealed class CompletionController : IDisposable
             Text = text,
             CaretOffset = caret,
             WordStart = wordStart,
-            Trigger = trigger
+            Trigger = trigger,
+            Connection = _connection()
         };
 
         IReadOnlyList<CompletionItem> candidates;

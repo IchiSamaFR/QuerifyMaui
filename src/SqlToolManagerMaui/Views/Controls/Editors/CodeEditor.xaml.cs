@@ -1,5 +1,8 @@
 ﻿using CodeEdit.Maui;
+using MauiIcons.Core;
+using MauiIcons.Fluent;
 using RichEdit.Maui;
+using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Models.Editors;
 using SqlToolManagerMaui.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Editors.Completion;
@@ -69,6 +72,16 @@ public partial class CodeEditor : ContentView
         set => SetValue(SelectionProperty, value);
     }
 
+    public static readonly BindableProperty ConnectionProperty = BindableProperty.Create(
+        nameof(Connection), typeof(DatabaseConnectionInfo), typeof(CodeEditor), null);
+
+    /// <summary>Connexion dont le schema alimente l'autocompletion ; null = mots-cles seulement.</summary>
+    public DatabaseConnectionInfo? Connection
+    {
+        get => (DatabaseConnectionInfo?)GetValue(ConnectionProperty);
+        set => SetValue(ConnectionProperty, value);
+    }
+
     private static readonly BindablePropertyKey CommandsPropertyKey = BindableProperty.CreateReadOnly(
         nameof(Commands), typeof(CodeEdit.Maui.CodeEditorCommands), typeof(CodeEditor), null);
 
@@ -125,6 +138,47 @@ public partial class CodeEditor : ContentView
 #if WINDOWS
         DisableWindowsHoverState();
 #endif
+
+        Native.ContextMenuOpening += OnTextFlyoutOpening;
+    }
+
+    private void OnTextFlyoutOpening(object? sender, EditorContextMenuEventArgs args)
+    {
+        args.IncludeDefaultItems = false;
+        //args.Items.Add(new MenuFlyoutItem
+        //{
+        //    Text = "Couper",
+        //    Command = Native.Commands.Cut,
+        //    IconImageSource = (FontImageSource)new MauiIcon() { Icon = FluentIcons.Cut20, },
+        //    KeyboardAccelerators = { new KeyboardAccelerator { Key = "x", Modifiers = KeyboardAcceleratorModifiers.Ctrl } }
+        //});
+        //args.Items.Add(new MenuFlyoutItem
+        //{
+        //    Text = "Copier",
+        //    Command = Native.Commands.Copy,
+        //    IconImageSource = (FontImageSource)new MauiIcon() { Icon = FluentIcons.Copy20, },
+        //    KeyboardAccelerators = { new KeyboardAccelerator { Key = "c", Modifiers = KeyboardAcceleratorModifiers.Ctrl } }
+        //});
+        //args.Items.Add(new MenuFlyoutItem
+        //{
+        //    Text = "Coller",
+        //    Command = Native.Commands.Paste,
+        //    IconImageSource = (FontImageSource)new MauiIcon() { Icon = FluentIcons.ClipboardPaste20, },
+        //    KeyboardAccelerators = { new KeyboardAccelerator { Key = "v", Modifiers = KeyboardAcceleratorModifiers.Ctrl } }
+        //});
+        //args.Items.Add(new MenuFlyoutItem
+        //{
+        //    Text = "Sélectionner tout",
+        //    Command = Native.Commands.SelectAll,
+        //    KeyboardAccelerators = { new KeyboardAccelerator { Key = "a", Modifiers = KeyboardAcceleratorModifiers.Ctrl } }
+        //});
+        //args.Items.Add(new MenuFlyoutItem
+        //{
+        //    Text = "Annuler",
+        //    Command = Native.Commands.Undo,
+        //    IconImageSource = (FontImageSource)new MauiIcon() { Icon = FluentIcons.ArrowUndo20, },
+        //    KeyboardAccelerators = { new KeyboardAccelerator { Key = "z", Modifiers = KeyboardAcceleratorModifiers.Ctrl } }
+        //});
     }
 
 #if WINDOWS
@@ -251,7 +305,7 @@ public partial class CodeEditor : ContentView
         if (_completion is not null || SyntaxConfiguration is null)
             return;
 
-        _completion = new CompletionController(Native, CompletionList, this, Ioc.GetRequiredService<ICompletionService>(), SyntaxConfiguration.Language);
+        _completion = new CompletionController(Native, CompletionList, this, Ioc.GetRequiredService<ICompletionService>(), SyntaxConfiguration.Language, () => Connection);
     }
 
     private void StopCompletion()

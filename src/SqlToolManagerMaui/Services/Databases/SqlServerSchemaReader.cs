@@ -44,6 +44,23 @@ public sealed class SqlServerSchemaReader : IDatabaseSchemaReader
         ORDER BY c.column_id;
         """;
 
+    // Trois jeux de resultats : base courante, objets, colonnes (rattachees par object_id).
+    private const string SnapshotQuery = """
+        SELECT DB_NAME();
+
+        SELECT o.object_id, s.name, o.name, RTRIM(o.type)
+        FROM sys.objects o
+        INNER JOIN sys.schemas s ON s.schema_id = o.schema_id
+        WHERE o.type IN ('U', 'V', 'P') AND o.is_ms_shipped = 0;
+
+        SELECT c.object_id, c.name, t.name, c.max_length, c.precision, c.scale
+        FROM sys.columns c
+        INNER JOIN sys.types t ON t.user_type_id = c.user_type_id
+        INNER JOIN sys.objects o ON o.object_id = c.object_id
+        WHERE o.type IN ('U', 'V') AND o.is_ms_shipped = 0
+        ORDER BY c.object_id, c.column_id;
+        """;
+
     public DatabaseProvider Provider => DatabaseProvider.SqlServer;
 
     public async Task<IReadOnlyList<DatabaseCatalogEntry>> GetDatabasesAsync(string connectionString, CancellationToken cancellationToken = default)
@@ -100,6 +117,47 @@ public sealed class SqlServerSchemaReader : IDatabaseSchemaReader
         }
 
         return result;
+    }
+
+    public async Task<DatabaseSchemaSnapshot> GetSchemaSnapshotAsync(string connectionString, string? database, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await OpenAsync(connectionString, database, cancellationToken);
+        await using var command = new SqlCommand(SnapshotQuery, connection);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        await reader.ReadAsync(cancellationToken);
+        var databaseName = reader.GetString(0);
+
+        await reader.NextResultAsync(cancellationToken);
+        var objects = new List<(int Id, string Schema, string Name, DatabaseObjectKind Kind)>();
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var kind = reader.GetString(3) switch
+            {
+                "U" => DatabaseObjectKind.Table,
+                "V" => DatabaseObjectKind.View,
+                _ => DatabaseObjectKind.StoredProcedure,
+            };
+            objects.Add((reader.GetInt32(0), reader.GetString(1), reader.GetString(2), kind));
+        }
+
+        await reader.NextResultAsync(cancellationToken);
+        var columns = new Dictionary<int, List<DatabaseSchemaColumn>>();
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var objectId = reader.GetInt32(0);
+            if (!columns.TryGetValue(objectId, out var list))
+                columns[objectId] = list = [];
+
+            list.Add(new DatabaseSchemaColumn(reader.GetString(1), FormatType(reader.GetString(2), reader.GetInt16(3), reader.GetByte(4), reader.GetByte(5))));
+        }
+
+        return new DatabaseSchemaSnapshot
+        {
+            Database = databaseName,
+            Objects = objects.Select(o => new DatabaseSchemaObject(o.Schema, o.Name, o.Kind, columns.TryGetValue(o.Id, out var list) ? list : []))
+                             .ToArray()
+        };
     }
 
     /// <summary>Type affiche comme dans SSMS : longueur, precision ou echelle selon le type de base.</summary>

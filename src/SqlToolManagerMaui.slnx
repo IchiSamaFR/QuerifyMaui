@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="SqlToolManagerMaui.UI/SqlToolManagerMaui.UI.csproj" Id="a2828b3a-0de5-41ce-8065-a2932b7b2f25" />
   <Project Path="SqlToolManagerMaui/SqlToolManagerMaui.csproj" />
+  <Project Path="SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj" />
 </Solution>

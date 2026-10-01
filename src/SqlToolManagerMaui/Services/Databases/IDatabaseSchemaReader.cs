@@ -18,6 +18,9 @@ public interface IDatabaseSchemaReader
 
     /// <summary>Colonnes d'une table ou d'une vue, dans l'ordre de declaration.</summary>
     Task<IReadOnlyList<DatabaseColumnEntry>> GetColumnsAsync(string connectionString, string database, string schema, string objectName, CancellationToken cancellationToken = default);
+
+    /// <summary>Tables, vues, procedures et colonnes d'une base en un aller-retour ; null = base de la connexion.</summary>
+    Task<DatabaseSchemaSnapshot> GetSchemaSnapshotAsync(string connectionString, string? database, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Resout le lecteur de catalogue d'un moteur.</summary>

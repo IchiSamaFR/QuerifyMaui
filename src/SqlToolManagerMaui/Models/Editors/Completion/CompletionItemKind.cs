@@ -6,10 +6,14 @@ public enum CompletionItemKind
     Column,
     Table,
     View,
+    Procedure,
     Schema,
     Database,
     Function,
     Keyword,
     DataType,
-    Snippet
+    Snippet,
+
+    /// <summary>Mot deja present dans le document.</summary>
+    Text
 }

@@ -8,6 +8,13 @@ namespace SqlToolManagerMaui.Services.Editors.Completion;
 [AutoRegister(As = typeof(ICompletionProvider))]
 public sealed class KeywordCompletionProvider : ICompletionProvider
 {
+    /// <summary>Seuls mots attendus apres un nom de table : la liste doit gener le moins possible la frappe d'un alias.</summary>
+    private static readonly HashSet<string> FollowTableName = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "AS", "WITH", "WHERE", "JOIN", "INNER", "LEFT", "RIGHT", "FULL", "OUTER", "CROSS", "APPLY", "ON",
+        "GROUP", "ORDER", "HAVING", "UNION", "EXCEPT", "INTERSECT", "SET", "VALUES", "SELECT", "OUTPUT", "OFFSET"
+    };
+
     private readonly ISyntaxConfigurationStore _configurations;
     private readonly Dictionary<SyntaxLanguage, IReadOnlyList<CompletionItem>> _cache = [];
 
@@ -16,19 +23,36 @@ public sealed class KeywordCompletionProvider : ICompletionProvider
         _configurations = configurations;
     }
 
-    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default)
     {
-        // Apres un point on attend un membre (colonne, table), jamais un mot-cle.
-        if (request.Trigger == CompletionTrigger.MemberAccess)
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+
+        // Table, base, membre ou procedure : place reservee aux objets du schema.
+        Func<CompletionItem, bool>? accepts = context.Kind switch
+        {
+            CompletionContextKind.General => static _ => true,
+            CompletionContextKind.Column => static item => item.Kind != CompletionItemKind.DataType,
+            CompletionContextKind.DataType => static item => item.Kind == CompletionItemKind.DataType,
+            CompletionContextKind.AfterTableName => static item => FollowTableName.Contains(item.Label),
+            _ => null
+        };
+
+        if (accepts is null)
             return [];
 
-        if (_cache.TryGetValue(request.Language, out var cached))
+        return (await GetKeywordsAsync(request.Language, cancellationToken)).Where(accepts).ToArray();
+    }
+
+    private async Task<IReadOnlyList<CompletionItem>> GetKeywordsAsync(SyntaxLanguage language, CancellationToken cancellationToken)
+    {
+        if (_cache.TryGetValue(language, out var cached))
             return cached;
 
-        var configuration = await _configurations.GetAsync(request.Language, cancellationToken);
+        var configuration = await _configurations.GetAsync(language, cancellationToken);
         var items = configuration?.Definition.Keywords.Select(ToItem).ToArray() ?? [];
 
-        _cache[request.Language] = items;
+        _cache[language] = items;
         return items;
     }
 

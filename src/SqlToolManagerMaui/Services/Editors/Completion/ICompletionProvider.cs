@@ -8,5 +8,5 @@ namespace SqlToolManagerMaui.Services.Editors.Completion;
 /// </summary>
 public interface ICompletionProvider
 {
-    Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default);
 }

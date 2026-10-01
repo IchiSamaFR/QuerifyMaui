@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.Models.Editors.Highlighting;
+﻿using SqlToolManagerMaui.Models.Databases;
+using SqlToolManagerMaui.Models.Editors.Highlighting;
 
 namespace SqlToolManagerMaui.Models.Editors.Completion;
 
@@ -15,6 +16,9 @@ public sealed class CompletionRequest
     public required int WordStart { get; init; }
 
     public required CompletionTrigger Trigger { get; init; }
+
+    /// <summary>Connexion de l'onglet ; sans connexion ouverte, pas de suggestion du schema.</summary>
+    public DatabaseConnectionInfo? Connection { get; init; }
 
     public string Prefix => Text[WordStart..CaretOffset];
 
