@@ -12,5 +12,7 @@ public enum ExplorerNodeKind
     Table,
     View,
     StoredProcedure,
+    ColumnsFolder,
+    Column,
     Message,
 }

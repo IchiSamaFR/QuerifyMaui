@@ -183,6 +183,8 @@ public partial class ConnectionExplorerVM : AbstractVM
                 ExplorerNodeKind.Connection => await LoadDatabasesAsync(node),
                 ExplorerNodeKind.SystemDatabasesFolder => node.Children.ToList(),
                 ExplorerNodeKind.Database => CreateFolders(node),
+                ExplorerNodeKind.Table or ExplorerNodeKind.View => [new ExplorerNode(ExplorerNodeKind.ColumnsFolder, "Colonnes", node.Connection, node)],
+                ExplorerNodeKind.ColumnsFolder => await LoadColumnsAsync(node),
                 _ when node.FolderObjectKind is { } kind => await LoadObjectsAsync(node, kind),
                 _ => [],
             };
@@ -257,7 +259,30 @@ public partial class ConnectionExplorerVM : AbstractVM
         };
 
         return objects
-            .Select(o => new ExplorerNode(nodeKind, o.QualifiedName, folder.Connection, folder) { Schema = o.Schema })
+            .Select(o => new ExplorerNode(nodeKind, o.QualifiedName, folder.Connection, folder) { Schema = o.Schema, ObjectName = o.Name })
+            .ToList();
+    }
+
+    private async Task<IReadOnlyList<ExplorerNode>> LoadColumnsAsync(ExplorerNode folder)
+    {
+        var connectionString = await GetConnectionStringAsync(folder.Connection);
+        if (connectionString is null || folder.Database is null || folder.Schema is null || folder.ObjectName is null)
+            return [Message(folder, "Chaine introuvable dans le coffre : modifiez la connexion.")];
+
+        var columns = await _schemaReaders.Resolve(folder.Connection.Provider)
+            .GetColumnsAsync(connectionString, folder.Database, folder.Schema, folder.ObjectName, LifetimeToken);
+
+        folder.Detail = columns.Count.ToString();
+        if (columns.Count == 0)
+            return [Message(folder, "(aucune colonne)")];
+
+        return columns
+            .Select(c => new ExplorerNode(ExplorerNodeKind.Column, c.Name, folder.Connection, folder)
+            {
+                Detail = $"({c.Description})",
+                IsPrimaryKey = c.IsPrimaryKey,
+                IsForeignKey = c.IsForeignKey,
+            })
             .ToList();
     }
 

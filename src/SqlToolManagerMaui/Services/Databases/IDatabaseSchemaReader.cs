@@ -15,6 +15,9 @@ public interface IDatabaseSchemaReader
 
     /// <summary>Objets utilisateur d'une famille donnee, tries par schema puis nom.</summary>
     Task<IReadOnlyList<DatabaseObjectEntry>> GetObjectsAsync(string connectionString, string database, DatabaseObjectKind kind, CancellationToken cancellationToken = default);
+
+    /// <summary>Colonnes d'une table ou d'une vue, dans l'ordre de declaration.</summary>
+    Task<IReadOnlyList<DatabaseColumnEntry>> GetColumnsAsync(string connectionString, string database, string schema, string objectName, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Resout le lecteur de catalogue d'un moteur.</summary>

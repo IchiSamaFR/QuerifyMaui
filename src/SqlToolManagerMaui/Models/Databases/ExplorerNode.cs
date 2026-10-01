@@ -18,6 +18,8 @@ public sealed partial class ExplorerNode : ObservableObject
         Connection = connection;
         Parent = parent;
         Database = parent?.Database;
+        Schema = parent?.Schema;
+        ObjectName = parent?.ObjectName;
     }
 
     public ExplorerNodeKind Kind { get; }
@@ -31,8 +33,17 @@ public sealed partial class ExplorerNode : ObservableObject
     /// <summary>Base a laquelle appartient le noeud (herite du parent).</summary>
     public string? Database { get; init; }
 
-    /// <summary>Schema de l'objet (tables, vues, procedures).</summary>
+    /// <summary>Schema de l'objet (tables, vues, procedures), herite par les dossiers et colonnes.</summary>
     public string? Schema { get; init; }
+
+    /// <summary>Nom de l'objet sans schema (tables, vues, procedures), herite par les dossiers et colonnes.</summary>
+    public string? ObjectName { get; init; }
+
+    /// <summary>Colonne de cle primaire (icone cle).</summary>
+    public bool IsPrimaryKey { get; init; }
+
+    /// <summary>Colonne de cle etrangere (icone lien).</summary>
+    public bool IsForeignKey { get; init; }
 
     /// <summary>Precision affichee en gris a droite du titre (serveur, nombre d'elements...).</summary>
     [ObservableProperty]
@@ -50,8 +61,8 @@ public sealed partial class ExplorerNode : ObservableObject
     /// <summary>Vrai une fois les enfants charges (un rafraichissement le remet a faux).</summary>
     public bool IsLoaded { get; set; }
 
-    public bool CanExpand => Kind is not (ExplorerNodeKind.Table or ExplorerNodeKind.View
-        or ExplorerNodeKind.StoredProcedure or ExplorerNodeKind.Message);
+    public bool CanExpand => Kind is not (ExplorerNodeKind.StoredProcedure
+        or ExplorerNodeKind.Column or ExplorerNodeKind.Message);
 
     public bool IsConnection => Kind == ExplorerNodeKind.Connection;
 
@@ -71,6 +82,9 @@ public sealed partial class ExplorerNode : ObservableObject
         ExplorerNodeKind.Table => FluentIcons.Table20,
         ExplorerNodeKind.View => FluentIcons.Eye20,
         ExplorerNodeKind.StoredProcedure => FluentIcons.Code20,
+        ExplorerNodeKind.Column when IsPrimaryKey => FluentIcons.Key20,
+        ExplorerNodeKind.Column when IsForeignKey => FluentIcons.Link20,
+        ExplorerNodeKind.Column => FluentIcons.Column20,
         ExplorerNodeKind.Message => FluentIcons.Info16,
         _ => IsExpanded ? FluentIcons.FolderOpen20 : FluentIcons.Folder20,
     };
