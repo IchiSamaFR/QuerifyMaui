@@ -12,9 +12,9 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 
 ## Contexte fonctionnel
 
-* **Pages principales** : Accueil (`MainPage`), Requête (`QueryPage`), Connexions (`ConnectionsPage`).
+* **Pages principales** : Accueil (`MainPage`), Requête (`QueryPage`). Les connexions vivent dans l'explorateur d'objets (volet gauche).
 * **Requête** : éditeur de texte multi-onglets façon Notepad, posé sur `CodeEdit.Maui`. Nouveau / Ouvrir / Enregistrer / Enregistrer sous, options d'édition (retour à la ligne, numéros de ligne, indentation), barre d'état (chemin du fichier, Ln/Col).
-* **Connexions** : CRUD des chaînes de connexion en master/détail sur une seule page (pas de popup), avec test de connexion réel.
+* **Explorateur d'objets** (façon SSMS) : arbre Serveur > Bases (+ dossier « Bases de données système ») > Tables / Vues / Procédures stockées, chargé à l'ouverture de chaque nœud. Ajout / modification / test d'une connexion dans la popup « Se connecter » (CommunityToolkit `Popup`).
 * **Moteur supporté** : SQL Server uniquement (Microsoft.Data.SqlClient). L'architecture prévoit l'ajout d'autres moteurs.
 * **Exécution des requêtes** : l'UI est en place (picker de connexion + bouton Exécuter) mais le branchement reste à faire.
 
@@ -66,7 +66,7 @@ SqlToolManagerMaui/
 │   │   │   ├── AbstractVM.cs                   # Base : navigation, chargement
 │   │   │   ├── AbstractVM_Busy.cs              # Base : gestion des tâches / IsBusy
 │   │   │   ├── ShellVM.cs                      # État du rail de navigation
-│   │   │   └── Pages/                          # MainVM, QueryVM, ConnectionsVM
+│   │   │   └── Pages/                          # QueryVM, Connections/ (ConnectionExplorerVM, ConnectionEditorVM)
 │   │   ├── Views/
 │   │   │   ├── Pages/                          # AbstractPage + pages de l'app
 │   │   │   └── Controls/                       # NavigationRail + Editors/ (menus, onglets)
@@ -144,7 +144,7 @@ SqlToolManagerMaui/
 * **Méthodes & Propriétés** : PascalCase, suffixe `Async` pour les méthodes asynchrones.
 * **Champs privés** : `_camelCase`.
 * **Paramètres** : camelCase.
-* **Pages** : suffixe `Page` (`ConnectionsPage`). **ViewModels** : suffixe `VM` (`ConnectionsVM`).
+* **Pages** : suffixe `Page` (`QueryPage`). **ViewModels** : suffixe `VM` (`QueryVM`).
 * **Contrôles** : nom du rôle sans préfixe (`NavigationRail`, `FileTabItem`, `ViewMenuBarItem`).
 
 ### Style de code
@@ -242,7 +242,10 @@ Lors de la création d'une feature :
 * Stockage mixte : métadonnées dans `connections.json` (AppDataDirectory, écriture atomique via fichier `.tmp`), chaîne de connexion complète chiffrée dans le `SecureStorage` sous la clé `connectionstring:{id}`. `DatabaseConnectionInfo` ne contient **jamais** la chaîne complète.
 * Toutes les écritures passent par un sémaphore, le fichier est réécrit en entier.
 * **Ajouter un moteur** = un `AddSingleton<IConnectionTester, ...>` dans `AddConnectionServices` ; `ConnectionTesterResolver` le découvre seul.
-* Le formulaire travaille sur des champs plats `Edit*` (et non sur l'élément sélectionné) pour qu'« Annuler » ne modifie rien.
+* La popup « Se connecter » (`ConnectionEditorPopup` + `ConnectionEditorVM`, transient) travaille sur un `DatabaseConnectionDraft` (clone) pour qu'« Annuler » ne modifie rien. Elle est ouverte par `IConnectionDialogService.EditAsync` et fermée par le VM via `IPopupService.ClosePopupAsync(shell, Guid?)` (Id enregistré, ou null).
+* Après un ajout / une modification / une suppression, `ConnectionsChangedMessage` est publié (WeakReferenceMessenger) : `QueryVM` recharge son Picker.
+* **Explorateur** : `ConnectionExplorerVM` garde l'arbre (`Roots`) et sa projection à plat (`VisibleNodes`, indentée par `LevelToIndentConverter`) — MAUI n'a pas de TreeView. Aucun `ExplorerNode` ne porte la chaîne : elle est relue dans le coffre à chaque chargement. Une erreur de chargement devient un nœud « Erreur : ... ».
+* **Catalogue d'un moteur** = un `AddSingleton<IDatabaseSchemaReader, ...>` (résolu par `DatabaseSchemaReaderResolver`), sur le modèle des testeurs.
 
 ### Pièges connus
 

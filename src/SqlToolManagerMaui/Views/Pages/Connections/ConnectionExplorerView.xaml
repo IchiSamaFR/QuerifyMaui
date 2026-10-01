@@ -3,39 +3,116 @@
                        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                        x:Class="SqlToolManagerMaui.Views.Pages.Connections.ConnectionExplorerView"
                        x:DataType="vm:ConnectionExplorerVM"
-                       WidthRequest="260"
+                       x:Name="Root"
+                       WidthRequest="340"
                        Padding="8">
     <Border Style="{StaticResource CardStyle}"
             Padding="0">
-        <Grid RowDefinitions="Auto,*"
-              RowSpacing="8"
-              Margin="8">
-            <HorizontalStackLayout Spacing="4">
+        <Grid RowDefinitions="Auto,Auto,*"
+              Margin="8"
+              RowSpacing="8">
+
+            <!-- ============ En-tete + barre d'outils (Explorateur d'objets SSMS) ============ -->
+            <Label Text="Explorateur d'objets"
+                   Style="{StaticResource LabelThirdHeaderStyle}" />
+
+            <HorizontalStackLayout Grid.Row="1"
+                                   Spacing="4">
                 <Button Style="{StaticResource PrimaryIconButtonStyle}"
-                        Command="{Binding ExecuteQueryCommand}"
-                        ImageSource="{icons:Fluent Icon=Add20, IconSize=20}"
-                        ToolTipProperties.Text="Disponible dans une prochaine version" />
+                        Command="{Binding AddConnectionCommand}"
+                        ImageSource="{icons:Fluent Icon=PlugConnected20, IconSize=20}"
+                        ToolTipProperties.Text="Se connecter..." />
                 <Button Style="{StaticResource SecondaryIconButtonStyle}"
-                        Command="{Binding ExecuteQueryCommand}"
+                        Command="{Binding EditConnectionCommand}"
+                        ImageSource="{icons:Fluent Icon=Edit20, IconSize=20}"
+                        ToolTipProperties.Text="Modifier la connexion" />
+                <Button Style="{StaticResource SecondaryIconButtonStyle}"
+                        Command="{Binding RefreshCommand}"
                         ImageSource="{icons:Fluent Icon=ArrowSync20, IconSize=20}"
-                        ToolTipProperties.Text="Disponible dans une prochaine version" />
+                        ToolTipProperties.Text="Actualiser" />
+                <Button Style="{StaticResource SecondaryIconButtonStyle}"
+                        Command="{Binding DeleteConnectionCommand}"
+                        ImageSource="{icons:Fluent Icon=Delete20, IconSize=20}"
+                        ToolTipProperties.Text="Supprimer la connexion" />
             </HorizontalStackLayout>
 
-            <VerticalStackLayout Grid.Row="1">
+            <!-- ============ Etat vide ============ -->
+            <Label Grid.Row="2"
+                   Text="Aucune connexion.&#10;Cliquez sur « Se connecter » pour en ajouter une."
+                   Style="{StaticResource LabelTertiaryStyle}"
+                   HorizontalTextAlignment="Center"
+                   VerticalOptions="Start"
+                   Margin="0,16,0,0"
+                   IsVisible="{Binding HasConnections, Converter={StaticResource BooleanInvertConverter}}" />
 
-                <Label Text="Welcome to .NET MAUI!"
-                       VerticalOptions="Center"
-                       HorizontalOptions="Center" />
-                <Label Text="Welcome to .NET MAUI!"
-                       VerticalOptions="Center"
-                       HorizontalOptions="Center" />
-                <Label Text="Welcome to .NET MAUI!"
-                       VerticalOptions="Center"
-                       HorizontalOptions="Center" />
-                <Label Text="Welcome to .NET MAUI!"
-                       VerticalOptions="Center"
-                       HorizontalOptions="Center" />
-            </VerticalStackLayout>
+            <!-- ============ Arbre (rendu a plat, indente par niveau) ============ -->
+            <CollectionView Grid.Row="2"
+                            ItemsSource="{Binding VisibleNodes}"
+                            SelectedItem="{Binding SelectedNode}"
+                            SelectionMode="Single"
+                            IsVisible="{Binding HasConnections}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="m:ExplorerNode">
+                        <Grid ColumnDefinitions="Auto,20,*,Auto"
+                              ColumnSpacing="4"
+                              HeightRequest="28"
+                              Padding="{Binding Level, Converter={StaticResource LevelToIndentConverter}}">
+
+                            <!-- Chevron : deplie / replie -->
+                            <inp:ButtonView Grid.Column="0"
+                                            Style="{StaticResource TextButtonViewStyle}"
+                                            WidthRequest="20"
+                                            HeightRequest="20"
+                                            Margin="8,0,0,0"
+                                            Padding="0"
+                                            IsVisible="{Binding CanExpand}"
+                                            Command="{Binding Source={x:Reference Root}, Path=ViewModel.ToggleNodeCommand, x:DataType=v:ConnectionExplorerView}"
+                                            CommandParameter="{Binding .}">
+                                <mi:MauiIcon Icon="{Binding ChevronIcon}"
+                                             IconSize="12"
+                                             IconColor="{StaticResource LabelSecondary}" />
+                            </inp:ButtonView>
+
+                            <mi:MauiIcon Grid.Column="1"
+                                         Icon="{Binding Icon}"
+                                         IconSize="16"
+                                         WidthRequest="16"
+                                         HeightRequest="16"
+                                         IconColor="{StaticResource LabelSecondary}"
+                                         HorizontalOptions="Center"
+                                         VerticalOptions="Center" />
+
+                            <HorizontalStackLayout Grid.Column="2"
+                                                   Spacing="6"
+                                                   VerticalOptions="Center">
+                                <Label Text="{Binding Title}"
+                                       Style="{StaticResource LabelStyle}"
+                                       LineBreakMode="TailTruncation">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding Kind}"
+                                                     Value="{x:Static m:ExplorerNodeKind.Message}">
+                                            <Setter Property="TextColor"
+                                                    Value="{StaticResource LabelTertiary}" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                                <Label Text="{Binding Detail}"
+                                       Style="{StaticResource LabelTertiaryStyle}"
+                                       LineBreakMode="TailTruncation"
+                                       IsVisible="{Binding Detail, Converter={StaticResource IsStringNullOrEmptyConverter}, ConverterParameter=invert}" />
+                            </HorizontalStackLayout>
+
+                            <ActivityIndicator Grid.Column="3"
+                                               IsRunning="{Binding IsLoading}"
+                                               IsVisible="{Binding IsLoading}"
+                                               WidthRequest="14"
+                                               HeightRequest="14"
+                                               Margin="0,0,4,0" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </Grid>
     </Border>
 </v:AbstractContentView>

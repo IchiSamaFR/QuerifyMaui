@@ -393,11 +393,17 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource TextButtonStyle}">
         <Setter Property="HeightRequest"
+                Value="32" />
+        <Setter Property="WidthRequest"
+                Value="32" />
+        <Setter Property="MinimumHeightRequest"
                 Value="-1" />
         <Setter Property="MinimumWidthRequest"
-                Value="0" />
+                Value="-1" />
         <Setter Property="Padding"
-                Value="4" />
+                Value="0" />
+        <Setter Property="Margin"
+                Value="0" />
     </Style>
 
     <!-- Bouton du rail de navigation -->

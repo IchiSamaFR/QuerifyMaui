@@ -48,6 +48,8 @@
     <Color x:Key="SunkenBackground">#1C1C1C</Color>
     <!-- SolidBackgroundFillColorQuarternary : popups, menus, dialogues -->
     <Color x:Key="FlyoutBackground">#2C2C2C</Color>
+    <!-- SmokeFillColorDefault : voile derriere les popups -->
+    <Color x:Key="SmokeFill">#4D000000</Color>
 
     <Color x:Key="MainBackground">#202020</Color>
     <Color x:Key="Background">#282828</Color>

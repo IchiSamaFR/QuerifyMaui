@@ -1,14 +1,18 @@
-﻿using SqlToolManagerMaui.UI.ViewModels;
-using SqlToolManagerMaui.UI.Views;
+﻿using SqlToolManagerMaui.UI.Views;
 using SqlToolManagerMaui.ViewModels.Pages.Connections;
 
 namespace SqlToolManagerMaui.Views.Pages.Connections;
 
+/// <summary>Explorateur d'objets (volet gauche facon SSMS).</summary>
 public partial class ConnectionExplorerView : AbstractContentView
 {
-	public ConnectionExplorerView(ConnectionExplorerVM viewModel)
-		: base(viewModel)
+    /// <summary>VM type, pour les bindings des DataTemplate vers les commandes de l'explorateur.</summary>
+    public ConnectionExplorerVM ViewModel { get; }
+
+    public ConnectionExplorerView(ConnectionExplorerVM viewModel)
+        : base(viewModel)
     {
-		InitializeComponent();
-	}
+        ViewModel = viewModel;
+        InitializeComponent();
+    }
 }

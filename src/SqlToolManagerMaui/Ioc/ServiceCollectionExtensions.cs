@@ -60,6 +60,12 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IConnectionTester, SqlServerConnectionTester>();
         services.AddSingleton<IConnectionTesterResolver, ConnectionTesterResolver>();
 
+        // Catalogue de l'explorateur d'objets : un lecteur par moteur, comme les testeurs.
+        services.AddSingleton<IDatabaseSchemaReader, SqlServerSchemaReader>();
+        services.AddSingleton<IDatabaseSchemaReaderResolver, DatabaseSchemaReaderResolver>();
+
+        services.AddSingleton<IConnectionDialogService, ConnectionDialogService>();
+
         return services;
     }
 
@@ -76,11 +82,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<QueryPage>();
         services.AddSingleton<QueryVM>();
 
-        services.AddSingleton<ConnectionsPage>();
-        services.AddSingleton<ConnectionsVM>();
-
         services.AddTransient<ConnectionExplorerView>();
         services.AddSingleton<ConnectionExplorerVM>();
+
+        // Popup "Se connecter" : VM neuf a chaque ouverture.
+        services.AddTransient<ConnectionEditorVM>();
 
         return services;
     }

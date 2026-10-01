@@ -11,7 +11,4 @@
 
     <ShellContent ContentTemplate="{DataTemplate v:QueryPage}"
                   Route="{x:Static v:QueryPage.PAGE_ROUTE}" />
-
-    <ShellContent ContentTemplate="{DataTemplate v:ConnectionsPage}"
-                  Route="{x:Static v:ConnectionsPage.PAGE_ROUTE}" />
 </Shell>

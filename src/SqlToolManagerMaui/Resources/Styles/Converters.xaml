@@ -23,6 +23,7 @@
     <conv:IsDateTimeCompared x:Key="IsDateTimeCompared" />
 
     <conv:ConnectionStringMaskerConverter x:Key="ConnectionStringMaskerConverter" />
+    <conv:LevelToIndentConverter x:Key="LevelToIndentConverter" />
     
     <toolkit:IsListNotNullOrEmptyConverter x:Key="IsListNotNullOrEmptyConverter" />
     <toolkit:IsListNullOrEmptyConverter x:Key="IsListNullOrEmptyConverter" />
