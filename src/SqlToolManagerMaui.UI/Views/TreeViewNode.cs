@@ -154,7 +154,35 @@ public sealed class TreeViewNode : ContentView
         if (!CanExpand)
             return;
 
+        // Shift gauche + clic sur un noeud ouvert : referme aussi toute sa descendance.
+        // Pas d'equivalent a l'ouverture : tout deplier chargerait trop d'elements.
+        if (IsExpanded && IsLeftShiftPressed())
+        {
+            CollapseAll();
+            return;
+        }
+
         IsExpanded = !IsExpanded;
+    }
+
+    private void CollapseAll()
+    {
+        foreach (var child in ChildNodes())
+            child.CollapseAll();
+
+        IsExpanded = false;
+    }
+
+    private IEnumerable<TreeViewNode> ChildNodes() => ChildrenHost.Children.OfType<TreeViewNode>();
+
+    private static bool IsLeftShiftPressed()
+    {
+#if WINDOWS
+        var state = global::Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(global::Windows.System.VirtualKey.LeftShift);
+        return state.HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down);
+#else
+        return false;
+#endif
     }
 
     private void UpdateExpanded(bool isExpanded)

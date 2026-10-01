@@ -156,6 +156,22 @@ public partial class ConnectionExplorerVM : AbstractVM
         return Task.CompletedTask;
     }
 
+    /// <summary>Referme tout l'arbre (les enfants deja charges sont conserves).</summary>
+    [RelayCommand]
+    private void CollapseAll()
+    {
+        foreach (var root in Roots)
+            Collapse(root);
+
+        static void Collapse(ExplorerNode node)
+        {
+            foreach (var child in node.Children)
+                Collapse(child);
+
+            node.IsExpanded = false;
+        }
+    }
+
     private async Task LoadAsync(ExplorerNode node)
     {
         node.IsLoading = true;

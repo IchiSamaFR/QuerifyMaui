@@ -16,25 +16,26 @@
             <Label Text="Explorateur d'objets"
                    Style="{StaticResource LabelThirdHeaderStyle}" />
 
-            <HorizontalStackLayout Grid.Row="1"
-                                   Spacing="4">
-                <Button Style="{StaticResource PrimaryIconButtonStyle}"
-                        Command="{Binding AddConnectionCommand}"
-                        ImageSource="{icons:Fluent Icon=PlugConnected20, IconSize=20}"
-                        ToolTipProperties.Text="Se connecter..." />
-                <Button Style="{StaticResource SecondaryIconButtonStyle}"
-                        Command="{Binding EditConnectionCommand}"
-                        ImageSource="{icons:Fluent Icon=Edit20, IconSize=20}"
-                        ToolTipProperties.Text="Modifier la connexion" />
-                <Button Style="{StaticResource SecondaryIconButtonStyle}"
-                        Command="{Binding RefreshCommand}"
-                        ImageSource="{icons:Fluent Icon=ArrowSync20, IconSize=20}"
-                        ToolTipProperties.Text="Actualiser" />
-                <Button Style="{StaticResource SecondaryIconButtonStyle}"
-                        Command="{Binding DeleteConnectionCommand}"
-                        ImageSource="{icons:Fluent Icon=Delete20, IconSize=20}"
-                        ToolTipProperties.Text="Supprimer la connexion" />
-            </HorizontalStackLayout>
+            <Grid ColumnDefinitions="*,Auto"
+                  Grid.Row="1">
+                <HorizontalStackLayout Spacing="4">
+                    <Button Style="{StaticResource PrimaryIconButtonStyle}"
+                            Command="{Binding AddConnectionCommand}"
+                            ImageSource="{icons:Fluent Icon=PlugConnectedAdd20, IconSize=20}"
+                            ToolTipProperties.Text="Se connecter..." />
+                    <Button Style="{StaticResource SecondaryIconButtonStyle}"
+                            Command="{Binding RefreshCommand}"
+                            ImageSource="{icons:Fluent Icon=ArrowSync20, IconSize=20}"
+                            ToolTipProperties.Text="Actualiser" />
+                    <Button Style="{StaticResource SecondaryIconButtonStyle}"
+                            Command="{Binding CollapseAllCommand}"
+                            ImageSource="{icons:Fluent Icon=ArrowCollapseAll20, IconSize=20}"
+                            ToolTipProperties.Text="Reduire tout" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Grid.Column="1"
+                                       Spacing="4">
+                </HorizontalStackLayout>
+            </Grid>
 
             <!-- ============ Etat vide ============ -->
             <Label Grid.Row="2"
@@ -70,28 +71,8 @@
                                                    VerticalOptions="Center">
                                 <Label Text="{Binding Title}"
                                        Style="{StaticResource LabelStyle}"
-                                       LineBreakMode="TailTruncation">
-                                    <Label.Triggers>
-                                        <DataTrigger TargetType="Label"
-                                                     Binding="{Binding Kind}"
-                                                     Value="{x:Static m:ExplorerNodeKind.Connection}">
-                                            <Setter Property="FontAttributes"
-                                                    Value="Bold" />
-                                        </DataTrigger>
-                                        <DataTrigger TargetType="Label"
-                                                     Binding="{Binding Kind}"
-                                                     Value="{x:Static m:ExplorerNodeKind.Database}">
-                                            <Setter Property="FontAttributes"
-                                                    Value="Bold" />
-                                        </DataTrigger>
-                                        <DataTrigger TargetType="Label"
-                                                     Binding="{Binding Kind}"
-                                                     Value="{x:Static m:ExplorerNodeKind.Message}">
-                                            <Setter Property="TextColor"
-                                                    Value="{StaticResource LabelTertiary}" />
-                                        </DataTrigger>
-                                    </Label.Triggers>
-                                </Label>
+                                       LineBreakMode="TailTruncation" />
+
                                 <Label Text="{Binding Detail}"
                                        Style="{StaticResource LabelTertiaryStyle}"
                                        LineBreakMode="TailTruncation"
