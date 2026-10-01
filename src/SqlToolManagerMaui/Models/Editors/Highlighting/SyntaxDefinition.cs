@@ -13,4 +13,7 @@ public sealed class SyntaxDefinition
     public required IReadOnlyList<string> Extensions { get; init; }
 
     public required IReadOnlyList<SyntaxRule> Rules { get; init; }
+
+    /// <summary>Mots des listes &lt;Keywords&gt;, conserves en clair pour l'autocompletion.</summary>
+    public IReadOnlyList<SyntaxKeyword> Keywords { get; init; } = [];
 }

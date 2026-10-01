@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SqlToolManagerMaui.Views.Controls.Editors.CompletionPopup"
+             HorizontalOptions="Start"
+             VerticalOptions="Start"
+             IsVisible="False">
+
+    <!-- Pas de CollectionView : la liste ne doit jamais prendre le focus a l'editeur -->
+    <Border BackgroundColor="{DynamicResource FlyoutBackground}"
+            Stroke="{DynamicResource SurfaceStrokeColorDefault}"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 6"
+            Padding="4">
+        <Border.Shadow>
+            <Shadow Brush="Black"
+                    Opacity="0.35"
+                    Radius="12"
+                    Offset="0,4" />
+        </Border.Shadow>
+
+        <ScrollView x:Name="Scroller">
+            <VerticalStackLayout x:Name="Rows">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="m:CompletionEntry">
+                        <Grid ColumnDefinitions="20,*,Auto"
+                              ColumnSpacing="8"
+                              Padding="6,0"
+                              HeightRequest="{x:Static c:CompletionPopup.RowHeight}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnRowTapped" />
+                            </Grid.GestureRecognizers>
+                            <Grid.Triggers>
+                                <DataTrigger TargetType="Grid"
+                                             Binding="{Binding IsSelected}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor"
+                                            Value="{DynamicResource SubtleFillColorSecondary}" />
+                                </DataTrigger>
+                            </Grid.Triggers>
+
+                            <mi:MauiIcon Grid.Column="0"
+                                         Icon="{Binding Item.Icon}"
+                                         IconColor="{Binding Item.IconColor}"
+                                         IconSize="16"
+                                         WidthRequest="16"
+                                         HeightRequest="16"
+                                         HorizontalOptions="Center"
+                                         VerticalOptions="Center" />
+
+                            <Label Grid.Column="1"
+                                   Text="{Binding Item.Label}"
+                                   TextColor="{DynamicResource LabelPrimary}"
+                                   FontSize="{StaticResource FontSize_Normal}"
+                                   LineBreakMode="TailTruncation"
+                                   VerticalOptions="Center" />
+
+                            <Label Grid.Column="2"
+                                   Text="{Binding Item.Detail}"
+                                   TextColor="{DynamicResource LabelTertiary}"
+                                   FontSize="{StaticResource FontSize_Small}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Border>
+
+</ContentView>

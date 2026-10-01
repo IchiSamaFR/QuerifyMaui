@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
@@ -13,8 +13,6 @@
                 Value="1" />
         <Setter Property="Padding"
                 Value="0,0,0,1" />
-        <Setter Property="BackgroundColor"
-                Value="{DynamicResource Gray600}" />
     </Style>
 
     <Style TargetType="Label"
@@ -31,8 +29,6 @@
                 Value="Center" />
         <Setter Property="TextColor"
                 Value="{DynamicResource LabelPrimary}" />
-        <Setter Property="BackgroundColor"
-                Value="{DynamicResource CardBackground}" />
     </Style>
 
     <Style TargetType="Label"
@@ -51,8 +47,6 @@
                 Value="End" />
         <Setter Property="TextColor"
                 Value="{DynamicResource LabelTertiary}" />
-        <Setter Property="BackgroundColor"
-                Value="{DynamicResource InputBackground}" />
     </Style>
 
     <Style TargetType="Label"
@@ -60,8 +54,6 @@
            BasedOn="{StaticResource QueryResultCellStyle}">
         <Setter Property="FontAttributes"
                 Value="Bold" />
-        <Setter Property="BackgroundColor"
-                Value="{DynamicResource InputBackground}" />
     </Style>
 
     <!-- Onglet Messages -->

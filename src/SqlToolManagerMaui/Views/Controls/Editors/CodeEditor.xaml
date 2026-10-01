@@ -4,13 +4,18 @@
              xmlns:code="clr-namespace:CodeEdit.Maui;assembly=CodeEdit.Maui"
              x:Class="SqlToolManagerMaui.Views.Controls.Editors.CodeEditor">
 
-    <code:CodeEditor x:Name="Native"
-                     BackgroundColor="{DynamicResource SunkenBackground}"
-                     ShowLineNumbers="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsLineDisplayed, x:DataType=c:CodeEditor}"
-                     WordWrap="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsWordWrapped, x:DataType=c:CodeEditor}"
-                     UseTabs="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsTabIndentation, x:DataType=c:CodeEditor}"
-                     IndentSize="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IndentationSize, x:DataType=c:CodeEditor}"
-                     LineCommentPrefix="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=SyntaxConfiguration.Comments, x:DataType=c:CodeEditor}"
-                     FontSize="{StaticResource FontSize_Normal}" />
+    <!-- Le popup partage la cellule de l'editeur : ses coordonnees sont celles du controle -->
+    <Grid>
+        <code:CodeEditor x:Name="Native"
+                         BackgroundColor="{DynamicResource SunkenBackground}"
+                         ShowLineNumbers="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsLineDisplayed, x:DataType=c:CodeEditor}"
+                         WordWrap="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsWordWrapped, x:DataType=c:CodeEditor}"
+                         UseTabs="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsTabIndentation, x:DataType=c:CodeEditor}"
+                         IndentSize="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IndentationSize, x:DataType=c:CodeEditor}"
+                         LineCommentPrefix="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=SyntaxConfiguration.Comments, x:DataType=c:CodeEditor}"
+                         FontSize="{StaticResource FontSize_Normal}" />
+
+        <c:CompletionPopup x:Name="CompletionList" />
+    </Grid>
 
 </ContentView>

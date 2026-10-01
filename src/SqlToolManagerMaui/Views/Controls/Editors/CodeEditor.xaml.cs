@@ -2,6 +2,7 @@
 using RichEdit.Maui;
 using SqlToolManagerMaui.Models.Editors;
 using SqlToolManagerMaui.Models.Editors.Highlighting;
+using SqlToolManagerMaui.Services.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using System.ComponentModel;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
@@ -88,6 +89,7 @@ public partial class CodeEditor : ContentView
 
     private CodeDocument _document = null!;
     private SyntaxHighlightingController? _highlighting;
+    private CompletionController? _completion;
 
     /// <summary>Evite l'aller-retour Text -> document -> Text pendant une synchronisation.</summary>
     private bool _isSynchronizing;
@@ -109,8 +111,16 @@ public partial class CodeEditor : ContentView
 
         // La couche de decorations suit le cycle de vie natif de l'editeur : on la recree
         // a chaque chargement, sinon un retour sur la page laisserait le texte sans couleur.
-        Loaded += (_, _) => StartHighlighting();
-        Unloaded += (_, _) => StopHighlighting();
+        Loaded += (_, _) =>
+        {
+            StartHighlighting();
+            StartCompletion();
+        };
+        Unloaded += (_, _) =>
+        {
+            StopHighlighting();
+            StopCompletion();
+        };
 
 #if WINDOWS
         DisableWindowsHoverState();
@@ -209,9 +219,13 @@ public partial class CodeEditor : ContentView
     private void OnSyntaxConfigurationChanged()
     {
         StopHighlighting();
+        StopCompletion();
 
         if (IsLoaded)
+        {
             StartHighlighting();
+            StartCompletion();
+        }
     }
 
     private void StartHighlighting()
@@ -228,6 +242,22 @@ public partial class CodeEditor : ContentView
     {
         _highlighting?.Dispose();
         _highlighting = null;
+    }
+
+    // ---------- Autocompletion ----------
+
+    private void StartCompletion()
+    {
+        if (_completion is not null || SyntaxConfiguration is null)
+            return;
+
+        _completion = new CompletionController(Native, CompletionList, this, Ioc.GetRequiredService<ICompletionService>(), SyntaxConfiguration.Language);
+    }
+
+    private void StopCompletion()
+    {
+        _completion?.Dispose();
+        _completion = null;
     }
 
     // ---------- Options d'affichage ----------

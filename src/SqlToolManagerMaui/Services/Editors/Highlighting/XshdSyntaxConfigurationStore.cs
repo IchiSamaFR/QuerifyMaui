@@ -87,6 +87,7 @@ public sealed class XshdSyntaxConfigurationStore : ISyntaxConfigurationStore
         var options = RegexOptions.CultureInvariant | (ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None);
 
         List<SyntaxRule> rules = [];
+        List<SyntaxKeyword> keywords = [];
         foreach (var element in ruleSet.Elements())
         {
             if (ResolveColor(colors, element) is not { } color)
@@ -102,14 +103,29 @@ public sealed class XshdSyntaxConfigurationStore : ISyntaxConfigurationStore
 
             if (rule is not null)
                 rules.Add(rule);
+
+            if (element.Name.LocalName == "Keywords")
+                keywords.AddRange(ReadKeywords(element));
         }
 
         return new SyntaxDefinition
         {
             Name = (string?)root.Attribute("name") ?? language.ToString(),
             Extensions = ((string?)root.Attribute("extensions"))?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
-            Rules = rules
+            Rules = rules,
+            Keywords = keywords
         };
+    }
+
+    /// <summary>La categorie est le nom de couleur de la liste : c'est lui qui distingue mots-cles, types et fonctions.</summary>
+    private static IEnumerable<SyntaxKeyword> ReadKeywords(XElement element)
+    {
+        var category = (string?)element.Attribute("color") ?? string.Empty;
+
+        return element.Elements(Xshd + "Word")
+                      .Select(word => word.Value.Trim())
+                      .Where(word => word.Length > 0)
+                      .Select(word => new SyntaxKeyword(word, category));
     }
 
     private static Dictionary<string, Color> ReadColors(XElement root)
