@@ -1,4 +1,5 @@
 ﻿using SqlToolManagerMaui.ViewModels;
+using SqlToolManagerMaui.Views.Pages.Connections;
 
 namespace SqlToolManagerMaui
 {
@@ -6,8 +7,9 @@ namespace SqlToolManagerMaui
     {
         public ShellVM ContextViewModel { get; }
 
-        public AppShell(ShellVM viewModel)
+        public AppShell(ConnectionExplorerView flyoutContent, ShellVM viewModel)
         {
+            FlyoutContent = flyoutContent;
             ContextViewModel = viewModel;
             BindingContext = viewModel;
             InitializeComponent();

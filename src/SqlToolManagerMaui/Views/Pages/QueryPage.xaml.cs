@@ -1,4 +1,6 @@
+﻿using SqlToolManagerMaui.UI.Views;
 using SqlToolManagerMaui.ViewModels.Pages;
+using SqlToolManagerMaui.Views.Pages.Connections;
 
 namespace SqlToolManagerMaui.Views.Pages;
 
@@ -12,13 +14,10 @@ public partial class QueryPage : AbstractPage
     public static readonly string PAGE_ROUTE = nameof(QueryPage);
     protected override string PageRoute => PAGE_ROUTE;
 
-    /// <summary>Acces type au VM, utilise par les bindings des DataTemplate.</summary>
-    public QueryVM ViewModel { get; }
-
-    public QueryPage(QueryVM viewModel) : base(viewModel)
+    public QueryPage(QueryVM viewModel, ConnectionExplorerView connectionExplorerView)
+    : base(viewModel)
     {
-        ViewModel = viewModel;
-
         InitializeComponent();
+        ConnectionExplorerHost.Content = connectionExplorerView;
     }
 }

@@ -16,7 +16,9 @@
         ( "SqlToolManagerMaui.UI.Attachments", "attachments", "att" ),
         ( "SqlToolManagerMaui.UI.Behaviors", "behaviors", "beh" ),
         ( "SqlToolManagerMaui.UI.Converters", "converters", "conv" ),
-        ( "SqlToolManagerMaui.UI.Inputs", "inputs", "inp" )
+        ( "SqlToolManagerMaui.UI.Inputs", "inputs", "inp" ),
+		( "SqlToolManagerMaui.UI.ViewModels", "viewmodels", "vm" ),
+		( "SqlToolManagerMaui.UI.Views", "views", "v" )
 	};
 
 	// Récupère tous les namespaces déclarés dans les fichiers .cs du projet

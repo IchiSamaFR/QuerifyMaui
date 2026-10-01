@@ -12,12 +12,11 @@
 
             <!-- Bouton hamburger : bascule etendu / compact -->
             <Button Command="{Binding ToggleCommand, Source={x:Reference Root}}"
-                    Style="{StaticResource TextButton}"
-                    ImageSource="{icons:Fluent Icon=Navigation20, IconColor={StaticResource LabelPrimary}, IconSize=20}"
-                    WidthRequest="40"
-                    Padding="0"
-                    HorizontalOptions="Start"
-                    ToolTipProperties.Text="Réduire / agrandir le menu" />
+                                Style="{StaticResource NavTextIconButtonStyle}"
+                                ImageSource="{icons:Fluent Icon=Navigation20}"
+                                WidthRequest="40"
+                                HorizontalOptions="Start"
+                                ToolTipProperties.Text="Réduire / agrandir le menu" />
 
             <!-- Items de navigation, alimentes par la propriete Items -->
             <ScrollView Grid.Row="1"

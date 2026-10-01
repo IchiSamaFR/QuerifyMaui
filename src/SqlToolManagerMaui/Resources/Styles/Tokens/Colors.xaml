@@ -1,49 +1,113 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Palette calquee sur le theme Dark de WPF UI (lepoco/wpfui, Resources/Theme/Dark.xaml).
+    Seule difference : l'accent "Primary" (SystemAccent) est remplace par "Info" (PaletteLightBlueColor).
+    Les cles historiques (LabelPrimary, ButtonBackground, Primary...) sont conservees comme alias.
+-->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
-    <Color x:Key="LabelPrimary">#F3F3F3</Color>
-    <Color x:Key="LabelSecondary">#DBDBDB</Color>
-    <Color x:Key="LabelTertiary">#BFBFBF</Color>
-    <Color x:Key="LabelPlaceHolder">#BFBFBF</Color>
+    <!-- ============ Accent : Info ============ -->
+    <Color x:Key="Info">#03A9F4</Color>
+    <!-- Survol / appui : opacites 0.9 / 0.7 de WPF UI, aplaties sur le fond #202020 -->
+    <Color x:Key="InfoPointerOver">#069BDF</Color>
+    <Color x:Key="InfoPressed">#0C80B4</Color>
+    <!-- Texte accentue (AccentTextFillColorPrimary en dark = teinte claire) -->
+    <Color x:Key="InfoText">#4FC3F7</Color>
+    <Color x:Key="TextOnInfo">#FFFFFF</Color>
+    <Color x:Key="InfoStroke">#14FFFFFF</Color>
 
-    <!-- Dark equivalent for light theme -->
-    <Color x:Key="LabelPrimaryDark">#0D0D0D</Color>
-    <Color x:Key="LabelSecondaryDark">#2B2B2B</Color>
-    <Color x:Key="LabelTertiaryDark">#6B6B6B</Color>
-    <Color x:Key="LabelPlaceHolderDark">#9B9B9B</Color>
+    <!-- Alias historiques de l'accent (ThemedPickerHandler lit "Primary") -->
+    <Color x:Key="Primary">#03A9F4</Color>
+    <Color x:Key="Secondary">#4FC3F7</Color>
+    <Color x:Key="Accent">#03A9F4</Color>
+    <Color x:Key="AccentDark">#03A9F4</Color>
 
-    <Color x:Key="Background">#0C0C0C</Color>
+    <!-- ============ Texte (TextFillColor*) ============ -->
+    <Color x:Key="TextFillColorPrimary">#FFFFFF</Color>
+    <Color x:Key="TextFillColorSecondary">#C5FFFFFF</Color>
+    <Color x:Key="TextFillColorTertiary">#87FFFFFF</Color>
+    <Color x:Key="TextFillColorDisabled">#5DFFFFFF</Color>
 
-    <Color x:Key="CardBackground">#16161C</Color>
+    <Color x:Key="LabelPrimary">#FFFFFF</Color>
+    <Color x:Key="LabelSecondary">#C5FFFFFF</Color>
+    <Color x:Key="LabelTertiary">#87FFFFFF</Color>
+    <Color x:Key="LabelPlaceHolder">#87FFFFFF</Color>
+    <Color x:Key="LabelDisabled">#5DFFFFFF</Color>
 
-    <Color x:Key="DialogBackgroundColor">#2F2F36</Color>
+    <!-- Lus par SqlToolManagerMaui.UI (InputColors) pour teinter les icones des champs -->
+    <Color x:Key="OnBackground">#E4000000</Color>
+    <Color x:Key="OnBackgroundDark">#C5FFFFFF</Color>
 
-    <Color x:Key="ButtonBackground">#444444</Color>
-    <Color x:Key="ButtonBorder">#444444</Color>
+    <!-- ============ Fonds ============ -->
+    <!-- ApplicationBackgroundColor : base Mica (rail, barre de menus) -->
+    <Color x:Key="ApplicationBackground">#202020</Color>
+    <!-- LayerFillColorDefault (#4C3A3A3A) aplati : zone de contenu des pages -->
+    <Color x:Key="LayerBackground">#282828</Color>
+    <!-- SolidBackgroundFillColorSecondary : surfaces enfoncees (editeur) -->
+    <Color x:Key="SunkenBackground">#1C1C1C</Color>
+    <!-- SolidBackgroundFillColorQuarternary : popups, menus, dialogues -->
+    <Color x:Key="FlyoutBackground">#2C2C2C</Color>
 
-    <Color x:Key="InputBackground">#2F2F36</Color>
-    <Color x:Key="InputBorder">#2F2F36</Color>
+    <Color x:Key="MainBackground">#202020</Color>
+    <Color x:Key="Background">#282828</Color>
+    <Color x:Key="DialogBackgroundColor">#2C2C2C</Color>
 
-    <Color x:Key="Shadow">#000000</Color>
+    <Color x:Key="CardBackground">#0DFFFFFF</Color>
+    <Color x:Key="CardBackgroundSecondary">#08FFFFFF</Color>
+    <Color x:Key="CardStroke">#19000000</Color>
 
-    <Color x:Key="LabelDisabled">#7F7F7F</Color>
-    <Color x:Key="InputDisabled">#4E4E4E</Color>
-    
-    <Color x:Key="Primary">#8F6BFF</Color>
-    <Color x:Key="PrimaryDark">#ac99ea</Color>
-    <Color x:Key="PrimaryDarkText">#F3F3F3</Color>
-    <Color x:Key="Secondary">#B8AEE0</Color>
-    <Color x:Key="SecondaryDarkText">#9880e5</Color>
-    <Color x:Key="Tertiary">#5A3FCF</Color>
+    <!-- ============ Controles (ControlFillColor*) ============ -->
+    <Color x:Key="ControlFillColorDefault">#0FFFFFFF</Color>
+    <Color x:Key="ControlFillColorSecondary">#15FFFFFF</Color>
+    <Color x:Key="ControlFillColorTertiary">#08FFFFFF</Color>
+    <Color x:Key="ControlFillColorDisabled">#0BFFFFFF</Color>
+    <Color x:Key="ControlFillColorInputActive">#1E1E1E</Color>
 
+    <Color x:Key="SubtleFillColorSecondary">#0FFFFFFF</Color>
+    <Color x:Key="SubtleFillColorTertiary">#0AFFFFFF</Color>
+
+    <Color x:Key="ControlStrokeColorDefault">#12FFFFFF</Color>
+    <Color x:Key="ControlStrokeColorSecondary">#18FFFFFF</Color>
+    <Color x:Key="ControlStrongStrokeColorDefault">#8BFFFFFF</Color>
+    <Color x:Key="DividerStrokeColorDefault">#15FFFFFF</Color>
+    <Color x:Key="SurfaceStrokeColorDefault">#66757575</Color>
+
+    <!-- Survol ajoute par ButtonView par-dessus son fond -->
+    <Color x:Key="HoverOverlay">#08FFFFFF</Color>
+    <Color x:Key="SubtleHoverOverlay">#0FFFFFFF</Color>
+    <Color x:Key="AccentHoverOverlay">#1A000000</Color>
+
+    <Color x:Key="ButtonBackground">#0FFFFFFF</Color>
+    <Color x:Key="ButtonBorder">#18FFFFFF</Color>
+
+    <Color x:Key="InputBackground">#0FFFFFFF</Color>
+    <Color x:Key="InputBorder">#18FFFFFF</Color>
+    <Color x:Key="InputDisabled">#0BFFFFFF</Color>
+
+    <!-- ============ Navigation laterale ============ -->
+    <Color x:Key="NavPaneLight">#F3F3F3</Color>
+    <Color x:Key="NavPaneDark">#202020</Color>
+    <Color x:Key="NavItemHoverLight">#0A000000</Color>
+    <Color x:Key="NavItemHoverDark">#0FFFFFFF</Color>
+    <Color x:Key="NavItemSelectedLight">#09000000</Color>
+    <Color x:Key="NavItemSelectedDark">#0FFFFFFF</Color>
+
+    <!-- ============ Etats systeme (SystemFillColor*) ============ -->
+    <Color x:Key="Success">#6CCB5F</Color>
+    <Color x:Key="SuccessBackground">#393D1B</Color>
+    <Color x:Key="Warning">#FCE100</Color>
+    <Color x:Key="WarningBackground">#433519</Color>
+    <!-- Error = valeur theme clair, ErrorDark = SystemFillColorCritical du theme sombre -->
+    <Color x:Key="Error">#C42B1C</Color>
+    <Color x:Key="ErrorDark">#FF99A4</Color>
+    <Color x:Key="ErrorBackground">#442726</Color>
+    <!-- Bouton "Danger" de WPF UI (PaletteRedColor) -->
+    <Color x:Key="Danger">#F44336</Color>
+
+    <!-- ============ Neutres ============ -->
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
-    <Color x:Key="Magenta">#D600AA</Color>
-    <Color x:Key="MidnightBlue">#190649</Color>
-    <Color x:Key="OffBlack">#1f1f1f</Color>
-
     <Color x:Key="Gray100">#E1E1E1</Color>
     <Color x:Key="Gray200">#C8C8C8</Color>
     <Color x:Key="Gray300">#ACACAC</Color>
@@ -53,46 +117,8 @@
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
 
-    <!-- Navigation laterale (style Windows 11 / NavigationView) -->
-    <Color x:Key="Accent">#0067C0</Color>
-    <Color x:Key="AccentDark">#60CDFF</Color>
-    <Color x:Key="NavPaneLight">#F3F3F3</Color>
-    <Color x:Key="NavPaneDark">#202020</Color>
-    <Color x:Key="NavItemHoverLight">#0A000000</Color>
-    <Color x:Key="NavItemHoverDark">#0FFFFFFF</Color>
-    <Color x:Key="NavItemSelectedLight">#14000000</Color>
-    <Color x:Key="NavItemSelectedDark">#19FFFFFF</Color>
-
-    <!-- Etats d'erreur (palette systeme Windows 11) -->
-    <Color x:Key="Danger">#C42B1C</Color>
-    <Color x:Key="DangerDark">#FF99A4</Color>
-    <Color x:Key="Warning">#FFA500</Color>
-
+    <SolidColorBrush x:Key="InfoBrush"
+                     Color="{StaticResource Info}" />
     <SolidColorBrush x:Key="PrimaryBrush"
                      Color="{StaticResource Primary}" />
-    <SolidColorBrush x:Key="SecondaryBrush"
-                     Color="{StaticResource Secondary}" />
-    <SolidColorBrush x:Key="TertiaryBrush"
-                     Color="{StaticResource Tertiary}" />
-    <SolidColorBrush x:Key="WhiteBrush"
-                     Color="{StaticResource White}" />
-    <SolidColorBrush x:Key="BlackBrush"
-                     Color="{StaticResource Black}" />
-
-    <SolidColorBrush x:Key="Gray100Brush"
-                     Color="{StaticResource Gray100}" />
-    <SolidColorBrush x:Key="Gray200Brush"
-                     Color="{StaticResource Gray200}" />
-    <SolidColorBrush x:Key="Gray300Brush"
-                     Color="{StaticResource Gray300}" />
-    <SolidColorBrush x:Key="Gray400Brush"
-                     Color="{StaticResource Gray400}" />
-    <SolidColorBrush x:Key="Gray500Brush"
-                     Color="{StaticResource Gray500}" />
-    <SolidColorBrush x:Key="Gray600Brush"
-                     Color="{StaticResource Gray600}" />
-    <SolidColorBrush x:Key="Gray900Brush"
-                     Color="{StaticResource Gray900}" />
-    <SolidColorBrush x:Key="Gray950Brush"
-                     Color="{StaticResource Gray950}" />
 </ResourceDictionary>

@@ -1,51 +1,84 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Boutons calques sur WPF UI (Controls/Button/Button.xaml), theme Dark :
+    - Secondary (defaut) : ControlFillColorDefault + ControlStrokeColorSecondary
+    - Primary            : remplace par l'apparence "Info" (PaletteLightBlueColor)
+    - Transparent/Text   : SubtleFillColor au survol
+    - Danger             : PaletteRedColor
+-->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- ButtonView Styles -->
-    <Style x:Key="FilledButtonViewStyle"
+    <!-- ============ ButtonView ============ -->
+    <Style x:Key="BaseButtonViewStyle"
            TargetType="inp:ButtonView"
            ApplyToDerivedTypes="True">
         <Setter Property="HeightRequest"
-                Value="{DynamicResource SubInputHeight}" />
+                Value="{DynamicResource ButtonHeight}" />
+        <Setter Property="CornerRadius"
+                Value="{DynamicResource ControlCornerRadius}" />
         <Setter Property="DisabledOpacity"
                 Value="{DynamicResource DisabledOpacity}" />
-        <Setter Property="CornerRadius"
-                Value="{DynamicResource ButtonCornerRadius}" />
+        <Setter Property="PressedOpacity"
+                Value="0.8" />
 
-        <Setter Property="BackgroundColor"
-                Value="{DynamicResource Primary}" />
-        <Setter Property="BorderColor"
-                Value="{DynamicResource Primary}" />
-        <Setter Property="BorderThickness"
-                Value="1" />
-        <Setter Property="HoverOverlayColor"
-                Value="{DynamicResource NavItemHoverDark}" />
-
-        <Setter Property="VerticalOptions"
-                Value="Center" />
-        <Setter Property="Padding"
-                Value="16,0" />
-    </Style>
-
-    <Style x:Key="SecondaryFilledButtonViewStyle"
-           TargetType="inp:ButtonView"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource FilledButtonViewStyle}">
         <Setter Property="BackgroundColor"
                 Value="{DynamicResource ButtonBackground}" />
         <Setter Property="BorderColor"
                 Value="{DynamicResource ButtonBorder}" />
+        <Setter Property="BorderThickness"
+                Value="0" />
+        <Setter Property="HoverOverlayColor"
+                Value="{DynamicResource HoverOverlay}" />
+
+        <Setter Property="VerticalOptions"
+                Value="Center" />
+        <Setter Property="Padding"
+                Value="{DynamicResource ButtonPadding}" />
+    </Style>
+
+    <!-- Apparence Primary de WPF UI, en couleur Info -->
+    <Style x:Key="PrimaryButtonViewStyle"
+           TargetType="inp:ButtonView"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource BaseButtonViewStyle}">
+        <Setter Property="BackgroundColor"
+                Value="{DynamicResource Info}" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource InfoStroke}" />
+        <Setter Property="HoverOverlayColor"
+                Value="{DynamicResource AccentHoverOverlay}" />
+    </Style>
+
+    <Style x:Key="SecondaryButtonViewStyle"
+           TargetType="inp:ButtonView"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource BaseButtonViewStyle}">
+    </Style>
+
+    <Style x:Key="DangerButtonViewStyle"
+           TargetType="inp:ButtonView"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource BaseButtonViewStyle}">
+        <Setter Property="BackgroundColor"
+                Value="{DynamicResource Danger}" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource InfoStroke}" />
+        <Setter Property="HoverOverlayColor"
+                Value="{DynamicResource AccentHoverOverlay}" />
     </Style>
 
     <Style x:Key="OutlinedButtonViewStyle"
            TargetType="inp:ButtonView"
            ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource FilledButtonViewStyle}">
-        <Setter Property="Background"
+           BasedOn="{StaticResource BaseButtonViewStyle}">
+        <Setter Property="BackgroundColor"
                 Value="Transparent" />
+        <Setter Property="HoverOverlayColor"
+                Value="{DynamicResource SubtleHoverOverlay}" />
     </Style>
 
+    <!-- Apparence Transparent de WPF UI -->
     <Style x:Key="TextButtonViewStyle"
            TargetType="inp:ButtonView"
            ApplyToDerivedTypes="True"
@@ -60,42 +93,128 @@
            TargetType="inp:ButtonView"
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource TextButtonViewStyle}">
-        <Setter Property="CornerRadius"
-                Value="{DynamicResource ButtonCornerRadius}" />
         <Setter Property="Padding"
                 Value="0" />
         <Setter Property="HeightRequest"
-                Value="{DynamicResource SubInputHeight}" />
+                Value="36" />
     </Style>
 
-    <!-- Button Styles -->
-    <!-- Base commune : chaque variante ne redefinit que ses couleurs. -->
-    <Style x:Key="BaseButton"
-           TargetType="Button">
+    <!-- ============ Button ============ -->
+    <!-- Apparence Secondary de WPF UI (bouton par defaut) -->
+    <Style x:Key="BaseButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True">
         <Setter Property="HeightRequest"
-                Value="{DynamicResource SubInputHeight}" />
+                Value="{DynamicResource ButtonHeight}" />
         <Setter Property="MinimumWidthRequest"
-                Value="0" />
-        <Setter Property="MinimumHeightRequest"
-                Value="0" />
+                Value="{DynamicResource ButtonHeight}" />
         <Setter Property="CornerRadius"
                 Value="4" />
+        <Setter Property="Padding"
+                Value="{DynamicResource ButtonPadding}" />
+        <Setter Property="VerticalOptions"
+                Value="Center" />
+
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Body}" />
+        <Setter Property="FontAttributes"
+                Value="None" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource TextFillColorPrimary}" />
+
+        <Setter Property="BackgroundColor"
+                Value="{DynamicResource ButtonBackground}" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource ButtonBorder}" />
         <Setter Property="BorderWidth"
                 Value="1" />
 
-        <Setter Property="FontSize"
-                Value="{DynamicResource FontSize_Normal}" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor"
+                                    Value="{DynamicResource ControlFillColorSecondary}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor"
+                                    Value="{DynamicResource ControlFillColorTertiary}" />
+                            <Setter Property="TextColor"
+                                    Value="{DynamicResource TextFillColorSecondary}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity"
+                                    Value="{DynamicResource DisabledOpacity}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SecondaryButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource BaseButtonStyle}">
+    </Style>
+
+    <!-- Apparence Primary de WPF UI, en couleur Info -->
+    <Style x:Key="PrimaryButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource BaseButtonStyle}">
+        <Setter Property="BackgroundColor"
+                Value="{DynamicResource Info}" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource InfoStroke}" />
         <Setter Property="TextColor"
-                Value="{DynamicResource LabelPrimary}" />
+                Value="{DynamicResource TextOnInfo}" />
 
-        <!-- Icone (ImageSource) a gauche du texte -->
-        <Setter Property="ContentLayout"
-                Value="Left, 8" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor"
+                                    Value="{DynamicResource InfoPointerOver}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor"
+                                    Value="{DynamicResource InfoPressed}" />
+                            <Setter Property="TextColor"
+                                    Value="{DynamicResource TextFillColorSecondary}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor"
+                                    Value="{DynamicResource ControlFillColorDisabled}" />
+                            <Setter Property="BorderColor"
+                                    Value="Transparent" />
+                            <Setter Property="TextColor"
+                                    Value="{DynamicResource TextFillColorDisabled}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
 
-        <Setter Property="VerticalOptions"
-                Value="Center" />
-        <Setter Property="Padding"
-                Value="16,0" />
+    <Style x:Key="DangerButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource PrimaryButtonStyle}">
+        <Setter Property="BackgroundColor"
+                Value="{DynamicResource Danger}" />
 
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
@@ -110,19 +229,17 @@
                     <VisualState x:Name="Pressed">
                         <VisualState.Setters>
                             <Setter Property="Opacity"
-                                    Value="0.75" />
+                                    Value="0.7" />
                         </VisualState.Setters>
                     </VisualState>
                     <VisualState x:Name="Disabled">
                         <VisualState.Setters>
-                            <Setter Property="TextColor"
-                                    Value="{DynamicResource LabelDisabled}" />
-                            <Setter Property="Background"
-                                    Value="{DynamicResource InputDisabled}" />
+                            <Setter Property="BackgroundColor"
+                                    Value="{DynamicResource ControlFillColorDisabled}" />
                             <Setter Property="BorderColor"
-                                    Value="{DynamicResource InputDisabled}" />
-                            <Setter Property="Opacity"
-                                    Value="{DynamicResource DisabledOpacity}" />
+                                    Value="Transparent" />
+                            <Setter Property="TextColor"
+                                    Value="{DynamicResource TextFillColorDisabled}" />
                         </VisualState.Setters>
                     </VisualState>
                 </VisualStateGroup>
@@ -130,69 +247,45 @@
         </Setter>
     </Style>
 
-    <Style x:Key="PrimaryButton"
+    <Style x:Key="FilledCardButtonStyle"
            TargetType="Button"
-           BasedOn="{StaticResource BaseButton}">
-        <Setter Property="Background"
-                Value="{DynamicResource Primary}" />
-        <Setter Property="BorderColor"
-                Value="{DynamicResource Primary}" />
-    </Style>
-
-    <Style x:Key="SecondaryButton"
-           TargetType="Button"
-           BasedOn="{StaticResource BaseButton}">
-        <Setter Property="Background"
-                Value="{DynamicResource ButtonBackground}" />
-        <Setter Property="BorderColor"
-                Value="{DynamicResource ButtonBorder}" />
-    </Style>
-
-    <Style x:Key="DangerButton"
-           TargetType="Button"
-           BasedOn="{StaticResource BaseButton}">
-        <Setter Property="Background"
-                Value="{DynamicResource Danger}" />
-        <Setter Property="BorderColor"
-                Value="{DynamicResource Danger}" />
-    </Style>
-
-    <!-- Bouton sans fond ni bordure : boutons icone (menu, fermeture d'onglet, steps d'IntField) -->
-    <Style x:Key="TextButton"
-           TargetType="Button"
-           BasedOn="{StaticResource BaseButton}">
-        <Setter Property="Background"
-                Value="Transparent" />
-        <Setter Property="BorderColor"
-                Value="Transparent" />
-        <Setter Property="BorderWidth"
-                Value="0" />
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource BaseButtonStyle}">
         <Setter Property="TextColor"
-                Value="{DynamicResource Primary}" />
+                Value="{DynamicResource InfoText}" />
+    </Style>
 
-        <!-- Desactive : le fond reste transparent, seul le texte grise -->
+    <Style x:Key="OutlinedButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource BaseButtonStyle}">
+        <Setter Property="BackgroundColor"
+                Value="Transparent" />
+
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">
                     <VisualState x:Name="Normal" />
                     <VisualState x:Name="PointerOver">
                         <VisualState.Setters>
-                            <Setter Property="Background"
-                                    Value="{DynamicResource NavItemHoverDark}" />
+                            <Setter Property="BackgroundColor"
+                                    Value="{DynamicResource SubtleFillColorSecondary}" />
                         </VisualState.Setters>
                     </VisualState>
                     <VisualState x:Name="Pressed">
                         <VisualState.Setters>
-                            <Setter Property="Opacity"
-                                    Value="0.75" />
+                            <Setter Property="BackgroundColor"
+                                    Value="{DynamicResource SubtleFillColorTertiary}" />
+                            <Setter Property="TextColor"
+                                    Value="{DynamicResource TextFillColorSecondary}" />
                         </VisualState.Setters>
                     </VisualState>
                     <VisualState x:Name="Disabled">
                         <VisualState.Setters>
+                            <Setter Property="BackgroundColor"
+                                    Value="Transparent" />
                             <Setter Property="TextColor"
-                                    Value="{DynamicResource LabelDisabled}" />
-                            <Setter Property="Opacity"
-                                    Value="{DynamicResource DisabledOpacity}" />
+                                    Value="{DynamicResource TextFillColorDisabled}" />
                         </VisualState.Setters>
                     </VisualState>
                 </VisualStateGroup>
@@ -200,11 +293,131 @@
         </Setter>
     </Style>
 
-    <!-- Default Styles -->
+    <!-- Apparence Transparent de WPF UI -->
+    <Style x:Key="TextButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource OutlinedButtonStyle}">
+        <Setter Property="BorderWidth"
+                Value="0" />
+        <Setter Property="BorderColor"
+                Value="Transparent" />
+    </Style>
+
+    <!-- Lien sous un champ (HyperlinkButton) -->
+    <Style x:Key="BelowInputButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource TextButtonStyle}">
+        <Setter Property="HorizontalOptions"
+                Value="End" />
+        <Setter Property="Margin"
+                Value="0" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource InfoText}" />
+    </Style>
+
+    <!-- ============ Button avec icone ============ -->
+    <Style x:Key="PrimaryIconButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource PrimaryButtonStyle}">
+        <Setter Property="HeightRequest"
+                Value="32" />
+        <Setter Property="WidthRequest"
+                Value="32" />
+        <Setter Property="MinimumHeightRequest"
+                Value="-1" />
+        <Setter Property="MinimumWidthRequest"
+                Value="-1" />
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="Margin"
+                Value="0" />
+    </Style>
+
+    <Style x:Key="SecondaryIconButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource SecondaryButtonStyle}">
+        <Setter Property="HeightRequest"
+                Value="32" />
+        <Setter Property="WidthRequest"
+                Value="32" />
+        <Setter Property="MinimumHeightRequest"
+                Value="-1" />
+        <Setter Property="MinimumWidthRequest"
+                Value="-1" />
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="Margin"
+                Value="0" />
+    </Style>
+
+    <Style x:Key="OutlinedIconButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource OutlinedButtonStyle}">
+        <Setter Property="HeightRequest"
+                Value="32" />
+        <Setter Property="WidthRequest"
+                Value="32" />
+        <Setter Property="MinimumHeightRequest"
+                Value="-1" />
+        <Setter Property="MinimumWidthRequest"
+                Value="-1" />
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="Margin"
+                Value="0" />
+    </Style>
+
+    <!-- Action destructive secondaire (SystemFillColorCritical) -->
+    <Style x:Key="DangerOutlinedIconButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource OutlinedIconButtonStyle}">
+        <Setter Property="TextColor"
+                Value="{DynamicResource ErrorDark}" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource ErrorDark}" />
+    </Style>
+
+    <!-- Petit bouton icone sans cadre (fermeture d'onglet...) -->
+    <Style x:Key="SimpleTextIconButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource TextButtonStyle}">
+        <Setter Property="HeightRequest"
+                Value="32" />
+        <Setter Property="WidthRequest"
+                Value="32" />
+        <Setter Property="MinimumHeightRequest"
+                Value="-1" />
+        <Setter Property="MinimumWidthRequest"
+                Value="-1" />
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="Margin"
+                Value="0" />
+    </Style>
+
+    <!-- Bouton du rail de navigation -->
+    <Style x:Key="NavTextIconButtonStyle"
+           TargetType="Button"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource TextButtonStyle}">
+        <Setter Property="HeightRequest"
+                Value="36" />
+        <Setter Property="Padding"
+                Value="0" />
+    </Style>
+
+    <!-- ============ Styles par defaut ============ -->
     <Style TargetType="inp:ButtonView"
-           BasedOn="{StaticResource FilledButtonViewStyle}" />
+           BasedOn="{StaticResource SecondaryButtonViewStyle}" />
 
     <Style TargetType="Button"
-           BasedOn="{StaticResource SecondaryButton}" />
+           BasedOn="{StaticResource SecondaryButtonStyle}" />
 
 </ResourceDictionary>

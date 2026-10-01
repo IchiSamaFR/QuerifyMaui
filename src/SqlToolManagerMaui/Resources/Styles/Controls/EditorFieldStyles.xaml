@@ -14,10 +14,10 @@
                 Value="4.5" />
 
         <Setter Property="AccentColor"
-                Value="{DynamicResource Primary}" />
+                Value="{DynamicResource Info}" />
         
         <Setter Property="CursorColor"
-                Value="{DynamicResource Primary}" />
+                Value="{DynamicResource Info}" />
     </Style>
 
     <Style TargetType="inp:EditorField"

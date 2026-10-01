@@ -7,6 +7,9 @@ namespace SqlToolManagerMaui
         public App()
         {
             InitializeComponent();
+
+            // Palette calquee sur le theme Dark de WPF UI uniquement
+            UserAppTheme = AppTheme.Dark;
         }
 
         protected override Window CreateWindow(IActivationState? activationState)

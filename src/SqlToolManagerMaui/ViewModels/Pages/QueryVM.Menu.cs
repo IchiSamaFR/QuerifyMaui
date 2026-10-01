@@ -106,6 +106,8 @@ public partial class QueryVM
 
         if (Documents.Count == 0)
             New();
+
+        ActiveDocument = Documents.FirstOrDefault();
     }
 
     /// <summary>Active l'onglet clique.</summary>

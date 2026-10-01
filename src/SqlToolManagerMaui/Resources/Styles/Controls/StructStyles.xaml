@@ -7,9 +7,9 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource InputFieldStyle}">
         <Setter Property="StepEnabledColor"
-                Value="{DynamicResource Primary}" />
+                Value="{DynamicResource Info}" />
         <Setter Property="StepDisabledColor"
-                Value="{DynamicResource LabelDisabled}" />
+                Value="{DynamicResource TextFillColorDisabled}" />
         <Setter Property="StepBackgroundColor"
                 Value="Transparent" />
         <Setter Property="StepDisabledBackgroundColor"
@@ -18,11 +18,11 @@
         <Setter Property="AddImageSource"
                 Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.Add20},
                         IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}}" />
+                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
         <Setter Property="MinusImageSource"
                 Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.Subtract20},
                         IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}}" />
+                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
     </Style>
     
     <!-- Default Styles -->

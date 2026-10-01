@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Models.Editors;
 using SqlToolManagerMaui.Models.Editors.Highlighting;
@@ -8,6 +9,7 @@ using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Queries;
+using SqlToolManagerMaui.UI.ViewModels;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 
@@ -101,17 +103,22 @@ public partial class QueryVM : AbstractVM
     {
         SyntaxConfiguration ??= await _syntaxConfigurations.GetAsync(SyntaxLanguage.Sql, LifetimeToken);
 
+        await ReloadConnectionsAsync();
+
+        if (Documents.Count == 0)
+            New();
+    }
+
+    private async Task ReloadConnectionsAsync()
+    {
         var stored = await _connectionStore.GetAllAsync(LifetimeToken);
+        var activeId = ActiveConnection?.Id;
 
         // La sentinelle "Aucune connexion" reste en tete : c'est l'option de deconnexion.
         Connections = [NoConnection, .. stored];
 
-        // Une connexion supprimee entre-temps ne doit pas rester selectionnee.
-        if (ActiveConnection is not null && !stored.Any(c => c.Id == ActiveConnection.Id))
-            SelectedConnection = NoConnection;
-
-        if (Documents.Count == 0)
-            New();
+        // Les descripteurs sont des clones : on reselectionne par Id, ou on deconnecte si supprime.
+        SelectedConnection = stored.FirstOrDefault(c => c.Id == activeId) ?? NoConnection;
     }
 
     /// <summary>Ferme l'application (entree Fichier > Quitter).</summary>

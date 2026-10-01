@@ -9,7 +9,7 @@
         <Setter Property="Icon"
                 Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.CalendarRtl20},
                         IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}}" />
+                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
     </Style>
 
     <Style TargetType="inp:TimePickerField"
@@ -19,7 +19,7 @@
         <Setter Property="Icon"
                 Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.Clock20},
                         IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}}" />
+                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
     </Style>
 
     <Style TargetType="inp:DateTimePickerField"
@@ -29,11 +29,11 @@
         <Setter Property="Icon"
                 Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.CalendarRtl20},
                         IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}}" />
+                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
         <Setter Property="SecondIcon"
                 Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.Clock20},
                         IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}}" />
+                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
     </Style>
 
     <!-- Default Styles -->

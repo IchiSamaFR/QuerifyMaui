@@ -6,7 +6,9 @@ using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Queries;
 using SqlToolManagerMaui.ViewModels;
 using SqlToolManagerMaui.ViewModels.Pages;
+using SqlToolManagerMaui.ViewModels.Pages.Connections;
 using SqlToolManagerMaui.Views.Pages;
+using SqlToolManagerMaui.Views.Pages.Connections;
 
 namespace SqlToolManagerMaui;
 
@@ -72,6 +74,12 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IConnectionTester, SqlServerConnectionTester>();
         services.AddSingleton<IConnectionTesterResolver, ConnectionTesterResolver>();
 
+        // Catalogue de l'explorateur d'objets : un lecteur par moteur, comme les testeurs.
+        services.AddSingleton<IDatabaseSchemaReader, SqlServerSchemaReader>();
+        services.AddSingleton<IDatabaseSchemaReaderResolver, DatabaseSchemaReaderResolver>();
+
+        services.AddSingleton<IConnectionDialogService, ConnectionDialogService>();
+
         return services;
     }
 
@@ -85,14 +93,17 @@ public static class ServiceCollectionExtensions
 
     private static IServiceCollection AddPages(this IServiceCollection services)
     {
-        services.AddSingleton<MainPage>();
-        services.AddSingleton<MainVM>();
-
         services.AddSingleton<QueryPage>();
         services.AddSingleton<QueryVM>();
 
-        services.AddSingleton<ConnectionsPage>();
-        services.AddSingleton<ConnectionsVM>();
+        services.AddTransient<ConnectionExplorerView>();
+        services.AddSingleton<ConnectionExplorerVM>();
+
+        // Popup "Se connecter" : VM neuf a chaque ouverture.
+        services.AddTransient<ConnectionEditorVM>();
+
+        services.AddTransient<ConnectionExplorerView>();
+        services.AddSingleton<ConnectionExplorerVM>();
 
         return services;
     }

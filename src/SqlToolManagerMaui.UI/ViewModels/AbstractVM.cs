@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace SqlToolManagerMaui.ViewModels;
+namespace SqlToolManagerMaui.UI.ViewModels;
 
 public abstract partial class AbstractVM : ObservableObject
 {
