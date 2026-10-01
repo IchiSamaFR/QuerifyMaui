@@ -8,7 +8,7 @@ namespace SqlToolManagerMaui.Services.Editors.Completion;
 public sealed class CompletionService : ICompletionService
 {
     /// <summary>Au-dela, la liste n'aide plus : mieux vaut taper une lettre de plus.</summary>
-    private const int MaxResults = 50;
+    private const int MaxResults = 100;
 
     private readonly IReadOnlyList<ICompletionProvider> _providers;
     private readonly Dictionary<SyntaxLanguage, ICompletionContextAnalyzer> _analyzers;

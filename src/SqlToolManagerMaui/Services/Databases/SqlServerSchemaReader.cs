@@ -53,10 +53,19 @@ public sealed class SqlServerSchemaReader : IDatabaseSchemaReader
         INNER JOIN sys.schemas s ON s.schema_id = o.schema_id
         WHERE o.type IN ('U', 'V', 'P') AND o.is_ms_shipped = 0;
 
-        SELECT c.object_id, c.name, t.name, c.max_length, c.precision, c.scale
+        SELECT c.object_id, c.name, t.name, c.max_length, c.precision, c.scale,
+               CASE WHEN t.is_user_defined = 1 AND t.is_assembly_type = 0 THEN TYPE_NAME(t.system_type_id) ELSE t.name END,
+               c.is_nullable,
+               CAST(ISNULL(pk.key_ordinal, 0) AS int)
         FROM sys.columns c
         INNER JOIN sys.types t ON t.user_type_id = c.user_type_id
         INNER JOIN sys.objects o ON o.object_id = c.object_id
+        LEFT JOIN (
+            SELECT ic.object_id, ic.column_id, ic.key_ordinal
+            FROM sys.index_columns ic
+            INNER JOIN sys.indexes i ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+            WHERE i.is_primary_key = 1
+        ) pk ON pk.object_id = c.object_id AND pk.column_id = c.column_id
         WHERE o.type IN ('U', 'V') AND o.is_ms_shipped = 0
         ORDER BY c.object_id, c.column_id;
         """;
@@ -149,7 +158,16 @@ public sealed class SqlServerSchemaReader : IDatabaseSchemaReader
             if (!columns.TryGetValue(objectId, out var list))
                 columns[objectId] = list = [];
 
-            list.Add(new DatabaseSchemaColumn(reader.GetString(1), FormatType(reader.GetString(2), reader.GetInt16(3), reader.GetByte(4), reader.GetByte(5))));
+            var precision = reader.GetByte(4);
+            var scale = reader.GetByte(5);
+            list.Add(new DatabaseSchemaColumn(
+                reader.GetString(1),
+                FormatType(reader.GetString(2), reader.GetInt16(3), precision, scale),
+                SqlType: reader.GetString(6),
+                IsNullable: reader.GetBoolean(7),
+                PrimaryKeyOrdinal: reader.GetInt32(8),
+                Precision: precision,
+                Scale: scale));
         }
 
         return new DatabaseSchemaSnapshot
