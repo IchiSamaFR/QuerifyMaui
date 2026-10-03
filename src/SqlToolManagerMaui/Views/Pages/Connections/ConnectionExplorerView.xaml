@@ -3,13 +3,9 @@
                        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                        x:Class="SqlToolManagerMaui.Views.Pages.Connections.ConnectionExplorerView"
                        x:DataType="vm:ConnectionExplorerVM"
-                       x:Name="root"
-                       WidthRequest="340"
-                       Padding="8">
-    <Border Style="{StaticResource CardStyle}"
-            Padding="0">
+                       x:Name="root">
+    <Border Style="{StaticResource CardStyle}">
         <Grid RowDefinitions="Auto,Auto,*"
-              Margin="8"
               RowSpacing="8">
 
             <!-- ============ En-tete + barre d'outils (Explorateur d'objets SSMS) ============ -->

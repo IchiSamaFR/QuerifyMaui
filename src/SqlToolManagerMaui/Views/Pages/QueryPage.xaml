@@ -27,37 +27,28 @@
                             DisconnectCommand="{Binding DisconnectCommand}" />
     </ContentPage.MenuBarItems>
 
-    <Grid ColumnDefinitions="Auto,*">
+    <Grid ColumnDefinitions="340,2,*"
+          ColumnSpacing="8"
+          Padding="8">
 
         <!-- ============ Colonne gauche : liste des connexions ============ -->
         <ContentPresenter x:Name="ConnectionExplorerHost" />
 
-        <Grid Grid.Column="1"
-              RowDefinitions="Auto,*,Auto,Auto"
-              RowSpacing="8"
-              Style="{StaticResource ContentNoTopStyle}">
+        <v:GridSplitter Grid.Column="1" />
+
+        <Grid Grid.Column="2"
+              RowDefinitions="Auto,*,2,Auto,Auto">
 
             <!-- ============ Onglets + execution ============ -->
             <Grid Grid.Row="0"
                   ColumnDefinitions="*,Auto"
                   ColumnSpacing="16">
 
-                <CollectionView ItemsSource="{Binding Documents}"
-                                SelectedItem="{Binding ActiveDocument}"
-                                SelectionMode="Single">
-                    <CollectionView.ItemsLayout>
-                        <LinearItemsLayout Orientation="Horizontal"
-                                           ItemSpacing="4" />
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="m:EditorDocument">
-                            <c:FileTabItem Document="{Binding .}"
-                                           CloseCommand="{Binding Source={RelativeSource AncestorType={x:Type v:QueryPage}}, Path=BindingContext.CloseCommand, x:DataType=v:QueryPage}" />
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                <c:FileTabControl ItemsSource="{Binding Documents}"
+                                  SelectedItem="{Binding ActiveDocument}"
+                                  CloseCommand="{Binding CloseCommand}"
+                                  NewCommand="{Binding NewCommand}" />
 
-                <!-- Execution : UI en place, branchement a venir -->
                 <HorizontalStackLayout Grid.Column="1"
                                        Spacing="8"
                                        VerticalOptions="Center">
@@ -75,10 +66,13 @@
 
             <!-- ============ Editeur ============ -->
             <Border Grid.Row="1"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 0 0 4 4"
                     Style="{StaticResource SunkenSurfaceStyle}">
 
                 <c:CodeEditor x:Name="Editor"
                               Text="{Binding ActiveDocument.EditorText}"
+                              FilePath="{Binding ActiveDocument.FilePath}"
                               Selection="{Binding ActiveDocument.Selection}"
                               EditorConfiguration="{Binding EditorConfiguration}"
                               SyntaxConfiguration="{Binding SyntaxConfiguration}"
@@ -86,8 +80,10 @@
                               IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
             </Border>
 
+            <v:GridSplitter Grid.Row="2" />
+            
             <!-- ============ Resultats ============ -->
-            <c:QueryResultsPanel Grid.Row="2"
+            <c:QueryResultsPanel Grid.Row="3"
                                  HeightRequest="300"
                                  Result="{Binding ActiveDocument.LastResult}"
                                  IsExecuting="{Binding ActiveDocument.IsExecuting}"
@@ -95,7 +91,7 @@
                                  IsVisible="{Binding ActiveDocument.HasResultsPanel, FallbackValue=False}" />
 
             <!-- ============ Barre d'etat ============ -->
-            <Grid Grid.Row="3"
+            <Grid Grid.Row="4"
                   ColumnDefinitions="*,Auto"
                   ColumnSpacing="16">
 
@@ -113,29 +109,6 @@
                         </DataTrigger>
                     </Label.Triggers>
                 </Label>
-
-                <HorizontalStackLayout Grid.Column="1"
-                                       Spacing="16">
-                    <Label Text="{Binding SyntaxConfiguration.Definition.Name}"
-                           Style="{StaticResource LabelTertiaryStyle}"
-                           VerticalOptions="Center" />
-
-                    <Label Text="{Binding ActiveDocument.PathLabel}"
-                           Style="{StaticResource LabelTertiaryStyle}"
-                           LineBreakMode="HeadTruncation"
-                           MaximumWidthRequest="420"
-                           VerticalOptions="Center" />
-
-                    <Label Style="{StaticResource LabelTertiaryStyle}"
-                           VerticalOptions="Center">
-                        <Label.Text>
-                            <MultiBinding StringFormat="Ln {0}, Col {1}">
-                                <Binding Path="ActiveDocument.Selection.CaretLine" />
-                                <Binding Path="ActiveDocument.Selection.CaretColumn" />
-                            </MultiBinding>
-                        </Label.Text>
-                    </Label>
-                </HorizontalStackLayout>
             </Grid>
         </Grid>
     </Grid>

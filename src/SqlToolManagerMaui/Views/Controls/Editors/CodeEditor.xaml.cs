@@ -34,6 +34,18 @@ public partial class CodeEditor : ContentView
         set => SetValue(TextProperty, value);
     }
 
+    public static readonly BindableProperty FilePathProperty = BindableProperty.Create(
+        nameof(FilePath), typeof(string), typeof(CodeEditor), string.Empty, BindingMode.TwoWay);
+
+    /// <summary>
+    /// Chemin du fichier edite.
+    /// </summary>
+    public string FilePath
+    {
+        get => (string)GetValue(FilePathProperty);
+        set => SetValue(FilePathProperty, value);
+    }
+
     public static readonly BindableProperty EditorConfigurationProperty = BindableProperty.Create(
         nameof(EditorConfiguration), typeof(EditorConfiguration), typeof(CodeEditor), null,
         propertyChanged: (bindable, oldValue, newValue) => ((CodeEditor)bindable).OnEditorConfigurationChanged(oldValue as EditorConfiguration, newValue as EditorConfiguration));

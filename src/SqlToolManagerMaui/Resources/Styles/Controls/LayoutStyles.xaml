@@ -47,4 +47,10 @@
                 Value="24,8,24,24" />
     </Style>
 
+    <Style TargetType="v:GridSplitter"
+           ApplyToDerivedTypes="True">
+        <Setter Property="Background"
+                Value="{DynamicResource CardBackground}" />
+    </Style>
+
 </ResourceDictionary>

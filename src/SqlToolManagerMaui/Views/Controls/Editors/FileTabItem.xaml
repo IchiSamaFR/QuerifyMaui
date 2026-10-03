@@ -2,60 +2,76 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SqlToolManagerMaui.Views.Controls.Editors.FileTabItem"
+             x:Name="Root"
              HorizontalOptions="Start"
-             VerticalOptions="Start">
+             VerticalOptions="Fill">
 
     <ContentView.GestureRecognizers>
-        <PointerGestureRecognizer />
+        <PointerGestureRecognizer PointerEntered="OnPointerEntered"
+                                  PointerExited="OnPointerExited" />
+        <TapGestureRecognizer Tapped="OnTapped" />
     </ContentView.GestureRecognizers>
 
-    <VisualStateManager.VisualStateGroups>
-        <VisualStateGroup x:Name="CommonStates">
-            <VisualState x:Name="Normal">
-                <VisualState.Setters>
-                    <Setter TargetName="CloseButton"
-                            Property="Opacity"
-                            Value="0" />
-                </VisualState.Setters>
-            </VisualState>
-            <VisualState x:Name="PointerOver">
-                <VisualState.Setters>
-                    <Setter TargetName="CloseButton"
-                            Property="Opacity"
-                            Value="1" />
-                </VisualState.Setters>
-            </VisualState>
-            <VisualState x:Name="Selected">
-                <VisualState.Setters>
-                    <Setter TargetName="CloseButton"
-                            Property="Opacity"
-                            Value="1" />
-                </VisualState.Setters>
-            </VisualState>
-        </VisualStateGroup>
-    </VisualStateManager.VisualStateGroups>
+    <Border StrokeThickness="0"
+            BackgroundColor="Transparent"
+            ToolTipProperties.Text="{Binding Document.PathLabel, Source={x:Reference Root}, x:DataType=c:FileTabItem}">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="6,6,0,0" />
+        </Border.StrokeShape>
 
-    <Border x:Name="TabBorder"
-            StrokeThickness="0"
-            StrokeShape="RoundRectangle 4"
-            BackgroundColor="Transparent">
+        <!-- Survol puis selection : le dernier declencheur actif l'emporte -->
+        <Border.Triggers>
+            <DataTrigger TargetType="Border"
+                         Binding="{Binding IsPointerOver, Source={x:Reference Root}, x:DataType=c:FileTabItem}"
+                         Value="True">
+                <Setter Property="BackgroundColor"
+                        Value="{StaticResource SubtleFillColorSecondary}" />
+            </DataTrigger>
+            <DataTrigger TargetType="Border"
+                         Binding="{Binding IsSelected, Source={x:Reference Root}, x:DataType=c:FileTabItem}"
+                         Value="True">
+                <Setter Property="BackgroundColor"
+                        Value="{StaticResource ApplicationBackground}" />
+            </DataTrigger>
+        </Border.Triggers>
 
         <Grid ColumnDefinitions="*,Auto"
-              ColumnSpacing="8"
-              Padding="15,0,6,0">
+              ColumnSpacing="4"
+              Padding="14,0,4,0">
 
             <Label Grid.Column="0"
-                   Text="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=Document.FileName, x:DataType=c:FileTabItem}"
-                   Style="{StaticResource LabelStyle}" />
+                   Text="{Binding Document.FileName, Source={x:Reference Root}, x:DataType=c:FileTabItem}"
+                   Style="{StaticResource LabelStyle}"
+                   LineBreakMode="TailTruncation"
+                   MaximumWidthRequest="180"
+                   VerticalOptions="Center" />
 
-            <Button x:Name="CloseButton"
-                    Grid.Column="1"
-                    Style="{StaticResource SimpleTextIconButtonStyle}"
-                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=CloseCommand, x:DataType=c:FileTabItem}"
-                    CommandParameter="{Binding Source={RelativeSource AncestorType={x:Type c:FileTabItem}}, Path=Document, x:DataType=c:FileTabItem}"
-                    ImageSource="{icons:Fluent Icon=Dismiss16, IconSize=16}"
-                    ToolTipProperties.Text="Fermer l'onglet" />
+            <!-- Pastille "modifie" et bouton fermer partagent le meme emplacement -->
+            <Grid Grid.Column="1"
+                  WidthRequest="32"
+                  HeightRequest="32"
+                  VerticalOptions="Center">
 
+                <Border WidthRequest="8"
+                        HeightRequest="8"
+                        StrokeThickness="0"
+                        InputTransparent="True"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        BackgroundColor="{StaticResource TextFillColorSecondary}"
+                        IsVisible="{Binding ShowDirtyDot, Source={x:Reference Root}, x:DataType=c:FileTabItem}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="4" />
+                    </Border.StrokeShape>
+                </Border>
+
+                <Button Style="{StaticResource SimpleTextIconButtonStyle}"
+                        Command="{Binding CloseCommand, Source={x:Reference Root}, x:DataType=c:FileTabItem}"
+                        CommandParameter="{Binding Document, Source={x:Reference Root}, x:DataType=c:FileTabItem}"
+                        ImageSource="{icons:Fluent Icon=Dismiss16, IconSize=16}"
+                        ToolTipProperties.Text="Fermer l'onglet"
+                        IsVisible="{Binding ShowCloseButton, Source={x:Reference Root}, x:DataType=c:FileTabItem}" />
+            </Grid>
         </Grid>
     </Border>
 </ContentView>

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Maui.Controls.Shapes;
 using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
 
-namespace SqlToolManagerMaui.UI.Views;
+namespace SqlToolManagerMaui.UI.Views.Controls;
 
 /// <summary>
 /// Noeud d'un <see cref="TreeView"/> : en-tete (chevron + ItemTemplate) puis, sous lui,

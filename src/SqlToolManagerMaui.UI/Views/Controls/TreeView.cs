@@ -1,3 +1,5 @@
+﻿using SqlToolManagerMaui.UI.Views.Controls;
+
 namespace SqlToolManagerMaui.UI.Views;
 
 /// <summary>
@@ -37,7 +39,6 @@ public partial class TreeView : ContentView
             Content = _rootHost,
         };
         Content = _scrollView;
-
 #if WINDOWS
         _scrollView.HandlerChanged += (_, _) => AttachKeyboard();
         AttachKeyboard();
