@@ -27,7 +27,7 @@
                             DisconnectCommand="{Binding DisconnectCommand}" />
     </ContentPage.MenuBarItems>
 
-    <Grid ColumnDefinitions="340,2,*"
+    <Grid ColumnDefinitions="340,Auto,*"
           ColumnSpacing="8"
           Padding="8">
 
@@ -39,6 +39,14 @@
         <Grid Grid.Column="2"
               RowDefinitions="*,Auto,Auto"
               RowSpacing="8">
+            <Grid.Triggers>
+                <DataTrigger TargetType="Grid"
+                             Binding="{Binding ActiveDocument.HasResultsPanel, FallbackValue=False}"
+                             Value="False">
+                    <Setter Property="RowSpacing"
+                            Value="0" />
+                </DataTrigger>
+            </Grid.Triggers>
 
             <Grid Grid.Row="0"
                   RowDefinitions="Auto,*">
