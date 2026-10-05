@@ -27,7 +27,15 @@ public partial class GridSplitter : ContentView
 
     public GridSplitter()
     {
-        InitializeComponent();
+        // Construit en C# : la lib UI cible Windows sans etre une Exe, le compilateur XAML WinUI
+        // refuserait de compiler un .xaml MAUI (WMC0001).
+        var splitter = new BoxView
+        {
+            HorizontalOptions = LayoutOptions.Fill,
+            VerticalOptions = LayoutOptions.Fill,
+        };
+        splitter.SetBinding(BoxView.ColorProperty, new Binding(nameof(BackgroundColor), source: this));
+        Content = splitter;
     }
 
     private WinUIElement? _nativeView;
