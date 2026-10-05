@@ -3,7 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SqlToolManagerMaui.Views.Controls.Queries.QueryResultsPanel">
 
-    <Border Style="{StaticResource CardStyle}">
+    <Border Style="{StaticResource CardStyle}"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 0,0,4,4">
 
         <Grid RowDefinitions="Auto,*"
               RowSpacing="4">

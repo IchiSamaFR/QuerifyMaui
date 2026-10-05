@@ -6,15 +6,15 @@ using WinUIElement = Microsoft.UI.Xaml.UIElement;
 namespace SqlToolManagerMaui.UI.Views.Controls;
 
 /// <summary>
-/// Splitter vertical a placer dans une colonne Auto d'une Grid :
-/// redimensionne la colonne situee a sa gauche en temps reel pendant le drag.
+/// Splitter a placer dans une colonne ou une ligne d'une Grid (horizontal si Width > Height, sinon vertical).
+/// Vertical : redimensionne la colonne a sa gauche. Horizontal : redimensionne les vues de la ligne en dessous.
 /// </summary>
 public partial class GridSplitter : ContentView
 {
     public static readonly BindableProperty MinimumSizeProperty =
         BindableProperty.Create(nameof(MinimumSize), typeof(double), typeof(GridSplitter), 100d);
 
-    /// <summary>Largeur minimale des colonnes de part et d'autre du splitter.</summary>
+    /// <summary>Taille minimale des zones de part et d'autre du splitter.</summary>
     public double MinimumSize
     {
         get => (double)GetValue(MinimumSizeProperty);
@@ -22,8 +22,12 @@ public partial class GridSplitter : ContentView
     }
 
     private bool _isDragging;
-    private double _startPointerX;
-    private double _startWidth;
+    private bool _horizontal;
+    private double _startPointer;
+    private double _startPosition;
+    private double _startSize;
+
+    private bool IsHorizontal => Width > Height;
 
     public GridSplitter()
     {
@@ -36,6 +40,7 @@ public partial class GridSplitter : ContentView
         };
         splitter.SetBinding(BoxView.ColorProperty, new Binding(nameof(BackgroundColor), source: this));
         Content = splitter;
+        SizeChanged += (_, _) => { if (_nativeView is not null) SetResizeCursor(_nativeView, IsHorizontal); };
     }
 
     private WinUIElement? _nativeView;
@@ -64,7 +69,7 @@ public partial class GridSplitter : ContentView
         view.AddHandler(WinUIElement.PointerMovedEvent, _moved = OnPointerMoved, true);
         view.AddHandler(WinUIElement.PointerReleasedEvent, _released = OnPointerReleased, true);
         view.AddHandler(WinUIElement.PointerCaptureLostEvent, _captureLost = OnPointerCaptureLost, true);
-        SetResizeCursor(view);
+        SetResizeCursor(view, IsHorizontal);
     }
 
     private void Detach()
@@ -81,27 +86,44 @@ public partial class GridSplitter : ContentView
 
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        if (_nativeView is null || Parent is not Grid grid || GetTargetColumn(grid) is not { } column)
+        if (_nativeView is null || Parent is not Grid grid)
             return;
 
-        _startPointerX = GetPointerX(grid, e);
-        _startWidth = GetCurrentWidth(grid, column);
+        _horizontal = IsHorizontal;
+        var size = _horizontal ? GetRowChildrenHeight(grid) : GetTargetColumn(grid) is { } column ? GetCurrentWidth(grid, column) : null;
+        if (size is null)
+            return;
+
+        _startSize = size.Value;
+        _startPointer = GetPointer(grid, e);
+        _startPosition = _horizontal ? Y : X;
         _isDragging = _nativeView.CapturePointer(e.Pointer);
         e.Handled = true;
     }
 
     private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (!_isDragging || Parent is not Grid grid || GetTargetColumn(grid) is not { } column)
+        if (!_isDragging || Parent is not Grid grid)
             return;
 
         // Position relative a la Grid parente (et non au splitter qui bouge) : pas d'effet de rebond.
-        var delta = GetPointerX(grid, e) - _startPointerX;
-        var max = grid.Width - Width - grid.ColumnSpacing * 2 - MinimumSize;
-        var newWidth = Math.Clamp(_startWidth + delta, MinimumSize, Math.Max(MinimumSize, max));
+        var delta = GetPointer(grid, e) - _startPointer;
 
-        column.Width = new GridLength(newWidth);
-        grid.InvalidateMeasure();
+        if (_horizontal)
+        {
+            // Zone du bas : tirer vers le haut l'agrandit.
+            var max = _startSize + _startPosition - MinimumSize;
+            var height = Math.Clamp(_startSize - delta, MinimumSize, Math.Max(MinimumSize, max));
+            foreach (var child in GetRowChildren(grid))
+                child.HeightRequest = height;
+        }
+        else if (GetTargetColumn(grid) is { } column)
+        {
+            var max = grid.Width - Width - grid.ColumnSpacing * 2 - MinimumSize;
+            column.Width = new GridLength(Math.Clamp(_startSize + delta, MinimumSize, Math.Max(MinimumSize, max)));
+            grid.InvalidateMeasure();
+        }
+
         e.Handled = true;
     }
 
@@ -114,18 +136,30 @@ public partial class GridSplitter : ContentView
 
     private void OnPointerCaptureLost(object sender, PointerRoutedEventArgs e) => _isDragging = false;
 
-    private static double GetPointerX(Grid grid, PointerRoutedEventArgs e)
+    private double GetPointer(Grid grid, PointerRoutedEventArgs e)
     {
-        var reference = grid.Handler?.PlatformView as WinUIElement;
-        return e.GetCurrentPoint(reference).Position.X;
+        var position = e.GetCurrentPoint(grid.Handler?.PlatformView as WinUIElement).Position;
+        return _horizontal ? position.Y : position.X;
     }
 
-    private static void SetResizeCursor(WinUIElement view)
+    private static void SetResizeCursor(WinUIElement view, bool horizontal)
     {
         // ProtectedCursor est protege dans WinUI : on passe par la reflexion.
         typeof(WinUIElement)
             .GetProperty("ProtectedCursor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
-            .SetValue(view, InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast));
+            .SetValue(view, InputSystemCursor.Create(horizontal ? InputSystemCursorShape.SizeNorthSouth : InputSystemCursorShape.SizeWestEast));
+    }
+
+    private List<VisualElement> GetRowChildren(Grid grid)
+    {
+        var row = Grid.GetRow(this) + 1;
+        return grid.Children.OfType<VisualElement>().Where(c => Grid.GetRow((BindableObject)c) == row && Grid.GetRowSpan((BindableObject)c) == 1).ToList();
+    }
+
+    private double? GetRowChildrenHeight(Grid grid)
+    {
+        var children = GetRowChildren(grid);
+        return children.Count > 0 ? children.Max(c => c.Height) : null;
     }
 
     private ColumnDefinition? GetTargetColumn(Grid grid)

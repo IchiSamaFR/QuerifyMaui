@@ -37,78 +37,87 @@
         <v:GridSplitter Grid.Column="1" />
 
         <Grid Grid.Column="2"
-              RowDefinitions="Auto,*,2,Auto,Auto">
+              RowDefinitions="*,Auto,Auto"
+              RowSpacing="8">
 
-            <!-- ============ Onglets + execution ============ -->
             <Grid Grid.Row="0"
-                  ColumnDefinitions="*,Auto"
-                  ColumnSpacing="16">
+                  RowDefinitions="Auto,*">
+                <!-- ============ Onglets + execution ============ -->
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="*,Auto"
+                      ColumnSpacing="16">
 
-                <c:FileTabControl ItemsSource="{Binding Documents}"
-                                  SelectedItem="{Binding ActiveDocument}"
-                                  CloseCommand="{Binding CloseCommand}"
-                                  NewCommand="{Binding NewCommand}" />
+                    <c:FileTabControl ItemsSource="{Binding Documents}"
+                                      SelectedItem="{Binding ActiveDocument}"
+                                      CloseCommand="{Binding CloseCommand}"
+                                      NewCommand="{Binding NewCommand}" />
 
-                <HorizontalStackLayout Grid.Column="1"
-                                       Spacing="8"
-                                       VerticalOptions="Center">
-                    <Picker ItemsSource="{Binding Connections}"
-                            SelectedItem="{Binding SelectedConnection}"
-                            ItemDisplayBinding="{Binding Name, x:DataType=m:DatabaseConnectionInfo}"
-                            WidthRequest="220" />
+                    <HorizontalStackLayout Grid.Column="1"
+                                           Spacing="8"
+                                           VerticalOptions="Center">
+                        <Picker ItemsSource="{Binding Connections}"
+                                SelectedItem="{Binding SelectedConnection}"
+                                ItemDisplayBinding="{Binding Name, x:DataType=m:DatabaseConnectionInfo}"
+                                WidthRequest="220" />
 
-                    <Button Style="{StaticResource PrimaryIconButtonStyle}"
-                            Command="{Binding ExecuteQueryCommand}"
-                            ImageSource="{icons:Fluent Icon=PlayCircle20, IconSize=20}"
-                            ToolTipProperties.Text="Disponible dans une prochaine version" />
-                </HorizontalStackLayout>
+                        <Button Style="{StaticResource PrimaryIconButtonStyle}"
+                                Command="{Binding ExecuteQueryCommand}"
+                                ImageSource="{icons:Fluent Icon=PlayCircle20, IconSize=20}"
+                                ToolTipProperties.Text="Disponible dans une prochaine version" />
+                    </HorizontalStackLayout>
+                </Grid>
+
+                <!-- ============ Editeur ============ -->
+                <Border Grid.Row="1"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 0 0 4 4"
+                        Style="{StaticResource SunkenSurfaceStyle}">
+
+                    <c:CodeEditor x:Name="Editor"
+                                  Text="{Binding ActiveDocument.EditorText}"
+                                  FilePath="{Binding ActiveDocument.FilePath}"
+                                  Selection="{Binding ActiveDocument.Selection}"
+                                  EditorConfiguration="{Binding EditorConfiguration}"
+                                  SyntaxConfiguration="{Binding SyntaxConfiguration}"
+                                  Connection="{Binding ActiveConnection}"
+                                  IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
+                </Border>
             </Grid>
 
-            <!-- ============ Editeur ============ -->
-            <Border Grid.Row="1"
-                    StrokeThickness="0"
-                    StrokeShape="RoundRectangle 0 0 4 4"
-                    Style="{StaticResource SunkenSurfaceStyle}">
+            <v:GridSplitter Grid.Row="1"
+                            HeightRequest="2"
+                            IsVisible="{Binding ActiveDocument.HasResultsPanel, FallbackValue=False}" />
 
-                <c:CodeEditor x:Name="Editor"
-                              Text="{Binding ActiveDocument.EditorText}"
-                              FilePath="{Binding ActiveDocument.FilePath}"
-                              Selection="{Binding ActiveDocument.Selection}"
-                              EditorConfiguration="{Binding EditorConfiguration}"
-                              SyntaxConfiguration="{Binding SyntaxConfiguration}"
-                              Connection="{Binding ActiveConnection}"
-                              IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
-            </Border>
+            <Grid Grid.Row="2"
+                  HeightRequest="300"
+                  RowDefinitions="*,Auto"
+                  IsVisible="{Binding ActiveDocument.HasResultsPanel, FallbackValue=False}">
+                <!-- ============ Resultats ============ -->
+                <c:QueryResultsPanel Grid.Row="0"
+                                     Result="{Binding ActiveDocument.LastResult}"
+                                     IsExecuting="{Binding ActiveDocument.IsExecuting}"
+                                     CloseCommand="{Binding CloseResultsCommand}" />
 
-            <v:GridSplitter Grid.Row="2" />
-            
-            <!-- ============ Resultats ============ -->
-            <c:QueryResultsPanel Grid.Row="3"
-                                 HeightRequest="300"
-                                 Result="{Binding ActiveDocument.LastResult}"
-                                 IsExecuting="{Binding ActiveDocument.IsExecuting}"
-                                 CloseCommand="{Binding CloseResultsCommand}"
-                                 IsVisible="{Binding ActiveDocument.HasResultsPanel, FallbackValue=False}" />
+                <!-- ============ Barre d'etat ============ -->
+                <Grid Grid.Row="1"
+                      ColumnDefinitions="*,Auto"
+                      ColumnSpacing="16">
 
-            <!-- ============ Barre d'etat ============ -->
-            <Grid Grid.Row="4"
-                  ColumnDefinitions="*,Auto"
-                  ColumnSpacing="16">
-
-                <Label Grid.Column="0"
-                       Text="{Binding StatusMessage}"
-                       Style="{StaticResource LabelTertiaryStyle}"
-                       LineBreakMode="TailTruncation"
-                       VerticalOptions="Center">
-                    <Label.Triggers>
-                        <DataTrigger TargetType="Label"
-                                     Binding="{Binding IsStatusError}"
-                                     Value="True">
-                            <Setter Property="TextColor"
-                                    Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
-                        </DataTrigger>
-                    </Label.Triggers>
-                </Label>
+                    <Label Grid.Column="0"
+                           Text="{Binding StatusMessage}"
+                           Style="{StaticResource LabelTertiaryStyle}"
+                           LineBreakMode="TailTruncation"
+                           VerticalOptions="Center">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding IsStatusError}"
+                                         Value="True">
+                                <Setter Property="TextColor"
+                                        Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>
