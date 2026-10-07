@@ -1,4 +1,5 @@
-﻿using System.Windows.Input;
+﻿using CommunityToolkit.Maui;
+using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Views.Controls;
 
@@ -8,70 +9,26 @@ namespace SqlToolManagerMaui.Views.Controls;
 /// </summary>
 public partial class NavigationRailItem : ContentView
 {
-    public static readonly BindableProperty TextProperty =
-        BindableProperty.Create(nameof(Text), typeof(string), typeof(NavigationRailItem), string.Empty);
+    [BindableProperty]
+    public partial string Text { get; set; } = string.Empty;
 
-    public static readonly BindableProperty IconProperty =
-        BindableProperty.Create(nameof(Icon), typeof(Enum), typeof(NavigationRailItem), null);
+    [BindableProperty]
+    public partial Enum? Icon { get; set; }
 
-    public static readonly BindableProperty RouteProperty =
-        BindableProperty.Create(nameof(Route), typeof(string), typeof(NavigationRailItem), string.Empty,
-            propertyChanged: OnSelectionSourceChanged);
+    [BindableProperty(PropertyChangedMethodName = nameof(OnSelectionSourceChanged))]
+    public partial string Route { get; set; } = string.Empty;
 
-    public static readonly BindableProperty SelectedRouteProperty =
-        BindableProperty.Create(nameof(SelectedRoute), typeof(string), typeof(NavigationRailItem), string.Empty,
-            propertyChanged: OnSelectionSourceChanged);
+    [BindableProperty(PropertyChangedMethodName = nameof(OnSelectionSourceChanged))]
+    public partial string SelectedRoute { get; set; } = string.Empty;
 
-    public static readonly BindableProperty IsSelectedProperty =
-        BindableProperty.Create(nameof(IsSelected), typeof(bool), typeof(NavigationRailItem), false);
+    [BindableProperty]
+    public partial bool IsSelected { get; set; }
 
-    public static readonly BindableProperty IsLabelVisibleProperty =
-        BindableProperty.Create(nameof(IsLabelVisible), typeof(bool), typeof(NavigationRailItem), true);
+    [BindableProperty]
+    public partial bool IsLabelVisible { get; set; } = true;
 
-    public static readonly BindableProperty CommandProperty =
-        BindableProperty.Create(nameof(Command), typeof(ICommand), typeof(NavigationRailItem), null);
-
-    public string Text
-    {
-        get => (string)GetValue(TextProperty);
-        set => SetValue(TextProperty, value);
-    }
-
-    public Enum? Icon
-    {
-        get => (Enum?)GetValue(IconProperty);
-        set => SetValue(IconProperty, value);
-    }
-
-    public string Route
-    {
-        get => (string)GetValue(RouteProperty);
-        set => SetValue(RouteProperty, value);
-    }
-
-    public string SelectedRoute
-    {
-        get => (string)GetValue(SelectedRouteProperty);
-        set => SetValue(SelectedRouteProperty, value);
-    }
-
-    public bool IsSelected
-    {
-        get => (bool)GetValue(IsSelectedProperty);
-        set => SetValue(IsSelectedProperty, value);
-    }
-
-    public bool IsLabelVisible
-    {
-        get => (bool)GetValue(IsLabelVisibleProperty);
-        set => SetValue(IsLabelVisibleProperty, value);
-    }
-
-    public ICommand? Command
-    {
-        get => (ICommand?)GetValue(CommandProperty);
-        set => SetValue(CommandProperty, value);
-    }
+    [BindableProperty]
+    public partial ICommand? Command { get; set; }
 
     public NavigationRailItem()
     {

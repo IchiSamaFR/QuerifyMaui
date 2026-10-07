@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using CommunityToolkit.Maui;
+using System.Collections;
 
 namespace SqlToolManagerMaui.UI.Inputs;
 
@@ -7,106 +8,46 @@ public partial class PickerField
     // ── Bindable Properties ───────────────────────────────────────────────────
 
     /// <summary>Source des éléments : un <see cref="IDictionary"/> (clé/valeur) ou une liste simple.</summary>
-    public IEnumerable? ItemsSource
-    {
-        get => (IEnumerable?)GetValue(ItemsSourceProperty);
-        set => SetValue(ItemsSourceProperty, value);
-    }
-
-    public static readonly BindableProperty ItemsSourceProperty = BindableProperty.Create(
-        nameof(ItemsSource),
-        typeof(IEnumerable),
-        typeof(PickerField),
-        propertyChanged: (bindable, _, _) => ((PickerField)bindable).OnItemsSourceChanged());
+    [BindableProperty(PropertyChangedMethodName = nameof(OnItemsSourcePropertyChanged))]
+    public partial IEnumerable? ItemsSource { get; set; }
 
     /// <summary>Chemin de la propriété servant de libellé (ex. "Name", "User.Name"). Vide = <c>ToString()</c>.</summary>
-    public string? DisplayMemberPath
-    {
-        get => (string?)GetValue(DisplayMemberPathProperty);
-        set => SetValue(DisplayMemberPathProperty, value);
-    }
-
-    public static readonly BindableProperty DisplayMemberPathProperty = BindableProperty.Create(
-        nameof(DisplayMemberPath),
-        typeof(string),
-        typeof(PickerField),
-        propertyChanged: (bindable, _, _) => ((PickerField)bindable).OnDisplayMemberPathChanged());
+    [BindableProperty(PropertyChangedMethodName = nameof(OnDisplayMemberPathPropertyChanged))]
+    public partial string? DisplayMemberPath { get; set; }
 
     /// <summary>Élément source sélectionné (KeyValuePair pour un dictionnaire, l'objet pour une liste).</summary>
-    public object? SelectedItem
-    {
-        get => GetValue(SelectedItemProperty);
-        set => SetValue(SelectedItemProperty, value);
-    }
-
-    public static readonly BindableProperty SelectedItemProperty = BindableProperty.Create(
-        nameof(SelectedItem),
-        typeof(object),
-        typeof(PickerField),
-        defaultBindingMode: BindingMode.TwoWay,
-        propertyChanged: (bindable, _, _) => ((PickerField)bindable).OnSelectedItemChanged());
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnSelectedItemPropertyChanged))]
+    public partial object? SelectedItem { get; set; }
 
     /// <summary>Valeur sélectionnée (valeur du dictionnaire, ou l'élément pour une liste).</summary>
-    public object? SelectedValue
-    {
-        get => GetValue(SelectedValueProperty);
-        set => SetValue(SelectedValueProperty, value);
-    }
-
-    public static readonly BindableProperty SelectedValueProperty = BindableProperty.Create(
-        nameof(SelectedValue),
-        typeof(object),
-        typeof(PickerField),
-        defaultBindingMode: BindingMode.TwoWay,
-        propertyChanged: (bindable, _, _) => ((PickerField)bindable).OnSelectedValueChanged());
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnSelectedValuePropertyChanged))]
+    public partial object? SelectedValue { get; set; }
 
     /// <summary>Clé sélectionnée (clé du dictionnaire, <c>null</c> pour une liste).</summary>
-    public object? SelectedKey
-    {
-        get => GetValue(SelectedKeyProperty);
-        set => SetValue(SelectedKeyProperty, value);
-    }
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnSelectedKeyPropertyChanged))]
+    public partial object? SelectedKey { get; set; }
 
-    public static readonly BindableProperty SelectedKeyProperty = BindableProperty.Create(
-        nameof(SelectedKey),
-        typeof(object),
-        typeof(PickerField),
-        defaultBindingMode: BindingMode.TwoWay,
-        propertyChanged: (bindable, _, _) => ((PickerField)bindable).OnSelectedKeyChanged());
+    [BindableProperty]
+    public partial string Placeholder { get; set; } = string.Empty;
 
-    public string Placeholder
-    {
-        get => (string)GetValue(PlaceholderProperty);
-        set => SetValue(PlaceholderProperty, value);
-    }
+    [BindableProperty]
+    public partial Color PlaceholderColor { get; set; } = (Color)Picker.TitleColorProperty.DefaultValue;
 
-    public static readonly BindableProperty PlaceholderProperty = BindableProperty.Create(
-        nameof(Placeholder),
-        typeof(string),
-        typeof(PickerField),
-        defaultValue: string.Empty);
+    [BindableProperty]
+    public partial TextAlignment HorizontalTextAlignment { get; set; } = TextAlignment.Start;
 
-    public Color PlaceholderColor
-    {
-        get => (Color)GetValue(PlaceholderColorProperty);
-        set => SetValue(PlaceholderColorProperty, value);
-    }
+    private static void OnItemsSourcePropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((PickerField)bindable).OnItemsSourceChanged();
 
-    public static readonly BindableProperty PlaceholderColorProperty = BindableProperty.Create(
-        nameof(PlaceholderColor),
-        typeof(Color),
-        typeof(PickerField),
-        defaultValue: Picker.TitleColorProperty.DefaultValue);
+    private static void OnDisplayMemberPathPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((PickerField)bindable).OnDisplayMemberPathChanged();
 
-    public TextAlignment HorizontalTextAlignment
-    {
-        get => (TextAlignment)GetValue(HorizontalTextAlignmentProperty);
-        set => SetValue(HorizontalTextAlignmentProperty, value);
-    }
+    private static void OnSelectedItemPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((PickerField)bindable).OnSelectedItemChanged();
 
-    public static readonly BindableProperty HorizontalTextAlignmentProperty = BindableProperty.Create(
-        nameof(HorizontalTextAlignment),
-        typeof(TextAlignment),
-        typeof(PickerField),
-        defaultValue: TextAlignment.Start);
+    private static void OnSelectedValuePropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((PickerField)bindable).OnSelectedValueChanged();
+
+    private static void OnSelectedKeyPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((PickerField)bindable).OnSelectedKeyChanged();
 }

@@ -1,142 +1,50 @@
-﻿namespace SqlToolManagerMaui.UI.Inputs;
+﻿using CommunityToolkit.Maui;
+
+namespace SqlToolManagerMaui.UI.Inputs;
 
 public partial class DateTimePickerField
 {
     // ── Bindable Properties ───────────────────────────────────────────────────
 
-    public ImageSource? SecondIcon
-    {
-        get => (ImageSource?)GetValue(SecondIconProperty);
-        set => SetValue(SecondIconProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnIconPropertyChanged))]
+    public partial ImageSource? SecondIcon { get; set; }
 
-    public static readonly BindableProperty SecondIconProperty = BindableProperty.Create(
-        nameof(SecondIcon),
-        typeof(ImageSource),
-        typeof(DateTimePickerField),
-        propertyChanged: (bindable, _, _) => ((DateTimePickerField)bindable).OnIconChanged());
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnDateTimePropertyChanged))]
+    public partial System.DateTime DateTime { get; set; } = System.DateTime.Now;
 
-    public System.DateTime DateTime
-    {
-        get => (System.DateTime)GetValue(DateTimeProperty);
-        set => SetValue(DateTimeProperty, value);
-    }
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnDateTimeOffsetPropertyChanged))]
+    public partial System.DateTimeOffset DateTimeOffset { get; set; } = System.DateTimeOffset.Now;
 
-    public static readonly BindableProperty DateTimeProperty = BindableProperty.Create(
-        nameof(DateTime),
-        typeof(System.DateTime),
-        typeof(DateTimePickerField),
-        defaultValue: System.DateTime.Now,
-        defaultBindingMode: BindingMode.TwoWay,
-        propertyChanged: (bindable, _, newValue) => ((DateTimePickerField)bindable).OnDateTimeChanged((DateTime)newValue)
-    );
+    [BindableProperty(PropertyChangedMethodName = nameof(OnRangePropertyChanged))]
+    public partial System.DateTime MaximumDate { get; set; } = (System.DateTime)DatePicker.MaximumDateProperty.DefaultValue;
 
-    public System.DateTimeOffset DateTimeOffset
-    {
-        get => (System.DateTimeOffset)GetValue(DateTimeOffsetProperty);
-        set => SetValue(DateTimeOffsetProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnRangePropertyChanged))]
+    public partial System.DateTime MinimumDate { get; set; } = (System.DateTime)DatePicker.MinimumDateProperty.DefaultValue;
 
-    public static readonly BindableProperty DateTimeOffsetProperty = BindableProperty.Create(
-        nameof(DateTimeOffset),
-        typeof(System.DateTimeOffset),
-        typeof(DateTimePickerField),
-        defaultValue: System.DateTimeOffset.Now,
-        defaultBindingMode: BindingMode.TwoWay,
-        propertyChanged: (bindable, _, newValue) =>
-            ((DateTimePickerField)bindable).OnDateTimeOffsetChanged((System.DateTimeOffset)newValue)
-    );
+    [BindableProperty]
+    public partial string DateFormat { get; set; } = (string)DatePicker.FormatProperty.DefaultValue;
 
-    public System.DateTime MaximumDate
-    {
-        get => (System.DateTime)GetValue(MaximumDateProperty);
-        set => SetValue(MaximumDateProperty, value);
-    }
+    [BindableProperty]
+    public partial string TimeFormat { get; set; } = (string)TimePicker.FormatProperty.DefaultValue;
 
-    public static readonly BindableProperty MaximumDateProperty = BindableProperty.Create(
-        nameof(MaximumDate),
-        typeof(System.DateTime),
-        typeof(DateTimePickerField),
-        defaultValue: DatePicker.MaximumDateProperty.DefaultValue,
-        propertyChanged: (bindable, _, _) => ((DateTimePickerField)bindable).OnRangeChanged()
-    );
+    [BindableProperty]
+    public partial LayoutOptions TextHorizontalOptions { get; set; } = LayoutOptions.Fill;
 
-    public System.DateTime MinimumDate
-    {
-        get => (System.DateTime)GetValue(MinimumDateProperty);
-        set => SetValue(MinimumDateProperty, value);
-    }
+    [BindableProperty]
+    public partial LayoutOptions TextVerticalOptions { get; set; } = LayoutOptions.Center;
 
-    public static readonly BindableProperty MinimumDateProperty = BindableProperty.Create(
-        nameof(MinimumDate),
-        typeof(System.DateTime),
-        typeof(DateTimePickerField),
-        defaultValue: DatePicker.MinimumDateProperty.DefaultValue,
-        propertyChanged: (bindable, _, _) => ((DateTimePickerField)bindable).OnRangeChanged()
-    );
+    [BindableProperty(PropertyChangedMethodName = nameof(OnIconPropertyChanged))]
+    public partial bool SecondIconIsVisible { get; set; } = true;
 
-    public string DateFormat
-    {
-        get => (string)GetValue(DateFormatProperty);
-        set => SetValue(DateFormatProperty, value);
-    }
+    private static void OnIconPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((DateTimePickerField)bindable).OnIconChanged();
 
-    public static readonly BindableProperty DateFormatProperty = BindableProperty.Create(
-        nameof(DateFormat),
-        typeof(string),
-        typeof(DateTimePickerField),
-        defaultValue: DatePicker.FormatProperty.DefaultValue
-    );
+    private static void OnDateTimePropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((DateTimePickerField)bindable).OnDateTimeChanged((System.DateTime)newValue);
 
-    public string TimeFormat
-    {
-        get => (string)GetValue(TimeFormatProperty);
-        set => SetValue(TimeFormatProperty, value);
-    }
+    private static void OnDateTimeOffsetPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((DateTimePickerField)bindable).OnDateTimeOffsetChanged((System.DateTimeOffset)newValue);
 
-    public static readonly BindableProperty TimeFormatProperty = BindableProperty.Create(
-        nameof(TimeFormat),
-        typeof(string),
-        typeof(DateTimePickerField),
-        defaultValue: TimePicker.FormatProperty.DefaultValue
-    );
-
-    public LayoutOptions TextHorizontalOptions
-    {
-        get => (LayoutOptions)GetValue(TextHorizontalOptionsProperty);
-        set => SetValue(TextHorizontalOptionsProperty, value);
-    }
-
-    public static readonly BindableProperty TextHorizontalOptionsProperty = BindableProperty.Create(
-        nameof(TextHorizontalOptions),
-        typeof(LayoutOptions),
-        typeof(DateTimePickerField),
-        defaultValue: LayoutOptions.Fill
-    );
-
-    public LayoutOptions TextVerticalOptions
-    {
-        get => (LayoutOptions)GetValue(TextVerticalOptionsProperty);
-        set => SetValue(TextVerticalOptionsProperty, value);
-    }
-
-    public static readonly BindableProperty TextVerticalOptionsProperty = BindableProperty.Create(
-        nameof(TextVerticalOptions),
-        typeof(LayoutOptions),
-        typeof(DateTimePickerField),
-        defaultValue: LayoutOptions.Center
-    );
-
-    public bool SecondIconIsVisible
-    {
-        get => (bool)GetValue(SecondIconIsVisibleProperty);
-        set => SetValue(SecondIconIsVisibleProperty, value);
-    }
-
-    public static readonly BindableProperty SecondIconIsVisibleProperty = BindableProperty.Create(
-        nameof(SecondIconIsVisible),
-        typeof(bool),
-        typeof(DateTimePickerField),
-        defaultValue: true,
-        propertyChanged: (bindable, _, _) => ((DateTimePickerField)bindable).OnIconChanged());
+    private static void OnRangePropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((DateTimePickerField)bindable).OnRangeChanged();
 }

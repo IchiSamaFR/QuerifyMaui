@@ -1,4 +1,5 @@
 ﻿using CodeEdit.Maui;
+using CommunityToolkit.Maui;
 using MauiIcons.Core;
 using MauiIcons.Fluent;
 using RichEdit.Maui;
@@ -20,94 +21,45 @@ namespace SqlToolManagerMaui.Views.Controls.Editors;
 /// </summary>
 public partial class CodeEditor : ContentView
 {
-    public static readonly BindableProperty TextProperty = BindableProperty.Create(
-        nameof(Text), typeof(string), typeof(CodeEditor), string.Empty, BindingMode.TwoWay,
-        propertyChanged: (bindable, _, newValue) => ((CodeEditor)bindable).OnTextChanged(newValue as string));
-
     /// <summary>
     /// Texte edite. Seule porte d'entree du contenu : le document CodeEdit reste interne
     /// au controle et suit cette propriete dans les deux sens.
     /// </summary>
-    public string Text
-    {
-        get => (string)GetValue(TextProperty);
-        set => SetValue(TextProperty, value);
-    }
-
-    public static readonly BindableProperty FilePathProperty = BindableProperty.Create(
-        nameof(FilePath), typeof(string), typeof(CodeEditor), string.Empty, BindingMode.TwoWay);
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnTextPropertyChanged))]
+    public partial string Text { get; set; } = string.Empty;
 
     /// <summary>
     /// Chemin du fichier edite.
     /// </summary>
-    public string FilePath
-    {
-        get => (string)GetValue(FilePathProperty);
-        set => SetValue(FilePathProperty, value);
-    }
-
-    public static readonly BindableProperty EditorConfigurationProperty = BindableProperty.Create(
-        nameof(EditorConfiguration), typeof(EditorConfiguration), typeof(CodeEditor), null,
-        propertyChanged: (bindable, oldValue, newValue) => ((CodeEditor)bindable).OnEditorConfigurationChanged(oldValue as EditorConfiguration, newValue as EditorConfiguration));
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay)]
+    public partial string FilePath { get; set; } = string.Empty;
 
     /// <summary>Options d'affichage (numeros de ligne, retour a la ligne, indentation).</summary>
-    public EditorConfiguration? EditorConfiguration
-    {
-        get => (EditorConfiguration?)GetValue(EditorConfigurationProperty);
-        set => SetValue(EditorConfigurationProperty, value);
-    }
-
-    public static readonly BindableProperty SyntaxConfigurationProperty = BindableProperty.Create(
-        nameof(SyntaxConfiguration), typeof(SyntaxConfiguration), typeof(CodeEditor), null,
-        propertyChanged: (bindable, _, _) => ((CodeEditor)bindable).OnSyntaxConfigurationChanged());
+    [BindableProperty(PropertyChangedMethodName = nameof(OnEditorConfigurationPropertyChanged))]
+    public partial EditorConfiguration? EditorConfiguration { get; set; }
 
     /// <summary>Langage colore : prefixe de commentaire et regles de coloration.</summary>
-    public SyntaxConfiguration? SyntaxConfiguration
-    {
-        get => (SyntaxConfiguration?)GetValue(SyntaxConfigurationProperty);
-        set => SetValue(SyntaxConfigurationProperty, value);
-    }
-
-    public static readonly BindableProperty SelectionProperty = BindableProperty.Create(
-        nameof(Selection), typeof(EditorSelection), typeof(CodeEditor), null,
-        defaultValueCreator: _ => new EditorSelection(),
-        propertyChanged: (bindable, _, _) => ((CodeEditor)bindable).ScheduleSelectionRestore());
+    [BindableProperty(PropertyChangedMethodName = nameof(OnSyntaxConfigurationPropertyChanged))]
+    public partial SyntaxConfiguration? SyntaxConfiguration { get; set; }
 
     /// <summary>
     /// Curseur et texte selectionne. L'objet appartient a l'hote (ou au controle a defaut) :
     /// le controle met a jour ses proprietes, et restaure la selection qu'il porte quand
     /// l'hote en fournit une autre (changement d'onglet).
     /// </summary>
-    public EditorSelection? Selection
-    {
-        get => (EditorSelection?)GetValue(SelectionProperty);
-        set => SetValue(SelectionProperty, value);
-    }
-
-    public static readonly BindableProperty ConnectionProperty = BindableProperty.Create(
-        nameof(Connection), typeof(DatabaseConnectionInfo), typeof(CodeEditor), null);
+    [BindableProperty(PropertyChangedMethodName = nameof(OnSelectionPropertyChanged))]
+    public partial EditorSelection? Selection { get; set; } = new EditorSelection();
 
     /// <summary>Connexion dont le schema alimente l'autocompletion ; null = mots-cles seulement.</summary>
-    public DatabaseConnectionInfo? Connection
-    {
-        get => (DatabaseConnectionInfo?)GetValue(ConnectionProperty);
-        set => SetValue(ConnectionProperty, value);
-    }
-
-    private static readonly BindablePropertyKey CommandsPropertyKey = BindableProperty.CreateReadOnly(
-        nameof(Commands), typeof(CodeEdit.Maui.CodeEditorCommands), typeof(CodeEditor), null);
-
-    public static readonly BindableProperty CommandsProperty = CommandsPropertyKey.BindableProperty;
+    [BindableProperty]
+    public partial DatabaseConnectionInfo? Connection { get; set; }
 
     /// <summary>
     /// Commandes d'edition de l'editeur natif (annuler, copier, coller...), exposees telles
     /// quelles pour le menu Edition.
     /// </summary>
-    public CodeEdit.Maui.CodeEditorCommands? Commands
-    {
-        get => (CodeEdit.Maui.CodeEditorCommands?)GetValue(CommandsProperty);
-        private set => SetValue(CommandsPropertyKey, value);
-    }
+    [BindableProperty]
+    public partial CodeEdit.Maui.CodeEditorCommands? Commands { get; private set; }
 
     /// <summary>Editeur natif encapsule, pour les rares appels imperatifs (ScrollIntoView...).</summary>
     public NativeCodeEditor NativeEditor => Native;
@@ -262,6 +214,9 @@ public partial class CodeEditor : ContentView
         _isSynchronizing = false;
     }
 
+    private static void OnTextPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((CodeEditor)bindable).OnTextChanged(newValue as string);
+
     /// <summary>Texte pousse par l'hote : on recharge le document.</summary>
     private void OnTextChanged(string? value)
     {
@@ -281,6 +236,9 @@ public partial class CodeEditor : ContentView
     }
 
     // ---------- Coloration syntaxique ----------
+
+    private static void OnSyntaxConfigurationPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((CodeEditor)bindable).OnSyntaxConfigurationChanged();
 
     private void OnSyntaxConfigurationChanged()
     {
@@ -328,6 +286,9 @@ public partial class CodeEditor : ContentView
 
     // ---------- Options d'affichage ----------
 
+    private static void OnEditorConfigurationPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((CodeEditor)bindable).OnEditorConfigurationChanged(oldValue as EditorConfiguration, newValue as EditorConfiguration);
+
     private void OnEditorConfigurationChanged(EditorConfiguration? oldConfiguration, EditorConfiguration? newConfiguration)
     {
         if (oldConfiguration is not null)
@@ -358,6 +319,9 @@ public partial class CodeEditor : ContentView
     }
 
     // ---------- Selection ----------
+
+    private static void OnSelectionPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((CodeEditor)bindable).ScheduleSelectionRestore();
 
     private void OnNativeSelectionChanged(object? sender, RichTextSelectionChangedEventArgs e)
     {

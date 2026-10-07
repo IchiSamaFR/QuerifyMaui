@@ -1,58 +1,23 @@
-﻿namespace SqlToolManagerMaui.UI.Inputs;
+﻿using CommunityToolkit.Maui;
 
-public class FontImageView : Image
+namespace SqlToolManagerMaui.UI.Inputs;
+
+public partial class FontImageView : Image
 {
-    public static readonly BindableProperty FontFamilyProperty = BindableProperty.Create(
-        nameof(FontFamily),
-        typeof(string),
-        typeof(FontImageView),
-        null,
-        propertyChanged: (b, _, _) => ((FontImageView)b).UpdateSource());
+    [BindableProperty(PropertyChangedMethodName = nameof(OnSourcePropertyChanged))]
+    public partial string FontFamily { get; set; }
 
-    public string FontFamily
-    {
-        get => (string)GetValue(FontFamilyProperty);
-        set => SetValue(FontFamilyProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnSourcePropertyChanged))]
+    public partial string Glyph { get; set; }
 
-    public static readonly BindableProperty GlyphProperty = BindableProperty.Create(
-        nameof(Glyph),
-        typeof(string),
-        typeof(FontImageView),
-        null,
-        propertyChanged: (b, _, _) => ((FontImageView)b).UpdateSource());
+    [BindableProperty(PropertyChangedMethodName = nameof(OnSourcePropertyChanged))]
+    public partial Color Color { get; set; } = Colors.White;
 
-    public string Glyph
-    {
-        get => (string)GetValue(GlyphProperty);
-        set => SetValue(GlyphProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnSourcePropertyChanged))]
+    public partial double Size { get; set; } = -1d;
 
-    public static readonly BindableProperty ColorProperty = BindableProperty.Create(
-        nameof(Color),
-        typeof(Color),
-        typeof(FontImageView),
-        Colors.White,
-        propertyChanged: (b, _, _) => ((FontImageView)b).UpdateSource());
-
-    public Color Color
-    {
-        get => (Color)GetValue(ColorProperty);
-        set => SetValue(ColorProperty, value);
-    }
-
-    public static readonly BindableProperty SizeProperty = BindableProperty.Create(
-        nameof(Size),
-        typeof(double),
-        typeof(FontImageView),
-        -1d,
-        propertyChanged: (b, _, _) => ((FontImageView)b).UpdateSource());
-
-    public double Size
-    {
-        get => (double)GetValue(SizeProperty);
-        set => SetValue(SizeProperty, value);
-    }
+    private static void OnSourcePropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((FontImageView)bindable).UpdateSource();
 
     private void UpdateSource()
     {

@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.UI.Inputs.Core;
+﻿using CommunityToolkit.Maui;
+using SqlToolManagerMaui.UI.Inputs.Core;
 
 namespace SqlToolManagerMaui.UI.Behaviors;
 
@@ -6,38 +7,15 @@ namespace SqlToolManagerMaui.UI.Behaviors;
 /// Variante de <see cref="DataAnnotationsBehavior"/> activable/désactivable,
 /// ciblant une propriété par son nom. Standalone (sans InputKit / UraniumUI).
 /// </summary>
-public class ToggleableDataAnnotationsBehavior : Behavior<View>
+public partial class ToggleableDataAnnotationsBehavior : Behavior<View>
 {
     protected View? AssociatedObject { get; private set; }
 
-    public static readonly BindableProperty IsEnabledProperty =
-        BindableProperty.Create(nameof(IsEnabled),
-            typeof(bool),
-            typeof(ToggleableDataAnnotationsBehavior),
-            true,
-            BindingMode.OneWay,
-            propertyChanged: OnBindPropertyChanged);
+    [BindableProperty(DefaultBindingMode = BindingMode.OneWay, PropertyChangedMethodName = nameof(OnBindPropertyChanged))]
+    public partial bool IsEnabled { get; set; } = true;
 
-    public bool IsEnabled
-    {
-        get => (bool)GetValue(IsEnabledProperty);
-        set => SetValue(IsEnabledProperty, value);
-    }
-
-    public static readonly BindableProperty PropertyNameProperty =
-        BindableProperty.Create(
-            nameof(PropertyName),
-            typeof(string),
-            typeof(ToggleableDataAnnotationsBehavior),
-            null,
-            BindingMode.OneWay,
-            propertyChanged: OnBindPropertyChanged);
-
-    public string? PropertyName
-    {
-        get => (string?)GetValue(PropertyNameProperty);
-        set => SetValue(PropertyNameProperty, value);
-    }
+    [BindableProperty(DefaultBindingMode = BindingMode.OneWay, PropertyChangedMethodName = nameof(OnBindPropertyChanged))]
+    public partial string? PropertyName { get; set; }
 
     private static void OnBindPropertyChanged(BindableObject bindable, object oldValue, object newValue)
     {

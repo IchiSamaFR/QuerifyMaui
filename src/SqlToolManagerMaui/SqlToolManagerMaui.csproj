@@ -23,7 +23,7 @@
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<NoWarn>$(NoWarn);MVVMTK0045;CA2007;CA1515</NoWarn>
+		<NoWarn>$(NoWarn);MVVMTK0045;CA2007;CA1515;MCTEXP001</NoWarn>
 	</PropertyGroup>
 
 	<!-- ===================== Target platforms & configurations ===================== -->

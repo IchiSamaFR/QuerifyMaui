@@ -1,4 +1,6 @@
-﻿namespace SqlToolManagerMaui.Views.Controls.Editors;
+﻿using CommunityToolkit.Maui;
+
+namespace SqlToolManagerMaui.Views.Controls.Editors;
 
 /// <summary>
 /// Entree de menu "cochable" : le libelle reste fixe et une pastille apparait devant lui
@@ -9,38 +11,17 @@
 /// </summary>
 public partial class CheckedMenuFlyoutItem : MenuFlyoutItem
 {
-    public static readonly BindableProperty PrefixProperty = BindableProperty.Create(
-        nameof(Prefix), typeof(string), typeof(CheckedMenuFlyoutItem), "●",
-        propertyChanged: OnStateChanged);
-
     /// <summary>Glyphe affiche devant le libelle lorsque l'entree est cochee.</summary>
-    public string? Prefix
-    {
-        get => (string?)GetValue(PrefixProperty);
-        set => SetValue(PrefixProperty, value);
-    }
-
-    public static readonly BindableProperty LabelProperty = BindableProperty.Create(
-        nameof(Label), typeof(string), typeof(CheckedMenuFlyoutItem), string.Empty,
-        propertyChanged: OnLabelChanged);
+    [BindableProperty(PropertyChangedMethodName = nameof(OnStateChanged))]
+    public partial string? Prefix { get; set; } = "●";
 
     /// <summary>Libelle de l'entree, invariant : c'est la pastille qui porte l'etat.</summary>
-    public string? Label
-    {
-        get => (string?)GetValue(LabelProperty);
-        set => SetValue(LabelProperty, value);
-    }
-
-    public static readonly BindableProperty IsCheckedProperty = BindableProperty.Create(
-        nameof(IsChecked), typeof(bool), typeof(CheckedMenuFlyoutItem), false,
-        propertyChanged: OnStateChanged);
+    [BindableProperty(PropertyChangedMethodName = nameof(OnLabelChanged))]
+    public partial string? Label { get; set; } = string.Empty;
 
     /// <summary>Etat courant de l'option.</summary>
-    public bool IsChecked
-    {
-        get => (bool)GetValue(IsCheckedProperty);
-        set => SetValue(IsCheckedProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnStateChanged))]
+    public partial bool IsChecked { get; set; }
 
     private static void OnLabelChanged(BindableObject bindable, object oldValue, object newValue)
         => ((MenuFlyoutItem)bindable).Text = newValue as string ?? string.Empty;

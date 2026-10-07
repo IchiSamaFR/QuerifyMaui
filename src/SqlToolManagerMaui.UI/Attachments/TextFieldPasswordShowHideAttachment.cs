@@ -1,4 +1,5 @@
-﻿using Microsoft.Maui.Controls.Shapes;
+﻿using CommunityToolkit.Maui;
+using Microsoft.Maui.Controls.Shapes;
 using SqlToolManagerMaui.UI.Inputs;
 using SqlToolManagerMaui.UI.Inputs.Core;
 using Path = Microsoft.Maui.Controls.Shapes.Path;
@@ -9,21 +10,10 @@ namespace SqlToolManagerMaui.UI.Attachments;
 /// Œil show/hide ajouté en fin de TextField pour basculer IsPassword.
 /// Réimplémentation standalone (sans UraniumUI StatefulContentView).
 /// </summary>
-public class TextFieldPasswordShowHideAttachment : ContentView
+public partial class TextFieldPasswordShowHideAttachment : ContentView
 {
-    public static readonly BindableProperty IconColorProperty =
-        BindableProperty.Create(nameof(IconColor),
-            typeof(Color),
-            typeof(TextFieldPasswordShowHideAttachment),
-            Colors.DarkGray,
-            BindingMode.OneWay,
-            propertyChanged: (bindable, _, _) => ((TextFieldPasswordShowHideAttachment)bindable).UpdateIcon());
-
-    public Color? IconColor
-    {
-        get => (Color?)GetValue(IconColorProperty);
-        set => SetValue(IconColorProperty, value);
-    }
+    [BindableProperty(DefaultBindingMode = BindingMode.OneWay, PropertyChangedMethodName = nameof(OnIconColorChanged))]
+    public partial Color? IconColor { get; set; } = Colors.DarkGray;
 
     public TextField? TextField { get; protected set; }
 
@@ -59,6 +49,9 @@ public class TextFieldPasswordShowHideAttachment : ContentView
 
         return null;
     }
+
+    private static void OnIconColorChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((TextFieldPasswordShowHideAttachment)bindable).UpdateIcon();
 
     protected virtual void SwitchPassword()
     {

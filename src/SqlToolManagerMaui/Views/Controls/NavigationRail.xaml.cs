@@ -1,3 +1,4 @@
+﻿using CommunityToolkit.Maui;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows.Input;
@@ -13,45 +14,21 @@ namespace SqlToolManagerMaui.Views.Controls;
 [ContentProperty(nameof(Items))]
 public partial class NavigationRail : ContentView
 {
-    public static readonly BindableProperty SelectedRouteProperty =
-        BindableProperty.Create(nameof(SelectedRoute), typeof(string), typeof(NavigationRail), string.Empty);
-
-    public static readonly BindableProperty IsLabelVisibleProperty =
-        BindableProperty.Create(nameof(IsLabelVisible), typeof(bool), typeof(NavigationRail), true);
-
-    public static readonly BindableProperty ItemCommandProperty =
-        BindableProperty.Create(nameof(ItemCommand), typeof(ICommand), typeof(NavigationRail), null);
-
-    public static readonly BindableProperty ToggleCommandProperty =
-        BindableProperty.Create(nameof(ToggleCommand), typeof(ICommand), typeof(NavigationRail), null);
-
     /// <summary>Route actuellement affichee (pilote l'etat selectionne des items).</summary>
-    public string SelectedRoute
-    {
-        get => (string)GetValue(SelectedRouteProperty);
-        set => SetValue(SelectedRouteProperty, value);
-    }
+    [BindableProperty]
+    public partial string SelectedRoute { get; set; } = string.Empty;
 
     /// <summary>Affiche ou masque les libelles (mode etendu / compact).</summary>
-    public bool IsLabelVisible
-    {
-        get => (bool)GetValue(IsLabelVisibleProperty);
-        set => SetValue(IsLabelVisibleProperty, value);
-    }
+    [BindableProperty]
+    public partial bool IsLabelVisible { get; set; } = true;
 
     /// <summary>Commande de navigation appelee par les items, avec la route en parametre.</summary>
-    public ICommand? ItemCommand
-    {
-        get => (ICommand?)GetValue(ItemCommandProperty);
-        set => SetValue(ItemCommandProperty, value);
-    }
+    [BindableProperty]
+    public partial ICommand? ItemCommand { get; set; }
 
     /// <summary>Commande du bouton hamburger.</summary>
-    public ICommand? ToggleCommand
-    {
-        get => (ICommand?)GetValue(ToggleCommandProperty);
-        set => SetValue(ToggleCommandProperty, value);
-    }
+    [BindableProperty]
+    public partial ICommand? ToggleCommand { get; set; }
 
     /// <summary>Items principaux du menu (contenu par defaut du controle).</summary>
     public IList<NavigationRailItem> Items { get; } = new ObservableCollection<NavigationRailItem>();

@@ -1,4 +1,5 @@
-﻿using Microsoft.Maui.Controls.Shapes;
+﻿using CommunityToolkit.Maui;
+using Microsoft.Maui.Controls.Shapes;
 using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
 
 namespace SqlToolManagerMaui.UI.Views.Controls;
@@ -7,7 +8,7 @@ namespace SqlToolManagerMaui.UI.Views.Controls;
 /// Noeud d'un <see cref="TreeView"/> : en-tete (chevron + ItemTemplate) puis, sous lui,
 /// ses propres enfants (meme gabarit, un niveau plus loin). Interne au TreeView.
 /// </summary>
-public sealed class TreeViewNode : ContentView
+public sealed partial class TreeViewNode : ContentView
 {
     private const double ChevronSize = 16d;
 
@@ -20,25 +21,15 @@ public sealed class TreeViewNode : ContentView
 
     internal VerticalStackLayout ChildrenHost { get; } = new();
 
-    public static readonly BindableProperty IsExpandedProperty = BindableProperty.Create(
-        nameof(IsExpanded), typeof(bool), typeof(TreeViewNode), false, BindingMode.TwoWay,
-        propertyChanged: (b, _, n) => ((TreeViewNode)b).UpdateExpanded((bool)n));
-
     /// <summary>Etat d'ouverture, lie en TwoWay au chemin <see cref="TreeView.IsExpandedPath"/> de l'element.</summary>
-    public bool IsExpanded
-    {
-        get => (bool)GetValue(IsExpandedProperty);
-        set => SetValue(IsExpandedProperty, value);
-    }
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnIsExpandedChanged))]
+    public partial bool IsExpanded { get; set; }
 
-    public static readonly BindableProperty CanExpandProperty = BindableProperty.Create(
-        nameof(CanExpand), typeof(bool), typeof(TreeViewNode), false);
+    [BindableProperty]
+    public partial bool CanExpand { get; set; }
 
-    public bool CanExpand
-    {
-        get => (bool)GetValue(CanExpandProperty);
-        set => SetValue(CanExpandProperty, value);
-    }
+    private static void OnIsExpandedChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((TreeViewNode)bindable).UpdateExpanded((bool)newValue);
 
     internal TreeViewNode(TreeView owner, int level)
     {

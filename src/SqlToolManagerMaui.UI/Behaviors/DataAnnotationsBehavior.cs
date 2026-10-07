@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.UI.Inputs.Core;
+﻿using CommunityToolkit.Maui;
+using SqlToolManagerMaui.UI.Inputs.Core;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -10,7 +11,7 @@ namespace SqlToolManagerMaui.UI.Behaviors;
 /// au champ (IValidatable). Remplace UraniumUI.Validations.DataAnnotationsBehavior.
 /// Usage : &lt;b:DataAnnotationsBehavior Binding="{Binding UserName}" /&gt;
 /// </summary>
-public class DataAnnotationsBehavior : Behavior<View>
+public partial class DataAnnotationsBehavior : Behavior<View>
 {
     private bool _isFocused;
 
@@ -28,15 +29,11 @@ public class DataAnnotationsBehavior : Behavior<View>
     /// Si true, la validation ne s'affiche qu'à la perte de focus (Unfocused).
     /// La validation déclenchée depuis le VM (submit) s'affiche toujours.
     /// </summary>
-    public static readonly BindableProperty ValidateOnUnfocusedProperty = BindableProperty.Create(
-        nameof(ValidateOnUnfocused), typeof(bool), typeof(DataAnnotationsBehavior), true,
-        propertyChanged: (bindable, _, _) => ((DataAnnotationsBehavior)bindable).ApplyAnnotations());
+    [BindableProperty(PropertyChangedMethodName = nameof(OnValidateOnUnfocusedChanged))]
+    public partial bool ValidateOnUnfocused { get; set; } = true;
 
-    public bool ValidateOnUnfocused
-    {
-        get => (bool)GetValue(ValidateOnUnfocusedProperty);
-        set => SetValue(ValidateOnUnfocusedProperty, value);
-    }
+    private static void OnValidateOnUnfocusedChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((DataAnnotationsBehavior)bindable).ApplyAnnotations();
 
     protected override void OnAttachedTo(View bindable)
     {

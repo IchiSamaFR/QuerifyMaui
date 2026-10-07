@@ -1,22 +1,12 @@
-﻿using SqlToolManagerMaui.UI.ViewModels;
+﻿using CommunityToolkit.Maui;
+using SqlToolManagerMaui.UI.ViewModels;
 
 namespace SqlToolManagerMaui.UI.Views;
 
 public abstract partial class AbstractContentView
 {
-    public static readonly BindableProperty IsViewFocusedProperty =
-        BindableProperty.Create(
-            nameof(IsViewFocused),
-            typeof(bool),
-            typeof(AbstractContentView),
-            false,
-            BindingMode.TwoWay);
-
-    public bool IsViewFocused
-    {
-        get { return (bool)GetValue(IsViewFocusedProperty); }
-        set { SetValue(IsViewFocusedProperty, value); }
-    }
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay)]
+    public partial bool IsViewFocused { get; set; }
 
     private void InitBindings()
     {

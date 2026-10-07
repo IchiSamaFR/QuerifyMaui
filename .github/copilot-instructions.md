@@ -8,7 +8,7 @@ Ce fichier fait référence aux instructions centralisées. Copilot doit toujour
 * Respecter l'architecture MVVM et la stratification des couches avant de générer du code.
 * Éviter de casser la logique existante des pages déjà livrées.
 * Ne jamais générer du code Xamarin.Forms — toujours utiliser les équivalents .NET MAUI.
-* Déclarer les `BindableProperty` juste au-dessus de leur propriété CLR, et préférer le binding XAML au code-behind.
+* Déclarer les `BindableProperty` via l'attribut `[BindableProperty]` de CommunityToolkit.Maui sur une propriété `partial`, et préférer le binding XAML au code-behind.
 
 Voir `.github/instructions.md` pour :
 - Contexte fonctionnel complet

@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.Models.Queries;
+﻿using CommunityToolkit.Maui;
+using SqlToolManagerMaui.Models.Queries;
 
 namespace SqlToolManagerMaui.Views.Controls.Queries;
 
@@ -7,7 +8,7 @@ namespace SqlToolManagerMaui.Views.Controls.Queries;
 /// defilement horizontal quand les colonnes depassent la largeur disponible.
 /// Construite en code car le nombre de colonnes n'est connu qu'a l'execution.
 /// </summary>
-public sealed class QueryResultGrid : ContentView
+public sealed partial class QueryResultGrid : ContentView
 {
     private const double RowNumberWidth = 56;
     private const double MinColumnWidth = 60;
@@ -18,16 +19,12 @@ public sealed class QueryResultGrid : ContentView
     /// <summary>Nombre de lignes echantillonnees pour dimensionner les colonnes.</summary>
     private const int WidthSampleRowCount = 200;
 
-    public static readonly BindableProperty ResultSetProperty = BindableProperty.Create(
-        nameof(ResultSet), typeof(QueryResultSet), typeof(QueryResultGrid), null,
-        propertyChanged: (bindable, _, _) => ((QueryResultGrid)bindable).Rebuild());
-
     /// <summary>Jeu de resultats affiche.</summary>
-    public QueryResultSet? ResultSet
-    {
-        get => (QueryResultSet?)GetValue(ResultSetProperty);
-        set => SetValue(ResultSetProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnResultSetChanged))]
+    public partial QueryResultSet? ResultSet { get; set; }
+
+    private static void OnResultSetChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((QueryResultGrid)bindable).Rebuild();
 
     private void Rebuild()
     {

@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Input;
+﻿using CommunityToolkit.Maui;
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using WinUIElement = Microsoft.UI.Xaml.UIElement;
@@ -11,15 +12,9 @@ namespace SqlToolManagerMaui.UI.Views.Controls;
 /// </summary>
 public partial class GridSplitter : ContentView
 {
-    public static readonly BindableProperty MinimumSizeProperty =
-        BindableProperty.Create(nameof(MinimumSize), typeof(double), typeof(GridSplitter), 100d);
-
     /// <summary>Taille minimale des zones de part et d'autre du splitter.</summary>
-    public double MinimumSize
-    {
-        get => (double)GetValue(MinimumSizeProperty);
-        set => SetValue(MinimumSizeProperty, value);
-    }
+    [BindableProperty]
+    public partial double MinimumSize { get; set; } = 100d;
 
     private bool _isDragging;
     private bool _horizontal;

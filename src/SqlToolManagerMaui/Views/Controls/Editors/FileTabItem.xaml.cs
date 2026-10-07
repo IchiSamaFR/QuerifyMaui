@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using CommunityToolkit.Maui;
+using System.ComponentModel;
 using System.Windows.Input;
 using SqlToolManagerMaui.Models.Editors;
 
@@ -10,71 +11,27 @@ namespace SqlToolManagerMaui.Views.Controls.Editors;
 /// </summary>
 public partial class FileTabItem : ContentView
 {
-    public static readonly BindableProperty DocumentProperty = BindableProperty.Create(
-        nameof(Document), typeof(EditorDocument), typeof(FileTabItem), null,
-        propertyChanged: OnDocumentChanged);
-
-    public static readonly BindableProperty SelectedDocumentProperty = BindableProperty.Create(
-        nameof(SelectedDocument), typeof(EditorDocument), typeof(FileTabItem), null,
-        propertyChanged: (b, _, _) => ((FileTabItem)b).Refresh());
-
-    public static readonly BindableProperty CloseCommandProperty = BindableProperty.Create(
-        nameof(CloseCommand), typeof(ICommand), typeof(FileTabItem), null);
-
-    public static readonly BindableProperty IsSelectedProperty = BindableProperty.Create(
-        nameof(IsSelected), typeof(bool), typeof(FileTabItem), false);
-
-    public static readonly BindableProperty IsPointerOverProperty = BindableProperty.Create(
-        nameof(IsPointerOver), typeof(bool), typeof(FileTabItem), false);
-
-    public static readonly BindableProperty ShowDirtyDotProperty = BindableProperty.Create(
-        nameof(ShowDirtyDot), typeof(bool), typeof(FileTabItem), false);
-
-    public static readonly BindableProperty ShowCloseButtonProperty = BindableProperty.Create(
-        nameof(ShowCloseButton), typeof(bool), typeof(FileTabItem), false);
-
-    public EditorDocument? Document
-    {
-        get => (EditorDocument?)GetValue(DocumentProperty);
-        set => SetValue(DocumentProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnDocumentChanged))]
+    public partial EditorDocument? Document { get; set; }
 
     /// <summary>Document actif du controle parent : l'onglet est selectionne quand il s'agit du sien.</summary>
-    public EditorDocument? SelectedDocument
-    {
-        get => (EditorDocument?)GetValue(SelectedDocumentProperty);
-        set => SetValue(SelectedDocumentProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnSelectedDocumentChanged))]
+    public partial EditorDocument? SelectedDocument { get; set; }
 
-    public ICommand? CloseCommand
-    {
-        get => (ICommand?)GetValue(CloseCommandProperty);
-        set => SetValue(CloseCommandProperty, value);
-    }
+    [BindableProperty]
+    public partial ICommand? CloseCommand { get; set; }
 
-    public bool IsSelected
-    {
-        get => (bool)GetValue(IsSelectedProperty);
-        private set => SetValue(IsSelectedProperty, value);
-    }
+    [BindableProperty]
+    public partial bool IsSelected { get; private set; }
 
-    public bool IsPointerOver
-    {
-        get => (bool)GetValue(IsPointerOverProperty);
-        private set => SetValue(IsPointerOverProperty, value);
-    }
+    [BindableProperty]
+    public partial bool IsPointerOver { get; private set; }
 
-    public bool ShowDirtyDot
-    {
-        get => (bool)GetValue(ShowDirtyDotProperty);
-        private set => SetValue(ShowDirtyDotProperty, value);
-    }
+    [BindableProperty]
+    public partial bool ShowDirtyDot { get; private set; }
 
-    public bool ShowCloseButton
-    {
-        get => (bool)GetValue(ShowCloseButtonProperty);
-        private set => SetValue(ShowCloseButtonProperty, value);
-    }
+    [BindableProperty]
+    public partial bool ShowCloseButton { get; private set; }
 
     /// <summary>Leve quand l'utilisateur clique sur l'onglet (hors bouton fermer).</summary>
     public event EventHandler? Selected;
@@ -95,6 +52,9 @@ public partial class FileTabItem : ContentView
 
         item.Refresh();
     }
+
+    private static void OnSelectedDocumentChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((FileTabItem)bindable).Refresh();
 
     private void OnDocumentPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

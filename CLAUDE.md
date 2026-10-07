@@ -37,20 +37,18 @@ Respecter **absolument** :
 
 ## 🧩 BindableProperty
 
-La `BindableProperty` se déclare **juste au-dessus** de sa propriété CLR, jamais en bloc en tête de classe :
+Les `BindableProperty` sont générées par l'attribut `[BindableProperty]` de CommunityToolkit.Maui, sur une propriété `partial` (classe `partial`) :
 
 ```csharp
-public static readonly BindableProperty ToggleLineNumbersCommandProperty = BindableProperty.Create(
-    nameof(ToggleLineNumbersCommand), typeof(ICommand), typeof(ViewMenuBarItem), null);
-
 /// <summary>Bascule l'affichage des numeros de ligne.</summary>
-public ICommand? ToggleLineNumbersCommand
-{
-    get => (ICommand?)GetValue(ToggleLineNumbersCommandProperty);
-    set => SetValue(ToggleLineNumbersCommandProperty, value);
-}
+[BindableProperty]
+public partial ICommand? ToggleLineNumbersCommand { get; set; }
+
+[BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnSelectedItemChanged))]
+public partial EditorDocument? SelectedItem { get; set; }
 ```
 
+Valeur par défaut = initialiseur ; callbacks = méthodes statiques référencées par `nameof` (pas de lambda) ; `private set` = propriété en lecture seule.
 Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 
 ---

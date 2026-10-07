@@ -1,86 +1,29 @@
-﻿namespace SqlToolManagerMaui.UI.Inputs;
+﻿using CommunityToolkit.Maui;
+
+namespace SqlToolManagerMaui.UI.Inputs;
 
 public partial class DatePickerField
 {
     // ── Bindable Properties ──────────────────────────────────────────────
 
-    public System.DateTime? Date
-    {
-        get => (System.DateTime?)GetValue(DateProperty);
-        set => SetValue(DateProperty, value);
-    }
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnDatePropertyChanged))]
+    public partial System.DateTime? Date { get; set; }
 
-    public static readonly BindableProperty DateProperty = BindableProperty.Create(
-        nameof(Date),
-        typeof(System.DateTime?),
-        typeof(DatePickerField),
-        defaultValue: null,
-        defaultBindingMode: BindingMode.TwoWay,
-        propertyChanged: (bindable, _, _) => ((DatePickerField)bindable).OnDateChanged()
-    );
+    [BindableProperty]
+    public partial System.DateTime MaximumDate { get; set; } = (System.DateTime)DatePicker.MaximumDateProperty.DefaultValue;
 
-    public System.DateTime MaximumDate
-    {
-        get => (System.DateTime)GetValue(MaximumDateProperty);
-        set => SetValue(MaximumDateProperty, value);
-    }
+    [BindableProperty]
+    public partial System.DateTime MinimumDate { get; set; } = (System.DateTime)DatePicker.MinimumDateProperty.DefaultValue;
 
-    public static readonly BindableProperty MaximumDateProperty = BindableProperty.Create(
-        nameof(MaximumDate),
-        typeof(System.DateTime),
-        typeof(DatePickerField),
-        defaultValue: DatePicker.MaximumDateProperty.DefaultValue
-    );
+    [BindableProperty]
+    public partial string DateFormat { get; set; } = (string)DatePicker.FormatProperty.DefaultValue;
 
-    public System.DateTime MinimumDate
-    {
-        get => (System.DateTime)GetValue(MinimumDateProperty);
-        set => SetValue(MinimumDateProperty, value);
-    }
+    [BindableProperty]
+    public partial LayoutOptions TextHorizontalOptions { get; set; } = LayoutOptions.Center;
 
-    public static readonly BindableProperty MinimumDateProperty = BindableProperty.Create(
-        nameof(MinimumDate),
-        typeof(System.DateTime),
-        typeof(DatePickerField),
-        defaultValue: DatePicker.MinimumDateProperty.DefaultValue
-    );
+    [BindableProperty]
+    public partial LayoutOptions TextVerticalOptions { get; set; } = LayoutOptions.Center;
 
-    public string DateFormat
-    {
-        get => (string)GetValue(DateFormatProperty);
-        set => SetValue(DateFormatProperty, value);
-    }
-
-    public static readonly BindableProperty DateFormatProperty = BindableProperty.Create(
-        nameof(DateFormat),
-        typeof(string),
-        typeof(DatePickerField),
-        defaultValue: DatePicker.FormatProperty.DefaultValue
-    );
-
-    public LayoutOptions TextHorizontalOptions
-    {
-        get => (LayoutOptions)GetValue(TextHorizontalOptionsProperty);
-        set => SetValue(TextHorizontalOptionsProperty, value);
-    }
-
-    public static readonly BindableProperty TextHorizontalOptionsProperty = BindableProperty.Create(
-        nameof(TextHorizontalOptions),
-        typeof(LayoutOptions),
-        typeof(DatePickerField),
-        defaultValue: LayoutOptions.Center
-    );
-
-    public LayoutOptions TextVerticalOptions
-    {
-        get => (LayoutOptions)GetValue(TextVerticalOptionsProperty);
-        set => SetValue(TextVerticalOptionsProperty, value);
-    }
-
-    public static readonly BindableProperty TextVerticalOptionsProperty = BindableProperty.Create(
-        nameof(TextVerticalOptions),
-        typeof(LayoutOptions),
-        typeof(DatePickerField),
-        defaultValue: LayoutOptions.Center
-    );
+    private static void OnDatePropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((DatePickerField)bindable).OnDateChanged();
 }

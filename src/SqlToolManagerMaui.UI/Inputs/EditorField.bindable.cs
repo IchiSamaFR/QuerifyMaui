@@ -1,4 +1,5 @@
-﻿using Microsoft.Maui.Converters;
+﻿using CommunityToolkit.Maui;
+using Microsoft.Maui.Converters;
 using SqlToolManagerMaui.UI.Inputs.Core;
 using System.ComponentModel;
 
@@ -8,164 +9,58 @@ public partial class EditorField
 {
     // ── Bindable Properties ───────────────────────────────────────────────────
 
-    public string Placeholder
-    {
-        get => (string)GetValue(PlaceholderProperty);
-        set => SetValue(PlaceholderProperty, value);
-    }
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay)]
+    public partial string Placeholder { get; set; } = string.Empty;
 
-    public static readonly BindableProperty PlaceholderProperty = BindableProperty.Create(
-        nameof(Placeholder), typeof(string), typeof(EditorField), string.Empty, BindingMode.TwoWay);
+    [BindableProperty]
+    public partial Color PlaceholderColor { get; set; } = InputColors.Get("OnBackground", "OnBackgroundDark", Colors.DarkGray);
 
-    public Color PlaceholderColor
-    {
-        get => (Color)GetValue(PlaceholderColorProperty);
-        set => SetValue(PlaceholderColorProperty, value);
-    }
-
-    public static readonly BindableProperty PlaceholderColorProperty = BindableProperty.Create(
-        nameof(PlaceholderColor), typeof(Color), typeof(EditorField),
-        InputColors.Get("OnBackground", "OnBackgroundDark", Colors.DarkGray));
-
-    public string Text
-    {
-        get => (string)GetValue(TextProperty);
-        set => SetValue(TextProperty, value);
-    }
-
-    public static readonly BindableProperty TextProperty = BindableProperty.Create(
-        nameof(Text), typeof(string), typeof(EditorField), string.Empty, BindingMode.TwoWay);
-
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay)]
+    public partial string Text { get; set; } = string.Empty;
 
     [TypeConverter(typeof(KeyboardTypeConverter))]
-    public Keyboard Keyboard
-    {
-        get => (Keyboard)GetValue(KeyboardProperty);
-        set => SetValue(KeyboardProperty, value);
-    }
+    [BindableProperty]
+    public partial Keyboard Keyboard { get; set; } = Keyboard.Default;
 
-    public static readonly BindableProperty KeyboardProperty = BindableProperty.Create(
-        nameof(Keyboard), typeof(Keyboard), typeof(EditorField), Keyboard.Default);
+    [BindableProperty]
+    public partial double CharacterSpacing { get; set; }
 
-    public double CharacterSpacing
-    {
-        get => (double)GetValue(CharacterSpacingProperty);
-        set => SetValue(CharacterSpacingProperty, value);
-    }
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay)]
+    public partial int SelectionLength { get; set; }
 
-    public static readonly BindableProperty CharacterSpacingProperty = BindableProperty.Create(
-        nameof(CharacterSpacing), typeof(double), typeof(EditorField), 0d);
+    [BindableProperty]
+    public partial Color? CursorColor { get; set; }
 
-    public int SelectionLength
-    {
-        get => (int)GetValue(SelectionLengthProperty);
-        set => SetValue(SelectionLengthProperty, value);
-    }
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay)]
+    public partial int CursorPosition { get; set; }
 
-    public static readonly BindableProperty SelectionLengthProperty = BindableProperty.Create(
-        nameof(SelectionLength), typeof(int), typeof(EditorField), 0, BindingMode.TwoWay);
+    [BindableProperty]
+    public partial int MaxLength { get; set; } = int.MaxValue;
 
-    public Color? CursorColor
-    {
-        get => (Color?)GetValue(CursorColorProperty);
-        set => SetValue(CursorColorProperty, value);
-    }
+    [BindableProperty]
+    public partial TextAlignment HorizontalTextAlignment { get; set; } = TextAlignment.Start;
 
-    public static readonly BindableProperty CursorColorProperty = BindableProperty.Create(
-        nameof(CursorColor), typeof(Color), typeof(EditorField), null);
+    [BindableProperty]
+    public partial TextAlignment VerticalTextAlignment { get; set; } = TextAlignment.Center;
 
-    public int CursorPosition
-    {
-        get => (int)GetValue(CursorPositionProperty);
-        set => SetValue(CursorPositionProperty, value);
-    }
+    [BindableProperty]
+    public partial bool IsTextPredictionEnabled { get; set; } = true;
 
-    public static readonly BindableProperty CursorPositionProperty = BindableProperty.Create(
-        nameof(CursorPosition), typeof(int), typeof(EditorField), 0, BindingMode.TwoWay);
+    [BindableProperty]
+    public partial bool IsSpellCheckEnabled { get; set; }
 
-    public int MaxLength
-    {
-        get => (int)GetValue(MaxLengthProperty);
-        set => SetValue(MaxLengthProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnHeightPropertyChanged))]
+    public partial double BaseHeightRequest { get; set; }
 
-    public static readonly BindableProperty MaxLengthProperty = BindableProperty.Create(
-        nameof(MaxLength), typeof(int), typeof(EditorField), int.MaxValue);
+    [BindableProperty(PropertyChangedMethodName = nameof(OnHeightPropertyChanged))]
+    public partial double HeightByLines { get; set; }
 
-    public TextAlignment HorizontalTextAlignment
-    {
-        get => (TextAlignment)GetValue(HorizontalTextAlignmentProperty);
-        set => SetValue(HorizontalTextAlignmentProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnHeightPropertyChanged))]
+    public partial double MinimumHeightByLines { get; set; }
 
-    public static readonly BindableProperty HorizontalTextAlignmentProperty = BindableProperty.Create(
-        nameof(HorizontalTextAlignment), typeof(TextAlignment), typeof(EditorField), TextAlignment.Start);
+    [BindableProperty(PropertyChangedMethodName = nameof(OnHeightPropertyChanged))]
+    public partial double MaximumHeightByLines { get; set; }
 
-    public TextAlignment VerticalTextAlignment
-    {
-        get => (TextAlignment)GetValue(VerticalTextAlignmentProperty);
-        set => SetValue(VerticalTextAlignmentProperty, value);
-    }
-
-    public static readonly BindableProperty VerticalTextAlignmentProperty = BindableProperty.Create(
-        nameof(VerticalTextAlignment), typeof(TextAlignment), typeof(EditorField), TextAlignment.Center);
-
-
-    public bool IsTextPredictionEnabled
-    {
-        get => (bool)GetValue(IsTextPredictionEnabledProperty);
-        set => SetValue(IsTextPredictionEnabledProperty, value);
-    }
-
-    public static readonly BindableProperty IsTextPredictionEnabledProperty = BindableProperty.Create(
-        nameof(IsTextPredictionEnabled), typeof(bool), typeof(EditorField), true);
-
-    public bool IsSpellCheckEnabled
-    {
-        get => (bool)GetValue(IsSpellCheckEnabledProperty);
-        set => SetValue(IsSpellCheckEnabledProperty, value);
-    }
-
-    public static readonly BindableProperty IsSpellCheckEnabledProperty = BindableProperty.Create(
-        nameof(IsSpellCheckEnabled), typeof(bool), typeof(EditorField), false);
-
-    public double BaseHeightRequest
-    {
-        get => (double)GetValue(BaseHeightRequestProperty);
-        set => SetValue(BaseHeightRequestProperty, value);
-    }
-
-    public static readonly BindableProperty BaseHeightRequestProperty = BindableProperty.Create(
-        nameof(BaseHeightRequest), typeof(double), typeof(EditorField), 0d,
-        propertyChanged: (bindable, _, _) => ((EditorField)bindable).ApplyHeights());
-
-    public double HeightByLines
-    {
-        get => (double)GetValue(HeightByLinesProperty);
-        set => SetValue(HeightByLinesProperty, value);
-    }
-
-    public static readonly BindableProperty HeightByLinesProperty = BindableProperty.Create(
-        nameof(HeightByLines), typeof(double), typeof(EditorField), 0d,
-        propertyChanged: (bindable, _, _) => ((EditorField)bindable).ApplyHeights());
-
-    public double MinimumHeightByLines
-    {
-        get => (double)GetValue(MinimumHeightByLinesProperty);
-        set => SetValue(MinimumHeightByLinesProperty, value);
-    }
-
-    public static readonly BindableProperty MinimumHeightByLinesProperty = BindableProperty.Create(
-        nameof(MinimumHeightByLines), typeof(double), typeof(EditorField), 0d,
-        propertyChanged: (bindable, _, _) => ((EditorField)bindable).ApplyHeights());
-
-    public double MaximumHeightByLines
-    {
-        get => (double)GetValue(MaximumHeightByLinesProperty);
-        set => SetValue(MaximumHeightByLinesProperty, value);
-    }
-
-    public static readonly BindableProperty MaximumHeightByLinesProperty = BindableProperty.Create(
-        nameof(MaximumHeightByLines), typeof(double), typeof(EditorField), 0d,
-        propertyChanged: (bindable, _, _) => ((EditorField)bindable).ApplyHeights());
+    private static void OnHeightPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((EditorField)bindable).ApplyHeights();
 }

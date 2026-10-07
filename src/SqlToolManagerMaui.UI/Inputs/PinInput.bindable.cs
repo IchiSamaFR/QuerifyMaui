@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.UI.Inputs.Enums;
+﻿using CommunityToolkit.Maui;
+using SqlToolManagerMaui.UI.Inputs.Enums;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.UI.Inputs;
@@ -7,130 +8,46 @@ public partial class PinInput
 {
     // ── Bindable Properties ───────────────────────────────────────────────────
 
-    public string Value
-    {
-        get => (string)GetValue(ValueProperty);
-        set => SetValue(ValueProperty, value);
-    }
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnValuePropertyChanged))]
+    public partial string Value { get; set; } = string.Empty;
 
-    public static readonly BindableProperty ValueProperty = BindableProperty.Create(
-        nameof(Value), typeof(string), typeof(PinInput), string.Empty, BindingMode.TwoWay,
-        propertyChanged: (bindable, _, newValue) =>
-            ((PinInput)bindable).OnValueChanged((string?)newValue ?? string.Empty));
+    [BindableProperty(PropertyChangedMethodName = nameof(OnLengthChanged))]
+    public partial int Length { get; set; } = 4;
 
-    public int Length
-    {
-        get => (int)GetValue(LengthProperty);
-        set => SetValue(LengthProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnBoxesPropertyChanged))]
+    public partial bool IsPassword { get; set; }
 
-    public static readonly BindableProperty LengthProperty = BindableProperty.Create(
-        nameof(Length), typeof(int), typeof(PinInput), 4,
-        propertyChanged: (bindable, _, _) =>
-        {
-            var pin = (PinInput)bindable;
-            pin.ApplyKeyboard();
-            pin.BuildBoxes();
-        });
+    [BindableProperty(PropertyChangedMethodName = nameof(OnKeyboardTypeChanged))]
+    public partial PinInputKeyboardType KeyboardType { get; set; } = PinInputKeyboardType.Numeric;
 
-    public bool IsPassword
-    {
-        get => (bool)GetValue(IsPasswordProperty);
-        set => SetValue(IsPasswordProperty, value);
-    }
+    [BindableProperty]
+    public partial ICommand? CompletedCommand { get; set; }
 
-    public static readonly BindableProperty IsPasswordProperty = BindableProperty.Create(
-        nameof(IsPassword), typeof(bool), typeof(PinInput), false,
-        propertyChanged: (bindable, _, _) => ((PinInput)bindable).UpdateBoxes());
-
-    public PinInputKeyboardType KeyboardType
-    {
-        get => (PinInputKeyboardType)GetValue(KeyboardTypeProperty);
-        set => SetValue(KeyboardTypeProperty, value);
-    }
-
-    public static readonly BindableProperty KeyboardTypeProperty = BindableProperty.Create(
-        nameof(KeyboardType), typeof(PinInputKeyboardType), typeof(PinInput), PinInputKeyboardType.Numeric,
-        propertyChanged: (bindable, _, _) => ((PinInput)bindable).ApplyKeyboard());
-
-    public ICommand? CompletedCommand
-    {
-        get => (ICommand?)GetValue(CompletedCommandProperty);
-        set => SetValue(CompletedCommandProperty, value);
-    }
-
-    public static readonly BindableProperty CompletedCommandProperty = BindableProperty.Create(
-        nameof(CompletedCommand), typeof(ICommand), typeof(PinInput), null);
-
-    public object? CompletedCommandParameter
-    {
-        get => GetValue(CompletedCommandParameterProperty);
-        set => SetValue(CompletedCommandParameterProperty, value);
-    }
-
-    public static readonly BindableProperty CompletedCommandParameterProperty = BindableProperty.Create(
-        nameof(CompletedCommandParameter), typeof(object), typeof(PinInput), null);
+    [BindableProperty]
+    public partial object? CompletedCommandParameter { get; set; }
 
     // ── Apparence ─────────────────────────────────────────────────────────────
 
-    public PinInputBoxShape Shape
-    {
-        get => (PinInputBoxShape)GetValue(ShapeProperty);
-        set => SetValue(ShapeProperty, value);
-    }
+    [BindableProperty]
+    public partial PinInputBoxShape Shape { get; set; } = PinInputBoxShape.RoundCorner;
 
-    public static readonly BindableProperty ShapeProperty = BindableProperty.Create(
-    nameof(Shape), typeof(PinInputBoxShape), typeof(PinInput), PinInputBoxShape.RoundCorner);
+    [BindableProperty]
+    public partial double Size { get; set; } = 48d;
 
-    public double Size
-    {
-        get => (double)GetValue(SizeProperty);
-        set => SetValue(SizeProperty, value);
-    }
-
-    public static readonly BindableProperty SizeProperty = BindableProperty.Create(
-        nameof(Size), typeof(double), typeof(PinInput), 48d);
-
-    public double BoxSpacing
-    {
-        get => (double)GetValue(BoxSpacingProperty);
-        set => SetValue(BoxSpacingProperty, value);
-    }
-
-    public static readonly BindableProperty BoxSpacingProperty = BindableProperty.Create(
-        nameof(BoxSpacing), typeof(double), typeof(PinInput), 8d);
-
-    public double BoxCornerRadius
-    {
-        get => (double)GetValue(BoxCornerRadiusProperty);
-        set => SetValue(BoxCornerRadiusProperty, value);
-    }
+    [BindableProperty]
+    public partial double BoxSpacing { get; set; } = 8d;
 
     /// <summary>Rayon des boîtes. -1 (défaut) = hérite de <see cref="InputField.CornerRadius"/>.</summary>
-    public static readonly BindableProperty BoxCornerRadiusProperty = BindableProperty.Create(
-        nameof(BoxCornerRadius), typeof(double), typeof(PinInput), -1d);
-
-    public double BoxBorderThickness
-    {
-        get => (double)GetValue(BoxBorderThicknessProperty);
-        set => SetValue(BoxBorderThicknessProperty, value);
-    }
+    [BindableProperty]
+    public partial double BoxCornerRadius { get; set; } = -1d;
 
     /// <summary>Épaisseur du trait des boîtes. -1 (défaut) = hérite de <see cref="InputField.BorderThickness"/>.</summary>
-    public static readonly BindableProperty BoxBorderThicknessProperty = BindableProperty.Create(
-        nameof(BoxBorderThickness), typeof(double), typeof(PinInput), -1d,
-        propertyChanged: (bindable, _, _) => ((PinInput)bindable).UpdateBoxes());
-
-    public Color? BoxBorderColor
-    {
-        get => (Color?)GetValue(BoxBorderColorProperty);
-        set => SetValue(BoxBorderColorProperty, value);
-    }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnBoxesPropertyChanged))]
+    public partial double BoxBorderThickness { get; set; } = -1d;
 
     /// <summary>Couleur du trait des boîtes. null (défaut) = hérite de <see cref="InputField.BorderColor"/>.</summary>
-    public static readonly BindableProperty BoxBorderColorProperty = BindableProperty.Create(
-        nameof(BoxBorderColor), typeof(Color), typeof(PinInput), null,
-        propertyChanged: (bindable, _, _) => ((PinInput)bindable).UpdateBoxes());
+    [BindableProperty(PropertyChangedMethodName = nameof(OnBoxesPropertyChanged))]
+    public partial Color? BoxBorderColor { get; set; }
 
     // ── Valeurs effectives (héritage des propriétés d'InputField) ─────────────
 
@@ -139,4 +56,20 @@ public partial class PinInput
     internal double EffectiveBoxBorderThickness => BoxBorderThickness >= 0 ? BoxBorderThickness : BorderThickness;
 
     internal Color EffectiveBoxBorderColor => BoxBorderColor ?? BorderColor;
+
+    private static void OnValuePropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((PinInput)bindable).OnValueChanged((string?)newValue ?? string.Empty);
+
+    private static void OnLengthChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        var pin = (PinInput)bindable;
+        pin.ApplyKeyboard();
+        pin.BuildBoxes();
+    }
+
+    private static void OnKeyboardTypeChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((PinInput)bindable).ApplyKeyboard();
+
+    private static void OnBoxesPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((PinInput)bindable).UpdateBoxes();
 }

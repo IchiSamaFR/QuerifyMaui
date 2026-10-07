@@ -157,25 +157,28 @@ SqlToolManagerMaui/
 
 ### BindableProperty
 
-Chaque `BindableProperty` est déclarée **juste au-dessus** de la propriété CLR qu'elle porte, jamais regroupée en bloc en tête de classe : on lit la propriété et sa déclaration d'un seul coup d'œil.
+Les `BindableProperty` sont générées par l'attribut `[BindableProperty]` de CommunityToolkit.Maui (`using CommunityToolkit.Maui;`, classe `partial`, avertissement `MCTEXP001` neutralisé dans les csproj) : on déclare uniquement la propriété `partial`, le champ `XxxProperty` est généré.
 
 ```csharp
-public static readonly BindableProperty ToggleLineNumbersCommandProperty = BindableProperty.Create(
-    nameof(ToggleLineNumbersCommand), typeof(ICommand), typeof(ViewMenuBarItem), null);
-
 /// <summary>Bascule l'affichage des numeros de ligne.</summary>
-public ICommand? ToggleLineNumbersCommand
-{
-    get => (ICommand?)GetValue(ToggleLineNumbersCommandProperty);
-    set => SetValue(ToggleLineNumbersCommandProperty, value);
-}
+[BindableProperty]
+public partial ICommand? ToggleLineNumbersCommand { get; set; }
+
+/// <summary>Langage de l'onglet actif.</summary>
+[BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnLanguageChanged))]
+public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
+
+private static void OnLanguageChanged(BindableObject bindable, object oldValue, object newValue)
+    => ((ViewMenuBarItem)bindable).Refresh();
 ```
 
-* Arguments de `BindableProperty.Create` sur une seule ligne de continuation : `nameof(...)`, `typeof(<type>)`, `typeof(<classe propriétaire>)`, valeur par défaut.
-* La `<summary>` va sur la propriété CLR, pas sur le champ statique.
-* Types référence nullables (`ICommand?`), cast du `GetValue` aussi.
+* Valeur par défaut = initialiseur de la propriété (absent = `default`).
+* Options via l'attribut : `DefaultBindingMode`, `PropertyChangedMethodName`, `PropertyChangingMethodName`, `CoerceValueMethodName`, `ValidateValueMethodName`, `DefaultValueCreatorMethodName` — toujours avec `nameof(...)` vers une méthode statique à la signature MAUI (pas de lambda).
+* `{ get; private set; }` produit une propriété en lecture seule (`BindablePropertyKey` généré).
+* Propriété `public`, `internal` ou `protected internal` uniquement ; masquage d'une propriété héritée avec `new partial`.
+* La `<summary>` va sur la propriété ; types référence nullables (`ICommand?`).
 * Un `propertyChanged` n'est ajouté qu'en **dernier recours** : préférer un binding XAML.
-* Pour un contrôle riche, sortir les `BindableProperty` dans un fichier partiel `X.bindable.cs` (convention de `SqlToolManagerMaui.UI.Inputs` et de `AbstractPage`).
+* Pour un contrôle riche, sortir les propriétés dans un fichier partiel `X.bindable.cs` (convention de `SqlToolManagerMaui.UI.Inputs` et de `AbstractPage`).
 
 ### Conventions XAML
 
