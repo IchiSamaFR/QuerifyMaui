@@ -1,4 +1,4 @@
-﻿using MauiIcons.Fluent;
+﻿using MauiIcons.Fluent.Filled;
 
 namespace SqlToolManagerMaui.Models.Editors.Completion;
 
@@ -18,23 +18,23 @@ public sealed class CompletionItem
 
     public string TextToInsert => InsertText ?? Label;
 
-    public FluentIcons Icon => Kind switch
+    public Enum Icon => Kind switch
     {
-        CompletionItemKind.Column => FluentIcons.Column20,
-        CompletionItemKind.Table => FluentIcons.Table16,
-        CompletionItemKind.View => FluentIcons.Eye16,
-        CompletionItemKind.Procedure => FluentIcons.Code16,
-        CompletionItemKind.Schema => FluentIcons.Folder16,
-        CompletionItemKind.Database => FluentIcons.Database20,
-        CompletionItemKind.Function => FluentIcons.MathFormula16,
-        CompletionItemKind.DataType => FluentIcons.NumberSymbol16,
-        CompletionItemKind.Snippet or CompletionItemKind.Namespace => FluentIcons.Braces16,
-        CompletionItemKind.Property or CompletionItemKind.Field => FluentIcons.Textbox16,
-        CompletionItemKind.Method => FluentIcons.Cube16,
-        CompletionItemKind.Variable => FluentIcons.DocumentText16,
-        CompletionItemKind.Type => FluentIcons.Shapes16,
-        CompletionItemKind.Text => FluentIcons.TextT20,
-        _ => FluentIcons.TextFont16,
+        CompletionItemKind.Column => FluentFilledIcons.Column20Filled,
+        CompletionItemKind.Table => FluentFilledIcons.Table16Filled,
+        CompletionItemKind.View => FluentFilledIcons.Eye16Filled,
+        CompletionItemKind.Procedure => FluentFilledIcons.Code16Filled,
+        CompletionItemKind.Schema => FluentFilledIcons.Folder16Filled,
+        CompletionItemKind.Database => FluentFilledIcons.Database20Filled,
+        CompletionItemKind.Function => FluentFilledIcons.MathFormula16Filled,
+        CompletionItemKind.DataType => FluentFilledIcons.NumberSymbol16Filled,
+        CompletionItemKind.Snippet or CompletionItemKind.Namespace => FluentFilledIcons.Braces16Filled,
+        CompletionItemKind.Property or CompletionItemKind.Field => FluentFilledIcons.Textbox16Filled,
+        CompletionItemKind.Method => FluentFilledIcons.Cube16Filled,
+        CompletionItemKind.Variable => FluentFilledIcons.DocumentText16Filled,
+        CompletionItemKind.Type => FluentFilledIcons.Shapes16Filled,
+        CompletionItemKind.Text => FluentFilledIcons.TextT20Filled,
+        _ => FluentFilledIcons.TextFont16Filled,
     };
 
     /// <summary>Memes teintes que la coloration syntaxique pour reconnaitre la nature d'un coup d'oeil.</summary>

@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using MauiIcons.Fluent;
+using MauiIcons.Fluent.Filled;
 
 namespace SqlToolManagerMaui.Models.Databases;
 
@@ -75,18 +75,18 @@ public sealed partial class ExplorerNode : ObservableObject
         _ => null,
     };
 
-    public FluentIcons Icon => Kind switch
+    public Enum Icon => Kind switch
     {
-        ExplorerNodeKind.Connection => FluentIcons.Server20,
-        ExplorerNodeKind.Database => FluentIcons.Database20,
-        ExplorerNodeKind.Table => FluentIcons.Table20,
-        ExplorerNodeKind.View => FluentIcons.Eye20,
-        ExplorerNodeKind.StoredProcedure => FluentIcons.Code20,
-        ExplorerNodeKind.Column when IsPrimaryKey => FluentIcons.Key20,
-        ExplorerNodeKind.Column when IsForeignKey => FluentIcons.Link20,
-        ExplorerNodeKind.Column => FluentIcons.Column20,
-        ExplorerNodeKind.Message => FluentIcons.Info16,
-        _ => IsExpanded ? FluentIcons.FolderOpen20 : FluentIcons.Folder20,
+        ExplorerNodeKind.Connection => FluentFilledIcons.Server16Filled,
+        ExplorerNodeKind.Database => FluentFilledIcons.Database20Filled,
+        ExplorerNodeKind.Table => FluentFilledIcons.Table20Filled,
+        ExplorerNodeKind.View => FluentFilledIcons.Eye20Filled,
+        ExplorerNodeKind.StoredProcedure => FluentFilledIcons.Code20Filled,
+        ExplorerNodeKind.Column when IsPrimaryKey => FluentFilledIcons.Key20Filled,
+        ExplorerNodeKind.Column when IsForeignKey => FluentFilledIcons.Link20Filled,
+        ExplorerNodeKind.Column => FluentFilledIcons.Column20Filled,
+        ExplorerNodeKind.Message => FluentFilledIcons.Info16Filled,
+        _ => IsExpanded ? FluentFilledIcons.FolderOpen20Filled : FluentFilledIcons.Folder20Filled,
     };
 
     /// <summary>Couleur de l'icone, propre a chaque type d'objet pour les distinguer dans l'arbre.</summary>

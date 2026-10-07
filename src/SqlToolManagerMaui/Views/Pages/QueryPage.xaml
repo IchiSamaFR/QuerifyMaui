@@ -70,8 +70,9 @@
 
                         <Button Style="{StaticResource PrimaryIconButtonStyle}"
                                 Command="{Binding ExecuteQueryCommand}"
-                                ImageSource="{icons:Fluent Icon=PlayCircle20, IconSize=20}"
-                                ToolTipProperties.Text="Disponible dans une prochaine version" />
+                                ImageSource="{icons:FluentFilled Icon=Play16Filled, IconSize=16}"
+                                ToolTipProperties.Text="Disponible dans une prochaine version"
+                                Padding="-4,0,0,0" />
                     </HorizontalStackLayout>
                 </Grid>
 

@@ -1,7 +1,5 @@
 ﻿using CodeEdit.Maui;
 using CommunityToolkit.Maui;
-using MauiIcons.Core;
-using MauiIcons.Fluent;
 using RichEdit.Maui;
 using SqlToolManagerMaui.Models.Databases;
 using SqlToolManagerMaui.Models.Editors;

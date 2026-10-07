@@ -68,7 +68,7 @@
                 <Button Style="{StaticResource SimpleTextIconButtonStyle}"
                         Command="{Binding CloseCommand, Source={x:Reference Root}, x:DataType=c:FileTabItem}"
                         CommandParameter="{Binding Document, Source={x:Reference Root}, x:DataType=c:FileTabItem}"
-                        ImageSource="{icons:Fluent Icon=Dismiss16, IconSize=16}"
+                        ImageSource="{icons:FluentFilled Icon=Dismiss12Filled, IconSize=12}"
                         ToolTipProperties.Text="Fermer l'onglet"
                         IsVisible="{Binding ShowCloseButton, Source={x:Reference Root}, x:DataType=c:FileTabItem}" />
             </Grid>

@@ -7,7 +7,7 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource InputFieldStyle}">
         <Setter Property="Icon"
-                Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.CalendarRtl20},
+                Value="{mi:MauiIcon Icon={x:Static icons:FluentFilledIcons.CalendarRtl20Filled},
                         IconSize=20,
                         IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
     </Style>
@@ -17,7 +17,7 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource InputFieldStyle}">
         <Setter Property="Icon"
-                Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.Clock20},
+                Value="{mi:MauiIcon Icon={x:Static icons:FluentFilledIcons.Clock20Filled},
                         IconSize=20,
                         IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
     </Style>
@@ -27,11 +27,11 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource InputFieldStyle}">
         <Setter Property="Icon"
-                Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.CalendarRtl20},
+                Value="{mi:MauiIcon Icon={x:Static icons:FluentFilledIcons.CalendarRtl20Filled},
                         IconSize=20,
                         IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
         <Setter Property="SecondIcon"
-                Value="{mi:MauiIcon Icon={x:Static icons:FluentIcons.Clock20},
+                Value="{mi:MauiIcon Icon={x:Static icons:FluentFilledIcons.Clock20Filled},
                         IconSize=20,
                         IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
     </Style>

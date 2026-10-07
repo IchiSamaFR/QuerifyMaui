@@ -50,7 +50,7 @@
                 <Button Grid.Column="3"
                         Style="{StaticResource SimpleTextIconButtonStyle}"
                         Command="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=CloseCommand, x:DataType=c:QueryResultsPanel}"
-                        ImageSource="{icons:Fluent Icon=Dismiss16, IconColor={StaticResource LabelTertiary}, IconSize=12}"
+                        ImageSource="{icons:FluentFilled Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}, IconSize=12}"
                         WidthRequest="24"
                         HeightRequest="24"
                         Padding="0"
