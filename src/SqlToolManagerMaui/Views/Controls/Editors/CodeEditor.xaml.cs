@@ -100,47 +100,6 @@ public partial class CodeEditor : ContentView
 #if WINDOWS
         DisableWindowsHoverState();
 #endif
-
-        Native.ContextMenuOpening += OnTextFlyoutOpening;
-    }
-
-    private void OnTextFlyoutOpening(object? sender, EditorContextMenuEventArgs args)
-    {
-        args.IncludeDefaultItems = false;
-        //args.Items.Add(new MenuFlyoutItem
-        //{
-        //    Text = "Couper",
-        //    Command = Native.Commands.Cut,
-        //    IconImageSource = (FontImageSource)new MauiIcon() { Icon = FluentIcons.Cut20, },
-        //    KeyboardAccelerators = { new KeyboardAccelerator { Key = "x", Modifiers = KeyboardAcceleratorModifiers.Ctrl } }
-        //});
-        //args.Items.Add(new MenuFlyoutItem
-        //{
-        //    Text = "Copier",
-        //    Command = Native.Commands.Copy,
-        //    IconImageSource = (FontImageSource)new MauiIcon() { Icon = FluentIcons.Copy20, },
-        //    KeyboardAccelerators = { new KeyboardAccelerator { Key = "c", Modifiers = KeyboardAcceleratorModifiers.Ctrl } }
-        //});
-        //args.Items.Add(new MenuFlyoutItem
-        //{
-        //    Text = "Coller",
-        //    Command = Native.Commands.Paste,
-        //    IconImageSource = (FontImageSource)new MauiIcon() { Icon = FluentIcons.ClipboardPaste20, },
-        //    KeyboardAccelerators = { new KeyboardAccelerator { Key = "v", Modifiers = KeyboardAcceleratorModifiers.Ctrl } }
-        //});
-        //args.Items.Add(new MenuFlyoutItem
-        //{
-        //    Text = "Sélectionner tout",
-        //    Command = Native.Commands.SelectAll,
-        //    KeyboardAccelerators = { new KeyboardAccelerator { Key = "a", Modifiers = KeyboardAcceleratorModifiers.Ctrl } }
-        //});
-        //args.Items.Add(new MenuFlyoutItem
-        //{
-        //    Text = "Annuler",
-        //    Command = Native.Commands.Undo,
-        //    IconImageSource = (FontImageSource)new MauiIcon() { Icon = FluentIcons.ArrowUndo20, },
-        //    KeyboardAccelerators = { new KeyboardAccelerator { Key = "z", Modifiers = KeyboardAcceleratorModifiers.Ctrl } }
-        //});
     }
 
 #if WINDOWS
@@ -170,6 +129,14 @@ public partial class CodeEditor : ContentView
         box.Resources["TextControlBorderThemeThickness"] = new Microsoft.UI.Xaml.Thickness(1,0,0,0);
         box.Resources["TextControlBorderThemeThicknessFocused"] = new Microsoft.UI.Xaml.Thickness(1,0,0,0);
         box.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+
+        // Le flyout natif s'ouvre meme vide (flash au clic droit) : on le supprime a la source.
+        if (box is Microsoft.UI.Xaml.Controls.RichEditBox richBox)
+        {
+            richBox.ContextFlyout = null;
+            richBox.SelectionFlyout = null;
+            richBox.ContextRequested += (_, e) => e.Handled = true;
+        }
 
         box.Loaded += (_, _) => SyncHoverBrushes(box);
         box.ActualThemeChanged += (_, _) => SyncHoverBrushes(box);
