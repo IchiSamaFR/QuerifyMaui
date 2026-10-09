@@ -1,6 +1,6 @@
-﻿using System.Reflection;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace SqlToolManagerMaui.Services.Linq;
 

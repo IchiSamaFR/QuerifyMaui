@@ -1,5 +1,5 @@
-﻿using SqlToolManagerMaui.Models.Editors.Completion;
-using SqlToolManagerMaui.Models.Editors.Highlighting;
+﻿using SqlToolManagerMaui.Core.Models.Editors.Completion;
+using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Editors.Completion.Sql;
 using Xunit;
 

@@ -1,22 +1,15 @@
-﻿using System.Collections;
+﻿using Microsoft.EntityFrameworkCore;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Services.Queries;
+using System.Collections;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using SqlToolManagerMaui.Models.Databases;
-using SqlToolManagerMaui.Models.Queries;
-using SqlToolManagerMaui.Services.Queries;
 
 namespace SqlToolManagerMaui.Services.Linq;
-
-/// <summary>Execution d'une requete LINQ sur le DbContext genere a partir du catalogue de la connexion.</summary>
-public interface ILinqQueryExecutor
-{
-    /// <summary>Meme contrat que l'execution SQL : les erreurs sont rapportees dans les messages.</summary>
-    Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string query, CancellationToken cancellationToken = default);
-}
 
 /// <inheritdoc cref="ILinqQueryExecutor"/>
 [AutoRegister(As = typeof(ILinqQueryExecutor))]
@@ -105,7 +98,7 @@ public sealed class LinqQueryExecutor : ILinqQueryExecutor
 
     private sealed record Outcome(QueryResultSet ResultSet, string? Sql);
 
-    private Outcome Run(LinqModelAssembly model, Func<DbContext, object?> run, string connectionString, CancellationToken cancellationToken)
+    private Outcome Run(LinqModelAssembly model, Func<Microsoft.EntityFrameworkCore.DbContext, object?> run, string connectionString, CancellationToken cancellationToken)
     {
         using var context = _compiler.CreateContext(model, connectionString);
         var value = run(context);

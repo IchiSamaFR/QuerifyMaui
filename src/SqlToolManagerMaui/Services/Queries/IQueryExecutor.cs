@@ -1,5 +1,5 @@
-using SqlToolManagerMaui.Models.Databases;
-using SqlToolManagerMaui.Models.Queries;
+﻿using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Queries;
 
 namespace SqlToolManagerMaui.Services.Queries;
 

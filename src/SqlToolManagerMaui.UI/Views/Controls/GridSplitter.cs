@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using WinUIElement = Microsoft.UI.Xaml.UIElement;
 
 namespace SqlToolManagerMaui.UI.Views.Controls;

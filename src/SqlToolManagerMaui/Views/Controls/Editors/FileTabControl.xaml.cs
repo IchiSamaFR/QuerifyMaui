@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Maui;
+using SqlToolManagerMaui.Core.Models.Editors;
 using System.Collections;
 using System.Windows.Input;
-using SqlToolManagerMaui.Models.Editors;
 
 namespace SqlToolManagerMaui.Views.Controls.Editors;
 

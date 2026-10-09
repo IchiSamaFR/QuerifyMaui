@@ -1,5 +1,5 @@
+﻿using SqlToolManagerMaui.Core.Models.Queries;
 using System.Globalization;
-using SqlToolManagerMaui.Models.Queries;
 
 namespace SqlToolManagerMaui.Views.Controls.Queries;
 

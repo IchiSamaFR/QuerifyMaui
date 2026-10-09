@@ -1,10 +1,11 @@
-﻿using System.Data.Common;
-using System.Text.RegularExpressions;
-using SqlToolManagerMaui.Models.Databases;
-using SqlToolManagerMaui.Models.Editors.Completion;
-using SqlToolManagerMaui.Models.Editors.Highlighting;
+﻿using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Databases.Schemas;
+using SqlToolManagerMaui.Core.Models.Editors.Completion;
+using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using System.Data.Common;
+using System.Text.RegularExpressions;
 
 namespace SqlToolManagerMaui.Services.Editors.Completion;
 
@@ -149,42 +150,42 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
         switch (qualifier.Count)
         {
             case 1:
-            {
-                var name = qualifier[0];
+                {
+                    var name = qualifier[0];
 
-                if (context.FindTable(name) is { } table && await ResolveAsync(connection, context, table, cancellationToken) is { } aliased)
-                    return ColumnItems(aliased, null);
+                    if (context.FindTable(name) is { } table && await ResolveAsync(connection, context, table, cancellationToken) is { } aliased)
+                        return ColumnItems(aliased, null);
 
-                var snapshot = await _cache.GetSchemaAsync(connection, context.Database, cancellationToken);
-                if (snapshot.HasSchema(name))
-                    return await GetObjectItemsAsync(connection, context.Database, name, kinds, withSchemas: false, cancellationToken);
+                    var snapshot = await _cache.GetSchemaAsync(connection, context.Database, cancellationToken);
+                    if (snapshot.HasSchema(name))
+                        return await GetObjectItemsAsync(connection, context.Database, name, kinds, withSchemas: false, cancellationToken);
 
-                // Table non citee dans la requete : SELECT Users.| est valide si Users est dans le FROM d'une autre instruction.
-                if (snapshot.Find(null, name) is { } direct && direct.Columns.Count > 0)
-                    return ColumnItems(direct, null);
+                    // Table non citee dans la requete : SELECT Users.| est valide si Users est dans le FROM d'une autre instruction.
+                    if (snapshot.Find(null, name) is { } direct && direct.Columns.Count > 0)
+                        return ColumnItems(direct, null);
 
-                if (await IsDatabaseAsync(connection, name, cancellationToken))
-                    return SchemaItems(await _cache.GetSchemaAsync(connection, name, cancellationToken));
+                    if (await IsDatabaseAsync(connection, name, cancellationToken))
+                        return SchemaItems(await _cache.GetSchemaAsync(connection, name, cancellationToken));
 
-                return [];
-            }
+                    return [];
+                }
 
             case 2:
-            {
-                var snapshot = await _cache.GetSchemaAsync(connection, context.Database, cancellationToken);
-                if (snapshot.Find(qualifier[0], qualifier[1]) is { } table)
-                    return ColumnItems(table, null);
+                {
+                    var snapshot = await _cache.GetSchemaAsync(connection, context.Database, cancellationToken);
+                    if (snapshot.Find(qualifier[0], qualifier[1]) is { } table)
+                        return ColumnItems(table, null);
 
-                return await IsDatabaseAsync(connection, qualifier[0], cancellationToken)
-                    ? await GetObjectItemsAsync(connection, qualifier[0], qualifier[1], kinds, withSchemas: false, cancellationToken)
-                    : [];
-            }
+                    return await IsDatabaseAsync(connection, qualifier[0], cancellationToken)
+                        ? await GetObjectItemsAsync(connection, qualifier[0], qualifier[1], kinds, withSchemas: false, cancellationToken)
+                        : [];
+                }
 
             case 3:
-            {
-                var snapshot = await _cache.GetSchemaAsync(connection, qualifier[0], cancellationToken);
-                return snapshot.Find(qualifier[1], qualifier[2]) is { } table ? ColumnItems(table, null) : [];
-            }
+                {
+                    var snapshot = await _cache.GetSchemaAsync(connection, qualifier[0], cancellationToken);
+                    return snapshot.Find(qualifier[1], qualifier[2]) is { } table ? ColumnItems(table, null) : [];
+                }
 
             default:
                 return [];

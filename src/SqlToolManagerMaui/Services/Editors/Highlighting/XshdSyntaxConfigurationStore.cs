@@ -1,6 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using SqlToolManagerMaui.Models.Editors.Highlighting;
 
 namespace SqlToolManagerMaui.Services.Editors.Highlighting;
 

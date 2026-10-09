@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-namespace SqlToolManagerMaui
+﻿namespace SqlToolManagerMaui
 {
     public partial class App : Application
     {

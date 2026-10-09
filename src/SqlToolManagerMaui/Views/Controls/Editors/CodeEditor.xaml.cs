@@ -1,9 +1,9 @@
 ﻿using CodeEdit.Maui;
 using CommunityToolkit.Maui;
 using RichEdit.Maui;
-using SqlToolManagerMaui.Models.Databases;
-using SqlToolManagerMaui.Models.Editors;
-using SqlToolManagerMaui.Models.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Editors;
+using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using System.ComponentModel;
@@ -126,8 +126,8 @@ public partial class CodeEditor : ContentView
         // Ressources posees avant l'application du template, sinon ignorees.
         box.Resources["TextControlBackgroundPointerOver"] = _hoverBackground;
         box.Resources["TextControlBorderBrushPointerOver"] = _hoverBorder;
-        box.Resources["TextControlBorderThemeThickness"] = new Microsoft.UI.Xaml.Thickness(1,0,0,0);
-        box.Resources["TextControlBorderThemeThicknessFocused"] = new Microsoft.UI.Xaml.Thickness(1,0,0,0);
+        box.Resources["TextControlBorderThemeThickness"] = new Microsoft.UI.Xaml.Thickness(1, 0, 0, 0);
+        box.Resources["TextControlBorderThemeThicknessFocused"] = new Microsoft.UI.Xaml.Thickness(1, 0, 0, 0);
         box.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
 
         // Le flyout natif s'ouvre meme vide (flash au clic droit) : on le supprime a la source.

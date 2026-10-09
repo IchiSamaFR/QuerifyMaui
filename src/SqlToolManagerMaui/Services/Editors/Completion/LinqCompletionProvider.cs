@@ -1,7 +1,7 @@
-﻿using System.Data.Common;
-using SqlToolManagerMaui.Models.Editors.Completion;
-using SqlToolManagerMaui.Models.Editors.Highlighting;
+﻿using SqlToolManagerMaui.Core.Models.Editors.Completion;
+using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Linq;
+using System.Data.Common;
 
 namespace SqlToolManagerMaui.Services.Editors.Completion;
 

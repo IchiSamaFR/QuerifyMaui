@@ -1,5 +1,5 @@
-﻿using System.Text;
-using CommunityToolkit.Maui.Storage;
+﻿using CommunityToolkit.Maui.Storage;
+using System.Text;
 
 namespace SqlToolManagerMaui.Services.Editors;
 

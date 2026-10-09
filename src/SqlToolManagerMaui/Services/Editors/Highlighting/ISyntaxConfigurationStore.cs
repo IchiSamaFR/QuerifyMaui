@@ -1,4 +1,4 @@
-﻿using SqlToolManagerMaui.Models.Editors.Highlighting;
+﻿using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 
 namespace SqlToolManagerMaui.Services.Editors.Highlighting;
 

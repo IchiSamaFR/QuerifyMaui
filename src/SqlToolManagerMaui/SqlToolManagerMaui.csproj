@@ -83,7 +83,6 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
 		<PackageReference Include="CommunityToolkit.Maui.Markup" Version="8.0.0" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.101" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 		<!-- 6.1.6 minimum : exige par Microsoft.EntityFrameworkCore.SqlServer 10.0.12 (sinon NU1605). -->
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.6" />
@@ -94,7 +93,10 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="5.0.0" />
 		<PackageReference Include="CodeEdit.Maui" Version="0.4.0-preview.2" />
 	</ItemGroup>
+	
+	
 	<ItemGroup>
+		<ProjectReference Include="..\SqlToolManagerMaui.Core\SqlToolManagerMaui.Core.csproj" />
 		<ProjectReference Include="..\SqlToolManagerMaui.UI\SqlToolManagerMaui.UI.csproj" />
 	</ItemGroup>
 
@@ -105,17 +107,17 @@
 			<LastGenOutput>AppXmlns.cs</LastGenOutput>
 		</None>
 	</ItemGroup>
+	<ItemGroup>
+		<Compile Update="Properties\AppXmlns.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>AppXmlns.tt</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
 	<!-- ===================== Services ===================== -->
 	<ItemGroup>
 		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Compile Update="Properties\AppXmlns.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>AppXmlns.tt</DependentUpon>
-	  </Compile>
 	</ItemGroup>
 	<ItemGroup>
 	  <MauiXaml Update="Views\Controls\Editors\FileTabItem.xaml">

@@ -1,15 +1,13 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using SqlToolManagerMaui.Models.Databases;
-using SqlToolManagerMaui.Models.Queries;
+using SqlToolManagerMaui.Core.Models.Databases;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Helpers.Extensions;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.UI.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using SqlToolManagerMaui.UI.Extensions;
+using System.Collections.ObjectModel;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Connections;
 
@@ -343,7 +341,7 @@ public partial class ConnectionExplorerVM : AbstractVM
             return [Message(folder, "(aucun element)")];
 
         var nodeKind = kind switch
-{
+        {
             DatabaseObjectKind.Table => ExplorerNodeKind.Table,
             DatabaseObjectKind.View => ExplorerNodeKind.View,
             _ => ExplorerNodeKind.StoredProcedure,

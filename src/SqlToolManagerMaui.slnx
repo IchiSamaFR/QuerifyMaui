@@ -1,5 +1,9 @@
 <Solution>
-  <Project Path="SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj" />
+  <Folder Name="/Tests/">
+    <Project Path="SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj" />
+  </Folder>
+  <Project Path="SqlToolManagerMaui.Core/SqlToolManagerMaui.Core.csproj" Id="20581ecd-a9bd-40f1-b6f2-a5b075ddf732" />
+  <Project Path="SqlToolManagerMaui.Helpers/SqlToolManagerMaui.Helpers.csproj" Id="641a0d0c-2ec1-4dea-928a-d0e9521c2936" />
   <Project Path="SqlToolManagerMaui.UI/SqlToolManagerMaui.UI.csproj" Id="a2828b3a-0de5-41ce-8065-a2932b7b2f25" />
   <Project Path="SqlToolManagerMaui/SqlToolManagerMaui.csproj" />
 </Solution>

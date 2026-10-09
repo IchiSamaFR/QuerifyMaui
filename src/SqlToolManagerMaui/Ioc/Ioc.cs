@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-namespace SqlToolManagerMaui;
+﻿namespace SqlToolManagerMaui;
 
 /// <summary>
 /// Point d'accès statique au conteneur d'inversion de contrôle de l'application.

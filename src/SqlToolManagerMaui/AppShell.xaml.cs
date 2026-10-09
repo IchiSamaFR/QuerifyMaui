@@ -26,25 +26,25 @@ namespace SqlToolManagerMaui
                 ContextViewModel.CurrentRoute = route.Split('/').Last();
         }
 
-//#if WINDOWS
-//        /// <summary>
-//        /// Sous Windows, le Shell est rendu par un NavigationView WinUI qui affiche
-//        /// son propre bouton hamburger (le carre en haut a gauche), son bouton retour
-//        /// et un item "Settings". Le rail gere deja tout cela : on les masque.
-//        /// </summary>
-//        protected override void OnHandlerChanged()
-//        {
-//            base.OnHandlerChanged();
+        //#if WINDOWS
+        //        /// <summary>
+        //        /// Sous Windows, le Shell est rendu par un NavigationView WinUI qui affiche
+        //        /// son propre bouton hamburger (le carre en haut a gauche), son bouton retour
+        //        /// et un item "Settings". Le rail gere deja tout cela : on les masque.
+        //        /// </summary>
+        //        protected override void OnHandlerChanged()
+        //        {
+        //            base.OnHandlerChanged();
 
-//            if (Handler?.PlatformView is Microsoft.UI.Xaml.Controls.NavigationView navigationView)
-//            {
-//                navigationView.IsPaneToggleButtonVisible = false;
-//                navigationView.IsSettingsVisible = false;
-//                navigationView.IsBackButtonVisible = Microsoft.UI.Xaml.Controls.NavigationViewBackButtonVisible.Collapsed;
-//                navigationView.IsPaneOpen = true;
-//                navigationView.PaneDisplayMode = Microsoft.UI.Xaml.Controls.NavigationViewPaneDisplayMode.Left;
-//            }
-//        }
-//#endif
+        //            if (Handler?.PlatformView is Microsoft.UI.Xaml.Controls.NavigationView navigationView)
+        //            {
+        //                navigationView.IsPaneToggleButtonVisible = false;
+        //                navigationView.IsSettingsVisible = false;
+        //                navigationView.IsBackButtonVisible = Microsoft.UI.Xaml.Controls.NavigationViewBackButtonVisible.Collapsed;
+        //                navigationView.IsPaneOpen = true;
+        //                navigationView.PaneDisplayMode = Microsoft.UI.Xaml.Controls.NavigationViewPaneDisplayMode.Left;
+        //            }
+        //        }
+        //#endif
     }
 }

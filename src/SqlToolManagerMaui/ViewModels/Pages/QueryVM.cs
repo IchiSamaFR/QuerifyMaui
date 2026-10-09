@@ -1,17 +1,17 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using SqlToolManagerMaui.Models.Databases;
-using SqlToolManagerMaui.Models.Editors;
-using SqlToolManagerMaui.Models.Editors.Highlighting;
-using SqlToolManagerMaui.Models.Queries;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Editors;
+using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Models.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Linq;
 using SqlToolManagerMaui.Services.Queries;
 using SqlToolManagerMaui.UI.ViewModels;
+using System.Collections.ObjectModel;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 

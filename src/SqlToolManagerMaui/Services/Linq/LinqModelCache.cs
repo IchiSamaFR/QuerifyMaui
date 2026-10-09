@@ -1,17 +1,9 @@
-﻿using System.Runtime.CompilerServices;
-using SqlToolManagerMaui.Models.Databases;
+﻿using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Databases.Schemas;
 using SqlToolManagerMaui.Services.Databases;
+using System.Runtime.CompilerServices;
 
 namespace SqlToolManagerMaui.Services.Linq;
-
-/// <summary>
-/// DbContext compile de la base par defaut d'une connexion, partage par l'execution et
-/// l'autocompletion : la premiere des deux paie la generation, l'autre la retrouve.
-/// </summary>
-public interface ILinqModelCache
-{
-    Task<LinqModelAssembly> GetModelAsync(DatabaseConnectionInfo connection, CancellationToken cancellationToken = default);
-}
 
 /// <inheritdoc cref="ILinqModelCache"/>
 [AutoRegister(As = typeof(ILinqModelCache))]

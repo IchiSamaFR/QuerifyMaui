@@ -1,11 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using SqlToolManagerMaui.Models.Databases;
-using SqlToolManagerMaui.Models.Editors;
-using SqlToolManagerMaui.Models.Editors.Highlighting;
-using SqlToolManagerMaui.Services.Databases;
-using SqlToolManagerMaui.Services.Editors;
+﻿using CommunityToolkit.Mvvm.Input;
+using SqlToolManagerMaui.Core.Models.Editors;
+using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 

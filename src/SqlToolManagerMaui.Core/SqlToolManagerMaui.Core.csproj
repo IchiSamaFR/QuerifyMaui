@@ -1,0 +1,80 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+	<!-- ===================== General settings ===================== -->
+	<PropertyGroup>
+		<UseMaui>true</UseMaui>
+		<ImplicitUsings>true</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
+		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<NoWarn>$(NoWarn);MVVMTK0045;CA2007;CA1515;MCTEXP001</NoWarn>
+	</PropertyGroup>
+	
+	<!-- ===================== Target platforms & configurations ===================== -->
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+		<RuntimeIdentifier Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">win-x64</RuntimeIdentifier>
+		<RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">win-x64</RuntimeIdentifiers>
+		<SelfContained Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">false</SelfContained>
+
+		<!--
+		  RichEdit.Maui / CodeEdit.Maui sont compiles avec CsWinRT 2.3.1 (WinRT.Runtime 2.3.1.0),
+		  alors que le SDK 10.0.400 embarque par defaut la projection Windows 10.0.19041.57
+		  (WinRT.Runtime 2.2.0.0) -> FileNotFoundException au demarrage.
+		  On force donc une projection Windows plus recente.
+		-->
+		<WindowsSdkPackageVersion>10.0.19041.87</WindowsSdkPackageVersion>
+	</PropertyGroup>
+
+	<!-- ===================== XAML / MAUI compilation ===================== -->
+	<PropertyGroup>
+		<!-- Force XAML compilation for all configurations -->
+		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+		<DefineConstants>$(DefineConstants);MauiAllowImplicitXmlnsDeclaration</DefineConstants>
+		<!--<MauiXamlInflator>SourceGen</MauiXamlInflator>-->
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+
+		<LangVersion>preview</LangVersion>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+		<MauiStrictXamlCompilation>true</MauiStrictXamlCompilation>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<EnableAotAnalyzer>true</EnableAotAnalyzer>
+	</PropertyGroup>
+
+	<!-- ===================== NuGet references ===================== -->
+	<ItemGroup>
+		<PackageReference Include="AathifMahir.Maui.MauiIcons.Fluent.Filled" Version="6.0.0" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\SqlToolManagerMaui.Helpers\SqlToolManagerMaui.Helpers.csproj" />
+	</ItemGroup>
+
+	<!-- ===================== Code generation (T4) ===================== -->
+	<ItemGroup>
+		<None Update="Properties\AppXmlns.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>AppXmlns.cs</LastGenOutput>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<Compile Update="Properties\AppXmlns.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>AppXmlns.tt</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<!-- ===================== Services ===================== -->
+	<ItemGroup>
+		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+	</ItemGroup>
+
+</Project>

@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-using Microsoft.Data.SqlClient;
-using SqlToolManagerMaui.Models;
-using SqlToolManagerMaui.Models.Databases;
+﻿using Microsoft.Data.SqlClient;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Services.Databases.Connections;
+using System.Diagnostics;
 
 namespace SqlToolManagerMaui.Services.Databases;
 

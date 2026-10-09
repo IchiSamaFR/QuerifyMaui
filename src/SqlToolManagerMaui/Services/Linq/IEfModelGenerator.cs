@@ -1,4 +1,4 @@
-﻿using SqlToolManagerMaui.Models.Databases;
+﻿using SqlToolManagerMaui.Core.Models.Databases.Schemas;
 
 namespace SqlToolManagerMaui.Services.Linq;
 

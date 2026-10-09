@@ -1,10 +1,11 @@
-﻿using System.Reflection;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using SqlToolManagerMaui.Models.Databases;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Databases.Schemas;
 using SqlToolManagerMaui.Services.Linq;
+using System.Reflection;
 using Xunit;
 
 namespace SqlToolManagerMaui.Tests;

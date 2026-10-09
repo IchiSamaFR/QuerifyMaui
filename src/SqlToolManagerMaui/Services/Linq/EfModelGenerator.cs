@@ -1,6 +1,7 @@
-﻿using System.Globalization;
+﻿using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Databases.Schemas;
+using System.Globalization;
 using System.Text;
-using SqlToolManagerMaui.Models.Databases;
 
 namespace SqlToolManagerMaui.Services.Linq;
 

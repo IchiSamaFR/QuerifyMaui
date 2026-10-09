@@ -1,4 +1,4 @@
-﻿using SqlToolManagerMaui.Models.Editors.Completion;
+﻿using SqlToolManagerMaui.Core.Models.Editors.Completion;
 
 namespace SqlToolManagerMaui.Views.Controls.Editors;
 

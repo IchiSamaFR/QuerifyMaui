@@ -9,7 +9,6 @@
 		( "SqlToolManagerMaui.ViewModels", "viewmodels", "vm" ),
 		( "SqlToolManagerMaui.Views.Pages", "views", "v" ),
 		( "SqlToolManagerMaui.Views.Controls", "controls", "c" ),
-		( "SqlToolManagerMaui.Models", "models", "m" ),
 	};
 
 	var basePrefixMap = new Dictionary<string, string>(StringComparer.Ordinal)
