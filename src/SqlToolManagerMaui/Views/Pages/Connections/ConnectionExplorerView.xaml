@@ -53,7 +53,8 @@
                     <DataTemplate x:DataType="m:ExplorerNode">
                         <Grid ColumnDefinitions="20,*,Auto"
                               ColumnSpacing="6"
-                              BackgroundColor="Transparent">
+                              BackgroundColor="Transparent"
+                              ToolTipProperties.Text="{Binding Comment}">
                             <!-- Menu contextuel selon le type de noeud -->
                             <Grid.Triggers>
                                 <DataTrigger TargetType="Grid"

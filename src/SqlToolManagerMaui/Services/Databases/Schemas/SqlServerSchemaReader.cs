@@ -20,7 +20,9 @@ public sealed class SqlServerSchemaReader : IDatabaseSchemaReader
 
     // sys.objects.type est un char(2) : 'U' correspond a 'U ' (espaces de fin ignores).
     private const string ObjectsQuery = """
-        SELECT s.name, o.name
+        SELECT s.name, o.name,
+               CONVERT(nvarchar(max), (SELECT ep.value FROM sys.extended_properties ep
+                   WHERE ep.class = 1 AND ep.major_id = o.object_id AND ep.minor_id = 0 AND ep.name = N'MS_Description'))
         FROM sys.objects o
         INNER JOIN sys.schemas s ON s.schema_id = o.schema_id
         WHERE o.type = @type AND o.is_ms_shipped = 0
@@ -39,7 +41,9 @@ public sealed class SqlServerSchemaReader : IDatabaseSchemaReader
                CAST(CASE WHEN EXISTS (
                    SELECT 1 FROM sys.foreign_key_columns fk
                    WHERE fk.parent_object_id = c.object_id AND fk.parent_column_id = c.column_id)
-                   THEN 1 ELSE 0 END AS bit)
+                   THEN 1 ELSE 0 END AS bit),
+               CONVERT(nvarchar(max), (SELECT ep.value FROM sys.extended_properties ep
+                   WHERE ep.class = 1 AND ep.major_id = c.object_id AND ep.minor_id = c.column_id AND ep.name = N'MS_Description'))
         FROM sys.columns c
         INNER JOIN sys.types t ON t.user_type_id = c.user_type_id
         WHERE c.object_id = OBJECT_ID(QUOTENAME(@schema) + N'.' + QUOTENAME(@name))
@@ -98,7 +102,7 @@ public sealed class SqlServerSchemaReader : IDatabaseSchemaReader
 
         var result = new List<DatabaseObjectEntry>();
         while (await reader.ReadAsync(cancellationToken))
-            result.Add(new DatabaseObjectEntry(reader.GetString(0), reader.GetString(1)));
+            result.Add(new DatabaseObjectEntry(reader.GetString(0), reader.GetString(1), ReadComment(reader, 2)));
 
         return result;
     }
@@ -124,7 +128,8 @@ public sealed class SqlServerSchemaReader : IDatabaseSchemaReader
                 IsPrimaryKey: reader.GetBoolean(8),
                 IsForeignKey: reader.GetBoolean(9),
                 IsIdentity: reader.GetBoolean(6),
-                IsComputed: reader.GetBoolean(7)));
+                IsComputed: reader.GetBoolean(7),
+                Comment: ReadComment(reader, 10)));
         }
 
         return result;
@@ -179,6 +184,9 @@ public sealed class SqlServerSchemaReader : IDatabaseSchemaReader
                              .ToArray()
         };
     }
+
+    private static string? ReadComment(SqlDataReader reader, int ordinal)
+        => reader.IsDBNull(ordinal) || string.IsNullOrWhiteSpace(reader.GetString(ordinal)) ? null : reader.GetString(ordinal).Trim();
 
     /// <summary>Type affiche comme dans SSMS : longueur, precision ou echelle selon le type de base.</summary>
     private static string FormatType(string typeName, short maxLength, byte precision, byte scale)

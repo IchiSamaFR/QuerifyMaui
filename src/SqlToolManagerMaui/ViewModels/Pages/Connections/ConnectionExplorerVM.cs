@@ -350,7 +350,7 @@ public partial class ConnectionExplorerVM : AbstractVM
         };
 
         return objects
-            .Select(o => new ExplorerNode(nodeKind, o.QualifiedName, folder.Connection, folder) { Schema = o.Schema, ObjectName = o.Name })
+            .Select(o => new ExplorerNode(nodeKind, o.QualifiedName, folder.Connection, folder) { Schema = o.Schema, ObjectName = o.Name, Comment = o.Comment })
             .ToList();
     }
 
@@ -373,6 +373,7 @@ public partial class ConnectionExplorerVM : AbstractVM
                 Detail = $"({c.Description})",
                 IsPrimaryKey = c.IsPrimaryKey,
                 IsForeignKey = c.IsForeignKey,
+                Comment = c.Comment,
             })
             .ToList();
     }

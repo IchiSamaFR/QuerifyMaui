@@ -6,7 +6,8 @@
 public sealed record DatabaseCatalogEntry(string Name, bool IsSystem);
 
 /// <summary>Objet d'une base (table, vue, procedure), qualifie par son schema.</summary>
-public sealed record DatabaseObjectEntry(string Schema, string Name)
+/// <param name="Comment">Commentaire de l'objet (MS_Description sous SQL Server), null si absent.</param>
+public sealed record DatabaseObjectEntry(string Schema, string Name, string? Comment = null)
 {
     public string QualifiedName => $"{Schema}.{Name}";
 }

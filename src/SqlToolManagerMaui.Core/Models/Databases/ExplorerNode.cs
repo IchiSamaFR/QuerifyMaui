@@ -48,6 +48,9 @@ public sealed partial class ExplorerNode : ObservableObject
     /// <summary>Colonne de cle etrangere (icone lien).</summary>
     public bool IsForeignKey { get; init; }
 
+    /// <summary>Commentaire de l'objet ou de la colonne (affiche en infobulle), null si absent.</summary>
+    public string? Comment { get; init; }
+
     /// <summary>Precision affichee en gris a droite du titre (serveur, nombre d'elements...).</summary>
     [ObservableProperty]
     public partial string? Detail { get; set; }
