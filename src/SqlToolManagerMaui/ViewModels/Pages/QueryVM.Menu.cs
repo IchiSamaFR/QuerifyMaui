@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Editors;
-using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 

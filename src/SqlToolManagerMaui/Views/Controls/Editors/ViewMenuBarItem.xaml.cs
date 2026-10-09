@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Maui;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
-using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Views.Controls.Editors;

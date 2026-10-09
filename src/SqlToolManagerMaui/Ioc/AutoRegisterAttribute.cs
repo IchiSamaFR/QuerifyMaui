@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-namespace SqlToolManagerMaui;
+﻿namespace SqlToolManagerMaui;
 
 /// <summary>
 /// Marque une classe pour un enregistrement automatique dans le conteneur
