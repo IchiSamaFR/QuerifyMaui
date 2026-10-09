@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Views.Pages;
 
 namespace SqlToolManagerMaui.ViewModels;

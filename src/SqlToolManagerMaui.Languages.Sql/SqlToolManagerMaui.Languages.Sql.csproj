@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- ===================== General settings ===================== -->
+	<PropertyGroup>
+		<RootNamespace>SqlToolManagerMaui.Languages.Sql</RootNamespace>
+		<ImplicitUsings>true</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
+		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<NoWarn>$(NoWarn);CA2007;CA1515</NoWarn>
+		<LangVersion>preview</LangVersion>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+		<!-- Core active les fonctionnalites en preversion : les consommateurs doivent opter aussi (CA2252) -->
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<EnableAotAnalyzer>true</EnableAotAnalyzer>
+	</PropertyGroup>
+
+	<!-- ===================== Target platforms & configurations ===================== -->
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+		<WindowsSdkPackageVersion>10.0.19041.87</WindowsSdkPackageVersion>
+	</PropertyGroup>
+
+	<!-- ===================== NuGet references ===================== -->
+	<ItemGroup>
+		<!-- 6.1.6 minimum : exige par Microsoft.EntityFrameworkCore.SqlServer 10.0.12 (sinon NU1605). -->
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.6" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SqlToolManagerMaui.Core\SqlToolManagerMaui.Core.csproj" />
+	</ItemGroup>
+
+</Project>

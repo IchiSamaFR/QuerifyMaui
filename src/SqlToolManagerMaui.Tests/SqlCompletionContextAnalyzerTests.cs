@@ -1,6 +1,6 @@
 ﻿using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
-using SqlToolManagerMaui.Services.Editors.Completion.Sql;
+using SqlToolManagerMaui.Languages.Sql.Completion;
 using Xunit;
 
 namespace SqlToolManagerMaui.Tests;

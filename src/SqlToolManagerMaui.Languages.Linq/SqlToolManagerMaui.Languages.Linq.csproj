@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- ===================== General settings ===================== -->
+	<PropertyGroup>
+		<RootNamespace>SqlToolManagerMaui.Languages.Linq</RootNamespace>
+		<ImplicitUsings>true</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
+		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<NoWarn>$(NoWarn);CA2007;CA1515</NoWarn>
+		<LangVersion>preview</LangVersion>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+		<!-- Core active les fonctionnalites en preversion : les consommateurs doivent opter aussi (CA2252) -->
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<EnableAotAnalyzer>true</EnableAotAnalyzer>
+	</PropertyGroup>
+
+	<!-- ===================== Target platforms & configurations ===================== -->
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+		<WindowsSdkPackageVersion>10.0.19041.87</WindowsSdkPackageVersion>
+	</PropertyGroup>
+
+	<!-- ===================== NuGet references ===================== -->
+	<ItemGroup>
+		<!-- Requetes LINQ : DbContext genere puis compile en memoire. -->
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+		<!-- IntelliSense C# des onglets LINQ (CompletionService de Roslyn). -->
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="5.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SqlToolManagerMaui.Core\SqlToolManagerMaui.Core.csproj" />
+	</ItemGroup>
+
+	<!-- Les tests exercent les helpers internes du compilateur. -->
+	<ItemGroup>
+		<InternalsVisibleTo Include="SqlToolManagerMaui.Tests" />
+	</ItemGroup>
+
+</Project>

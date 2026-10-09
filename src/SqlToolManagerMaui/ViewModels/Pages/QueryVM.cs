@@ -2,15 +2,16 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Core.Services.Queries;
+using SqlToolManagerMaui.Languages.Linq;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
-using SqlToolManagerMaui.Services.Linq;
-using SqlToolManagerMaui.Services.Queries;
 using SqlToolManagerMaui.UI.ViewModels;
 using System.Collections.ObjectModel;
 

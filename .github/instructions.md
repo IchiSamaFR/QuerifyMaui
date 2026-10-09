@@ -33,8 +33,8 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 * **Views/Pages** : `ContentPage` XAML, UI uniquement, héritent de `AbstractPage`.
 * **Views/Controls** : contrôles XAML réutilisables, groupés par domaine (`Editors/`).
 * **ViewModels** : logique de présentation, héritent de `AbstractVM` (qui étend `ObservableObject`). Les VM de page sont dans `ViewModels/Pages/`.
-* **Services** : logique métier et accès aux ressources (disque, SecureStorage, bases), groupés par domaine (`Databases/`, `Editors/`).
-* **Models** : modèles locaux, groupés par domaine (`Databases/`, `Editors/`).
+* **Services** : logique propre à l'application (disque, SecureStorage, popups, coloration, résolveurs), groupés par domaine (`Databases/`, `Editors/`, `Queries/`). Les contrats partagés vivent dans `Core`, les implémentations par langage dans `Languages.*`.
+* **Models / Enums** : dans `SqlToolManagerMaui.Core` (plus de dossier `Models` dans le projet principal).
 * **Ioc** : conteneur statique et enregistrement centralisé des dépendances.
 * **Resources/Styles** : tokens (couleurs, tailles, épaisseurs) et styles par contrôle.
 
@@ -42,6 +42,17 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 * **Inputs** : contrôles de saisie maison (`ButtonView`, `TextField`, `PickerField`, `IntField`, `PinInput`...), chacun scindé en `X.cs` + `X.bindable.cs`.
 * **Converters** : convertisseurs XAML réutilisables.
 * **Behaviors / Attachments / Extensions** : comportements et helpers transverses.
+
+**Noyau (`SqlToolManagerMaui.Core`)** : ne dépend pas du projet principal.
+* **Models / Enums** : modèles et énumérations, groupés par domaine (`Databases/`, `Editors/`, `Queries/`).
+* **Services** : contrats uniquement (`IQueryExecutor`, `IConnectionTester`, `IDatabaseSchemaReader`, `IDatabaseSchemaCache`, `ICompletionProvider`...), plus `QueryExecutionLimits`.
+* **Ioc** : `AutoRegisterAttribute`.
+
+**Langages (`SqlToolManagerMaui.Languages.Sql`, `SqlToolManagerMaui.Languages.Linq`)** : un projet par langage, qui implémente les contrats de `Core`. Ils ne se référencent pas entre eux ; seul le projet principal les référence.
+* **`Languages.Sql`** : `SqlServer/` (exécuteur, testeur de connexion, lecteur de catalogue, découpage `GO`) et `Completion/` (`SqlLexer`, analyseur de contexte).
+* **`Languages.Linq`** : générateur de modèle EF, compilateur Roslyn, exécuteur, cache de modèle, complétion C#. Les dépendances EF Core et Roslyn restent confinées ici.
+
+**Autres projets** : `SqlToolManagerMaui.Helpers` (extensions et outils partagés), `SqlToolManagerMaui.Tests` (xUnit, référence `Core` et les projets de langage).
 
 **Important** : respecter strictement cette stratification. Un contrôle générique (non lié au métier SQL) va dans `SqlToolManagerMaui.UI`, un contrôle spécifique à l'application va dans `Views/Controls/`.
 
@@ -55,15 +66,11 @@ SqlToolManagerMaui/
 │   ├── SqlToolManagerMaui/                     # Projet MAUI principal (Windows)
 │   │   ├── Ioc/
 │   │   │   ├── Ioc.cs                          # Service locator statique
-│   │   │   └── ServiceCollectionExtensions.cs  # Scan des classes [AutoRegister]
-│   │   ├── Models/
-│   │   │   ├── Databases/                      # DatabaseConnectionInfo, Draft, Provider
-│   │   │   ├── Editors/                        # EditorDocument, EditorConfiguration, EditorSelection
-│   │   │   └── Queries/                        # QueryExecutionResult, QueryResultSet, QueryMessage
+│   │   │   └── ServiceCollectionExtensions.cs  # Scan des [AutoRegister] (app + projets de langage)
 │   │   ├── Services/
-│   │   │   ├── Databases/                      # ConnectionStore, testeurs par moteur
-│   │   │   ├── Editors/                        # EditorFileService (FilePicker / FileSaver)
-│   │   │   └── Queries/                        # Exécuteurs par moteur, découpage GO
+│   │   │   ├── Databases/                      # ConnectionStore, dialogue, résolveurs, cache de catalogue
+│   │   │   ├── Editors/                        # EditorFileService, coloration, fournisseurs de complétion
+│   │   │   └── Queries/                        # QueryExecutorResolver
 │   │   ├── ViewModels/
 │   │   │   ├── AbstractVM.cs                   # Base : navigation, chargement
 │   │   │   ├── AbstractVM_Busy.cs              # Base : gestion des tâches / IsBusy
@@ -80,6 +87,17 @@ SqlToolManagerMaui/
 │   │   ├── Properties/AppXmlns.tt              # Génère les XmlnsDefinition
 │   │   ├── AppShell.xaml                       # Shell + rail de navigation
 │   │   └── MauiProgram.cs                      # Point d'entrée et configuration DI
+│   ├── SqlToolManagerMaui.Core/                # Noyau : modèles, enums, contrats, AutoRegister
+│   │   ├── Models/                             # Databases/, Editors/, Queries/
+│   │   ├── Enums/                              # Databases/, Editors/
+│   │   ├── Services/                           # Contrats : Databases/, Queries/, Editors/Completion/
+│   │   └── Ioc/                                # AutoRegisterAttribute
+│   ├── SqlToolManagerMaui.Languages.Sql/       # Langage SQL
+│   │   ├── SqlServer/                          # Exécuteur, testeur, lecteur de catalogue, découpage GO
+│   │   └── Completion/                         # SqlLexer, SqlCompletionContextAnalyzer
+│   ├── SqlToolManagerMaui.Languages.Linq/      # Langage LINQ (EF Core + Roslyn)
+│   ├── SqlToolManagerMaui.Helpers/             # Extensions et outils partagés
+│   ├── SqlToolManagerMaui.Tests/               # Tests xUnit (Linq, analyseur SQL)
 │   ├── SqlToolManagerMaui.UI/                  # Bibliothèque UI réutilisable
 │   │   ├── Inputs/                             # Contrôles de saisie (+ .bindable.cs)
 │   │   ├── Converters/                         # Convertisseurs XAML
@@ -109,7 +127,7 @@ SqlToolManagerMaui/
 
 ## Injection de dépendances
 
-* Services, pages et ViewModels se déclarent eux-mêmes avec `[AutoRegister]` (`Ioc/AutoRegisterAttribute.cs`) : singleton et type concret par défaut, `Lifetime = ServiceLifetime.Transient` et/ou `As = typeof(IMonService)` au besoin. `Ioc/ServiceCollectionExtensions.cs` scanne l'assembly ; plusieurs classes `As` la même interface sont toutes enregistrées.
+* Services, pages et ViewModels se déclarent eux-mêmes avec `[AutoRegister]` (`Core/Ioc/AutoRegisterAttribute.cs`) : singleton et type concret par défaut, `Lifetime = ServiceLifetime.Transient` et/ou `As = typeof(IMonService)` au besoin. `Ioc/ServiceCollectionExtensions.cs` scanne l'assembly de l'application et celles des projets de langage (un type de chaque projet désigne son assembly) ; plusieurs classes `As` la même interface sont toutes enregistrées.
 * Injection **par constructeur** exclusivement.
 * `Ioc.GetRequiredService<T>()` est un dernier recours, réservé au code qui ne peut pas recevoir ses dépendances (code-behind, factories).
 * Pages et ViewModels sont enregistrés en **singleton** (application desktop mono-fenêtre).
@@ -245,9 +263,9 @@ Lors de la création d'une feature :
 ### Exécution des requêtes
 
 * `QueryVM.ExecuteQueryCommand` (async, `IncludeCancelCommand`) : texte = `Selection.SelectedText` s'il n'est pas vide, sinon `ActiveDocument.EditorText`. Volontairement **hors** `RunAsBusyAsync`, qui désactiverait la page et donc le bouton Annuler.
-* **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(IQueryExecutor))]` ; `QueryExecutorResolver` le découvre seul.
-* `SqlServerQueryExecutor` : une connexion par exécution (pas de session conservée entre deux F5), `CommandTimeout = 0`, lots `GO` / `GO n` découpés par `SqlBatchSplitter` (ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script exécuté. Les erreurs SQL sont rendues dans les messages, pas levées.
-* Plafond de `MaxRowsPerResultSet` (10 000) lignes par jeu, cellules converties en texte côté service (NULL = `null`).
+* **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(IQueryExecutor))]` dans `Languages.Sql/[Moteur]/` ; `QueryExecutorResolver` le découvre seul.
+* `SqlServerQueryExecutor` (`Languages.Sql/SqlServer/`) : une connexion par exécution (pas de session conservée entre deux F5), `CommandTimeout = 0`, lots `GO` / `GO n` découpés par `SqlBatchSplitter` (ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script exécuté. Les erreurs SQL sont rendues dans les messages, pas levées.
+* Plafond de `QueryExecutionLimits.MaxRowsPerResultSet` (`Core`, 10 000) lignes par jeu, cellules converties en texte côté service (NULL = `null`).
 * Le résultat est rangé sur l'`EditorDocument` d'origine (`LastResult`, `IsExecuting`) : chaque onglet garde ses résultats.
 * `Views/Controls/Queries/QueryResultGrid` est construit en code (colonnes connues à l'exécution) ; les lignes (`QueryResultRowView`) sont remplies au recyclage, sans binding. Styles dans `Resources/Styles/Controls/QueryResultStyles.xaml`.
 
@@ -255,7 +273,7 @@ Lors de la création d'une feature :
 
 * Stockage mixte : métadonnées dans `connections.json` (AppDataDirectory, écriture atomique via fichier `.tmp`), chaîne de connexion complète chiffrée dans le `SecureStorage` sous la clé `connectionstring:{id}`. `DatabaseConnectionInfo` ne contient **jamais** la chaîne complète.
 * Toutes les écritures passent par un sémaphore, le fichier est réécrit en entier.
-* **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(IConnectionTester))]` ; `ConnectionTesterResolver` le découvre seul.
+* **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(IConnectionTester))]` dans `Languages.Sql/[Moteur]/` ; `ConnectionTesterResolver` le découvre seul.
 * La popup « Se connecter » (`ConnectionEditorPopup` + `ConnectionEditorVM`, transient) travaille sur un `DatabaseConnectionDraft` (clone) pour qu'« Annuler » ne modifie rien. Elle est ouverte par `IConnectionDialogService.EditAsync` et fermée par le VM via `IPopupService.ClosePopupAsync(shell, Guid?)` (Id enregistré, ou null).
 * Après un ajout / une modification / une suppression, `ConnectionsChangedMessage` est publié (WeakReferenceMessenger) : `QueryVM` recharge son Picker.
 * **Explorateur** : `ConnectionExplorerVM` garde l'arbre (`Roots`), affiché par le contrôle générique `v:TreeView` de `SqlToolManagerMaui.UI/Views` (MAUI n'en fournit pas) : nœuds imbriqués, `ChildrenPath` / `IsExpandedPath` / `CanExpandPath`, `ExpandingCommand` appelé à chaque ouverture pour le chargement paresseux. Aucun `ExplorerNode` ne porte la chaîne : elle est relue dans le coffre à chaque chargement. Une erreur de chargement devient un nœud « Erreur : ... ».
@@ -297,4 +315,4 @@ dotnet build src/SqlToolManagerMaui.slnx
 
 ---
 
-**Dernière mise à jour** : 2026-09-26
+**Dernière mise à jour** : 2026-10-09

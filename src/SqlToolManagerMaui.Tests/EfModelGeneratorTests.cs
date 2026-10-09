@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Databases.Schemas;
-using SqlToolManagerMaui.Services.Linq;
+using SqlToolManagerMaui.Languages.Linq;
 using System.Reflection;
 using Xunit;
 

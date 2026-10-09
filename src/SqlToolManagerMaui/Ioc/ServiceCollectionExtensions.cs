@@ -1,3 +1,6 @@
+using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Languages.Linq;
+using SqlToolManagerMaui.Languages.Sql.SqlServer;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -11,19 +14,23 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         return services
-            .AddAutoRegisteredServices(typeof(ServiceCollectionExtensions).Assembly);
+            .AddAutoRegisteredServices(
+                typeof(ServiceCollectionExtensions).Assembly,
+                // Un type par projet de langage, pour designer l'assembly a scanner.
+                typeof(SqlServerQueryExecutor).Assembly,
+                typeof(LinqCompiler).Assembly);
     }
 
     /// <summary>
-    /// Enregistre toutes les classes marquees <see cref="AutoRegisterAttribute"/> de l'assembly.
+    /// Enregistre toutes les classes marquees <see cref="AutoRegisterAttribute"/> des assemblies.
     /// Plusieurs implementations d'un meme service (testeurs, executeurs...) sont toutes
     /// ajoutees : les resolveurs les recoivent en <c>IEnumerable</c>.
     /// </summary>
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "App non publiee en trimmed : scan reflexif assume.")]
     [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "App non publiee en trimmed : scan reflexif assume.")]
-    private static IServiceCollection AddAutoRegisteredServices(this IServiceCollection services, Assembly assembly)
+    private static IServiceCollection AddAutoRegisteredServices(this IServiceCollection services, params Assembly[] assemblies)
     {
-        foreach (Type type in assembly.GetTypes().Where(t => t is { IsClass: true, IsAbstract: false }))
+        foreach (Type type in assemblies.SelectMany(a => a.GetTypes()).Where(t => t is { IsClass: true, IsAbstract: false }))
         {
             AutoRegisterAttribute? attribute = type.GetCustomAttribute<AutoRegisterAttribute>(inherit: false);
             if (attribute is null)

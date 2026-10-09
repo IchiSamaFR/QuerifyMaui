@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.ViewModels;
+﻿using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.ViewModels;
 using SqlToolManagerMaui.Views.Pages.Connections;
 
 namespace SqlToolManagerMaui

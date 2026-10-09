@@ -1,7 +1,9 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Editors.Completion;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Services.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 
 namespace SqlToolManagerMaui.Services.Editors.Completion;

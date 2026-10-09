@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SqlToolManagerMaui.Services.Linq;
+using SqlToolManagerMaui.Languages.Linq;
 using Xunit;
 
 namespace SqlToolManagerMaui.Tests;

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Helpers.Extensions;
 

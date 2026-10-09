@@ -84,19 +84,14 @@
 		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
 		<PackageReference Include="CommunityToolkit.Maui.Markup" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
-		<!-- 6.1.6 minimum : exige par Microsoft.EntityFrameworkCore.SqlServer 10.0.12 (sinon NU1605). -->
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.6" />
-		<!-- Requetes LINQ : DbContext genere puis compile en memoire. -->
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
-		<!-- IntelliSense C# des onglets LINQ (CompletionService de Roslyn). -->
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="5.0.0" />
 		<PackageReference Include="CodeEdit.Maui" Version="0.4.0-preview.2" />
 	</ItemGroup>
 	
 	
 	<ItemGroup>
 		<ProjectReference Include="..\SqlToolManagerMaui.Core\SqlToolManagerMaui.Core.csproj" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Languages.Linq\SqlToolManagerMaui.Languages.Linq.csproj" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Languages.Sql\SqlToolManagerMaui.Languages.Sql.csproj" />
 		<ProjectReference Include="..\SqlToolManagerMaui.UI\SqlToolManagerMaui.UI.csproj" />
 	</ItemGroup>
 

@@ -4,7 +4,7 @@ using RichEdit.Maui;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
-using SqlToolManagerMaui.Services.Editors.Completion;
+using SqlToolManagerMaui.Core.Services.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using System.ComponentModel;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;

@@ -16,20 +16,6 @@
 		<WindowsSdkPackageVersion>10.0.19041.87</WindowsSdkPackageVersion>
 	</PropertyGroup>
 	
-	<!-- Le projet MAUI (Exe) n'est pas referencable : on lie uniquement le code teste, qui ne doit dependre d'aucun type MAUI. -->
-	<ItemGroup>
-		<Compile Include="..\SqlToolManagerMaui\Ioc\AutoRegisterAttribute.cs" Link="Linked\AutoRegisterAttribute.cs" />
-
-		<Compile Include="..\SqlToolManagerMaui\Services\Editors\Completion\ICompletionContextAnalyzer.cs" Link="Linked\Services\Editors\Completion\ICompletionContextAnalyzer.cs" />
-		<Compile Include="..\SqlToolManagerMaui\Services\Editors\Completion\Sql\*.cs" LinkBase="Linked\Services\Editors\Completion\Sql" />
-
-		<Compile Include="..\SqlToolManagerMaui\Services\Linq\EfModelGenerator.cs" LinkBase="Linked\Services\Linq" />
-		<Compile Include="..\SqlToolManagerMaui\Services\Linq\IEfModelGenerator.cs" LinkBase="Linked\Services\Linq" />
-		<Compile Include="..\SqlToolManagerMaui\Services\Linq\ILinqCompiler.cs" LinkBase="Linked\Services\Linq" />
-		<Compile Include="..\SqlToolManagerMaui\Services\Linq\LinqCompiler.cs" LinkBase="Linked\Services\Linq" />
-		<Compile Include="..\SqlToolManagerMaui\Services\Linq\LinqCompletionEngine.cs" LinkBase="Linked\Services\Linq" />
-	</ItemGroup>
-
 	<!-- ===================== NuGet references ===================== -->
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
@@ -45,6 +31,8 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\SqlToolManagerMaui.Core\SqlToolManagerMaui.Core.csproj" />
+	  <ProjectReference Include="..\SqlToolManagerMaui.Languages.Linq\SqlToolManagerMaui.Languages.Linq.csproj" />
+	  <ProjectReference Include="..\SqlToolManagerMaui.Languages.Sql\SqlToolManagerMaui.Languages.Sql.csproj" />
 	</ItemGroup>
 
 </Project>
