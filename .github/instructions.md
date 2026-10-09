@@ -33,7 +33,7 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 * **Views/Pages** : `ContentPage` XAML, UI uniquement, héritent de `AbstractPage`.
 * **Views/Controls** : contrôles XAML réutilisables, groupés par domaine (`Editors/`).
 * **ViewModels** : logique de présentation, héritent de `AbstractVM` (qui étend `ObservableObject`). Les VM de page sont dans `ViewModels/Pages/`.
-* **Services** : logique propre à l'application (disque, SecureStorage, popups, coloration, complétion), groupés par domaine (`Databases/`, `Editors/`). Les contrats communs aux langages vivent dans `Languages.Commons`, leurs implémentations dans `Languages.[Nom]`, les résolveurs dans `Languages`.
+* **Services** : logique propre à l'application (disque, SecureStorage, popups, coloration, complétion), groupés par domaine (`Databases/`, `Editors/`). L'accès aux moteurs de base vit dans `Databases`, les contrats communs aux langages dans `Languages.Commons`, leurs implémentations dans `Languages.[Nom]`, les résolveurs dans `Languages`.
 * **Models / Enums** : dans `SqlToolManagerMaui.Core` (plus de dossier `Models` dans le projet principal).
 * **Ioc** : conteneur statique et enregistrement centralisé des dépendances.
 * **Resources/Styles** : tokens (couleurs, tailles, épaisseurs) et styles par contrôle.
@@ -45,14 +45,19 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 
 **Noyau (`SqlToolManagerMaui.Core`)** : ne dépend pas du projet principal.
 * **Models / Enums** : modèles et énumérations, groupés par domaine (`Databases/`, `Editors/`, `Queries/`).
-* **Services** : contrats applicatifs uniquement (`IDatabaseSchemaCache`, `ICompletionService`).
+* **Services** : contrats applicatifs uniquement (`ICompletionService`).
 * **Ioc** : `AutoRegisterAttribute`.
 
-**Langages** : `Core` ← `Languages.Commons` ← `Languages.Sql` / `Languages.Linq` ← `Languages` ← projet principal.
-* **`Languages.Commons`** : contrats implémentés par les langages — `IQueryExecutor` (un par `SyntaxLanguage`), `IConnectionTester`, `IDatabaseSchemaReader`, `ICompletionContextAnalyzer`, `ICompletionProvider` — plus `QueryExecutionLimits`.
+**Bases de données (`SqlToolManagerMaui.Databases`)** : tout ce qui parle à un moteur, indépendamment du langage. Référence `Core` uniquement.
+* **`Connections/`** : `IConnectionTester` (un par `DatabaseProvider`) et `ConnectionTesterResolver`.
+* **`Schemas/`** : `IDatabaseSchemaReader` (un par `DatabaseProvider`), `DatabaseSchemaReaderResolver`, `IDatabaseSchemaCache` / `DatabaseSchemaCache` (catalogues en mémoire pour la complétion et LINQ).
+* **`SqlServer/`** : `SqlServerConnectionTester`, `SqlServerSchemaReader`.
+
+**Langages** : `Core` ← `Databases` ← `Languages.Commons` ← `Languages.Sql` / `Languages.Linq` ← `Languages` ← projet principal (qui référence aussi `Databases`).
+* **`Languages.Commons`** : contrats implémentés par les langages — `IQueryExecutor` (un par `SyntaxLanguage`), `ICompletionContextAnalyzer`, `ICompletionProvider` — plus `QueryExecutionLimits`.
 * **`Languages.[Nom]`** : un projet par langage, qui ne référence que `Languages.Commons`. Les langages ne se référencent pas entre eux.
-* **`Languages`** : seul projet de langage référencé par l'application. Référence tous les langages, expose les résolveurs (`IQueryExecutorResolver` par `SyntaxLanguage`, `IConnectionTesterResolver` et `IDatabaseSchemaReaderResolver` par `DatabaseProvider`) et `LanguageAssemblies.All` (assemblies à scanner).
-* **`Languages.Sql`** : `Queries/` (`SqlQueryExecutor`, point d'entrée du langage, qui délègue au `ISqlProviderExecutor` du moteur), `SqlServer/` (exécuteur, testeur de connexion, lecteur de catalogue, découpage `GO`) et `Completion/` (`SqlLexer`, analyseur de contexte).
+* **`Languages`** : seul projet de langage référencé par l'application. Référence tous les langages, expose `IQueryExecutorResolver` (par `SyntaxLanguage`) et `LanguageAssemblies.All` (assemblies à scanner).
+* **`Languages.Sql`** : `Queries/` (`SqlQueryExecutor`, point d'entrée du langage, qui délègue au `ISqlProviderExecutor` du moteur), `SqlServer/` (exécuteur, découpage `GO`) et `Completion/` (`SqlLexer`, analyseur de contexte).
 * **`Languages.Linq`** : générateur de modèle EF, compilateur Roslyn, exécuteur, cache de modèle, complétion C#. Les dépendances EF Core et Roslyn restent confinées ici.
 
 **Autres projets** : `SqlToolManagerMaui.Helpers` (extensions et outils partagés), `SqlToolManagerMaui.Tests` (xUnit, référence `Core` et les projets de langage).
@@ -71,7 +76,7 @@ SqlToolManagerMaui/
 │   │   │   ├── Ioc.cs                          # Service locator statique
 │   │   │   └── ServiceCollectionExtensions.cs  # Scan des [AutoRegister] (app + projets de langage)
 │   │   ├── Services/
-│   │   │   ├── Databases/                      # ConnectionStore, dialogue, résolveurs, cache de catalogue
+│   │   │   ├── Databases/                      # ConnectionStore, dialogue
 │   │   │   ├── Editors/                        # EditorFileService, coloration, fournisseurs de complétion
 │   │   │   └── Queries/                        # QueryExecutorResolver
 │   │   ├── ViewModels/
@@ -93,13 +98,14 @@ SqlToolManagerMaui/
 │   ├── SqlToolManagerMaui.Core/                # Noyau : modèles, enums, contrats, AutoRegister
 │   │   ├── Models/                             # Databases/, Editors/, Queries/
 │   │   ├── Enums/                              # Databases/, Editors/
-│   │   ├── Services/                           # Contrats applicatifs : Databases/, Editors/Completion/
+│   │   ├── Services/                           # Contrats applicatifs : Editors/Completion/
 │   │   └── Ioc/                                # AutoRegisterAttribute
-│   ├── SqlToolManagerMaui.Languages/           # Agrégateur : résolveurs + LanguageAssemblies
+│   ├── SqlToolManagerMaui.Databases/           # Moteurs : Connections/, Schemas/, SqlServer/
+│   ├── SqlToolManagerMaui.Languages/           # Agrégateur : résolveur d'exécution + LanguageAssemblies
 │   ├── SqlToolManagerMaui.Languages.Commons/   # Contrats communs aux langages
 │   ├── SqlToolManagerMaui.Languages.Sql/       # Langage SQL
 │   │   ├── Queries/                            # SqlQueryExecutor, ISqlProviderExecutor
-│   │   ├── SqlServer/                          # Exécuteur, testeur, lecteur de catalogue, découpage GO
+│   │   ├── SqlServer/                          # Exécuteur, découpage GO
 │   │   └── Completion/                         # SqlLexer, SqlCompletionContextAnalyzer
 │   ├── SqlToolManagerMaui.Languages.Linq/      # Langage LINQ (EF Core + Roslyn)
 │   ├── SqlToolManagerMaui.Helpers/             # Extensions et outils partagés
@@ -133,7 +139,7 @@ SqlToolManagerMaui/
 
 ## Injection de dépendances
 
-* Services, pages et ViewModels se déclarent eux-mêmes avec `[AutoRegister]` (`Core/Ioc/AutoRegisterAttribute.cs`) : singleton et type concret par défaut, `Lifetime = ServiceLifetime.Transient` et/ou `As = typeof(IMonService)` au besoin. `Ioc/ServiceCollectionExtensions.cs` scanne l'assembly de l'application et celles de `LanguageAssemblies.All` (projet `Languages`) ; plusieurs classes `As` la même interface sont toutes enregistrées.
+* Services, pages et ViewModels se déclarent eux-mêmes avec `[AutoRegister]` (`Core/Ioc/AutoRegisterAttribute.cs`) : singleton et type concret par défaut, `Lifetime = ServiceLifetime.Transient` et/ou `As = typeof(IMonService)` au besoin. `Ioc/ServiceCollectionExtensions.cs` scanne l'assembly de l'application, celle de `Databases` et celles de `LanguageAssemblies.All` (projet `Languages`) ; plusieurs classes `As` la même interface sont toutes enregistrées.
 * Injection **par constructeur** exclusivement.
 * `Ioc.GetRequiredService<T>()` est un dernier recours, réservé au code qui ne peut pas recevoir ses dépendances (code-behind, factories).
 * Pages et ViewModels sont enregistrés en **singleton** (application desktop mono-fenêtre).
@@ -280,11 +286,11 @@ Lors de la création d'une feature :
 
 * Stockage mixte : métadonnées dans `connections.json` (AppDataDirectory, écriture atomique via fichier `.tmp`), chaîne de connexion complète chiffrée dans le `SecureStorage` sous la clé `connectionstring:{id}`. `DatabaseConnectionInfo` ne contient **jamais** la chaîne complète.
 * Toutes les écritures passent par un sémaphore, le fichier est réécrit en entier.
-* **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(IConnectionTester))]` dans `Languages.Sql/[Moteur]/` ; `ConnectionTesterResolver` le découvre seul.
+* **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(IConnectionTester))]` dans `Databases/[Moteur]/` ; `ConnectionTesterResolver` le découvre seul.
 * La popup « Se connecter » (`ConnectionEditorPopup` + `ConnectionEditorVM`, transient) travaille sur un `DatabaseConnectionDraft` (clone) pour qu'« Annuler » ne modifie rien. Elle est ouverte par `IConnectionDialogService.EditAsync` et fermée par le VM via `IPopupService.ClosePopupAsync(shell, Guid?)` (Id enregistré, ou null).
 * Après un ajout / une modification / une suppression, `ConnectionsChangedMessage` est publié (WeakReferenceMessenger) : `QueryVM` recharge son Picker.
 * **Explorateur** : `ConnectionExplorerVM` garde l'arbre (`Roots`), affiché par le contrôle générique `v:TreeView` de `SqlToolManagerMaui.UI/Views` (MAUI n'en fournit pas) : nœuds imbriqués, `ChildrenPath` / `IsExpandedPath` / `CanExpandPath`, `ExpandingCommand` appelé à chaque ouverture pour le chargement paresseux. Aucun `ExplorerNode` ne porte la chaîne : elle est relue dans le coffre à chaque chargement. Une erreur de chargement devient un nœud « Erreur : ... ».
-* **Catalogue d'un moteur** = une classe `[AutoRegister(As = typeof(IDatabaseSchemaReader))]` (résolu par `DatabaseSchemaReaderResolver`), sur le modèle des testeurs.
+* **Catalogue d'un moteur** = une classe `[AutoRegister(As = typeof(IDatabaseSchemaReader))]` dans `Databases/[Moteur]/` (résolu par `DatabaseSchemaReaderResolver`), sur le modèle des testeurs.
 
 ### Pièges connus
 

@@ -1,7 +1,7 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 
-namespace SqlToolManagerMaui.Languages.Commons.Databases;
+namespace SqlToolManagerMaui.Databases.Connections;
 
 /// <summary>
 /// Validation syntaxique et test d'ouverture d'une chaine de connexion.

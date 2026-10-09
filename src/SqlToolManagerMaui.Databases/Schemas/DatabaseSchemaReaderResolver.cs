@@ -1,8 +1,7 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Languages.Commons.Databases;
 
-namespace SqlToolManagerMaui.Languages.Databases;
+namespace SqlToolManagerMaui.Databases.Schemas;
 
 /// <inheritdoc cref="IDatabaseSchemaReaderResolver"/>
 [AutoRegister(As = typeof(IDatabaseSchemaReaderResolver))]

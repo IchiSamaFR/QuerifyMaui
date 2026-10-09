@@ -2,11 +2,14 @@
   <Folder Name="/Tests/">
     <Project Path="SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj" />
   </Folder>
+  <Folder Name="/Databases/">
+    <Project Path="SqlToolManagerMaui.Databases/SqlToolManagerMaui.Databases.csproj" />
+  </Folder>
   <Folder Name="/Languages/">
-    <Project Path="SqlToolManagerMaui.Languages/SqlToolManagerMaui.Languages.csproj" />
     <Project Path="SqlToolManagerMaui.Languages.Commons/SqlToolManagerMaui.Languages.Commons.csproj" />
     <Project Path="SqlToolManagerMaui.Languages.Linq/SqlToolManagerMaui.Languages.Linq.csproj" />
     <Project Path="SqlToolManagerMaui.Languages.Sql/SqlToolManagerMaui.Languages.Sql.csproj" />
+    <Project Path="SqlToolManagerMaui.Languages/SqlToolManagerMaui.Languages.csproj" />
   </Folder>
   <Project Path="SqlToolManagerMaui.Core/SqlToolManagerMaui.Core.csproj" Id="20581ecd-a9bd-40f1-b6f2-a5b075ddf732" />
   <Project Path="SqlToolManagerMaui.Helpers/SqlToolManagerMaui.Helpers.csproj" Id="641a0d0c-2ec1-4dea-928a-d0e9521c2936" />

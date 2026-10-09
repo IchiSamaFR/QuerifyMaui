@@ -90,6 +90,7 @@
 	
 	<ItemGroup>
 		<ProjectReference Include="..\SqlToolManagerMaui.Core\SqlToolManagerMaui.Core.csproj" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Databases\SqlToolManagerMaui.Databases.csproj" />
 		<ProjectReference Include="..\SqlToolManagerMaui.Languages\SqlToolManagerMaui.Languages.csproj" />
 		<ProjectReference Include="..\SqlToolManagerMaui.UI\SqlToolManagerMaui.UI.csproj" />
 	</ItemGroup>

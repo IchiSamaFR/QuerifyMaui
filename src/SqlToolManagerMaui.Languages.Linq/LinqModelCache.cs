@@ -1,7 +1,7 @@
 ﻿using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Databases.Schemas;
-using SqlToolManagerMaui.Core.Services.Databases;
+using SqlToolManagerMaui.Databases.Schemas;
 using System.Runtime.CompilerServices;
 
 namespace SqlToolManagerMaui.Languages.Linq;

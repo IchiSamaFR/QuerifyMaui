@@ -25,7 +25,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\SqlToolManagerMaui.Core\SqlToolManagerMaui.Core.csproj" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Databases\SqlToolManagerMaui.Databases.csproj" />
 	</ItemGroup>
 
 </Project>

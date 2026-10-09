@@ -3,9 +3,9 @@ using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Databases.Schemas;
-using SqlToolManagerMaui.Languages.Commons.Databases;
+using SqlToolManagerMaui.Databases.Schemas;
 
-namespace SqlToolManagerMaui.Languages.Sql.SqlServer;
+namespace SqlToolManagerMaui.Databases.SqlServer;
 
 /// <summary>Catalogue SQL Server lu dans les vues systeme (sys.databases, sys.objects).</summary>
 [AutoRegister(As = typeof(IDatabaseSchemaReader))]

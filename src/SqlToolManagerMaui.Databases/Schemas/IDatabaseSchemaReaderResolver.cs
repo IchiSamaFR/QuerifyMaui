@@ -1,7 +1,6 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Databases.Connections;
-using SqlToolManagerMaui.Languages.Commons.Databases;
 
-namespace SqlToolManagerMaui.Languages.Databases;
+namespace SqlToolManagerMaui.Databases.Schemas;
 
 /// <summary>Resout le lecteur de catalogue d'un moteur.</summary>
 public interface IDatabaseSchemaReaderResolver

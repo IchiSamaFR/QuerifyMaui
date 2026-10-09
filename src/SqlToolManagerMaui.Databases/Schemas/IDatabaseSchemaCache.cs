@@ -1,7 +1,7 @@
 ﻿using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Databases.Schemas;
 
-namespace SqlToolManagerMaui.Core.Services.Databases;
+namespace SqlToolManagerMaui.Databases.Schemas;
 
 /// <summary>
 /// Catalogues mis en memoire pour l'autocompletion : charges au premier besoin, partages

@@ -2,10 +2,10 @@
 using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
-using SqlToolManagerMaui.Languages.Commons.Databases;
+using SqlToolManagerMaui.Databases.Connections;
 using System.Diagnostics;
 
-namespace SqlToolManagerMaui.Languages.Sql.SqlServer;
+namespace SqlToolManagerMaui.Databases.SqlServer;
 
 /// <summary>
 /// Testeur SQL Server : s'appuie sur <see cref="SqlConnectionStringBuilder"/> pour
