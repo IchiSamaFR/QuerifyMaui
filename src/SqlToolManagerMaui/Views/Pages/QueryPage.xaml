@@ -20,7 +20,7 @@
                            IsWordWrapEnabled="{Binding EditorConfiguration.IsWordWrapped}"
                            ToggleTabIndentationCommand="{Binding ToggleUseTabsCommand}"
                            IsTabIndentationEnabled="{Binding EditorConfiguration.IsTabIndentation}"
-                           Language="{Binding ActiveDocument.Language, FallbackValue={x:Static m:SyntaxLanguage.Sql}}"
+                           Language="{Binding ActiveDocument.Language, FallbackValue={x:Static en:SyntaxLanguage.Sql}}"
                            SetLanguageCommand="{Binding SetLanguageCommand}" />
 
         <c:QueryMenuBarItem ExecuteCommand="{Binding ExecuteQueryCommand}"

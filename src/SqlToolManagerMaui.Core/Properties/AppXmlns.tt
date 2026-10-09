@@ -10,6 +10,7 @@
 	var nsMap = new List<(string Ns, string Suffix, string Prefix)>
 	{
 		( "SqlToolManagerMaui.Core.Models", "models", "m" ),
+		( "SqlToolManagerMaui.Core.Enums", "enums", "en" ),
 	};
 
 	var basePrefixMap = new Dictionary<string, string>(StringComparer.Ordinal)

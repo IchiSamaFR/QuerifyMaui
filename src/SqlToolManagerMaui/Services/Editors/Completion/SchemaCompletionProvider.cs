@@ -1,4 +1,7 @@
-﻿using SqlToolManagerMaui.Core.Models.Databases.Connections;
+﻿using SqlToolManagerMaui.Core.Enums.Databases.Connections;
+using SqlToolManagerMaui.Core.Enums.Editors.Completion;
+using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Databases.Schemas;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;

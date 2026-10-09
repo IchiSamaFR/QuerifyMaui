@@ -1,4 +1,6 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+﻿using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
+
+namespace SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 
 /// <summary>
 /// Tout ce que l'editeur doit savoir d'un langage : son identite, son prefixe de

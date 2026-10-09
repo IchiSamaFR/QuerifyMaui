@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
+using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 
 namespace SqlToolManagerMaui.Core.Models.Databases.Connections;
 

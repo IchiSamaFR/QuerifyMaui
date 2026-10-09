@@ -1,4 +1,5 @@
 ﻿using MauiIcons.Fluent.Filled;
+using SqlToolManagerMaui.Core.Enums.Editors.Completion;
 
 namespace SqlToolManagerMaui.Core.Models.Editors.Completion;
 

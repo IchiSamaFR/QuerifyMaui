@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Databases;
+﻿namespace SqlToolManagerMaui.Core.Enums.Databases;
 
 /// <summary>Type d'un noeud de l'explorateur d'objets.</summary>
 public enum ExplorerNodeKind

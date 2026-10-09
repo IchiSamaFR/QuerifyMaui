@@ -1,4 +1,6 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Editors.Completion;
+﻿using SqlToolManagerMaui.Core.Enums.Editors.Completion;
+
+namespace SqlToolManagerMaui.Core.Models.Editors.Completion;
 
 /// <summary>Resultat de l'analyse du texte autour du curseur.</summary>
 public sealed class CompletionContext

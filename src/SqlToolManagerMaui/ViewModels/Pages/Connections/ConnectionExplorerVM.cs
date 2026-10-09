@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using SqlToolManagerMaui.Core.Enums.Databases;
+using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Databases;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Queries;

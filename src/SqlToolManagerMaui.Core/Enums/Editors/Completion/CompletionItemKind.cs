@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Editors.Completion;
+﻿namespace SqlToolManagerMaui.Core.Enums.Editors.Completion;
 
 /// <summary>Nature d'une suggestion ; l'ordre sert aussi de priorite d'affichage a score egal.</summary>
 public enum CompletionItemKind

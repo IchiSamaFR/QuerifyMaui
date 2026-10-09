@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+﻿namespace SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 
 /// <summary>
 /// Langages colores par l'editeur. Chaque valeur correspond a un fichier

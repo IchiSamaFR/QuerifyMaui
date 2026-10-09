@@ -9,6 +9,10 @@
 //     puis <c:CardBorder/> sans clr-namespace.
 // </auto-generated>
 //------------------------------------------------------------------------------
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/enums", "SqlToolManagerMaui.Core.Enums.Databases")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/enums", "SqlToolManagerMaui.Core.Enums.Databases.Connections")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/enums", "SqlToolManagerMaui.Core.Enums.Editors.Completion")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/enums", "SqlToolManagerMaui.Core.Enums.Editors.Highlighting")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Databases")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Databases.Connections")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Databases.Schemas")]
@@ -16,4 +20,5 @@
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Editors.Completion")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Editors.Highlighting")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Queries")]
+[assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/enums", "en")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/models", "m")]

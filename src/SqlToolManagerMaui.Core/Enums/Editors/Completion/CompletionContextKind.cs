@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Editors.Completion;
+﻿namespace SqlToolManagerMaui.Core.Enums.Editors.Completion;
 
 /// <summary>Ce que la grammaire attend a la position du curseur.</summary>
 public enum CompletionContextKind

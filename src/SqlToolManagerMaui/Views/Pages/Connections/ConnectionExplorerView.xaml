@@ -71,7 +71,7 @@
                                 </DataTrigger>
                                 <DataTrigger TargetType="Grid"
                                              Binding="{Binding Kind}"
-                                             Value="{x:Static m:ExplorerNodeKind.Connection}">
+                                             Value="{x:Static en:ExplorerNodeKind.Connection}">
                                     <Setter Property="FlyoutBase.ContextFlyout">
                                         <Setter.Value>
                                             <MenuFlyout>
@@ -94,7 +94,7 @@
                                 </DataTrigger>
                                 <DataTrigger TargetType="Grid"
                                              Binding="{Binding Kind}"
-                                             Value="{x:Static m:ExplorerNodeKind.Table}">
+                                             Value="{x:Static en:ExplorerNodeKind.Table}">
                                     <Setter Property="FlyoutBase.ContextFlyout">
                                         <Setter.Value>
                                             <MenuFlyout>

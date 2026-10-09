@@ -20,13 +20,13 @@
 
     <MenuFlyoutSubItem Text="Langage">
         <c:CheckedMenuFlyoutItem Label="SQL (T-SQL)"
-                                 IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=Language, Converter={StaticResource IsEqualConverter}, ConverterParameter={x:Static m:SyntaxLanguage.Sql}, x:DataType=c:ViewMenuBarItem}"
+                                 IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=Language, Converter={StaticResource IsEqualConverter}, ConverterParameter={x:Static en:SyntaxLanguage.Sql}, x:DataType=c:ViewMenuBarItem}"
                                  Command="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=SetLanguageCommand, x:DataType=c:ViewMenuBarItem}"
-                                 CommandParameter="{x:Static m:SyntaxLanguage.Sql}" />
+                                 CommandParameter="{x:Static en:SyntaxLanguage.Sql}" />
 
         <c:CheckedMenuFlyoutItem Label="LINQ (Entity Framework)"
-                                 IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=Language, Converter={StaticResource IsEqualConverter}, ConverterParameter={x:Static m:SyntaxLanguage.Linq}, x:DataType=c:ViewMenuBarItem}"
+                                 IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=Language, Converter={StaticResource IsEqualConverter}, ConverterParameter={x:Static en:SyntaxLanguage.Linq}, x:DataType=c:ViewMenuBarItem}"
                                  Command="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=SetLanguageCommand, x:DataType=c:ViewMenuBarItem}"
-                                 CommandParameter="{x:Static m:SyntaxLanguage.Linq}" />
+                                 CommandParameter="{x:Static en:SyntaxLanguage.Linq}" />
     </MenuFlyoutSubItem>
 </MenuBarItem>

@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Editors.Completion;
+﻿namespace SqlToolManagerMaui.Core.Enums.Editors.Completion;
 
 /// <summary>Origine de l'ouverture de l'autocompletion.</summary>
 public enum CompletionTrigger

@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+﻿using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
