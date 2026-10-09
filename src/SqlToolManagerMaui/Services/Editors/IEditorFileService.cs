@@ -14,6 +14,9 @@ public interface IEditorFileService
     /// <summary>Ouvre un selecteur de fichier. Retourne null si l'utilisateur annule.</summary>
     Task<EditorFileContent?> OpenAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Lit un fichier connu (fichier recent). Retourne null s'il n'existe plus.</summary>
+    Task<EditorFileContent?> ReadAsync(string filePath, CancellationToken cancellationToken = default);
+
     /// <summary>Ecrit le texte a un chemin connu (UTF-8 sans BOM).</summary>
     Task SaveAsync(string filePath, string text, CancellationToken cancellationToken = default);
 

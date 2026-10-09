@@ -31,8 +31,16 @@ public sealed class EditorFileService : IEditorFileService
         if (result is null)
             return null;
 
-        var text = await File.ReadAllTextAsync(result.FullPath, cancellationToken);
-        return new EditorFileContent(result.FullPath, text);
+        return await ReadAsync(result.FullPath, cancellationToken);
+    }
+
+    public async Task<EditorFileContent?> ReadAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        if (!File.Exists(filePath))
+            return null;
+
+        var text = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return new EditorFileContent(filePath, text);
     }
 
     public Task SaveAsync(string filePath, string text, CancellationToken cancellationToken = default)

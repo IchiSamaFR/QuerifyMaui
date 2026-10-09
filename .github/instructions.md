@@ -292,6 +292,14 @@ Lors de la création d'une feature :
 * **Explorateur** : `ConnectionExplorerVM` garde l'arbre (`Roots`), affiché par le contrôle générique `v:TreeView` de `SqlToolManagerMaui.UI/Views` (MAUI n'en fournit pas) : nœuds imbriqués, `ChildrenPath` / `IsExpandedPath` / `CanExpandPath`, `ExpandingCommand` appelé à chaque ouverture pour le chargement paresseux. Aucun `ExplorerNode` ne porte la chaîne : elle est relue dans le coffre à chaque chargement. Une erreur de chargement devient un nœud « Erreur : ... ».
 * **Catalogue d'un moteur** = une classe `[AutoRegister(As = typeof(IDatabaseSchemaReader))]` dans `Databases/[Moteur]/` (résolu par `DatabaseSchemaReaderResolver`), sur le modèle des testeurs.
 
+### Préférences utilisateur
+
+* `UserPreferences` (`Core/Models/Settings/`) : fichiers récents (10 max, du plus récent au plus ancien, sans doublon) et options d'affichage de l'éditeur (`EditorConfiguration`).
+* Persistées par `IUserPreferencesStore` (`Services/Settings/`) dans `preferences.json` (AppDataDirectory, écriture atomique, sémaphore). `GetAsync` / `UpdateAsync` rendent une copie : modifier le résultat n'enregistre rien.
+* `QueryVM` (partie `QueryVM.Preferences.cs`) charge les préférences dans `LoadDatasBusyAsync`, enregistre à chaque changement d'`EditorConfiguration` et ajoute un fichier aux récents à l'ouverture et à l'« Enregistrer sous ». Un récent introuvable est retiré de la liste.
+* Menu Fichier > Fichiers récents : `MenuFlyoutSubItem` sans ItemsSource, reconstruit en code par `FileMenuBarItem` à chaque changement de `RecentFiles`.
+* Dossier nommé `Settings` (et non `Preferences`) pour ne pas masquer `Microsoft.Maui.Storage.Preferences`.
+
 ### Pièges connus
 
 * `SqlToolManagerMaui.UI` doit être chargé **avant** le premier parsing XAML (forcé dans `MauiProgram`), sinon les `XmlnsDefinition` de ses converters sont introuvables.

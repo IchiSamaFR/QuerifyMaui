@@ -17,6 +17,18 @@ public partial class FileMenuBarItem : MenuBarItem
     [BindableProperty]
     public partial ICommand? OpenCommand { get; set; }
 
+    /// <summary>Chemins des fichiers recents, du plus recent au plus ancien.</summary>
+    [BindableProperty]
+    public partial IEnumerable<string>? RecentFiles { get; set; }
+
+    /// <summary>Rouvre un fichier recent ; parametre : son chemin.</summary>
+    [BindableProperty]
+    public partial ICommand? OpenRecentCommand { get; set; }
+
+    /// <summary>Vide la liste des fichiers recents.</summary>
+    [BindableProperty]
+    public partial ICommand? ClearRecentFilesCommand { get; set; }
+
     /// <summary>Enregistrer le document actif (Ctrl+S).</summary>
     [BindableProperty]
     public partial ICommand? SaveCommand { get; set; }

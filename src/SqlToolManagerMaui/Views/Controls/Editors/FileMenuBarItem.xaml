@@ -19,6 +19,13 @@
         </MenuFlyoutItem.KeyboardAccelerators>
     </MenuFlyoutItem>
 
+    <v:MenuFlyoutSubItemExtended Text="Fichiers récents"
+                                 EmptyText="Aucun fichier récent"
+                                 FooterText="Effacer la liste"
+                                 ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type c:FileMenuBarItem}}, Path=RecentFiles, x:DataType=c:FileMenuBarItem}"
+                                 ItemCommand="{Binding Source={RelativeSource AncestorType={x:Type c:FileMenuBarItem}}, Path=OpenRecentCommand, x:DataType=c:FileMenuBarItem}"
+                                 FooterCommand="{Binding Source={RelativeSource AncestorType={x:Type c:FileMenuBarItem}}, Path=ClearRecentFilesCommand, x:DataType=c:FileMenuBarItem}" />
+
     <MenuFlyoutSeparator />
 
     <MenuFlyoutItem Text="Enregistrer"

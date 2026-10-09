@@ -11,6 +11,7 @@ using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using SqlToolManagerMaui.Services.Settings;
 using SqlToolManagerMaui.UI.ViewModels;
 using System.Collections.ObjectModel;
 
@@ -30,6 +31,7 @@ public partial class QueryVM : AbstractVM
     private readonly IConnectionStore _connectionStore;
     private readonly ISyntaxConfigurationStore _syntaxConfigurations;
     private readonly IQueryExecutorResolver _executors;
+    private readonly IUserPreferencesStore _preferences;
 
     /// <summary>Compteur des documents "Sans titre" ouverts depuis le demarrage.</summary>
     private int _untitledCount;
@@ -68,13 +70,8 @@ public partial class QueryVM : AbstractVM
 
     // ---------- Options d'edition, liees directement au CodeEditor ----------
 
-    public EditorConfiguration EditorConfiguration { get; } = new()
-    {
-        IsLineDisplayed = true,
-        IsWordWrapped = false,
-        IsTabIndentation = false,
-        IndentationSize = 4
-    };
+    /// <summary>Valeurs par defaut, remplacees par les preferences au chargement.</summary>
+    public EditorConfiguration EditorConfiguration { get; } = EditorConfiguration.CreateDefault();
 
     // ---------- Barre d'etat ----------
 
@@ -85,13 +82,14 @@ public partial class QueryVM : AbstractVM
     public SyntaxConfiguration? SyntaxConfiguration
         => ActiveDocument is { } document && _syntaxByLanguage.TryGetValue(document.Language, out var configuration) ? configuration : null;
 
-    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors)
+    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors, IUserPreferencesStore preferences)
     {
         _files = files;
         _connectionStore = connectionStore;
         _connectionStore.Subscribe(ApplyConnections);
         _syntaxConfigurations = syntaxConfigurations;
         _executors = executors;
+        _preferences = preferences;
 
         // Ajout, modification ou suppression depuis l'explorateur : le Picker suit le coffre.
         WeakReferenceMessenger.Default.Register<QueryVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
@@ -110,6 +108,7 @@ public partial class QueryVM : AbstractVM
             OnPropertyChanged(nameof(SyntaxConfiguration));
         }
 
+        await LoadPreferencesAsync();
         await ReloadConnectionsAsync();
 
         if (Documents.Count == 0)

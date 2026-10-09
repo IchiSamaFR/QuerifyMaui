@@ -7,6 +7,9 @@
     <ContentPage.MenuBarItems>
         <c:FileMenuBarItem NewCommand="{Binding NewCommand}"
                            OpenCommand="{Binding OpenCommand}"
+                           RecentFiles="{Binding RecentFiles}"
+                           OpenRecentCommand="{Binding OpenRecentCommand}"
+                           ClearRecentFilesCommand="{Binding ClearRecentFilesCommand}"
                            SaveCommand="{Binding SaveCommand}"
                            SaveAsCommand="{Binding SaveAsCommand}"
                            CloseTabCommand="{Binding CloseActiveCommand}"

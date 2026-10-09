@@ -19,6 +19,7 @@
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/viewmodels", "SqlToolManagerMaui.UI.ViewModels")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.UI.Views")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.UI.Views.Controls")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.UI.Views.Controls.Menus")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/attachments", "att")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/behaviors", "beh")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/converters", "conv")]

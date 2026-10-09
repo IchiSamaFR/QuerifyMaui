@@ -20,5 +20,6 @@
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Editors.Completion")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Editors.Highlighting")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Queries")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Settings")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/enums", "en")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/models", "m")]

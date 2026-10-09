@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Editors;
+using SqlToolManagerMaui.Services.Editors;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 
@@ -30,8 +31,14 @@ public partial class QueryVM
     private Task OpenAsync() => RunAsBusyAsync(async token =>
     {
         var content = await _files.OpenAsync(token);
-        if (content is null)
-            return;
+        if (content is not null)
+            await OpenContentAsync(content, token);
+    });
+
+    /// <summary>Ouvre le contenu dans un nouvel onglet, ou reactive celui qui l'affiche deja.</summary>
+    private async Task OpenContentAsync(EditorFileContent content, CancellationToken token)
+    {
+        await UpdatePreferencesAsync(p => p.AddRecentFile(content.FilePath), token);
 
         // Un fichier deja ouvert est reactive plutot que duplique.
         var existing = Documents.FirstOrDefault(d =>
@@ -49,7 +56,7 @@ public partial class QueryVM
         Documents.Add(document);
         ActiveDocument = document;
         SetStatus($"{document.FileName} ouvert.");
-    });
+    }
 
     [RelayCommand]
     private Task SaveAsync() => SaveDocumentAsync(ActiveDocument, forceSaveAs: false);
@@ -78,6 +85,7 @@ public partial class QueryVM
                     return;
 
                 document.FilePath = path;
+                await UpdatePreferencesAsync(p => p.AddRecentFile(path), token);
             }
 
             document.MarkSaved();
