@@ -3,6 +3,8 @@
     <Project Path="SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj" />
   </Folder>
   <Folder Name="/Languages/">
+    <Project Path="SqlToolManagerMaui.Languages/SqlToolManagerMaui.Languages.csproj" />
+    <Project Path="SqlToolManagerMaui.Languages.Commons/SqlToolManagerMaui.Languages.Commons.csproj" />
     <Project Path="SqlToolManagerMaui.Languages.Linq/SqlToolManagerMaui.Languages.Linq.csproj" />
     <Project Path="SqlToolManagerMaui.Languages.Sql/SqlToolManagerMaui.Languages.Sql.csproj" />
   </Folder>

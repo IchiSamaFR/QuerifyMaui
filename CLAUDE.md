@@ -29,7 +29,7 @@ Cette source unique est partagée entre Claude et Copilot. Consulte ce fichier p
 
 Respecter **absolument** :
 1. L'architecture MVVM — les ViewModels héritent de `AbstractVM`, les pages de `AbstractPage`
-2. La stratification des couches — Views, ViewModels, Services (app), `SqlToolManagerMaui.Core` (modèles, enums, contrats), `SqlToolManagerMaui.Languages.*` (une implémentation par langage) et `SqlToolManagerMaui.UI` pour le générique
+2. La stratification des couches — Views, ViewModels, Services (app), `SqlToolManagerMaui.Core` (modèles, enums, contrats applicatifs), `SqlToolManagerMaui.Languages.Commons` (contrats communs aux langages), `SqlToolManagerMaui.Languages.[Nom]` (une implémentation par langage), `SqlToolManagerMaui.Languages` (agrège les langages et fournit les résolveurs) et `SqlToolManagerMaui.UI` pour le générique
 3. L'injection de dépendances — déclaration par `[AutoRegister]` sur la classe (scan dans `Ioc/ServiceCollectionExtensions.cs`), injection par constructeur
 4. Les anti-patterns à éviter — pas de logique dans le code-behind, pas de ViewModel connu d'un contrôle, pas d'API Xamarin.Forms
 
@@ -104,13 +104,14 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 4. Si un nouveau dossier de namespace est créé, mettre `Properties/AppXmlns.cs` à jour (le T4 ne tourne pas au build)
 
 ### Ajouter un moteur SQL
-1. Dans `Languages.Sql/[Moteur]/` : classes `[AutoRegister(As = typeof(IQueryExecutor))]`, `IConnectionTester` et `IDatabaseSchemaReader` (les résolveurs les découvrent seuls)
+1. Dans `Languages.Sql/[Moteur]/` : classes `[AutoRegister(As = typeof(ISqlProviderExecutor))]`, `IConnectionTester` et `IDatabaseSchemaReader` (`SqlQueryExecutor` et les résolveurs les découvrent seuls)
 2. Ajouter la valeur à `DatabaseProvider` (`Core/Enums`)
 
 ### Ajouter un langage
-1. Créer `SqlToolManagerMaui.Languages.[Nom]` (référence `Core` uniquement, jamais un autre langage)
-2. L'ajouter à la solution et en `ProjectReference` du projet principal
-3. Déclarer un de ses types dans `AddApplicationServices` (`Ioc/ServiceCollectionExtensions.cs`) pour que son assembly soit scannée
+1. Créer `SqlToolManagerMaui.Languages.[Nom]` (référence `Languages.Commons` uniquement, jamais un autre langage)
+2. Y implémenter `IQueryExecutor` (`Languages.Commons`) en `[AutoRegister(As = typeof(IQueryExecutor))]`, avec sa valeur de `SyntaxLanguage` : `QueryExecutorResolver` le découvre seul
+3. L'ajouter à la solution et en `ProjectReference` de `SqlToolManagerMaui.Languages` (jamais du projet principal)
+4. Ajouter un de ses types à `LanguageAssemblies.All` (`SqlToolManagerMaui.Languages`) pour que son assembly soit scannée
 
 ---
 

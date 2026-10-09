@@ -7,7 +7,7 @@ using SqlToolManagerMaui.Core.Models.Databases.Schemas;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Services.Databases;
-using SqlToolManagerMaui.Core.Services.Editors.Completion;
+using SqlToolManagerMaui.Languages.Commons.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using System.Data.Common;
 using System.Text.RegularExpressions;

@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
-using SqlToolManagerMaui.Core.Services.Databases;
+using SqlToolManagerMaui.Languages.Databases;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.UI.ViewModels;
 

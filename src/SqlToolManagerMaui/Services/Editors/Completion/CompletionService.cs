@@ -4,6 +4,7 @@ using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Services.Editors.Completion;
+using SqlToolManagerMaui.Languages.Commons.Editors.Completion;
 
 namespace SqlToolManagerMaui.Services.Editors.Completion;
 

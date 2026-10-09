@@ -34,7 +34,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\SqlToolManagerMaui.Core\SqlToolManagerMaui.Core.csproj" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Languages.Commons\SqlToolManagerMaui.Languages.Commons.csproj" />
 	</ItemGroup>
 
 	<!-- Les tests exercent les helpers internes du compilateur. -->

@@ -2,7 +2,7 @@
 using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
-using SqlToolManagerMaui.Core.Services.Databases;
+using SqlToolManagerMaui.Languages.Commons.Databases;
 using System.Diagnostics;
 
 namespace SqlToolManagerMaui.Languages.Sql.SqlServer;

@@ -2,7 +2,7 @@
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 
-namespace SqlToolManagerMaui.Core.Services.Editors.Completion;
+namespace SqlToolManagerMaui.Languages.Commons.Editors.Completion;
 
 /// <summary>Analyse du texte autour du curseur ; une implementation par langage.</summary>
 public interface ICompletionContextAnalyzer

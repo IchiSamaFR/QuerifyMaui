@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Queries;
-using SqlToolManagerMaui.Core.Services.Queries;
+using SqlToolManagerMaui.Languages.Commons.Queries;
 using System.Collections;
 using System.Data.Common;
 using System.Diagnostics;
@@ -12,14 +13,14 @@ using System.Reflection;
 
 namespace SqlToolManagerMaui.Languages.Linq;
 
-/// <inheritdoc cref="ILinqQueryExecutor"/>
-[AutoRegister(As = typeof(ILinqQueryExecutor))]
+/// <summary>Execution d'une requete LINQ sur le DbContext genere a partir du catalogue de la connexion.</summary>
+[AutoRegister(As = typeof(IQueryExecutor))]
 [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "App non publiee en trimmed : reflexion sur les resultats assumee.")]
 [UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "App non publiee en trimmed : reflexion sur les resultats assumee.")]
 [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "App non publiee en trimmed : reflexion sur les resultats assumee.")]
 [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "App non publiee en trimmed : reflexion sur les resultats assumee.")]
 [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "App non publiee en AOT : reflexion sur les resultats assumee.")]
-public sealed class LinqQueryExecutor : ILinqQueryExecutor
+public sealed class LinqQueryExecutor : IQueryExecutor
 {
     private const int MaxRows = QueryExecutionLimits.MaxRowsPerResultSet;
 
@@ -34,6 +35,8 @@ public sealed class LinqQueryExecutor : ILinqQueryExecutor
         _models = models;
         _compiler = compiler;
     }
+
+    public SyntaxLanguage Language => SyntaxLanguage.Linq;
 
     public async Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string query, CancellationToken cancellationToken = default)
     {

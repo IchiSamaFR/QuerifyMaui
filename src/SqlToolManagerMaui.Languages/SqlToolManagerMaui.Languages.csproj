@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- ===================== General settings ===================== -->
+	<PropertyGroup>
+		<RootNamespace>SqlToolManagerMaui.Languages</RootNamespace>
+		<ImplicitUsings>true</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
+		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<NoWarn>$(NoWarn);CA2007;CA1515</NoWarn>
+		<LangVersion>preview</LangVersion>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+		<!-- Core active les fonctionnalites en preversion : les consommateurs doivent opter aussi (CA2252) -->
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<EnableAotAnalyzer>true</EnableAotAnalyzer>
+	</PropertyGroup>
+
+	<!-- ===================== Target platforms & configurations ===================== -->
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+		<WindowsSdkPackageVersion>10.0.19041.87</WindowsSdkPackageVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SqlToolManagerMaui.Languages.Commons\SqlToolManagerMaui.Languages.Commons.csproj" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Languages.Linq\SqlToolManagerMaui.Languages.Linq.csproj" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Languages.Sql\SqlToolManagerMaui.Languages.Sql.csproj" />
+	</ItemGroup>
+
+</Project>

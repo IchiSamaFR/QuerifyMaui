@@ -1,9 +1,9 @@
 ﻿using Microsoft.Data.SqlClient;
 using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Queries;
-using SqlToolManagerMaui.Core.Services.Queries;
+using SqlToolManagerMaui.Languages.Commons.Queries;
+using SqlToolManagerMaui.Languages.Sql.Queries;
 using System.Diagnostics;
 using System.Globalization;
 
@@ -14,8 +14,8 @@ namespace SqlToolManagerMaui.Languages.Sql.SqlServer;
 /// echec n'empeche pas les suivants, messages PRINT et nombre de lignes affectees remontes.
 /// Une connexion est ouverte pour chaque execution.
 /// </summary>
-[AutoRegister(As = typeof(IQueryExecutor))]
-public sealed class SqlServerQueryExecutor : IQueryExecutor
+[AutoRegister(As = typeof(ISqlProviderExecutor))]
+public sealed class SqlServerQueryExecutor : ISqlProviderExecutor
 {
     private const int MaxBinaryBytesDisplayed = 64;
     private const string ApplicationName = "SqlToolManagerMaui";

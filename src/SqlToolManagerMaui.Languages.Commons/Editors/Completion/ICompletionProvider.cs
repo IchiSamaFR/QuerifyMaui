@@ -1,10 +1,10 @@
 ﻿using SqlToolManagerMaui.Core.Models.Editors.Completion;
 
-namespace SqlToolManagerMaui.Core.Services.Editors.Completion;
+namespace SqlToolManagerMaui.Languages.Commons.Editors.Completion;
 
 /// <summary>
 /// Source de suggestions (mots-cles, schema...). Le fournisseur renvoie tous ses candidats
-/// pour le contexte : le filtrage sur le prefixe est commun et fait par <see cref="ICompletionService"/>.
+/// pour le contexte : le filtrage sur le prefixe est commun et fait par <see cref="Core.Services.Editors.Completion.ICompletionService"/>.
 /// </summary>
 public interface ICompletionProvider
 {

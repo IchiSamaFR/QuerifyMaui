@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Services.Queries;
+﻿namespace SqlToolManagerMaui.Languages.Commons.Queries;
 
 /// <summary>Plafonds communs aux executeurs de requetes.</summary>
 public static class QueryExecutionLimits

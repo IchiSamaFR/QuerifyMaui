@@ -2,7 +2,7 @@
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Databases.Schemas;
 
-namespace SqlToolManagerMaui.Core.Services.Databases;
+namespace SqlToolManagerMaui.Languages.Commons.Databases;
 
 /// <summary>
 /// Lecture du catalogue d'un serveur pour l'explorateur d'objets.

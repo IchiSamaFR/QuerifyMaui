@@ -1,13 +1,13 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Databases.Connections;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Queries;
 
-namespace SqlToolManagerMaui.Core.Services.Queries;
+namespace SqlToolManagerMaui.Languages.Sql.Queries;
 
 /// <summary>
-/// Execution d'un script sur une base. Une implementation par moteur, resolue par <see cref="Provider"/>.
+/// Execution d'un script SQL sur un moteur. Une implementation par moteur, resolue par <see cref="Provider"/>
+/// dans <see cref="SqlQueryExecutor"/>.
 /// </summary>
-public interface IQueryExecutor
+public interface ISqlProviderExecutor
 {
     DatabaseProvider Provider { get; }
 

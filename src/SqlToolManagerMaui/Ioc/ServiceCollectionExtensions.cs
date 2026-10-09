@@ -1,6 +1,5 @@
 using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Languages.Linq;
-using SqlToolManagerMaui.Languages.Sql.SqlServer;
+using SqlToolManagerMaui.Languages;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -14,11 +13,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         return services
-            .AddAutoRegisteredServices(
-                typeof(ServiceCollectionExtensions).Assembly,
-                // Un type par projet de langage, pour designer l'assembly a scanner.
-                typeof(SqlServerQueryExecutor).Assembly,
-                typeof(LinqCompiler).Assembly);
+            .AddAutoRegisteredServices([typeof(ServiceCollectionExtensions).Assembly, .. LanguageAssemblies.All]);
     }
 
     /// <summary>

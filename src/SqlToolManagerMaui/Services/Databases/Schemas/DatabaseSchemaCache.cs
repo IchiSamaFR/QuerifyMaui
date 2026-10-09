@@ -2,6 +2,8 @@
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Databases.Schemas;
 using SqlToolManagerMaui.Core.Services.Databases;
+using SqlToolManagerMaui.Languages.Commons.Databases;
+using SqlToolManagerMaui.Languages.Databases;
 using System.Collections.Concurrent;
 
 namespace SqlToolManagerMaui.Services.Databases.Schemas;
