@@ -32,7 +32,7 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 
 **Projet principal (`SqlToolManagerMaui`)** :
 * **Views/Pages** : `ContentPage` XAML, UI uniquement, héritent de `AbstractPage`.
-* **Views/Controls** : contrôles XAML réutilisables, groupés par domaine (`Editors/`).
+* **Views/Controls** : contrôles XAML réutilisables, groupés par domaine : `Navigation/` (rail), `Editors/` (`CodeEditor`, `Menus/` pour la barre de menus, `Completion/`), `Queries/` (résultats), `Dashboards/`. Un sous-dossier = un sous-namespace, à ajouter dans `Properties/AppXmlns.cs`.
 * **ViewModels** : logique de présentation, héritent de `AbstractVM` (qui étend `ObservableObject`). Les VM de page sont dans `ViewModels/Pages/`.
 * **Services** : logique propre à l'application (disque, SecureStorage, popups, coloration, complétion), groupés par domaine (`Databases/`, `Editors/`). L'accès aux moteurs de base vit dans `Databases`, les contrats communs aux langages dans `Languages.Commons`, leurs implémentations dans `Languages.[Nom]`, les résolveurs dans `Languages`.
 * **Models / Enums** : dans `SqlToolManagerMaui.Core` (plus de dossier `Models` dans le projet principal).
@@ -88,7 +88,7 @@ SqlToolManagerMaui/
 │   │   │   └── Pages/                          # QueryVM, Queries/ (QueryConnectionVM, QueryExecutionVM, DashboardVM, EditorPreferencesVM, StatusBarVM, IQueryWorkspace), Connections/ (ConnectionExplorerVM, ConnectionEditorVM)
 │   │   ├── Views/
 │   │   │   ├── Pages/                          # AbstractPage + pages de l'app
-│   │   │   └── Controls/                       # NavigationRail + Editors/ (menus, onglets)
+│   │   │   └── Controls/                       # Navigation/, Editors/ (Menus/, Completion/), Queries/, Dashboards/
 │   │   ├── Resources/
 │   │   │   ├── Styles/Tokens/                  # Colors, FontSizes, Thickness
 │   │   │   ├── Styles/Controls/                # Un fichier de styles par contrôle
@@ -265,7 +265,7 @@ Lors de la création d'une feature :
 
 ### Navigation (menu latéral Windows 11)
 
-* Pas de TabBar, pas de header : `AppShell.xaml` utilise `FlyoutBehavior="Locked"` et remplace le flyout par `Views/Controls/NavigationRail`.
+* Pas de TabBar, pas de header : `AppShell.xaml` utilise `FlyoutBehavior="Locked"` et remplace le flyout par `Views/Controls/Navigation/NavigationRail`.
 * `AppShell.xaml.cs` masque sous Windows le hamburger natif du `NavigationView` WinUI, son item Settings et le bouton retour.
 * `ShellVM` porte `IsPaneOpen` / `PaneWidth` (260 étendu, 48 compact), `CurrentRoute`, `TogglePaneCommand`, `NavigateCommand` (`GoToAsync("//route")`).
 
@@ -274,7 +274,7 @@ Lors de la création d'une feature :
 * Un onglet = un `EditorDocument` (CodeDocument + chemin + IsDirty). Le namespace est `Models.Editors` (et non `Editor`) pour ne pas masquer `Microsoft.Maui.Controls.Editor`.
 * Le `CodeEditor` notifie par **événements** (`ContentChanged`, `SelectionChanged`, `DocumentChanged`), pas par bindings : le code-behind de `QueryPage` les relaie au VM.
 * Ouverture par `FilePicker`, « Enregistrer sous » par `FileSaver` (CommunityToolkit), UTF-8 sans BOM.
-* **Barre de menus** : les actions sont des contrôles `MenuBarItem` dédiés (`Views/Controls/Editors/*MenuBarItem`), branchés depuis `QueryPage` via leurs `BindableProperty`. Sous Windows, MAUI rend le MenuBar dans le `MauiToolbar` du Shell : la page doit porter `Shell.NavBarIsVisible="True"` **et** un `Title` non vide (cf. dotnet/maui#6303).
+* **Barre de menus** : les actions sont des contrôles `MenuBarItem` dédiés (`Views/Controls/Editors/Menus/*MenuBarItem`), branchés depuis `QueryPage` via leurs `BindableProperty`. Sous Windows, MAUI rend le MenuBar dans le `MauiToolbar` du Shell : la page doit porter `Shell.NavBarIsVisible="True"` **et** un `Title` non vide (cf. dotnet/maui#6303).
 * `MenuFlyoutItem` n'a pas d'état « coché » : les bascules changent leur libellé via un `DataTrigger` sur une propriété d'état du contrôle.
 
 ### Exécution des requêtes
@@ -287,7 +287,7 @@ Lors de la création d'une feature :
 * Plafond de `QueryExecutionLimits.MaxRowsPerResultSet` (`Languages.Commons`, 10 000) lignes par jeu, cellules converties en texte côté service (NULL = `null`).
 * Le résultat est rangé sur l'`EditorDocument` d'origine (`LastResult`, `IsExecuting`) : chaque onglet garde ses résultats.
 * **LINQ** : le script devient le corps d'une méthode générée (`LinqCompiler.BuildQuerySource`), le contexte porte le nom de la base. Le premier `return` termine le script ; `.Dump("titre")` (extension générée dans le même source, façon LINQPad) ajoute un jeu de résultats sans l'arrêter et rend la valeur. La valeur du `return` n'est affichée que si elle n'a pas déjà été dumpée ; des instructions sans `return` n'affichent que leurs Dump.
-* `Views/Controls/Queries/QueryResultGrid` est construit en code (colonnes connues à l'exécution) ; les lignes (`QueryResultRowView`) sont remplies au recyclage, sans binding. Styles dans `Resources/Styles/Controls/QueryResultStyles.xaml`.
+* `Views/Controls/Queries/QueryResultGrid` a un squelette XAML ; en-tête et gabarit de ligne sont posés en code (colonnes connues à l'exécution) ; les lignes (`QueryResultRowView`) sont remplies au recyclage, sans binding. Styles dans `Resources/Styles/Controls/QueryResultStyles.xaml`.
 
 ### Dashboards (`.schx`)
 
@@ -295,7 +295,7 @@ Lors de la création d'une feature :
 * **Format** (`Core/Models/Dashboards/DashboardDefinition`) : `connection` (nom d'une connexion enregistrée, jamais la chaîne), `database`, `columns` (12) / `rows` (6, minimum), `parameters` (`name`, `label`, `type` : Text, Integer, Decimal, Date, DateTime, Boolean, Guid, `default`), `startPage`, `pages` (`id`, `title`, `cards`). Carte : `column` / `row` (base 0), `columnSpan` / `rowSpan`, `view` (Grid, Value, BarChart, LineChart, PieChart, Text, Button), `query`, `text`, `labelColumn`, `valueColumns`, `navigation` (`page` + `parameters` : `{parameter, column}` pour une colonne de la ligne cliquée, `{parameter, value}` pour un texte fixe ou `@AutreParam`).
 * **Paramètres** : communs à toutes les pages, envoyés en `SqlParameter` typés (`DashboardParameterDefinition.TryConvert`), jamais concaténés. Chaque étape du fil d'Ariane (`DashboardPageState`) garde ses valeurs et ses résultats : Retour ne relit rien. « Appliquer » (ou Entrée) relit les cartes de la page.
 * **Lecture d'une carte** : premier jeu de résultats ayant des colonnes, 1 000 lignes max, cartes lues en parallèle ; une nouvelle lecture annule la précédente ; changer de connexion relit la page affichée.
-* **Rendu** : `Views/Controls/Dashboards/` — `DashboardView` (paramètres, fil d'Ariane, grille à deux calques : cases du concepteur dessous, cartes dessus ; lignes / colonnes créées en code), `DashboardCardView`, `DashboardChartView` (LiveCharts2, construit en code), `DashboardDesignerPanel`. `QueryResultGrid.RowTappedCommand` rend les lignes cliquables.
+* **Rendu** : `Views/Controls/Dashboards/` — `DashboardView` (paramètres, fil d'Ariane, grille à deux calques : cases du concepteur dessous, cartes dessus ; lignes / colonnes créées en code), `DashboardCardView`, `DashboardChartView` (LiveCharts2 : graphiques déclarés en XAML, séries posées en code), `DashboardDesignerPanel`. `QueryResultGrid.RowTappedCommand` rend les lignes cliquables.
 * **Concepteur** : clic sur une case libre = nouvelle carte 4 × 2 ; clic sur une carte = sélection (pas de navigation) ; glisser une carte sur une case = déplacement ; le panneau édite titre, rendu, requête (« Exécuter la requête »), colonnes, page cible et paramètres transmis (« Param = Colonne », « = @Param », « = 'texte' »), position / taille, pages et paramètres.
 * Ajouter un moteur = aussi une classe `[AutoRegister(As = typeof(IDashboardQueryReader))]` dans `Databases/[Moteur]/`.
 

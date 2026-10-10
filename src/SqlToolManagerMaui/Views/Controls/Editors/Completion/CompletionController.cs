@@ -8,7 +8,7 @@ using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Services.Editors.Completion;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
-namespace SqlToolManagerMaui.Views.Controls.Editors;
+namespace SqlToolManagerMaui.Views.Controls.Editors.Completion;
 
 /// <summary>
 /// Pilote l'autocompletion d'un editeur natif : ouverture a la frappe ou sur Ctrl+Espace,

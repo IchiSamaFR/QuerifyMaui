@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <MenuBarItem xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="SqlToolManagerMaui.Views.Controls.Editors.EditMenuBarItem"
+             x:Class="SqlToolManagerMaui.Views.Controls.Editors.Menus.EditMenuBarItem"
              Text="Édition">
     <MenuFlyoutItem Text="Annuler"
                     Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=Editor.Commands.Undo, x:DataType=c:EditMenuBarItem}" />

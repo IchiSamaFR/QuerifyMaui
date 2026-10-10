@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows.Input;
 
-namespace SqlToolManagerMaui.Views.Controls;
+namespace SqlToolManagerMaui.Views.Controls.Navigation;
 
 /// <summary>
 /// Volet de navigation lateral (style Windows 11 NavigationView).

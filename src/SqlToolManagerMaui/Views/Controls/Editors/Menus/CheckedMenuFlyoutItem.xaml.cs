@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 
-namespace SqlToolManagerMaui.Views.Controls.Editors;
+namespace SqlToolManagerMaui.Views.Controls.Editors.Menus;
 
 /// <summary>
 /// Entree de menu "cochable" : le libelle reste fixe et une pastille apparait devant lui

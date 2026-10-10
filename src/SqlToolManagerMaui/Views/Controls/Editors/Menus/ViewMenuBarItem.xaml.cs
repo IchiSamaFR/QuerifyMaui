@@ -2,7 +2,7 @@
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using System.Windows.Input;
 
-namespace SqlToolManagerMaui.Views.Controls.Editors;
+namespace SqlToolManagerMaui.Views.Controls.Editors.Menus;
 
 /// <summary>
 /// Menu "Affichage" d'un editeur : trois bascules dont le libelle suit l'etat courant.

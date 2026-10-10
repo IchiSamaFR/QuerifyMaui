@@ -9,9 +9,11 @@
 //     puis <c:CardBorder/> sans clr-namespace.
 // </auto-generated>
 //------------------------------------------------------------------------------
-[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/controls", "SqlToolManagerMaui.Views.Controls")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/controls", "SqlToolManagerMaui.Views.Controls.Dashboards")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/controls", "SqlToolManagerMaui.Views.Controls.Editors")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/controls", "SqlToolManagerMaui.Views.Controls.Editors.Completion")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/controls", "SqlToolManagerMaui.Views.Controls.Editors.Menus")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/controls", "SqlToolManagerMaui.Views.Controls.Navigation")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/controls", "SqlToolManagerMaui.Views.Controls.Queries")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/viewmodels", "SqlToolManagerMaui.ViewModels")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/viewmodels", "SqlToolManagerMaui.ViewModels.Pages")]

@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using System.Windows.Input;
 
-namespace SqlToolManagerMaui.Views.Controls.Editors;
+namespace SqlToolManagerMaui.Views.Controls.Editors.Menus;
 
 /// <summary>
 /// Menu "Fichier" d'un editeur multi-onglets. Le controle ne connait aucun ViewModel :

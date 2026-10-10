@@ -1,6 +1,6 @@
 ﻿using SqlToolManagerMaui.Core.Models.Editors.Completion;
 
-namespace SqlToolManagerMaui.Views.Controls.Editors;
+namespace SqlToolManagerMaui.Views.Controls.Editors.Completion;
 
 /// <summary>
 /// Liste de suggestions superposee a l'editeur. Elle ne gere ni le clavier ni le focus :

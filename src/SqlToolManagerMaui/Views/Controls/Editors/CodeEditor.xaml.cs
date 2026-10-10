@@ -8,6 +8,7 @@ using SqlToolManagerMaui.Core.Services.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using System.ComponentModel;
 using SqlToolManagerMaui.UI.Extensions;
+using SqlToolManagerMaui.Views.Controls.Editors.Completion;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
 namespace SqlToolManagerMaui.Views.Controls.Editors;

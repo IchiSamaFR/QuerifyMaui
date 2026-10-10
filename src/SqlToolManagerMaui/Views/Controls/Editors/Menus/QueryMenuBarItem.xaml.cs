@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using System.Windows.Input;
 
-namespace SqlToolManagerMaui.Views.Controls.Editors;
+namespace SqlToolManagerMaui.Views.Controls.Editors.Menus;
 
 /// <summary>
 /// Menu "Requete" : execution (F5), annulation et deconnexion. Les commandes sont fournies par la page hote.

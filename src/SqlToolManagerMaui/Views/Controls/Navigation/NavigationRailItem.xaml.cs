@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using System.Windows.Input;
 
-namespace SqlToolManagerMaui.Views.Controls;
+namespace SqlToolManagerMaui.Views.Controls.Navigation;
 
 /// <summary>
 /// Item du rail de navigation : pastille de selection, icone et libelle,
