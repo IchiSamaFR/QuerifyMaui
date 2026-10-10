@@ -116,13 +116,27 @@
                             </Grid.Triggers>
 
                             <mi:MauiIcon Grid.Column="0"
-                                         Icon="{Binding Icon}"
                                          IconSize="16"
                                          WidthRequest="16"
                                          HeightRequest="16"
-                                         IconColor="{Binding IconColor}"
                                          HorizontalOptions="Center"
-                                         VerticalOptions="Center" />
+                                         VerticalOptions="Center">
+                                <mi:MauiIcon.Icon>
+                                    <MultiBinding Converter="{StaticResource ExplorerNodeIconConverter}">
+                                        <Binding Path="Kind" />
+                                        <Binding Path="IsExpanded" />
+                                        <Binding Path="IsPrimaryKey" />
+                                        <Binding Path="IsForeignKey" />
+                                    </MultiBinding>
+                                </mi:MauiIcon.Icon>
+                                <mi:MauiIcon.IconColor>
+                                    <MultiBinding Converter="{StaticResource ExplorerNodeIconColorConverter}">
+                                        <Binding Path="Kind" />
+                                        <Binding Path="IsPrimaryKey" />
+                                        <Binding Path="IsForeignKey" />
+                                    </MultiBinding>
+                                </mi:MauiIcon.IconColor>
+                            </mi:MauiIcon>
 
                             <Ellipse Grid.Column="0"
                                      HorizontalOptions="End"

@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Helpers.Extensions;
+﻿namespace SqlToolManagerMaui.UI.Extensions;
 
 /// <summary>
 /// Extensions de navigation dans l'arbre logique des <see cref="Element"/>.

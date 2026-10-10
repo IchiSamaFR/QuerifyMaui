@@ -97,6 +97,10 @@
 
 	<!-- ===================== Code generation (T4) ===================== -->
 	<ItemGroup>
+		<None Update="Properties\CoreXmlns.tt">
+		  <LastGenOutput>CoreXmlns.cs</LastGenOutput>
+		  <Generator>TextTemplatingFileGenerator</Generator>
+		</None>
 		<None Update="Properties\AppXmlns.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>AppXmlns.cs</LastGenOutput>
@@ -107,6 +111,11 @@
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 			<DependentUpon>AppXmlns.tt</DependentUpon>
+		</Compile>
+		<Compile Update="Properties\CoreXmlns.cs">
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>CoreXmlns.tt</DependentUpon>
 		</Compile>
 	</ItemGroup>
 

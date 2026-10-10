@@ -149,9 +149,9 @@ public sealed class XshdSyntaxConfigurationStore : ISyntaxConfigurationStore
                       .Select(word => new SyntaxKeyword(word, category));
     }
 
-    private static Dictionary<string, Color> ReadColors(XElement root)
+    private static Dictionary<string, string> ReadColors(XElement root)
     {
-        Dictionary<string, Color> colors = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, string> colors = new(StringComparer.OrdinalIgnoreCase);
 
         foreach (var element in root.Elements(Xshd + "Color"))
         {
@@ -159,20 +159,20 @@ public sealed class XshdSyntaxConfigurationStore : ISyntaxConfigurationStore
             var foreground = (string?)element.Attribute("foreground");
 
             if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(foreground))
-                colors[name] = Color.FromArgb(foreground);
+                colors[name] = foreground;
         }
 
         return colors;
     }
 
-    private static Color? ResolveColor(Dictionary<string, Color> colors, XElement element)
+    private static string? ResolveColor(Dictionary<string, string> colors, XElement element)
     {
         var name = (string?)element.Attribute("color");
 
         return !string.IsNullOrEmpty(name) && colors.TryGetValue(name, out var color) ? color : null;
     }
 
-    private static SyntaxRule? CreateSpan(XElement element, Color color, RegexOptions options)
+    private static SyntaxRule? CreateSpan(XElement element, string color, RegexOptions options)
     {
         var begin = element.Element(Xshd + "Begin")?.Value.Trim();
         if (string.IsNullOrEmpty(begin))
@@ -187,7 +187,7 @@ public sealed class XshdSyntaxConfigurationStore : ISyntaxConfigurationStore
         };
     }
 
-    private static SyntaxRule? CreateKeywords(XElement element, Color color, RegexOptions options)
+    private static SyntaxRule? CreateKeywords(XElement element, string color, RegexOptions options)
     {
         var words = element.Elements(Xshd + "Word")
                            .Select(word => word.Value.Trim())
@@ -205,7 +205,7 @@ public sealed class XshdSyntaxConfigurationStore : ISyntaxConfigurationStore
         };
     }
 
-    private static SyntaxRule? CreatePattern(string pattern, Color color, RegexOptions options)
+    private static SyntaxRule? CreatePattern(string pattern, string color, RegexOptions options)
     {
         pattern = pattern.Trim();
 

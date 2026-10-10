@@ -7,7 +7,6 @@
 		<Nullable>enable</Nullable>
 		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
 		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
-		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<NoWarn>$(NoWarn);CA2007;CA1515</NoWarn>
 		<LangVersion>preview</LangVersion>
@@ -20,8 +19,7 @@
 
 	<!-- ===================== Target platforms & configurations ===================== -->
 	<PropertyGroup>
-		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
-		<WindowsSdkPackageVersion>10.0.19041.87</WindowsSdkPackageVersion>
+		<TargetFramework>net10.0</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>

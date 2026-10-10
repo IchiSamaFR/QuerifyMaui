@@ -99,7 +99,7 @@ public sealed class SyntaxHighlightingController : IDisposable
     /// tape apres un commentaire herite du vert du natif, et CodeEdit ne le repeint jamais faute de
     /// difference dans sa projection.
     /// </summary>
-    private static RichTextDecoration[] BuildDecorations(IReadOnlyList<SyntaxToken> tokens, int length, Color? defaultColor)
+    private static RichTextDecoration[] BuildDecorations(IReadOnlyList<SyntaxToken> tokens, int length, string? defaultColor)
     {
         List<RichTextDecoration> decorations = new(tokens.Count * 2 + 1);
         var position = 0;
@@ -119,8 +119,8 @@ public sealed class SyntaxHighlightingController : IDisposable
         return [.. decorations];
     }
 
-    private static RichTextDecoration Decorate(int start, int length, Color color)
-        => new(new RichTextRange(start, length), new RichTextDecorationStyle { ForegroundColor = color });
+    private static RichTextDecoration Decorate(int start, int length, string color)
+        => new(new RichTextRange(start, length), new RichTextDecorationStyle { ForegroundColor = Color.FromArgb(color) });
 
     public void Dispose()
     {

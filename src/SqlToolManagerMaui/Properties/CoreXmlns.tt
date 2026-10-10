@@ -1,16 +1,13 @@
-﻿<#@ template debug="false" hostspecific="true" language="C#" #>
-<#@ output extension=".cs" #><#@ assembly name="System.Core" #>
-<#@ import namespace="System" #><#@ import namespace="System.IO" #>
-<#@ import namespace="System.Linq" #><#@ import namespace="System.Collections.Generic" #><#
+﻿<#@ template debug="false" hostspecific="true" language="C#" #><#@ output extension=".cs" #><#@ assembly name="System.Core" #><#@ import namespace="System" #><#@ import namespace="System.IO" #><#@ import namespace="System.Linq" #><#@ import namespace="System.Collections.Generic" #><#
 	// Dossier du projet = dossier contenant ce .tt
-	var projectDir = Path.Combine(Path.GetDirectoryName(Host.TemplateFile), "..");
+	var projectDir = Path.Combine(Path.GetDirectoryName(Host.TemplateFile), "../../SqlToolManagerMaui.Core");
 
 	// Liste de règles: Ns = préfixe de namespace à matcher (StartsWith),
 	// Suffix = suffixe d'URI XAML, Prefix = préfixe suggéré pour XAML (XmlnsPrefix)
 	var nsMap = new List<(string Ns, string Suffix, string Prefix)>
 	{
-		( "SqlToolManagerMaui.Core.Models", "models", "m" ),
 		( "SqlToolManagerMaui.Core.Enums", "enums", "en" ),
+		( "SqlToolManagerMaui.Core.Models", "models", "m" ),
 	};
 
 	var basePrefixMap = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -69,7 +66,7 @@
 				var uri = string.Format("http://sqltoolmanagermaui.app/dotnet/maui/{0}", rule.Suffix);
 				// Ajoute une XmlnsDefinition pour le namespace trouvé
 				definitionLines.Add(string.Format(
-					"[assembly: XmlnsDefinition(\"{0}\", \"{1}\")]", uri, ns));
+					"[assembly: XmlnsDefinition(\"{0}\", \"{1}\", AssemblyName = \"SqlToolManagerMaui.Core\")]", uri, ns));
 				// enregistre l'association prefix -> uri (une seule fois par prefix)
 				if (!prefixMap.ContainsKey(rule.Prefix))
 				{

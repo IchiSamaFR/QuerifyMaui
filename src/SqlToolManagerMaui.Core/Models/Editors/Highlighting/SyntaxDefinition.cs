@@ -15,7 +15,7 @@ public sealed class SyntaxDefinition
     public required IReadOnlyList<SyntaxRule> Rules { get; init; }
 
     /// <summary>Couleur du texte non reconnu (couleur "Default" du .xshd), ou null pour laisser celle de l'editeur.</summary>
-    public Color? DefaultColor { get; init; }
+    public string? DefaultColor { get; init; }
 
     /// <summary>Mots des listes &lt;Keywords&gt;, conserves en clair pour l'autocompletion.</summary>
     public IReadOnlyList<SyntaxKeyword> Keywords { get; init; } = [];
