@@ -62,7 +62,7 @@ public partial class QueryVM
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            SetStatus($"Préférences non enregistrées : {ex.Message}", isError: true);
+            Status.Set($"Préférences non enregistrées : {ex.Message}", isError: true);
         }
     }
 
@@ -79,7 +79,7 @@ public partial class QueryVM
             if (content is null)
             {
                 await UpdatePreferencesAsync(p => p.RemoveRecentFile(filePath), token);
-                SetStatus($"{Path.GetFileName(filePath)} est introuvable : retiré des fichiers récents.", isError: true);
+                Status.Set($"{Path.GetFileName(filePath)} est introuvable : retiré des fichiers récents.", isError: true);
                 return;
             }
 

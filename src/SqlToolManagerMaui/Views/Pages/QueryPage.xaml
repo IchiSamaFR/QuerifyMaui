@@ -6,7 +6,7 @@
                 Shell.NavBarIsVisible="True">
     <ContentPage.MenuBarItems>
         <c:FileMenuBarItem NewCommand="{Binding NewCommand}"
-                           NewDashboardCommand="{Binding NewDashboardCommand}"
+                           NewDashboardCommand="{Binding Dashboard.NewCommand}"
                            OpenCommand="{Binding OpenCommand}"
                            RecentFiles="{Binding RecentFiles}"
                            OpenRecentCommand="{Binding OpenRecentCommand}"
@@ -91,7 +91,7 @@
                             <Button Style="{StaticResource TextButtonStyle}"
                                     Text="Dashboard"
                                     ImageSource="{icons:FluentFilled Icon=Table16Filled, IconSize=16}"
-                                    Command="{Binding ShowDashboardViewCommand}"
+                                    Command="{Binding Dashboard.ShowViewCommand}"
                                     ToolTipProperties.Text="Consulter le dashboard">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button"
@@ -110,7 +110,7 @@
                             <Button Style="{StaticResource TextButtonStyle}"
                                     Text="Concepteur"
                                     ImageSource="{icons:FluentFilled Icon=Braces16Filled, IconSize=16}"
-                                    Command="{Binding ShowDashboardDesignerCommand}"
+                                    Command="{Binding Dashboard.ShowDesignerCommand}"
                                     ToolTipProperties.Text="Placer et configurer les cartes">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button"
@@ -129,7 +129,7 @@
                             <Button Style="{StaticResource TextButtonStyle}"
                                     Text="Source"
                                     ImageSource="{icons:FluentFilled Icon=Code16Filled, IconSize=16}"
-                                    Command="{Binding ShowDashboardSourceCommand}"
+                                    Command="{Binding Dashboard.ShowSourceCommand}"
                                     ToolTipProperties.Text="Modifier le JSON du fichier">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button"
@@ -185,13 +185,13 @@
                             <c:DashboardView Session="{Binding ActiveDocument.Dashboard}"
                                              RowCount="{Binding ActiveDocument.Dashboard.RowCount, FallbackValue=6}"
                                              ColumnCount="{Binding ActiveDocument.Dashboard.ColumnCount, FallbackValue=12}"
-                                             ApplyParametersCommand="{Binding ApplyDashboardParametersCommand}"
-                                             BackCommand="{Binding DashboardBackCommand}"
-                                             GoToStepCommand="{Binding DashboardGoToStepCommand}"
-                                             SelectCardCommand="{Binding SelectDashboardCardCommand}"
-                                             AddCardCommand="{Binding AddDashboardCardCommand}"
-                                             StartDragCommand="{Binding StartDashboardDragCommand}"
-                                             DropCommand="{Binding DropDashboardCardCommand}" />
+                                             ApplyParametersCommand="{Binding Dashboard.ApplyParametersCommand}"
+                                             BackCommand="{Binding Dashboard.BackCommand}"
+                                             GoToStepCommand="{Binding Dashboard.GoToStepCommand}"
+                                             SelectCardCommand="{Binding Dashboard.SelectCardCommand}"
+                                             AddCardCommand="{Binding Dashboard.AddCardCommand}"
+                                             StartDragCommand="{Binding Dashboard.StartDragCommand}"
+                                             DropCommand="{Binding Dashboard.DropCardCommand}" />
 
                             <c:DashboardDesignerPanel Grid.Column="1"
                                                       WidthRequest="360"
@@ -199,15 +199,15 @@
                                                       SyntaxConfiguration="{Binding SqlSyntaxConfiguration}"
                                                       EditorConfiguration="{Binding EditorConfiguration}"
                                                       Connection="{Binding ActiveConnection}"
-                                                      RunCardCommand="{Binding RunDashboardCardCommand}"
-                                                      DeleteCardCommand="{Binding DeleteDashboardCardCommand}"
-                                                      MoveCardCommand="{Binding MoveDashboardCardCommand}"
-                                                      ResizeCardCommand="{Binding ResizeDashboardCardCommand}"
-                                                      OpenPageCommand="{Binding OpenDashboardDesignerPageCommand}"
-                                                      AddPageCommand="{Binding AddDashboardPageCommand}"
-                                                      DeletePageCommand="{Binding DeleteDashboardPageCommand}"
-                                                      AddParameterCommand="{Binding AddDashboardParameterCommand}"
-                                                      DeleteParameterCommand="{Binding DeleteDashboardParameterCommand}"
+                                                      RunCardCommand="{Binding Dashboard.RunCardCommand}"
+                                                      DeleteCardCommand="{Binding Dashboard.DeleteCardCommand}"
+                                                      MoveCardCommand="{Binding Dashboard.MoveCardCommand}"
+                                                      ResizeCardCommand="{Binding Dashboard.ResizeCardCommand}"
+                                                      OpenPageCommand="{Binding Dashboard.OpenDesignerPageCommand}"
+                                                      AddPageCommand="{Binding Dashboard.AddPageCommand}"
+                                                      DeletePageCommand="{Binding Dashboard.DeletePageCommand}"
+                                                      AddParameterCommand="{Binding Dashboard.AddParameterCommand}"
+                                                      DeleteParameterCommand="{Binding Dashboard.DeleteParameterCommand}"
                                                       IsVisible="{Binding ActiveDocument.IsDashboardDesigning, FallbackValue=False}" />
                         </Grid>
                     </Grid>
@@ -234,13 +234,13 @@
                       ColumnSpacing="16">
 
                     <Label Grid.Column="0"
-                           Text="{Binding StatusMessage}"
+                           Text="{Binding Status.Message}"
                            Style="{StaticResource LabelTertiaryStyle}"
                            LineBreakMode="TailTruncation"
                            VerticalOptions="Center">
                         <Label.Triggers>
                             <DataTrigger TargetType="Label"
-                                         Binding="{Binding IsStatusError}"
+                                         Binding="{Binding Status.IsError}"
                                          Value="True">
                                 <Setter Property="TextColor"
                                         Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />

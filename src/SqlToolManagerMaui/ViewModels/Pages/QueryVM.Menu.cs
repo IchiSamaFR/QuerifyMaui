@@ -26,7 +26,7 @@ public partial class QueryVM
 
         Documents.Add(document);
         ActiveDocument = document;
-        SetStatus(string.Empty);
+        Status.Clear();
     }
 
     [RelayCommand]
@@ -49,13 +49,13 @@ public partial class QueryVM
         if (existing is not null)
         {
             ActiveDocument = existing;
-            SetStatus($"{existing.FileName} est deja ouvert.");
+            Status.Set($"{existing.FileName} est deja ouvert.");
             return;
         }
 
         if (DashboardSerializer.IsDashboardFile(content.FilePath))
         {
-            OpenDashboard(new EditorDocument(Path.GetFileName(content.FilePath), content.FilePath, content.Text, SyntaxLanguage.None, DocumentKind.Dashboard));
+            Dashboard.Open(new EditorDocument(Path.GetFileName(content.FilePath), content.FilePath, content.Text, SyntaxLanguage.None, DocumentKind.Dashboard));
             return;
         }
 
@@ -63,7 +63,7 @@ public partial class QueryVM
         var document = new EditorDocument(Path.GetFileName(content.FilePath), content.FilePath, content.Text, language);
         Documents.Add(document);
         ActiveDocument = document;
-        SetStatus($"{document.FileName} ouvert.");
+        Status.Set($"{document.FileName} ouvert.");
     }
 
     [RelayCommand]
@@ -97,7 +97,7 @@ public partial class QueryVM
             }
 
             document.MarkSaved();
-            SetStatus($"{document.FileName} enregistre.");
+            Status.Set($"{document.FileName} enregistre.");
         });
     }
 
@@ -152,7 +152,7 @@ public partial class QueryVM
 
         document.Language = language;
         OnPropertyChanged(nameof(SyntaxConfiguration));
-        SetStatus($"Langage de l'onglet : {SyntaxConfiguration?.Definition.Name ?? language.ToString()}.");
+        Status.Set($"Langage de l'onglet : {SyntaxConfiguration?.Definition.Name ?? language.ToString()}.");
     }
 
     [RelayCommand]

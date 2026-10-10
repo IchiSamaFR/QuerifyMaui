@@ -85,7 +85,7 @@ SqlToolManagerMaui/
 │   │   │   ├── AbstractVM.cs                   # Base : navigation, chargement
 │   │   │   ├── AbstractVM_Busy.cs              # Base : gestion des tâches / IsBusy
 │   │   │   ├── ShellVM.cs                      # État du rail de navigation
-│   │   │   └── Pages/                          # QueryVM, Connections/ (ConnectionExplorerVM, ConnectionEditorVM)
+│   │   │   └── Pages/                          # QueryVM, Queries/ (DashboardVM, StatusBarVM, IQueryWorkspace), Connections/ (ConnectionExplorerVM, ConnectionEditorVM)
 │   │   ├── Views/
 │   │   │   ├── Pages/                          # AbstractPage + pages de l'app
 │   │   │   └── Controls/                       # NavigationRail + Editors/ (menus, onglets)
@@ -279,6 +279,7 @@ Lors de la création d'une feature :
 
 * `QueryVM.ExecuteQueryCommand` (async, `IncludeCancelCommand`) : texte = `Selection.SelectedText` s'il n'est pas vide, sinon `ActiveDocument.EditorText`. Volontairement **hors** `RunAsBusyAsync`, qui désactiverait la page et donc le bouton Annuler.
 * `QueryVM` exécute via `IQueryExecutorResolver.Resolve(document.Language)` : il ne connaît aucun langage en particulier.
+* `QueryVM` est découpé en sous-VM (`ViewModels/Pages/Queries/`) exposés en propriétés (`Dashboard`, `Status`) et liés en XAML par `{Binding Dashboard.XxxCommand}`. Ce sont des `ObservableObject` (pas des `AbstractVM`, réservé aux pages), injectés en `Transient` ; ils accèdent à l'état partagé (onglets, connexion, barre d'état, `LifetimeToken`) via `IQueryWorkspace`, implémenté par `QueryVM` et passé par `Attach`.
 * **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(ISqlProviderExecutor))]` dans `Languages.Sql/[Moteur]/` ; `SqlQueryExecutor` le découvre seul.
 * `SqlServerQueryExecutor` (`Languages.Sql/SqlServer/`) : une connexion par exécution (pas de session conservée entre deux F5), `CommandTimeout = 0`, lots `GO` / `GO n` découpés par `SqlBatchSplitter` (ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script exécuté. Les erreurs SQL sont rendues dans les messages, pas levées.
 * Plafond de `QueryExecutionLimits.MaxRowsPerResultSet` (`Languages.Commons`, 10 000) lignes par jeu, cellules converties en texte côté service (NULL = `null`).
@@ -288,7 +289,7 @@ Lors de la création d'une feature :
 
 ### Dashboards (`.schx`)
 
-* Un onglet a un `Kind` (`DocumentKind.Script` ou `Dashboard`, choisi par l'extension `.schx`) et, pour un dashboard, un `DashboardMode` (`View`, `Design`, `Source`). Le **JSON reste la source** : le concepteur écrit dans la définition (`DashboardCardState`, `DashboardParameterValue`, `DashboardPageState` écrivent directement dans les objets `*Definition`), la session lève `DefinitionChanged` et `QueryVM` resérialise dans `EditorText` (`DashboardSession.MarkWritten` évite une relecture). La vue Source est relue au retour (`LoadedText`). F5 est désactivé sur ces onglets.
+* Un onglet a un `Kind` (`DocumentKind.Script` ou `Dashboard`, choisi par l'extension `.schx`) et, pour un dashboard, un `DashboardMode` (`View`, `Design`, `Source`). Le **JSON reste la source** : le concepteur écrit dans la définition (`DashboardCardState`, `DashboardParameterValue`, `DashboardPageState` écrivent directement dans les objets `*Definition`), la session lève `DefinitionChanged` et `DashboardVM` resérialise dans `EditorText` (`DashboardSession.MarkWritten` évite une relecture). La vue Source est relue au retour (`LoadedText`). F5 est désactivé sur ces onglets.
 * **Format** (`Core/Models/Dashboards/DashboardDefinition`) : `connection` (nom d'une connexion enregistrée, jamais la chaîne), `database`, `columns` (12) / `rows` (6, minimum), `parameters` (`name`, `label`, `type` : Text, Integer, Decimal, Date, DateTime, Boolean, Guid, `default`), `startPage`, `pages` (`id`, `title`, `cards`). Carte : `column` / `row` (base 0), `columnSpan` / `rowSpan`, `view` (Grid, Value, BarChart, LineChart, PieChart, Text, Button), `query`, `text`, `labelColumn`, `valueColumns`, `navigation` (`page` + `parameters` : `{parameter, column}` pour une colonne de la ligne cliquée, `{parameter, value}` pour un texte fixe ou `@AutreParam`).
 * **Paramètres** : communs à toutes les pages, envoyés en `SqlParameter` typés (`DashboardParameterDefinition.TryConvert`), jamais concaténés. Chaque étape du fil d'Ariane (`DashboardPageState`) garde ses valeurs et ses résultats : Retour ne relit rien. « Appliquer » (ou Entrée) relit les cartes de la page.
 * **Lecture d'une carte** : premier jeu de résultats ayant des colonnes, 1 000 lignes max, cartes lues en parallèle ; une nouvelle lecture annule la précédente ; changer de connexion relit la page affichée.

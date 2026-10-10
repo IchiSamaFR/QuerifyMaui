@@ -7,13 +7,13 @@ using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Queries;
-using SqlToolManagerMaui.Databases.Dashboards;
 using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Settings;
 using SqlToolManagerMaui.UI.ViewModels;
+using SqlToolManagerMaui.ViewModels.Pages.Queries;
 using System.Collections.ObjectModel;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
@@ -26,14 +26,13 @@ namespace SqlToolManagerMaui.ViewModels.Pages;
 /// resultat est range sur l'onglet d'origine.
 /// </summary>
 [AutoRegister]
-public partial class QueryVM : AbstractVM
+public partial class QueryVM : AbstractVM, IQueryWorkspace
 {
     private readonly IEditorFileService _files;
     private readonly IConnectionStore _connectionStore;
     private readonly ISyntaxConfigurationStore _syntaxConfigurations;
     private readonly IQueryExecutorResolver _executors;
     private readonly IUserPreferencesStore _preferences;
-    private readonly IDashboardDataService _dashboardData;
 
     /// <summary>Compteur des documents "Sans titre" ouverts depuis le demarrage.</summary>
     private int _untitledCount;
@@ -63,12 +62,15 @@ public partial class QueryVM : AbstractVM
 
     public bool IsConnected => ActiveConnection is not null;
 
-    /// <summary>Message affiche dans la barre d'etat (enregistrement, erreur d'ouverture...).</summary>
-    [ObservableProperty]
-    public partial string StatusMessage { get; set; } = string.Empty;
+    /// <summary>Barre d'etat (enregistrement, erreur d'ouverture...).</summary>
+    public StatusBarVM Status { get; }
 
-    [ObservableProperty]
-    public partial bool IsStatusError { get; set; }
+    /// <summary>Onglets .schx : consultation et concepteur.</summary>
+    public DashboardVM Dashboard { get; }
+
+    IReadOnlyList<DatabaseConnectionInfo> IQueryWorkspace.Connections => Connections;
+
+    CancellationToken IQueryWorkspace.LifetimeToken => LifetimeToken;
 
     // ---------- Options d'edition, liees directement au CodeEditor ----------
 
@@ -87,16 +89,19 @@ public partial class QueryVM : AbstractVM
     /// <summary>Coloration SQL, quel que soit l'onglet actif (requetes des cartes du dashboard).</summary>
     public SyntaxConfiguration? SqlSyntaxConfiguration => _syntaxByLanguage.GetValueOrDefault(SyntaxLanguage.Sql);
 
-    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors, IUserPreferencesStore preferences, IDashboardDataService dashboardData)
+    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors, IUserPreferencesStore preferences, StatusBarVM status, DashboardVM dashboard)
     {
+        // En premier : l'abonnement au store peut deja rappeler la page.
+        Status = status;
+        Dashboard = dashboard;
+        Dashboard.Attach(this);
+
         _files = files;
         _connectionStore = connectionStore;
         _connectionStore.Subscribe(ApplyConnections);
         _syntaxConfigurations = syntaxConfigurations;
         _executors = executors;
         _preferences = preferences;
-        _dashboardData = dashboardData;
-        Documents.CollectionChanged += OnDocumentsCollectionChanged;
 
         // Ajout, modification ou suppression depuis l'explorateur : le Picker suit le coffre.
         WeakReferenceMessenger.Default.Register<QueryVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
@@ -153,16 +158,14 @@ public partial class QueryVM : AbstractVM
 
     partial void OnSelectedConnectionChanged(DatabaseConnectionInfo? value)
     {
-        SetStatus(ActiveConnection is null
+        Status.Set(ActiveConnection is null
             ? "Deconnecte."
             : $"Connexion active : {ActiveConnection.Name}.");
 
         if (ActiveConnection != null)
             _connectionStore.OpenConnectionAsync(ActiveConnection);
 
-        // Les cartes du dashboard affiche suivent la connexion.
-        if (ActiveDocument is { IsDashboard: true, Dashboard.Current: { } page } document)
-            _ = LoadDashboardCardsAsync(document, page.Cards);
+        Dashboard.OnConnectionChanged();
     }
 
     // ---------- Execution ----------
@@ -186,13 +189,13 @@ public partial class QueryVM : AbstractVM
         var script = isSelection ? selectedText : document.EditorText;
         if (string.IsNullOrWhiteSpace(script))
         {
-            SetStatus("Rien à exécuter : le document est vide.", isError: true);
+            Status.Set("Rien à exécuter : le document est vide.", isError: true);
             return;
         }
 
         document.LastResult = null;
         document.IsExecuting = true;
-        SetStatus(isSelection
+        Status.Set(isSelection
             ? $"Exécution de la sélection sur {connection.Name}..."
             : $"Exécution sur {connection.Name}...");
 
@@ -201,22 +204,22 @@ public partial class QueryVM : AbstractVM
             // Ouverture a la demande : la connexion est partagee avec l'explorateur.
             if (!await _connectionStore.OpenConnectionAsync(connection, token))
             {
-                SetStatus($"La chaîne de connexion de {connection.Name} est introuvable : réenregistrez-la depuis la page Connexions.", isError: true);
+                Status.Set($"La chaîne de connexion de {connection.Name} est introuvable : réenregistrez-la depuis la page Connexions.", isError: true);
                 return;
             }
 
             // LINQ : la premiere execution sur une base genere et compile son DbContext (quelques secondes).
             var result = await _executors.Resolve(document.Language).ExecuteAsync(connection, script, token);
             document.LastResult = result;
-            SetStatus(result.StatusLabel, isError: result.HasErrors || result.WasCancelled);
+            Status.Set(result.StatusLabel, isError: result.HasErrors || result.WasCancelled);
         }
         catch (OperationCanceledException)
         {
-            SetStatus("Exécution annulée.", isError: true);
+            Status.Set("Exécution annulée.", isError: true);
         }
         catch (Exception ex)
         {
-            SetStatus($"Échec de l'exécution : {ex.Message}", isError: true);
+            Status.Set($"Échec de l'exécution : {ex.Message}", isError: true);
         }
         finally
         {
@@ -260,11 +263,5 @@ public partial class QueryVM : AbstractVM
     {
         if (ActiveDocument is { IsExecuting: false } document)
             document.LastResult = null;
-    }
-
-    public void SetStatus(string message, bool isError = false)
-    {
-        StatusMessage = message;
-        IsStatusError = isError;
     }
 }
