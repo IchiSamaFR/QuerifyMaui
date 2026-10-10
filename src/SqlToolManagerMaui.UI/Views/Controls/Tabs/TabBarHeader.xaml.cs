@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using System.ComponentModel;
 
-namespace SqlToolManagerMaui.UI.Views.Controls;
+namespace SqlToolManagerMaui.UI.Views.Controls.Tabs;
 
 /// <summary>En-tete d'un <see cref="TabBarItem"/> (son BindingContext), genere par la <see cref="TabBar"/>.</summary>
 public partial class TabBarHeader : ContentView

@@ -7,6 +7,18 @@ public static class ElementExtensions
 {
     private const int DefaultFindDepth = 10;
 
+    private static readonly string[] TransparentBrushKeys =
+    {
+        "TextControlBackground",
+        "TextControlBackgroundPointerOver",
+        "TextControlBackgroundFocused",
+        "TextControlBackgroundDisabled",
+        "TextControlBorderBrush",
+        "TextControlBorderBrushPointerOver",
+        "TextControlBorderBrushFocused",
+        "TextControlBorderBrushDisabled",
+    };
+
     /// <summary>
     /// Recherche le premier parent de type <typeparamref name="T"/> en remontant
     /// l'arbre logique, sur au plus <paramref name="maxLevels"/> niveaux.
@@ -32,4 +44,19 @@ public static class ElementExtensions
 
         return null;
     }
+
+#if WINDOWS
+    public static void ApplyTransparentResources(this Microsoft.UI.Xaml.Controls.Control element)
+    {
+        foreach (var key in TransparentBrushKeys)
+        {
+            // Une brosse par clé : évite de partager une instance entre états.
+            element.Resources[key] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        }
+
+        element.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        element.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        element.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+    }
+#endif
 }

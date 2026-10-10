@@ -1,8 +1,8 @@
-using CommunityToolkit.Maui;
+﻿using CommunityToolkit.Maui;
 using System.Collections;
 using System.Windows.Input;
 
-namespace SqlToolManagerMaui.UI.Views;
+namespace SqlToolManagerMaui.UI.Views.Controls.Trees;
 
 public partial class TreeView
 {

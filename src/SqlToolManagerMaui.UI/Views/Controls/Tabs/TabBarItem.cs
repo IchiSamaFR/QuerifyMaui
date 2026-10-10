@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 
-namespace SqlToolManagerMaui.UI.Views.Controls;
+namespace SqlToolManagerMaui.UI.Views.Controls.Tabs;
 
 /// <summary>Un onglet de <see cref="TabBar"/> : description de l'en-tete et contenu affiche quand il est selectionne.</summary>
 [ContentProperty(nameof(Content))]

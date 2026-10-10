@@ -7,6 +7,7 @@ using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Services.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using System.ComponentModel;
+using SqlToolManagerMaui.UI.Extensions;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
 namespace SqlToolManagerMaui.Views.Controls.Editors;
@@ -128,6 +129,7 @@ public partial class CodeEditor : ContentView
         box.Resources["TextControlBorderBrushPointerOver"] = _hoverBorder;
         box.Resources["TextControlBorderThemeThickness"] = new Microsoft.UI.Xaml.Thickness(1, 0, 0, 0);
         box.Resources["TextControlBorderThemeThicknessFocused"] = new Microsoft.UI.Xaml.Thickness(1, 0, 0, 0);
+        box.ApplyTransparentResources();
         box.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
 
         // Le flyout natif s'ouvre meme vide (flash au clic droit) : on le supprime a la source.

@@ -1,6 +1,6 @@
 ﻿using SqlToolManagerMaui.UI.Views.Controls;
 
-namespace SqlToolManagerMaui.UI.Views;
+namespace SqlToolManagerMaui.UI.Views.Controls.Trees;
 
 /// <summary>
 /// Arbre hierarchique generique (MAUI n'en fournit pas) : chaque element devient un

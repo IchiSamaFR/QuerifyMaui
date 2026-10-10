@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows.Input;
 
-namespace SqlToolManagerMaui.UI.Views.Controls;
+namespace SqlToolManagerMaui.UI.Views.Controls.Tabs;
 
 /// <summary>
 /// Controle a onglets facon WPF / Windows 11 : barre d'onglets en haut, contenu de l'onglet selectionne en dessous.
