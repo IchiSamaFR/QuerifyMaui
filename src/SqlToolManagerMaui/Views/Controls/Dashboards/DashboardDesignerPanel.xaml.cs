@@ -1,6 +1,9 @@
 ﻿using CommunityToolkit.Maui;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Models.Dashboards;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Editors;
+using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Views.Controls.Dashboards;
@@ -18,6 +21,18 @@ public partial class DashboardDesignerPanel : ContentView
 
     [BindableProperty]
     public partial DashboardSession? Session { get; set; }
+
+    /// <summary>Coloration de l'editeur de requete (SQL).</summary>
+    [BindableProperty]
+    public partial SyntaxConfiguration? SyntaxConfiguration { get; set; }
+
+    /// <summary>Options d'affichage partagees avec l'editeur principal.</summary>
+    [BindableProperty]
+    public partial EditorConfiguration? EditorConfiguration { get; set; }
+
+    /// <summary>Connexion active : alimente l'autocompletion des tables et colonnes.</summary>
+    [BindableProperty]
+    public partial DatabaseConnectionInfo? Connection { get; set; }
 
     /// <summary>Relit la carte (parametre : <see cref="DashboardCardState"/>).</summary>
     [BindableProperty]

@@ -84,6 +84,9 @@ public partial class QueryVM : AbstractVM
     public SyntaxConfiguration? SyntaxConfiguration
         => ActiveDocument is { } document && _syntaxByLanguage.TryGetValue(document.Language, out var configuration) ? configuration : null;
 
+    /// <summary>Coloration SQL, quel que soit l'onglet actif (requetes des cartes du dashboard).</summary>
+    public SyntaxConfiguration? SqlSyntaxConfiguration => _syntaxByLanguage.GetValueOrDefault(SyntaxLanguage.Sql);
+
     public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors, IUserPreferencesStore preferences, IDashboardDataService dashboardData)
     {
         _files = files;
@@ -110,6 +113,7 @@ public partial class QueryVM : AbstractVM
             }
 
             OnPropertyChanged(nameof(SyntaxConfiguration));
+            OnPropertyChanged(nameof(SqlSyntaxConfiguration));
         }
 
         await LoadPreferencesAsync();

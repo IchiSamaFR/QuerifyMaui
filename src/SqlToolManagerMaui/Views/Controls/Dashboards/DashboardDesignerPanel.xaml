@@ -32,11 +32,12 @@
                                      IsVisible="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}">
                     <Label Text="Requête SQL (paramètres : @Nom)"
                            Style="{StaticResource LabelTertiaryStyle}" />
-                    <Border Style="{StaticResource SunkenSurfaceStyle}">
-                        <Editor Text="{Binding Session.SelectedCard.Query, Mode=TwoWay, FallbackValue=''}"
-                                FontFamily="Consolas"
-                                HeightRequest="160"
-                                AutoSize="Disabled" />
+                    <Border Style="{StaticResource SunkenSurfaceStyle}"
+                            HeightRequest="220">
+                        <c:CodeEditor Text="{Binding Session.SelectedCard.Query, Mode=TwoWay, FallbackValue=''}"
+                                      SyntaxConfiguration="{Binding SyntaxConfiguration}"
+                                      EditorConfiguration="{Binding EditorConfiguration}"
+                                      Connection="{Binding Connection}" />
                     </Border>
                     <Button Style="{StaticResource SecondaryButtonStyle}"
                             Text="Exécuter la requête"
