@@ -7,5 +7,11 @@
              MinimumHeightRequest="2"
              SizeChanged="OnSizeChanged">
 
-    <BoxView Color="{Binding BackgroundColor, Source={x:Reference Root}, x:DataType=v:GridSplitter}" />
+    <BoxView Color="{Binding BackgroundColor, Source={x:Reference Root}, x:DataType=v:GridSplitter}">
+        <BoxView.Shadow>
+            <Shadow Brush="White"
+                    Radius="2"
+                    Opacity="0.10" />
+        </BoxView.Shadow>
+    </BoxView>
 </ContentView>

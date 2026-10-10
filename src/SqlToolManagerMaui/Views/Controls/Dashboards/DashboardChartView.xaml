@@ -14,9 +14,11 @@
 
         <lvc:PieChart x:Name="Pie"
                       LegendPosition="Right"
-                      IsVisible="False" />
+                      IsVisible="False" 
+                      Background="Transparent"/>
 
         <lvc:CartesianChart x:Name="Cartesian"
-                            IsVisible="False" />
+                            IsVisible="False"
+                            Background="Transparent" />
     </Grid>
 </ContentView>

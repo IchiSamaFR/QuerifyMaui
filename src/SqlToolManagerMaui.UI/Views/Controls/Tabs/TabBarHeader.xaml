@@ -46,6 +46,7 @@
                    Style="{StaticResource LabelStyle}"
                    LineBreakMode="TailTruncation"
                    MaximumWidthRequest="180"
+                   Padding="0,4"
                    VerticalOptions="Fill" />
 
             <!-- Pastille "modifie" et bouton fermer partagent le meme emplacement -->

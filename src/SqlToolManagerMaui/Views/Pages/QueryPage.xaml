@@ -68,8 +68,7 @@
             </Grid.Triggers>
 
             <!-- ============ Onglets + execution ============ -->
-            <v:TabBar Grid.Row="0"
-                      ItemsSource="{Binding Documents}"
+            <v:TabBar ItemsSource="{Binding Documents}"
                       SelectedItem="{Binding ActiveDocument}"
                       CloseCommand="{Binding CloseCommand}">
                 <v:TabBar.ItemTemplate>
@@ -145,77 +144,93 @@
                                 </Button.Triggers>
                             </Button>
                         </HorizontalStackLayout>
-
-                        <inp:PickerField ItemsSource="{Binding Connection.Connections}"
-                                         SelectedItem="{Binding Connection.SelectedConnection}"
-                                         DisplayMemberPath="Name"
-                                         WidthRequest="220"
-                                         FontSize="{StaticResource FontSize_Caption}" />
-
-                        <ImageButton Style="{StaticResource PrimaryImageButtonStyle}"
-                                     Command="{Binding Execution.ExecuteQueryCommand}"
-                                     Source="{icons:FluentFilled Icon=Play16Filled, IconSize=14}"
-                                     ToolTipProperties.Text="Disponible dans une prochaine version" />
                     </HorizontalStackLayout>
                 </v:TabBar.TrailingContent>
 
                 <!-- Editeur et dashboard partages par tous les onglets : ils suivent ActiveDocument -->
                 <v:TabBar.DefaultContent>
-                    <Grid>
-                        <!-- ============ Editeur ============ -->
-                        <Border StrokeThickness="0"
-                                StrokeShape="RoundRectangle 0 4 4 4"
-                                Style="{StaticResource SunkenSurfaceStyle}"
-                                IsVisible="{Binding ActiveDocument.IsEditorVisible, FallbackValue=True}">
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 0 4 4 4"
+                            Style="{StaticResource CardStyle}">
+                        <Grid>
+                            <!-- ============ Editeur ============ -->
+                            <Grid RowDefinitions="Auto,*"
+                                  IsVisible="{Binding ActiveDocument.IsEditorVisible, FallbackValue=True}">
+                                <HorizontalStackLayout Spacing="8">
+                                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                                                 Command="{Binding Execution.ExecuteQueryCommand}"
+                                                 Source="{icons:Fluent Icon=Play16, IconSize=16, IconColor={StaticResource Success}}"
+                                                 ToolTipProperties.Text="Exécuter la requête" />
 
-                            <c:CodeEditor x:Name="Editor"
-                                          Text="{Binding ActiveDocument.EditorText}"
-                                          FilePath="{Binding ActiveDocument.FilePath}"
-                                          Selection="{Binding ActiveDocument.Selection}"
-                                          EditorConfiguration="{Binding Preferences.EditorConfiguration}"
-                                          SyntaxConfiguration="{Binding SyntaxConfiguration}"
-                                          Connection="{Binding Connection.ActiveConnection}"
-                                          IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
-                        </Border>
+                                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                                                 Command="{Binding Execution.ExecuteQueryCancelCommand}"
+                                                 Source="{icons:Fluent Icon=Stop16, IconSize=16, IconColor={StaticResource Danger}}"
+                                                 ToolTipProperties.Text="Arrêter l'exécution de la requête" />
 
-                        <!-- ============ Dashboard (.schx) : grille + panneau du concepteur ============ -->
-                        <Grid ColumnDefinitions="*,Auto"
-                              ColumnSpacing="8"
-                              IsVisible="{Binding ActiveDocument.IsDashboardVisible, FallbackValue=False}">
-                            <c:DashboardView Session="{Binding ActiveDocument.Dashboard}"
-                                             RowCount="{Binding ActiveDocument.Dashboard.RowCount, FallbackValue=6}"
-                                             ColumnCount="{Binding ActiveDocument.Dashboard.ColumnCount, FallbackValue=12}"
-                                             ApplyParametersCommand="{Binding Dashboard.ApplyParametersCommand}"
-                                             BackCommand="{Binding Dashboard.BackCommand}"
-                                             GoToStepCommand="{Binding Dashboard.GoToStepCommand}"
-                                             SelectCardCommand="{Binding Dashboard.SelectCardCommand}"
-                                             AddCardCommand="{Binding Dashboard.AddCardCommand}"
-                                             StartDragCommand="{Binding Dashboard.StartDragCommand}"
-                                             DropCommand="{Binding Dashboard.DropCardCommand}" />
+                                    <v:GridSplitter Background="{DynamicResource InputBackground}" />
 
-                            <c:DashboardDesignerPanel Grid.Column="1"
-                                                      WidthRequest="360"
-                                                      Session="{Binding ActiveDocument.Dashboard}"
-                                                      SyntaxConfiguration="{Binding SqlSyntaxConfiguration}"
-                                                      EditorConfiguration="{Binding Preferences.EditorConfiguration}"
-                                                      Connection="{Binding Connection.ActiveConnection}"
-                                                      RunCardCommand="{Binding Dashboard.RunCardCommand}"
-                                                      DeleteCardCommand="{Binding Dashboard.DeleteCardCommand}"
-                                                      MoveCardCommand="{Binding Dashboard.MoveCardCommand}"
-                                                      ResizeCardCommand="{Binding Dashboard.ResizeCardCommand}"
-                                                      OpenPageCommand="{Binding Dashboard.OpenDesignerPageCommand}"
-                                                      AddPageCommand="{Binding Dashboard.AddPageCommand}"
-                                                      DeletePageCommand="{Binding Dashboard.DeletePageCommand}"
-                                                      AddParameterCommand="{Binding Dashboard.AddParameterCommand}"
-                                                      DeleteParameterCommand="{Binding Dashboard.DeleteParameterCommand}"
-                                                      IsVisible="{Binding ActiveDocument.IsDashboardDesigning, FallbackValue=False}" />
+                                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                                                 Command="{Binding Connection.DisconnectCommand}"
+                                                 Source="{icons:Fluent Icon=PlugDisconnected20, IconSize=16, IconColor={StaticResource Danger}}"
+                                                 ToolTipProperties.Text="Déconnecter la connexion" />
+
+                                    <inp:PickerField ItemsSource="{Binding Connection.Connections}"
+                                                     SelectedItem="{Binding Connection.SelectedConnection}"
+                                                     DisplayMemberPath="Name"
+                                                     WidthRequest="220"
+                                                     FontSize="{StaticResource FontSize_Caption}" />
+
+                                </HorizontalStackLayout>
+
+                                <c:CodeEditor Grid.Row="1"
+                                              x:Name="Editor"
+                                              Text="{Binding ActiveDocument.EditorText}"
+                                              FilePath="{Binding ActiveDocument.FilePath}"
+                                              Selection="{Binding ActiveDocument.Selection}"
+                                              EditorConfiguration="{Binding Preferences.EditorConfiguration}"
+                                              SyntaxConfiguration="{Binding SyntaxConfiguration}"
+                                              Connection="{Binding Connection.ActiveConnection}"
+                                              IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
+                            </Grid>
+
+                            <!-- ============ Dashboard (.schx) : grille + panneau du concepteur ============ -->
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="8"
+                                  IsVisible="{Binding ActiveDocument.IsDashboardVisible, FallbackValue=False}">
+                                <c:DashboardView Session="{Binding ActiveDocument.Dashboard}"
+                                                 RowCount="{Binding ActiveDocument.Dashboard.RowCount, FallbackValue=6}"
+                                                 ColumnCount="{Binding ActiveDocument.Dashboard.ColumnCount, FallbackValue=12}"
+                                                 ApplyParametersCommand="{Binding Dashboard.ApplyParametersCommand}"
+                                                 BackCommand="{Binding Dashboard.BackCommand}"
+                                                 GoToStepCommand="{Binding Dashboard.GoToStepCommand}"
+                                                 SelectCardCommand="{Binding Dashboard.SelectCardCommand}"
+                                                 AddCardCommand="{Binding Dashboard.AddCardCommand}"
+                                                 StartDragCommand="{Binding Dashboard.StartDragCommand}"
+                                                 DropCommand="{Binding Dashboard.DropCardCommand}" />
+
+                                <c:DashboardDesignerPanel Grid.Column="1"
+                                                          WidthRequest="360"
+                                                          Session="{Binding ActiveDocument.Dashboard}"
+                                                          SyntaxConfiguration="{Binding SqlSyntaxConfiguration}"
+                                                          EditorConfiguration="{Binding Preferences.EditorConfiguration}"
+                                                          Connection="{Binding Connection.ActiveConnection}"
+                                                          RunCardCommand="{Binding Dashboard.RunCardCommand}"
+                                                          DeleteCardCommand="{Binding Dashboard.DeleteCardCommand}"
+                                                          MoveCardCommand="{Binding Dashboard.MoveCardCommand}"
+                                                          ResizeCardCommand="{Binding Dashboard.ResizeCardCommand}"
+                                                          OpenPageCommand="{Binding Dashboard.OpenDesignerPageCommand}"
+                                                          AddPageCommand="{Binding Dashboard.AddPageCommand}"
+                                                          DeletePageCommand="{Binding Dashboard.DeletePageCommand}"
+                                                          AddParameterCommand="{Binding Dashboard.AddParameterCommand}"
+                                                          DeleteParameterCommand="{Binding Dashboard.DeleteParameterCommand}"
+                                                          IsVisible="{Binding ActiveDocument.IsDashboardDesigning, FallbackValue=False}" />
+                            </Grid>
                         </Grid>
-                    </Grid>
+                    </Border>
                 </v:TabBar.DefaultContent>
             </v:TabBar>
 
             <v:GridSplitter Grid.Row="1"
-                            HeightRequest="2"
                             IsVisible="{Binding ActiveDocument.HasResultsPanel, FallbackValue=False}" />
 
             <Grid Grid.Row="2"
@@ -223,8 +238,7 @@
                   RowDefinitions="*,Auto"
                   IsVisible="{Binding ActiveDocument.HasResultsPanel, FallbackValue=False}">
                 <!-- ============ Resultats ============ -->
-                <c:QueryResultsPanel Grid.Row="0"
-                                     Result="{Binding ActiveDocument.LastResult}"
+                <c:QueryResultsPanel Result="{Binding ActiveDocument.LastResult}"
                                      IsExecuting="{Binding ActiveDocument.IsExecuting}"
                                      CloseCommand="{Binding Execution.CloseResultsCommand}" />
 

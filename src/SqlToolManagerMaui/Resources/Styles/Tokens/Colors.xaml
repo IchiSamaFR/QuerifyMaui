@@ -57,6 +57,8 @@
     <Color x:Key="CardBackgroundSecondary">#08FFFFFF</Color>
     <Color x:Key="CardStroke">#19000000</Color>
 
+    <Color x:Key="MenuItemsBackground">#6E202020</Color>
+
     <!-- ============ Controles (ControlFillColor*) ============ -->
     <Color x:Key="ControlFillColorDefault">#0FFFFFFF</Color>
     <Color x:Key="ControlFillColorSecondary">#15FFFFFF</Color>

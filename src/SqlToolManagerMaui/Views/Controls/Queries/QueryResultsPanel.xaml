@@ -1,67 +1,48 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="SqlToolManagerMaui.Views.Controls.Queries.QueryResultsPanel">
+             x:Class="SqlToolManagerMaui.Views.Controls.Queries.QueryResultsPanel"
+             x:Name="root">
+    <v:TabBar ItemsSource="{Binding Tabs, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+              SelectedItem="{Binding SelectedTab, Source={x:Reference root}, Mode=TwoWay, x:DataType=c:QueryResultsPanel}">
 
-    <Border Style="{StaticResource CardStyle}"
-            StrokeThickness="0"
-            StrokeShape="RoundRectangle 0,0,4,4">
+        <!-- ============ Onglets : un TabBarItem par QueryResultsTab ============ -->
+        <v:TabBar.ItemTemplate>
+            <DataTemplate x:DataType="m:QueryResultsTab">
+                <v:TabBarItem Header="{Binding Title}"
+                              CanClose="False" />
+            </DataTemplate>
+        </v:TabBar.ItemTemplate>
 
-        <Grid RowDefinitions="Auto,*"
-              RowSpacing="4">
-
-            <!-- ============ Onglets + duree + fermeture ============ -->
-            <Grid Grid.Row="0"
-                  ColumnDefinitions="*,Auto,Auto,Auto"
-                  ColumnSpacing="12">
-
-                <CollectionView Grid.Column="0"
-                                ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=Tabs, x:DataType=c:QueryResultsPanel}"
-                                SelectedItem="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=SelectedTab, Mode=TwoWay, x:DataType=c:QueryResultsPanel}"
-                                SelectionMode="Single">
-                    <CollectionView.ItemsLayout>
-                        <LinearItemsLayout Orientation="Horizontal"
-                                           ItemSpacing="4" />
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="m:QueryResultsTab">
-                            <Border StrokeThickness="0"
-                                    StrokeShape="RoundRectangle 6"
-                                    Padding="12,0"
-                                    HeightRequest="{StaticResource SmallInputHeight}"
-                                    BackgroundColor="Transparent">
-                                <Label Text="{Binding Title}"
-                                       Style="{StaticResource LabelNormalStyle}" />
-                            </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-
-                <Label Grid.Column="1"
-                       Text="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=SelectedTab.ResultSet.Summary, FallbackValue='', x:DataType=c:QueryResultsPanel}"
+        <!-- ============ Resume + duree + fermeture ============ -->
+        <v:TabBar.TrailingContent>
+            <HorizontalStackLayout Spacing="12"
+                                   VerticalOptions="Center">
+                <Label Text="{Binding SelectedTab.ResultSet.Summary, Source={x:Reference root}, FallbackValue='', x:DataType=c:QueryResultsPanel}"
                        Style="{StaticResource LabelTertiaryStyle}"
                        VerticalOptions="Center" />
 
-                <Label Grid.Column="2"
-                       Text="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=Result.ElapsedLabel, FallbackValue='', x:DataType=c:QueryResultsPanel}"
+                <Label Text="{Binding Result.ElapsedLabel, Source={x:Reference root}, FallbackValue='', x:DataType=c:QueryResultsPanel}"
                        Style="{StaticResource LabelTertiaryStyle}"
                        VerticalOptions="Center" />
 
-                <ImageButton Grid.Column="3"
-                        Style="{StaticResource TextImageButtonStyle}"
-                        Command="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=CloseCommand, x:DataType=c:QueryResultsPanel}"
-                        Source="{icons:FluentFilled Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}, IconSize=12}"
-                        ToolTipProperties.Text="Fermer les résultats" />
-            </Grid>
+                <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                             Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+                             Source="{icons:FluentFilled Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}, IconSize=12}"
+                             ToolTipProperties.Text="Fermer les résultats" />
+            </HorizontalStackLayout>
+        </v:TabBar.TrailingContent>
 
-            <!-- ============ Contenu de l'onglet ============ -->
-            <Grid Grid.Row="1"
-                  RowDefinitions="*,Auto">
-                <c:QueryResultGrid ResultSet="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=SelectedTab.ResultSet, x:DataType=c:QueryResultsPanel}"
-                                   IsVisible="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=SelectedTab.IsResultSet, FallbackValue=False, x:DataType=c:QueryResultsPanel}" />
+        <!-- ============ Contenu partagé de l'onglet sélectionné ============ -->
+        <v:TabBar.DefaultContent>
+            <Grid RowDefinitions="*,Auto"
+                  Padding="0,8"
+                  Background="{DynamicResource CardBackground}">
+                <c:QueryResultGrid ResultSet="{Binding SelectedTab.ResultSet, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+                                   IsVisible="{Binding SelectedTab.IsResultSet, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}" />
 
-                <CollectionView ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=Result.Messages, x:DataType=c:QueryResultsPanel}"
-                                IsVisible="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=SelectedTab.IsMessages, FallbackValue=False, x:DataType=c:QueryResultsPanel}"
+                <CollectionView ItemsSource="{Binding Result.Messages, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+                                IsVisible="{Binding SelectedTab.IsMessages, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}"
                                 SelectionMode="None"
                                 Margin="12,4">
                     <CollectionView.ItemsLayout>
@@ -85,11 +66,11 @@
                     </CollectionView.ItemTemplate>
                 </CollectionView>
 
-                <HorizontalStackLayout IsVisible="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=IsExecuting, x:DataType=c:QueryResultsPanel}"
+                <HorizontalStackLayout IsVisible="{Binding IsExecuting, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
                                        Spacing="12"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center">
-                    <ActivityIndicator IsRunning="{Binding Source={RelativeSource AncestorType={x:Type c:QueryResultsPanel}}, Path=IsExecuting, x:DataType=c:QueryResultsPanel}"
+                    <ActivityIndicator IsRunning="{Binding IsExecuting, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
                                        Color="{DynamicResource Primary}"
                                        WidthRequest="20"
                                        HeightRequest="20" />
@@ -97,6 +78,6 @@
                            Style="{StaticResource LabelTertiaryStyle}" />
                 </HorizontalStackLayout>
             </Grid>
-        </Grid>
-    </Border>
+        </v:TabBar.DefaultContent>
+    </v:TabBar>
 </ContentView>

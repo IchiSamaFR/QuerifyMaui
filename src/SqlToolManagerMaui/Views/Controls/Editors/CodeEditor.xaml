@@ -2,16 +2,16 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:code="clr-namespace:CodeEdit.Maui;assembly=CodeEdit.Maui"
-             x:Class="SqlToolManagerMaui.Views.Controls.Editors.CodeEditor"
-             Background="{DynamicResource CardBackground}"
-             BackgroundColor="{DynamicResource CardBackground}">
+             x:Class="SqlToolManagerMaui.Views.Controls.Editors.CodeEditor">
 
     <!-- Le popup partage la cellule de l'editeur : ses coordonnees sont celles du controle -->
     <Grid RowDefinitions="*,Auto"
-          Background="{DynamicResource CardBackground}"
-          BackgroundColor="{DynamicResource CardBackground}">
+          Background="Transparent"
+          BackgroundColor="Transparent">
         <code:CodeEditor Grid.Row="0"
                          x:Name="Native"
+                         Background="Transparent"
+                         BackgroundColor="Transparent"
                          ShowLineNumbers="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsLineDisplayed, x:DataType=c:CodeEditor}"
                          WordWrap="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsWordWrapped, x:DataType=c:CodeEditor}"
                          UseTabs="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsTabIndentation, x:DataType=c:CodeEditor}"

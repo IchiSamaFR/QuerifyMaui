@@ -23,7 +23,6 @@
                 </ScrollView>
 
                 <ContentView Grid.Column="1"
-                             Padding="0,4"
                              VerticalOptions="Fill"
                              MinimumHeightRequest="{DynamicResource InputHeight}"
                              Content="{Binding TrailingContent, Source={x:Reference Root}, x:DataType=v:TabBar}" />

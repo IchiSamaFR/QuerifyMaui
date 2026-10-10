@@ -297,6 +297,8 @@
     <Style x:Key="PrimaryImageButtonStyle"
            TargetType="ImageButton"
            ApplyToDerivedTypes="True">
+        <Setter Property="beh:ImageButtonIcon.DisabledColor"
+                Value="{StaticResource Gray500}" />
         <Setter Property="Background"
                 Value="{DynamicResource Primary}" />
         <Setter Property="BorderColor"
