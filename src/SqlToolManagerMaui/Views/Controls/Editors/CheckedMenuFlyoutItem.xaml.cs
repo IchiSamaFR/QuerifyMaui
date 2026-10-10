@@ -16,19 +16,22 @@ public partial class CheckedMenuFlyoutItem : MenuFlyoutItem
     public partial string? Prefix { get; set; } = "●";
 
     /// <summary>Libelle de l'entree, invariant : c'est la pastille qui porte l'etat.</summary>
-    [BindableProperty(PropertyChangedMethodName = nameof(OnLabelChanged))]
+    [BindableProperty]
     public partial string? Label { get; set; } = string.Empty;
 
     /// <summary>Etat courant de l'option.</summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnStateChanged))]
     public partial bool IsChecked { get; set; }
 
-    private static void OnLabelChanged(BindableObject bindable, object oldValue, object newValue)
-        => ((MenuFlyoutItem)bindable).Text = newValue as string ?? string.Empty;
+    public CheckedMenuFlyoutItem()
+    {
+        InitializeComponent();
+    }
 
     private static void OnStateChanged(BindableObject bindable, object oldValue, object newValue)
         => ((CheckedMenuFlyoutItem)bindable).UpdateBadge();
 
+    // Icone native (aucun equivalent MAUI) : propertyChanged indispensable.
     private void UpdateBadge()
     {
 #if WINDOWS

@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+             x:Class="SqlToolManagerMaui.Views.Controls.Dashboards.DashboardChartView">
+
+    <!-- Un seul rendu visible a la fois : series et axes sont poses par le code-behind -->
+    <Grid>
+        <Label x:Name="NoValueLabel"
+               Text="Aucune colonne numérique à afficher."
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               IsVisible="False" />
+
+        <lvc:PieChart x:Name="Pie"
+                      LegendPosition="Right"
+                      IsVisible="False" />
+
+        <lvc:CartesianChart x:Name="Cartesian"
+                            IsVisible="False" />
+    </Grid>
+</ContentView>

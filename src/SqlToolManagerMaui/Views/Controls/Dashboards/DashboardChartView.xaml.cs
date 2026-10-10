@@ -2,7 +2,6 @@
 using LiveChartsCore;
 using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.Maui;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
@@ -13,7 +12,7 @@ namespace SqlToolManagerMaui.Views.Controls.Dashboards;
 
 /// <summary>
 /// Graphique d'une carte (LiveCharts2). Les series dependent des colonnes du resultat, connues
-/// seulement a l'execution : le graphique est reconstruit en code a chaque changement.
+/// seulement a l'execution : elles sont recalculees en code a chaque changement.
 /// </summary>
 public sealed partial class DashboardChartView : ContentView
 {
@@ -34,46 +33,47 @@ public sealed partial class DashboardChartView : ContentView
     [BindableProperty(PropertyChangedMethodName = nameof(OnChartChanged))]
     public partial string? ValueColumns { get; set; }
 
-    private static void OnChartChanged(BindableObject bindable, object oldValue, object newValue)
-        => ((DashboardChartView)bindable).Rebuild();
+    public DashboardChartView()
+    {
+        InitializeComponent();
 
-    private void Rebuild()
+        // Un pinceau par graphique : LiveCharts ne partage pas un paint entre deux canevas.
+        Pie.LegendTextPaint = new SolidColorPaint(LabelColor);
+        Cartesian.LegendTextPaint = new SolidColorPaint(LabelColor);
+    }
+
+    private static void OnChartChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((DashboardChartView)bindable).Show(((DashboardChartView)bindable).Render());
+
+    private void Show(VisualElement? visible)
+    {
+        NoValueLabel.IsVisible = visible == NoValueLabel;
+        Pie.IsVisible = visible == Pie;
+        Cartesian.IsVisible = visible == Cartesian;
+    }
+
+    /// <summary>Alimente le rendu adapte et le renvoie (null : rien a afficher).</summary>
+    private VisualElement? Render()
     {
         if (ResultSet is not { Rows.Count: > 0 } resultSet || resultSet.Columns.Count == 0)
-        {
-            Content = null;
-            return;
-        }
+            return null;
 
         var labelIndex = Math.Max(0, IndexOf(resultSet, LabelColumn));
         var valueIndexes = ValueIndexes(resultSet, labelIndex);
         if (valueIndexes.Count == 0)
-        {
-            Content = new Label
-            {
-                Text = "Aucune colonne numérique à afficher.",
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Center,
-            };
-            return;
-        }
+            return NoValueLabel;
 
         var labels = resultSet.Rows.Select(r => Cell(r, labelIndex) ?? "NULL").ToArray();
 
         if (View == DashboardCardKind.PieChart)
         {
             var valueIndex = valueIndexes[0];
-            Content = new PieChart
+            Pie.Series = resultSet.Rows.Select((row, i) => (ISeries)new PieSeries<double>
             {
-                Series = resultSet.Rows.Select((row, i) => (ISeries)new PieSeries<double>
-                {
-                    Name = labels[i],
-                    Values = [Number(Cell(row, valueIndex))],
-                }).ToArray(),
-                LegendPosition = LegendPosition.Right,
-                LegendTextPaint = new SolidColorPaint(LabelColor),
-            };
-            return;
+                Name = labels[i],
+                Values = [Number(Cell(row, valueIndex))],
+            }).ToArray();
+            return Pie;
         }
 
         var series = valueIndexes.Select(index => View == DashboardCardKind.LineChart
@@ -89,14 +89,11 @@ public sealed partial class DashboardChartView : ContentView
                 Values = resultSet.Rows.Select(r => Number(Cell(r, index))).ToArray(),
             }).ToArray();
 
-        Content = new CartesianChart
-        {
-            Series = series,
-            XAxes = [new Axis { Labels = labels, LabelsPaint = new SolidColorPaint(LabelColor) }],
-            YAxes = [new Axis { LabelsPaint = new SolidColorPaint(LabelColor) }],
-            LegendPosition = series.Length > 1 ? LegendPosition.Top : LegendPosition.Hidden,
-            LegendTextPaint = new SolidColorPaint(LabelColor),
-        };
+        Cartesian.Series = series;
+        Cartesian.XAxes = [new Axis { Labels = labels, LabelsPaint = new SolidColorPaint(LabelColor) }];
+        Cartesian.YAxes = [new Axis { LabelsPaint = new SolidColorPaint(LabelColor) }];
+        Cartesian.LegendPosition = series.Length > 1 ? LegendPosition.Top : LegendPosition.Hidden;
+        return Cartesian;
     }
 
     /// <summary>Colonnes choisies, sinon toutes celles dont la premiere ligne est un nombre.</summary>

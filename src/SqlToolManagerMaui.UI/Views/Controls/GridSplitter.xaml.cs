@@ -23,22 +23,15 @@ public partial class GridSplitter : ContentView
 
     private bool IsHorizontal => Width > Height;
 
-    private const double Thickness = 2;
-
     public GridSplitter()
     {
-        MinimumWidthRequest = Thickness;
-        MinimumHeightRequest = Thickness;
-        // Construit en C# : la lib UI cible Windows sans etre une Exe, le compilateur XAML WinUI
-        // refuserait de compiler un .xaml MAUI (WMC0001).
-        var splitter = new BoxView
-        {
-            HorizontalOptions = LayoutOptions.Fill,
-            VerticalOptions = LayoutOptions.Fill,
-        };
-        splitter.SetBinding(BoxView.ColorProperty, new Binding(nameof(BackgroundColor), source: this));
-        Content = splitter;
-        SizeChanged += (_, _) => { if (_nativeView is not null) SetResizeCursor(_nativeView, IsHorizontal); };
+        InitializeComponent();
+    }
+
+    private void OnSizeChanged(object? sender, EventArgs e)
+    {
+        if (_nativeView is not null)
+            SetResizeCursor(_nativeView, IsHorizontal);
     }
 
     private WinUIElement? _nativeView;

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<MenuFlyoutSubItem xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                   x:Class="SqlToolManagerMaui.UI.Views.Controls.Menus.MenuFlyoutSubItemExtended"
+                   x:Name="Root">
+
+    <!-- Entrees fixes : retirees puis reinserees autour des elements de la collection par Rebuild -->
+    <MenuFlyoutItem x:Name="EmptyItem"
+                    Text="{Binding EmptyText, Source={x:Reference Root}, x:DataType=v:MenuFlyoutSubItemExtended}"
+                    IsEnabled="False" />
+
+    <MenuFlyoutSeparator x:Name="FooterSeparator" />
+
+    <MenuFlyoutItem x:Name="FooterItem"
+                    Text="{Binding FooterText, Source={x:Reference Root}, x:DataType=v:MenuFlyoutSubItemExtended}"
+                    Command="{Binding FooterCommand, Source={x:Reference Root}, x:DataType=v:MenuFlyoutSubItemExtended}" />
+</MenuFlyoutSubItem>

@@ -73,6 +73,7 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 - Ne PAS ignorer async/await pour les accès disque, SecureStorage ou base
 - Ne PAS utiliser les API Xamarin.Forms — toujours MAUI
 - Ne PAS contourner `AbstractVM` / `AbstractPage` pour une nouvelle page
+- Ne PAS construire en C# l'arborescence visuelle d'un contrôle quand un `.xaml` peut la porter
 
 ---
 
@@ -99,9 +100,10 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 
 ### Extraire un contrôle
 1. Spécifique à l'app → `Views/Controls/[Domaine]/` ; générique sans métier → `SqlToolManagerMaui.UI`
-2. Exposer des `BindableProperty`, jamais un `x:DataType` de ViewModel
-3. Se lier à soi-même via `{Binding Source={RelativeSource AncestorType={x:Type c:MonControle}}, ...}`
-4. Si un nouveau dossier de namespace est créé, mettre `Properties/AppXmlns.cs` à jour (le T4 ne tourne pas au build)
+2. Toujours un couple `X.xaml` + `X.xaml.cs` (même pour un `MenuFlyoutItem` ou un `Grid`) : structure, bindings internes, triggers et gestes dans le XAML ; le code-behind se limite aux `[BindableProperty]`, à `InitializeComponent()` et à ce que le XAML ne sait pas faire (colonnes dynamiques, natif WinUI), construit dans un conteneur nommé du XAML. Exceptions : non-vues et `UI.Inputs` (classes de base dérivées)
+3. Exposer des `BindableProperty`, jamais un `x:DataType` de ViewModel
+4. Se lier à soi-même via `x:Name="Root"` + `{Binding MaProp, Source={x:Reference Root}, x:DataType=v:MonControle}` dans le contrôle, ou `{Binding Source={RelativeSource AncestorType={x:Type c:MonControle}}, ...}` dans un contrôle composé
+5. Si un nouveau dossier de namespace est créé, mettre `Properties/AppXmlns.cs` à jour (le T4 ne tourne pas au build)
 
 ### Ajouter un moteur SQL
 1. Dans `Databases/[Moteur]/` : classes `[AutoRegister(As = typeof(IConnectionTester))]`, `[AutoRegister(As = typeof(IDatabaseSchemaReader))]` et `[AutoRegister(As = typeof(IDashboardQueryReader))]` (les résolveurs les découvrent seuls)

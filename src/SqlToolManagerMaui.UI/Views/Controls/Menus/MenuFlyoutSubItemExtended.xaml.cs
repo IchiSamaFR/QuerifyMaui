@@ -1,12 +1,8 @@
 ﻿using CommunityToolkit.Maui;
-using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Text;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.UI.Views.Controls.Menus;
-
 
 /// <summary>
 /// MenuFlyoutSubItem alimenté par une collection de chaînes (MenuFlyoutSubItem n'a pas d'ItemsSource).
@@ -15,28 +11,32 @@ namespace SqlToolManagerMaui.UI.Views.Controls.Menus;
 public partial class MenuFlyoutSubItemExtended : MenuFlyoutSubItem
 {
     /// <summary>Éléments affichés dans le sous-menu.</summary>
-    [BindableProperty(PropertyChangedMethodName = nameof(OnMenuChanged))]
+    [BindableProperty(PropertyChangedMethodName = nameof(OnItemsSourceChanged))]
     public partial IEnumerable<string>? ItemsSource { get; set; }
 
     /// <summary>Commande exécutée au clic sur un élément ; paramètre : l'élément.</summary>
-    [BindableProperty(PropertyChangedMethodName = nameof(OnMenuChanged))]
+    [BindableProperty]
     public partial ICommand? ItemCommand { get; set; }
 
     /// <summary>Commande du pied de menu (ex. "Effacer la liste"). Pas de pied si null.</summary>
-    [BindableProperty(PropertyChangedMethodName = nameof(OnMenuChanged))]
+    [BindableProperty(PropertyChangedMethodName = nameof(OnFooterCommandChanged))]
     public partial ICommand? FooterCommand { get; set; }
 
     /// <summary>Texte du pied de menu.</summary>
-    [BindableProperty(PropertyChangedMethodName = nameof(OnMenuChanged))]
+    [BindableProperty]
     public partial string FooterText { get; set; } = "Effacer la liste";
 
     /// <summary>Texte affiché quand la collection est vide.</summary>
-    [BindableProperty(PropertyChangedMethodName = nameof(OnMenuChanged))]
+    [BindableProperty]
     public partial string EmptyText { get; set; } = "Aucun élément";
 
-    public MenuFlyoutSubItemExtended() => Rebuild();
+    public MenuFlyoutSubItemExtended()
+    {
+        InitializeComponent();
+        Rebuild();
+    }
 
-    private static void OnMenuChanged(BindableObject bindable, object? oldValue, object? newValue)
+    private static void OnItemsSourceChanged(BindableObject bindable, object? oldValue, object? newValue)
     {
         var menu = (MenuFlyoutSubItemExtended)bindable;
 
@@ -48,8 +48,12 @@ public partial class MenuFlyoutSubItemExtended : MenuFlyoutSubItem
         menu.Rebuild();
     }
 
+    private static void OnFooterCommandChanged(BindableObject bindable, object? oldValue, object? newValue)
+        => ((MenuFlyoutSubItemExtended)bindable).Rebuild();
+
     private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => Rebuild();
 
+    // MenuFlyoutSubItem n'a pas de visibilite par entree : la liste est recomposee a chaque changement.
     private void Rebuild()
     {
         Clear();
@@ -57,24 +61,24 @@ public partial class MenuFlyoutSubItemExtended : MenuFlyoutSubItem
         var items = ItemsSource?.ToList() ?? [];
         if (items.Count == 0)
         {
-            Add(new MenuFlyoutItem { Text = EmptyText, IsEnabled = false });
+            Add(EmptyItem);
             return;
         }
 
         for (var i = 0; i < items.Count; i++)
-        {
-            Add(new MenuFlyoutItem
-            {
-                Text = $"{i + 1}  {items[i]}",
-                Command = ItemCommand,
-                CommandParameter = items[i],
-            });
-        }
+            Add(CreateItem(i, items[i]));
 
         if (FooterCommand is not null)
         {
-            Add(new MenuFlyoutSeparator());
-            Add(new MenuFlyoutItem { Text = FooterText, Command = FooterCommand });
+            Add(FooterSeparator);
+            Add(FooterItem);
         }
+    }
+
+    private MenuFlyoutItem CreateItem(int index, string value)
+    {
+        var item = new MenuFlyoutItem { Text = $"{index + 1}  {value}", CommandParameter = value };
+        item.SetBinding(CommandProperty, new Binding(nameof(ItemCommand), source: this));
+        return item;
     }
 }

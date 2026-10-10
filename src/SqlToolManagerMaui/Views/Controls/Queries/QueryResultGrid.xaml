@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SqlToolManagerMaui.Views.Controls.Queries.QueryResultGrid"
+             x:Name="Root">
+
+    <ScrollView Orientation="Horizontal"
+                HorizontalOptions="Start">
+        <ScrollView.Triggers>
+            <DataTrigger TargetType="ScrollView"
+                         Binding="{Binding ResultSet, Source={x:Reference Root}, x:DataType=c:QueryResultGrid}"
+                         Value="{x:Null}">
+                <Setter Property="IsVisible"
+                        Value="False" />
+            </DataTrigger>
+        </ScrollView.Triggers>
+
+        <Grid RowDefinitions="Auto,*"
+              HorizontalOptions="Start">
+
+            <!-- En-tete fixe : colonnes ajoutees par le code-behind -->
+            <Grid x:Name="Header"
+                  Style="{DynamicResource QueryResultRowStyle}" />
+
+            <!-- Lignes virtualisees : gabarit et largeur poses par le code-behind -->
+            <CollectionView x:Name="Rows"
+                            Grid.Row="1"
+                            SelectionMode="Single"
+                            ItemSizingStrategy="MeasureFirstItem"
+                            HorizontalOptions="Start"
+                            SelectionChanged="OnRowsSelectionChanged">
+                <CollectionView.Triggers>
+                    <!-- Sans commande, les lignes ne sont pas selectionnables -->
+                    <DataTrigger TargetType="CollectionView"
+                                 Binding="{Binding RowTappedCommand, Source={x:Reference Root}, x:DataType=c:QueryResultGrid}"
+                                 Value="{x:Null}">
+                        <Setter Property="SelectionMode"
+                                Value="None" />
+                    </DataTrigger>
+                </CollectionView.Triggers>
+            </CollectionView>
+        </Grid>
+    </ScrollView>
+</ContentView>

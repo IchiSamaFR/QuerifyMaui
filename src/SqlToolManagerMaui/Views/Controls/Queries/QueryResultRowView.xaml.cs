@@ -8,13 +8,12 @@ namespace SqlToolManagerMaui.Views.Controls.Queries;
 /// les cellules sont creees ici et alimentees au changement de contexte (recyclage) plutot
 /// que par des bindings, trop couteux et non compilables sur un nombre variable de colonnes.
 /// </summary>
-public sealed class QueryResultRowView : Grid
+public sealed partial class QueryResultRowView : Grid
 {
     private const string CellStyleKey = "QueryResultCellStyle";
     private const string NullCellStyleKey = "QueryResultNullCellStyle";
     private const string NullText = "NULL";
 
-    private readonly Label _number;
     private readonly Label[] _cells;
     private readonly bool[] _isNullStyled;
 
@@ -22,12 +21,9 @@ public sealed class QueryResultRowView : Grid
     {
         ArgumentNullException.ThrowIfNull(columnWidths);
 
-        SetDynamicResource(StyleProperty, "QueryResultRowStyle");
+        InitializeComponent();
 
         ColumnDefinitions.Add(new ColumnDefinition(rowNumberWidth));
-        _number = new Label();
-        _number.SetDynamicResource(Label.StyleProperty, "QueryResultRowNumberStyle");
-        this.Add(_number, 0);
 
         _cells = new Label[columnWidths.Count];
         _isNullStyled = new bool[columnWidths.Count];
@@ -49,7 +45,7 @@ public sealed class QueryResultRowView : Grid
         if (BindingContext is not QueryResultRow row)
             return;
 
-        _number.Text = row.Number.ToString(CultureInfo.InvariantCulture);
+        NumberLabel.Text = row.Number.ToString(CultureInfo.InvariantCulture);
 
         for (var i = 0; i < _cells.Length; i++)
         {
