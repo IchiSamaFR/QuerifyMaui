@@ -26,3 +26,4 @@
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/inputs", "inp")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/views", "v")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/viewmodels", "vm")]
+[assembly: Microsoft.Maui.Controls.XmlnsPrefix("clr-namespace:MauiIcons.Core;assembly=MauiIcons.Core", "mi")]

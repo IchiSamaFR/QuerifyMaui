@@ -6,6 +6,7 @@
        xmlns:v="http://sqltoolmanagermaui.app/dotnet/maui/views"
        xmlns:vm="http://sqltoolmanagermaui.app/dotnet/maui/viewmodels"
        x:DataType="vm:ShellVM"
+       Title="Querify"
        Shell.NavBarIsVisible="False"
        Shell.TabBarIsVisible="False">
 

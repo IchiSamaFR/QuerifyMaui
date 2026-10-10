@@ -126,6 +126,9 @@
 		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
 	</ItemGroup>
 	<ItemGroup>
+	  <MauiXaml Update="Resources\Styles\Controls\ExpanderStyles.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Controls\Editors\FileTabItem.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

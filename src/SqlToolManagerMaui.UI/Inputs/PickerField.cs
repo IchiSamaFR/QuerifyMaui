@@ -27,9 +27,9 @@ public partial class PickerField : InputField
 
     private readonly BorderlessPicker _pickerView = new BorderlessPicker
     {
-        Margin = new Thickness(16, 0),
+        Margin = new Thickness(0, 0),
         BackgroundColor = Colors.Transparent,
-        VerticalOptions = LayoutOptions.Center,
+        VerticalOptions = LayoutOptions.Fill,
         HorizontalOptions = LayoutOptions.Fill,
     };
 
@@ -43,16 +43,16 @@ public partial class PickerField : InputField
 
     public PickerField()
     {
-        Content = _pickerView;
+        Content = PickerView;
         RegisterForEvents();
 
-        _pickerView.ItemDisplayBinding = new Binding(nameof(PickerEntry.Label));
-        _pickerView.SelectedIndexChanged += OnPickerSelectedIndexChanged;
+        PickerView.ItemDisplayBinding = new Binding(nameof(PickerEntry.Label));
+        PickerView.SelectedIndexChanged += OnPickerSelectedIndexChanged;
 
-        _pickerView.SetBinding(Picker.TextColorProperty, new Binding(nameof(TextColor), source: this));
-        _pickerView.SetBinding(Picker.TitleProperty, new Binding(nameof(Placeholder), source: this));
-        _pickerView.SetBinding(Picker.TitleColorProperty, new Binding(nameof(PlaceholderColor), source: this));
-        _pickerView.SetBinding(Picker.HorizontalTextAlignmentProperty, new Binding(nameof(HorizontalTextAlignment), source: this));
+        PickerView.SetBinding(Picker.TextColorProperty, new Binding(nameof(TextColor), source: this));
+        PickerView.SetBinding(Picker.TitleProperty, new Binding(nameof(Placeholder), source: this));
+        PickerView.SetBinding(Picker.TitleColorProperty, new Binding(nameof(PlaceholderColor), source: this));
+        PickerView.SetBinding(Picker.HorizontalTextAlignmentProperty, new Binding(nameof(HorizontalTextAlignment), source: this));
 
         RebuildEntries();
     }

@@ -14,7 +14,6 @@
 	var basePrefixMap = new Dictionary<string, string>(StringComparer.Ordinal)
 	{
 		{ "icons", "http://www.aathifmahir.com/dotnet/2022/maui/icons" },
-		{ "mi", "clr-namespace:MauiIcons.Core;assembly=MauiIcons.Core" },
 	};
 
 	// Récupère tous les namespaces déclarés dans les fichiers .cs du projet

@@ -32,22 +32,10 @@ public sealed partial class DashboardParameterValue : ObservableObject
         set => Update(Definition.Name, value.Trim().TrimStart('@'), v => Definition.Name = v);
     }
 
-    public string Label
-    {
-        get => Definition.Label ?? string.Empty;
-        set => Update(Definition.Label, string.IsNullOrWhiteSpace(value) ? null : value, v => Definition.Label = v);
-    }
-
     public DashboardParameterType Type
     {
         get => Definition.Type;
         set => Update(Definition.Type, value, v => Definition.Type = v);
-    }
-
-    public string Default
-    {
-        get => Definition.Default ?? string.Empty;
-        set => Update(Definition.Default, string.IsNullOrEmpty(value) ? null : value, v => Definition.Default = v);
     }
 
     /// <summary>Libelle du champ de saisie.</summary>

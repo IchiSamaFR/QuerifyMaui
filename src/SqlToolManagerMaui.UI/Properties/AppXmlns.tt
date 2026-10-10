@@ -18,7 +18,12 @@
         ( "SqlToolManagerMaui.UI.Converters", "converters", "conv" ),
         ( "SqlToolManagerMaui.UI.Inputs", "inputs", "inp" ),
 		( "SqlToolManagerMaui.UI.ViewModels", "viewmodels", "vm" ),
-		( "SqlToolManagerMaui.UI.Views", "views", "v" )
+		( "SqlToolManagerMaui.UI.Views", "views", "v" ),
+	};
+
+	var basePrefixMap = new Dictionary<string, string>(StringComparer.Ordinal)
+	{
+		{ "mi", "clr-namespace:MauiIcons.Core;assembly=MauiIcons.Core" },
 	};
 
 	// Récupère tous les namespaces déclarés dans les fichiers .cs du projet
@@ -86,6 +91,12 @@
 
 	// Prépare les lignes XmlnsPrefix séparément pour garantir qu'elles viennent après les définitions
 	foreach (var kv in prefixMap.OrderBy(p => p.Key, StringComparer.Ordinal))
+	{
+		prefixLines.Add(string.Format(
+			"[assembly: Microsoft.Maui.Controls.XmlnsPrefix(\"{0}\", \"{1}\")]", kv.Value, kv.Key));
+	}
+	
+	foreach (var kv in basePrefixMap.OrderBy(p => p.Key, StringComparer.Ordinal))
 	{
 		prefixLines.Add(string.Format(
 			"[assembly: Microsoft.Maui.Controls.XmlnsPrefix(\"{0}\", \"{1}\")]", kv.Value, kv.Key));

@@ -7,8 +7,7 @@
     <Grid BindingContext="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, x:DataType=c:DashboardView}"
           x:DataType="c:DashboardView"
           RowDefinitions="Auto,Auto,Auto,*"
-          RowSpacing="8"
-          Padding="0,8,0,0">
+          RowSpacing="8">
 
         <!-- ============ Fichier illisible / saisie invalide ============ -->
         <Border Grid.Row="0"
@@ -55,7 +54,7 @@
                         Text="Appliquer"
                         ImageSource="{icons:FluentFilled Icon=ArrowSync20Filled, IconSize=16}"
                         Command="{Binding ApplyParametersCommand}"
-                        VerticalOptions="Start" />
+                        VerticalOptions="End" />
             </Grid>
         </Border>
 
