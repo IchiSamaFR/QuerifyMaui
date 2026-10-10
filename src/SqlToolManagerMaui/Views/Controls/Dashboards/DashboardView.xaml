@@ -133,10 +133,13 @@
                       BindableLayout.ItemsSource="{Binding Session.Current.Cards}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="m:DashboardCardState">
-                            <Grid Grid.Column="{Binding Column}"
-                                  Grid.Row="{Binding Row}"
-                                  Grid.ColumnSpan="{Binding ColumnSpan}"
-                                  Grid.RowSpan="{Binding RowSpan}">
+                            <Grid>
+                                <Grid.Behaviors>
+                                    <beh:GridPlacementBehavior Column="{Binding Column}"
+                                                               Row="{Binding Row}"
+                                                               ColumnSpan="{Binding ColumnSpan}"
+                                                               RowSpan="{Binding RowSpan}" />
+                                </Grid.Behaviors>
                                 <c:DashboardCardView Card="{Binding .}" />
 
                                 <!-- Concepteur : clic = selection, glisser = deplacement -->
