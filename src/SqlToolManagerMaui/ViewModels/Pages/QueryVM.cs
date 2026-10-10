@@ -7,6 +7,7 @@ using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Databases.Dashboards;
 using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
@@ -32,6 +33,7 @@ public partial class QueryVM : AbstractVM
     private readonly ISyntaxConfigurationStore _syntaxConfigurations;
     private readonly IQueryExecutorResolver _executors;
     private readonly IUserPreferencesStore _preferences;
+    private readonly IDashboardDataService _dashboardData;
 
     /// <summary>Compteur des documents "Sans titre" ouverts depuis le demarrage.</summary>
     private int _untitledCount;
@@ -82,7 +84,7 @@ public partial class QueryVM : AbstractVM
     public SyntaxConfiguration? SyntaxConfiguration
         => ActiveDocument is { } document && _syntaxByLanguage.TryGetValue(document.Language, out var configuration) ? configuration : null;
 
-    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors, IUserPreferencesStore preferences)
+    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors, IUserPreferencesStore preferences, IDashboardDataService dashboardData)
     {
         _files = files;
         _connectionStore = connectionStore;
@@ -90,6 +92,8 @@ public partial class QueryVM : AbstractVM
         _syntaxConfigurations = syntaxConfigurations;
         _executors = executors;
         _preferences = preferences;
+        _dashboardData = dashboardData;
+        Documents.CollectionChanged += OnDocumentsCollectionChanged;
 
         // Ajout, modification ou suppression depuis l'explorateur : le Picker suit le coffre.
         WeakReferenceMessenger.Default.Register<QueryVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
@@ -151,11 +155,15 @@ public partial class QueryVM : AbstractVM
 
         if (ActiveConnection != null)
             _connectionStore.OpenConnectionAsync(ActiveConnection);
+
+        // Les cartes du dashboard affiche suivent la connexion.
+        if (ActiveDocument is { IsDashboard: true, Dashboard.Current: { } page } document)
+            _ = LoadDashboardCardsAsync(document, page.Cards);
     }
 
     // ---------- Execution ----------
 
-    private bool CanExecuteQuery() => IsConnected && ActiveDocument is not null;
+    private bool CanExecuteQuery() => IsConnected && ActiveDocument is { IsDashboard: false };
 
     /// <summary>
     /// Execute la selection, ou tout le document si rien n'est selectionne.
@@ -217,7 +225,8 @@ public partial class QueryVM : AbstractVM
     /// <summary>Colle la requete au curseur (a la place de la selection) et bascule sur sa connexion.</summary>
     private void InsertQuery(InsertQueryMessage message)
     {
-        if (ActiveDocument is null)
+        // Un dashboard n'accueille pas de SQL : la requete part dans un nouvel onglet.
+        if (ActiveDocument is null or { IsDashboard: true })
             New();
 
         if (ActiveDocument is not { } document)

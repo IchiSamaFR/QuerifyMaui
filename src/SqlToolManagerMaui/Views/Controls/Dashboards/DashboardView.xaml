@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SqlToolManagerMaui.Views.Controls.Dashboards.DashboardView">
+
+    <!-- Les enfants se lient au controle lui-meme (et non au ViewModel de la page) -->
+    <Grid BindingContext="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, x:DataType=c:DashboardView}"
+          x:DataType="c:DashboardView"
+          RowDefinitions="Auto,Auto,Auto,*"
+          RowSpacing="8"
+          Padding="0,8,0,0">
+
+        <!-- ============ Fichier illisible / saisie invalide ============ -->
+        <Border Grid.Row="0"
+                BackgroundColor="{StaticResource WarningBackground}"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 4"
+                Padding="12,8"
+                IsVisible="{Binding Session.HasError, FallbackValue=False}">
+            <Label Text="{Binding Session.Error, FallbackValue=''}"
+                   TextColor="{StaticResource Warning}"
+                   LineBreakMode="WordWrap" />
+        </Border>
+
+        <!-- ============ Parametres d'entree ============ -->
+        <Border Grid.Row="1"
+                Style="{StaticResource CardStyle}"
+                IsVisible="{Binding Session.HasParameters, FallbackValue=False}">
+            <Grid ColumnDefinitions="*,Auto"
+                  ColumnSpacing="12">
+                <FlexLayout Wrap="Wrap"
+                            AlignItems="Start"
+                            BindableLayout.ItemsSource="{Binding Session.Parameters}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="m:DashboardParameterValue">
+                            <VerticalStackLayout WidthRequest="220"
+                                                 Margin="0,0,12,0"
+                                                 Spacing="2">
+                                <inp:TextField Title="{Binding DisplayName}"
+                                               Text="{Binding Value, Mode=TwoWay}"
+                                               Placeholder="{Binding Hint}"
+                                               ReturnCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=ApplyParametersCommand, x:DataType=c:DashboardView}"
+                                               HorizontalOptions="Fill" />
+                                <Label Text="{Binding Error}"
+                                       IsVisible="{Binding HasError}"
+                                       Style="{StaticResource LabelErrorStyle}"
+                                       FontSize="{StaticResource FontSize_Caption}" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </FlexLayout>
+
+                <Button Grid.Column="1"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Text="Appliquer"
+                        ImageSource="{icons:FluentFilled Icon=ArrowSync20Filled, IconSize=16}"
+                        Command="{Binding ApplyParametersCommand}"
+                        VerticalOptions="Start" />
+            </Grid>
+        </Border>
+
+        <!-- ============ Fil d'Ariane ============ -->
+        <Grid Grid.Row="2"
+              ColumnDefinitions="Auto,*"
+              ColumnSpacing="8"
+              IsVisible="{Binding Session.HasCurrent, FallbackValue=False}">
+            <Button Style="{StaticResource SecondaryButtonStyle}"
+                    Text="Retour"
+                    Command="{Binding BackCommand}"
+                    IsEnabled="{Binding Session.CanGoBack, FallbackValue=False}" />
+
+            <ScrollView Grid.Column="1"
+                        Orientation="Horizontal"
+                        HorizontalScrollBarVisibility="Never"
+                        VerticalOptions="Center">
+                <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Session.Steps}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="m:DashboardPageState">
+                            <HorizontalStackLayout>
+                                <Label Text="›"
+                                       Style="{StaticResource LabelTertiaryStyle}"
+                                       VerticalOptions="Center" />
+                                <Button Style="{StaticResource TextButtonStyle}"
+                                        Text="{Binding Title}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=GoToStepCommand, x:DataType=c:DashboardView}"
+                                        CommandParameter="{Binding .}" />
+                            </HorizontalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </HorizontalStackLayout>
+            </ScrollView>
+        </Grid>
+
+        <!-- ============ Grille ============ -->
+        <ScrollView Grid.Row="3"
+                    Orientation="Vertical">
+            <Grid Padding="0,0,12,12">
+
+                <!-- Concepteur : cases libres (ajout au clic, depot d'une carte glissee) -->
+                <Grid x:Name="CellsLayer"
+                      ColumnSpacing="8"
+                      RowSpacing="8"
+                      BindableLayout.ItemsSource="{Binding Session.Cells}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="m:DashboardCell">
+                            <inp:ButtonView Grid.Column="{Binding Column}"
+                                            Grid.Row="{Binding Row}"
+                                            Style="{StaticResource TextButtonViewStyle}"
+                                            HeightRequest="-1"
+                                            HorizontalOptions="Fill"
+                                            VerticalOptions="Fill"
+                                            BorderColor="{DynamicResource DividerStrokeColorDefault}"
+                                            BorderThickness="1"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=AddCardCommand, x:DataType=c:DashboardView}"
+                                            CommandParameter="{Binding .}"
+                                            ToolTipProperties.Text="Ajouter une carte ici">
+                                <inp:ButtonView.GestureRecognizers>
+                                    <DropGestureRecognizer AllowDrop="True"
+                                                           DropCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=DropCommand, x:DataType=c:DashboardView}"
+                                                           DropCommandParameter="{Binding .}" />
+                                </inp:ButtonView.GestureRecognizers>
+                                <Label Text="+"
+                                       Style="{StaticResource LabelTertiaryStyle}" />
+                            </inp:ButtonView>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </Grid>
+
+                <!-- Cartes de la page : le calque laisse passer les clics vers les cases, pas ses enfants -->
+                <Grid x:Name="CardsLayer"
+                      InputTransparent="True"
+                      CascadeInputTransparent="False"
+                      ColumnSpacing="8"
+                      RowSpacing="8"
+                      BindableLayout.ItemsSource="{Binding Session.Current.Cards}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="m:DashboardCardState">
+                            <Grid Grid.Column="{Binding Column}"
+                                  Grid.Row="{Binding Row}"
+                                  Grid.ColumnSpan="{Binding ColumnSpan}"
+                                  Grid.RowSpan="{Binding RowSpan}">
+                                <c:DashboardCardView Card="{Binding .}" />
+
+                                <!-- Concepteur : clic = selection, glisser = deplacement -->
+                                <inp:ButtonView Style="{StaticResource TextButtonViewStyle}"
+                                                HeightRequest="-1"
+                                                HorizontalOptions="Fill"
+                                                VerticalOptions="Fill"
+                                                IsVisible="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=Session.IsDesigning, FallbackValue=False, x:DataType=c:DashboardView}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=SelectCardCommand, x:DataType=c:DashboardView}"
+                                                CommandParameter="{Binding .}"
+                                                ToolTipProperties.Text="Cliquer pour modifier, glisser pour déplacer">
+                                    <inp:ButtonView.GestureRecognizers>
+                                        <DragGestureRecognizer CanDrag="True"
+                                                               DragStartingCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=StartDragCommand, x:DataType=c:DashboardView}"
+                                                               DragStartingCommandParameter="{Binding .}" />
+                                    </inp:ButtonView.GestureRecognizers>
+                                </inp:ButtonView>
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </Grid>
+
+                <!-- Page sans carte -->
+                <Label Text="Page vide : en mode Concepteur, cliquez sur une case pour ajouter une carte."
+                       InputTransparent="True"
+                       Style="{StaticResource LabelSecondaryStyle}"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Start"
+                       Margin="0,48,0,0"
+                       IsVisible="{Binding Session.Current.Cards.Count, FallbackValue=False, Converter={StaticResource IsDefaultToBooleanConverter}}" />
+            </Grid>
+        </ScrollView>
+    </Grid>
+</ContentView>

@@ -104,7 +104,7 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 4. Si un nouveau dossier de namespace est créé, mettre `Properties/AppXmlns.cs` à jour (le T4 ne tourne pas au build)
 
 ### Ajouter un moteur SQL
-1. Dans `Databases/[Moteur]/` : classes `[AutoRegister(As = typeof(IConnectionTester))]` et `[AutoRegister(As = typeof(IDatabaseSchemaReader))]` (les résolveurs les découvrent seuls)
+1. Dans `Databases/[Moteur]/` : classes `[AutoRegister(As = typeof(IConnectionTester))]`, `[AutoRegister(As = typeof(IDatabaseSchemaReader))]` et `[AutoRegister(As = typeof(IDashboardQueryReader))]` (les résolveurs les découvrent seuls)
 2. Dans `Languages.Sql/[Moteur]/` : classe `[AutoRegister(As = typeof(ISqlProviderExecutor))]` (`SqlQueryExecutor` la découvre seul)
 3. Ajouter la valeur à `DatabaseProvider` (`Core/Enums`)
 
@@ -116,5 +116,5 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 
 ---
 
-**Dernière mise à jour** : 2026-10-09
+**Dernière mise à jour** : 2026-10-10
 **Source centralisée** : `.github/instructions.md`

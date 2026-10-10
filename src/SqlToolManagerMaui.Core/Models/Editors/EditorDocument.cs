@@ -1,5 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using SqlToolManagerMaui.Core.Enums.Dashboards;
+using SqlToolManagerMaui.Core.Enums.Editors;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Queries;
 
 namespace SqlToolManagerMaui.Core.Models.Editors;
@@ -55,6 +58,25 @@ public sealed partial class EditorDocument : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasResultsPanel))]
     public partial bool IsExecuting { get; set; }
 
+    /// <summary>Script, ou dashboard .schx.</summary>
+    public DocumentKind Kind { get; }
+
+    public bool IsDashboard => Kind == DocumentKind.Dashboard;
+
+    /// <summary>Dashboard : consultation, concepteur ou JSON.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditorVisible), nameof(IsDashboardVisible), nameof(IsDashboardDesigning))]
+    public partial DashboardMode DashboardMode { get; set; }
+
+    public bool IsEditorVisible => !IsDashboard || DashboardMode == DashboardMode.Source;
+
+    public bool IsDashboardVisible => IsDashboard && DashboardMode != DashboardMode.Source;
+
+    public bool IsDashboardDesigning => IsDashboard && DashboardMode == DashboardMode.Design;
+
+    /// <summary>Etat du dashboard (onglet .schx uniquement).</summary>
+    public DashboardSession Dashboard { get; } = new();
+
     /// <summary>Le panneau de resultats n'apparait qu'apres une premiere execution.</summary>
     public bool HasResultsPanel => IsExecuting || LastResult is not null;
 
@@ -71,8 +93,9 @@ public sealed partial class EditorDocument : ObservableObject
     /// <summary>Chemin affiche dans la barre d'etat.</summary>
     public string PathLabel => HasPath ? FilePath! : "Non enregistre";
 
-    public EditorDocument(string fallbackName, string? filePath, string fileText, SyntaxLanguage language = SyntaxLanguage.Sql)
+    public EditorDocument(string fallbackName, string? filePath, string fileText, SyntaxLanguage language = SyntaxLanguage.Sql, DocumentKind kind = DocumentKind.Script)
     {
+        Kind = kind;
         Language = language;
         FallbackName = fallbackName;
         FileText = Normalize(fileText);

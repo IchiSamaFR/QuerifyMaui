@@ -14,9 +14,9 @@ public sealed class EditorFileService : IEditorFileService
     private static readonly FilePickerFileType TextFileTypes = new(
         new Dictionary<DevicePlatform, IEnumerable<string>>
         {
-            [DevicePlatform.WinUI] = [".sql", ".linq", ".csx", ".txt", ".cs", ".json", ".xml", ".md", ".csv"],
-            [DevicePlatform.macOS] = ["sql", "linq", "csx", "txt", "cs", "json", "xml", "md", "csv"],
-            [DevicePlatform.MacCatalyst] = ["sql", "linq", "csx", "txt", "cs", "json", "xml", "md", "csv"],
+            [DevicePlatform.WinUI] = [".sql", ".linq", ".schx", ".csx", ".txt", ".cs", ".json", ".xml", ".md", ".csv"],
+            [DevicePlatform.macOS] = ["sql", "linq", "schx", "csx", "txt", "cs", "json", "xml", "md", "csv"],
+            [DevicePlatform.MacCatalyst] = ["sql", "linq", "schx", "csx", "txt", "cs", "json", "xml", "md", "csv"],
         });
 
     public async Task<EditorFileContent?> OpenAsync(CancellationToken cancellationToken = default)

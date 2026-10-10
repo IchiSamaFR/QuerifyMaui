@@ -16,6 +16,7 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 * **Requête** : éditeur de texte multi-onglets façon Notepad, posé sur `CodeEdit.Maui`. Nouveau / Ouvrir / Enregistrer / Enregistrer sous, options d'édition (retour à la ligne, numéros de ligne, indentation), barre d'état (chemin du fichier, Ln/Col).
 * **Explorateur d'objets** (façon SSMS) : arbre Serveur > Bases (+ dossier « Bases de données système ») > Tables / Vues / Procédures stockées > Colonnes (nom + type façon SSMS : « Id (PK, int, not null) »), chargé à l'ouverture de chaque nœud. Ajout / modification / test d'une connexion dans la popup « Se connecter » (CommunityToolkit `Popup`).
 * **Moteur supporté** : SQL Server uniquement (Microsoft.Data.SqlClient). L'architecture prévoit l'ajout d'autres moteurs.
+* **Dashboards (`.schx`)** : onglet à trois vues (Dashboard / Concepteur / Source). Une grille de 12 colonnes × 6 lignes (allongée par les cartes) porte des cartes (tableau, valeur, graphiques barres / lignes / secteurs, texte, bouton) alimentées par des requêtes SQL qui utilisent les paramètres d'entrée du dashboard (`@UserId`…). Un bouton, ou un clic sur une ligne de tableau, ouvre une autre page en transmettant des valeurs (fil d'Ariane, retour). Fichier > Nouveau dashboard.
 * **Exécution des requêtes** : F5 / bouton Exécuter sur la connexion choisie. Exécute la sélection, ou tout le document à défaut. Découpage sur `GO` comme SSMS, résultats par onglet d'éditeur (un onglet par jeu de résultats + Messages), annulation possible.
 
 **Règles à respecter absolument** :
@@ -44,14 +45,15 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 * **Behaviors / Attachments / Extensions** : comportements et helpers transverses.
 
 **Noyau (`SqlToolManagerMaui.Core`)** : ne dépend pas du projet principal.
-* **Models / Enums** : modèles et énumérations, groupés par domaine (`Databases/`, `Editors/`, `Queries/`).
+* **Models / Enums** : modèles et énumérations, groupés par domaine (`Dashboards/`, `Databases/`, `Editors/`, `Queries/`).
 * **Services** : contrats applicatifs uniquement (`ICompletionService`).
 * **Ioc** : `AutoRegisterAttribute`.
 
 **Bases de données (`SqlToolManagerMaui.Databases`)** : tout ce qui parle à un moteur, indépendamment du langage. Référence `Core` uniquement.
 * **`Connections/`** : `IConnectionTester` (un par `DatabaseProvider`) et `ConnectionTesterResolver`.
+* **`Dashboards/`** : `DashboardSerializer` (JSON `.schx`, source-gen, énumérations en texte), `IDashboardQueryReader` (un par `DatabaseProvider`) + résolveur, `IDashboardDataService`.
 * **`Schemas/`** : `IDatabaseSchemaReader` (un par `DatabaseProvider`), `DatabaseSchemaReaderResolver`, `IDatabaseSchemaCache` / `DatabaseSchemaCache` (catalogues en mémoire pour la complétion et LINQ).
-* **`SqlServer/`** : `SqlServerConnectionTester`, `SqlServerSchemaReader`.
+* **`SqlServer/`** : `SqlServerConnectionTester`, `SqlServerSchemaReader`, `SqlServerDashboardQueryReader`.
 
 **Langages** : `Core` ← `Databases` ← `Languages.Commons` ← `Languages.Sql` / `Languages.Linq` ← `Languages` ← projet principal (qui référence aussi `Databases`).
 * **`Languages.Commons`** : contrats implémentés par les langages — `IQueryExecutor` (un par `SyntaxLanguage`), `ICompletionContextAnalyzer`, `ICompletionProvider` — plus `QueryExecutionLimits`.
@@ -152,6 +154,7 @@ SqlToolManagerMaui/
 * **CommunityToolkit.Maui / .Markup** — Comportements, `FileSaver`, snackbar.
 * **CodeEdit.Maui** — Éditeur de code avec coloration syntaxique (`.UseCodeEditor()`). Exige `Microsoft.Maui.Controls` >= 10.0.101.
 * **AathifMahir.Maui.MauiIcons.Fluent** — Icônes Fluent (`.UseFluentMauiIcons()`).
+* **LiveChartsCore.SkiaSharpView.Maui** (LiveCharts2) — Graphiques des cartes de dashboard (`.UseSkiaSharp().UseLiveCharts()`).
 * **Microsoft.Data.SqlClient** — Accès SQL Server.
 * **Newtonsoft.Json** — Sérialisation du fichier de connexions.
 
@@ -283,6 +286,16 @@ Lors de la création d'une feature :
 * **LINQ** : le script devient le corps d'une méthode générée (`LinqCompiler.BuildQuerySource`), le contexte porte le nom de la base. Le premier `return` termine le script ; `.Dump("titre")` (extension générée dans le même source, façon LINQPad) ajoute un jeu de résultats sans l'arrêter et rend la valeur. La valeur du `return` n'est affichée que si elle n'a pas déjà été dumpée ; des instructions sans `return` n'affichent que leurs Dump.
 * `Views/Controls/Queries/QueryResultGrid` est construit en code (colonnes connues à l'exécution) ; les lignes (`QueryResultRowView`) sont remplies au recyclage, sans binding. Styles dans `Resources/Styles/Controls/QueryResultStyles.xaml`.
 
+### Dashboards (`.schx`)
+
+* Un onglet a un `Kind` (`DocumentKind.Script` ou `Dashboard`, choisi par l'extension `.schx`) et, pour un dashboard, un `DashboardMode` (`View`, `Design`, `Source`). Le **JSON reste la source** : le concepteur écrit dans la définition (`DashboardCardState`, `DashboardParameterValue`, `DashboardPageState` écrivent directement dans les objets `*Definition`), la session lève `DefinitionChanged` et `QueryVM` resérialise dans `EditorText` (`DashboardSession.MarkWritten` évite une relecture). La vue Source est relue au retour (`LoadedText`). F5 est désactivé sur ces onglets.
+* **Format** (`Core/Models/Dashboards/DashboardDefinition`) : `connection` (nom d'une connexion enregistrée, jamais la chaîne), `database`, `columns` (12) / `rows` (6, minimum), `parameters` (`name`, `label`, `type` : Text, Integer, Decimal, Date, DateTime, Boolean, Guid, `default`), `startPage`, `pages` (`id`, `title`, `cards`). Carte : `column` / `row` (base 0), `columnSpan` / `rowSpan`, `view` (Grid, Value, BarChart, LineChart, PieChart, Text, Button), `query`, `text`, `labelColumn`, `valueColumns`, `navigation` (`page` + `parameters` : `{parameter, column}` pour une colonne de la ligne cliquée, `{parameter, value}` pour un texte fixe ou `@AutreParam`).
+* **Paramètres** : communs à toutes les pages, envoyés en `SqlParameter` typés (`DashboardParameterDefinition.TryConvert`), jamais concaténés. Chaque étape du fil d'Ariane (`DashboardPageState`) garde ses valeurs et ses résultats : Retour ne relit rien. « Appliquer » (ou Entrée) relit les cartes de la page.
+* **Lecture d'une carte** : premier jeu de résultats ayant des colonnes, 1 000 lignes max, cartes lues en parallèle ; une nouvelle lecture annule la précédente ; changer de connexion relit la page affichée.
+* **Rendu** : `Views/Controls/Dashboards/` — `DashboardView` (paramètres, fil d'Ariane, grille à deux calques : cases du concepteur dessous, cartes dessus ; lignes / colonnes créées en code), `DashboardCardView`, `DashboardChartView` (LiveCharts2, construit en code), `DashboardDesignerPanel`. `QueryResultGrid.RowTappedCommand` rend les lignes cliquables.
+* **Concepteur** : clic sur une case libre = nouvelle carte 4 × 2 ; clic sur une carte = sélection (pas de navigation) ; glisser une carte sur une case = déplacement ; le panneau édite titre, rendu, requête (« Exécuter la requête »), colonnes, page cible et paramètres transmis (« Param = Colonne », « = @Param », « = 'texte' »), position / taille, pages et paramètres.
+* Ajouter un moteur = aussi une classe `[AutoRegister(As = typeof(IDashboardQueryReader))]` dans `Databases/[Moteur]/`.
+
 ### Connexions
 
 * Stockage mixte : métadonnées dans `connections.json` (AppDataDirectory, écriture atomique via fichier `.tmp`), chaîne de connexion complète chiffrée dans le `SecureStorage` sous la clé `connectionstring:{id}`. `DatabaseConnectionInfo` ne contient **jamais** la chaîne complète.
@@ -337,4 +350,4 @@ dotnet build src/SqlToolManagerMaui.slnx
 
 ---
 
-**Dernière mise à jour** : 2026-10-09
+**Dernière mise à jour** : 2026-10-10

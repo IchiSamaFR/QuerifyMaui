@@ -11,6 +11,9 @@
         </MenuFlyoutItem.KeyboardAccelerators>
     </MenuFlyoutItem>
 
+    <MenuFlyoutItem Text="Nouveau dashboard"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileMenuBarItem}}, Path=NewDashboardCommand, x:DataType=c:FileMenuBarItem}" />
+
     <MenuFlyoutItem Text="Ouvrir..."
                     Command="{Binding Source={RelativeSource AncestorType={x:Type c:FileMenuBarItem}}, Path=OpenCommand, x:DataType=c:FileMenuBarItem}">
         <MenuFlyoutItem.KeyboardAccelerators>

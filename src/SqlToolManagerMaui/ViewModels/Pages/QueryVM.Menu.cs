@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using SqlToolManagerMaui.Core.Enums.Editors;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Editors;
+using SqlToolManagerMaui.Databases.Dashboards;
 using SqlToolManagerMaui.Services.Editors;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
@@ -51,6 +53,12 @@ public partial class QueryVM
             return;
         }
 
+        if (DashboardSerializer.IsDashboardFile(content.FilePath))
+        {
+            OpenDashboard(new EditorDocument(Path.GetFileName(content.FilePath), content.FilePath, content.Text, SyntaxLanguage.None, DocumentKind.Dashboard));
+            return;
+        }
+
         var language = await _syntaxConfigurations.FindLanguageAsync(content.FilePath, token) ?? SyntaxLanguage.Sql;
         var document = new EditorDocument(Path.GetFileName(content.FilePath), content.FilePath, content.Text, language);
         Documents.Add(document);
@@ -79,7 +87,7 @@ public partial class QueryVM
             }
             else
             {
-                var suggested = document.HasPath ? document.FileName : $"{document.FallbackName}{DefaultExtension(document.Language)}";
+                var suggested = document.HasPath ? document.FileName : $"{document.FallbackName}{DefaultExtension(document)}";
                 var path = await _files.SaveAsAsync(suggested, text, token);
                 if (path is null)
                     return;
@@ -93,11 +101,13 @@ public partial class QueryVM
         });
     }
 
-    /// <summary>Premiere extension declaree par le .xshd du langage.</summary>
-    private string DefaultExtension(SyntaxLanguage language)
-        => _syntaxByLanguage.TryGetValue(language, out var configuration) && configuration.Definition.Extensions.Count > 0
-            ? configuration.Definition.Extensions[0]
-            : ".sql";
+    /// <summary>.schx pour un dashboard, sinon la premiere extension declaree par le .xshd du langage.</summary>
+    private string DefaultExtension(EditorDocument document)
+        => document.IsDashboard
+            ? DashboardSerializer.FILE_EXTENSION
+            : _syntaxByLanguage.TryGetValue(document.Language, out var configuration) && configuration.Definition.Extensions.Count > 0
+                ? configuration.Definition.Extensions[0]
+                : ".sql";
 
     /// <summary>Ferme un onglet. Un document modifie doit etre confirme par la page.</summary>
     [RelayCommand]

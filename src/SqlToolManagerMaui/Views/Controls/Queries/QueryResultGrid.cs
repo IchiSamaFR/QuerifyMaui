@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using SqlToolManagerMaui.Core.Models.Queries;
+using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Views.Controls.Queries;
 
@@ -22,6 +23,10 @@ public sealed partial class QueryResultGrid : ContentView
     /// <summary>Jeu de resultats affiche.</summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnResultSetChanged))]
     public partial QueryResultSet? ResultSet { get; set; }
+
+    /// <summary>Clic sur une ligne (parametre : <see cref="QueryResultRow"/>) ; sans commande, les lignes ne sont pas selectionnables.</summary>
+    [BindableProperty(PropertyChangedMethodName = nameof(OnResultSetChanged))]
+    public partial ICommand? RowTappedCommand { get; set; }
 
     private static void OnResultSetChanged(BindableObject bindable, object oldValue, object newValue)
         => ((QueryResultGrid)bindable).Rebuild();
@@ -46,6 +51,21 @@ public sealed partial class QueryResultGrid : ContentView
             WidthRequest = RowNumberWidth + widths.Sum() + widths.Count,
             HorizontalOptions = LayoutOptions.Start,
         };
+
+        if (RowTappedCommand is { } command)
+        {
+            rows.SelectionMode = SelectionMode.Single;
+            rows.SelectionChanged += (_, e) =>
+            {
+                if (e.CurrentSelection.FirstOrDefault() is not QueryResultRow row)
+                    return;
+
+                // Deselection immediate : un nouveau clic sur la meme ligne doit relancer la commande.
+                rows.SelectedItem = null;
+                if (command.CanExecute(row))
+                    command.Execute(row);
+            };
+        }
 
         var layout = new Grid
         {

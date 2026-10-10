@@ -6,6 +6,7 @@
                 Shell.NavBarIsVisible="True">
     <ContentPage.MenuBarItems>
         <c:FileMenuBarItem NewCommand="{Binding NewCommand}"
+                           NewDashboardCommand="{Binding NewDashboardCommand}"
                            OpenCommand="{Binding OpenCommand}"
                            RecentFiles="{Binding RecentFiles}"
                            OpenRecentCommand="{Binding OpenRecentCommand}"
@@ -81,6 +82,69 @@
                     <HorizontalStackLayout Grid.Column="1"
                                            Spacing="8"
                                            VerticalOptions="Center">
+                        <!-- Dashboard .schx : consultation / concepteur / JSON -->
+                        <HorizontalStackLayout Spacing="2"
+                                               Margin="0,0,8,0"
+                                               VerticalOptions="Center"
+                                               IsVisible="{Binding ActiveDocument.IsDashboard, FallbackValue=False}">
+                            <Button Style="{StaticResource TextButtonStyle}"
+                                    Text="Dashboard"
+                                    ImageSource="{icons:FluentFilled Icon=Table16Filled, IconSize=16}"
+                                    Command="{Binding ShowDashboardViewCommand}"
+                                    ToolTipProperties.Text="Consulter le dashboard">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Binding="{Binding ActiveDocument.DashboardMode, FallbackValue={x:Null}}"
+                                                 Value="{x:Static en:DashboardMode.View}">
+                                        <Setter Property="BackgroundColor"
+                                                Value="{DynamicResource ButtonBackground}" />
+                                        <Setter Property="BorderColor"
+                                                Value="{DynamicResource ButtonBorder}" />
+                                        <Setter Property="BorderWidth"
+                                                Value="1" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                            <Button Style="{StaticResource TextButtonStyle}"
+                                    Text="Concepteur"
+                                    ImageSource="{icons:FluentFilled Icon=Braces16Filled, IconSize=16}"
+                                    Command="{Binding ShowDashboardDesignerCommand}"
+                                    ToolTipProperties.Text="Placer et configurer les cartes">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Binding="{Binding ActiveDocument.DashboardMode, FallbackValue={x:Null}}"
+                                                 Value="{x:Static en:DashboardMode.Design}">
+                                        <Setter Property="BackgroundColor"
+                                                Value="{DynamicResource ButtonBackground}" />
+                                        <Setter Property="BorderColor"
+                                                Value="{DynamicResource ButtonBorder}" />
+                                        <Setter Property="BorderWidth"
+                                                Value="1" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                            <Button Style="{StaticResource TextButtonStyle}"
+                                    Text="Source"
+                                    ImageSource="{icons:FluentFilled Icon=Code16Filled, IconSize=16}"
+                                    Command="{Binding ShowDashboardSourceCommand}"
+                                    ToolTipProperties.Text="Modifier le JSON du fichier">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Binding="{Binding ActiveDocument.DashboardMode, FallbackValue={x:Null}}"
+                                                 Value="{x:Static en:DashboardMode.Source}">
+                                        <Setter Property="BackgroundColor"
+                                                Value="{DynamicResource ButtonBackground}" />
+                                        <Setter Property="BorderColor"
+                                                Value="{DynamicResource ButtonBorder}" />
+                                        <Setter Property="BorderWidth"
+                                                Value="1" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </HorizontalStackLayout>
+
                         <Picker ItemsSource="{Binding Connections}"
                                 SelectedItem="{Binding SelectedConnection}"
                                 ItemDisplayBinding="{Binding Name, x:DataType=m:DatabaseConnectionInfo}"
@@ -98,7 +162,8 @@
                 <Border Grid.Row="1"
                         StrokeThickness="0"
                         StrokeShape="RoundRectangle 0 0 4 4"
-                        Style="{StaticResource SunkenSurfaceStyle}">
+                        Style="{StaticResource SunkenSurfaceStyle}"
+                        IsVisible="{Binding ActiveDocument.IsEditorVisible, FallbackValue=True}">
 
                     <c:CodeEditor x:Name="Editor"
                                   Text="{Binding ActiveDocument.EditorText}"
@@ -109,6 +174,37 @@
                                   Connection="{Binding ActiveConnection}"
                                   IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
                 </Border>
+
+                <!-- ============ Dashboard (.schx) : grille + panneau du concepteur ============ -->
+                <Grid Grid.Row="1"
+                      ColumnDefinitions="*,Auto"
+                      ColumnSpacing="8"
+                      IsVisible="{Binding ActiveDocument.IsDashboardVisible, FallbackValue=False}">
+                    <c:DashboardView Session="{Binding ActiveDocument.Dashboard}"
+                                     RowCount="{Binding ActiveDocument.Dashboard.RowCount, FallbackValue=6}"
+                                     ColumnCount="{Binding ActiveDocument.Dashboard.ColumnCount, FallbackValue=12}"
+                                     ApplyParametersCommand="{Binding ApplyDashboardParametersCommand}"
+                                     BackCommand="{Binding DashboardBackCommand}"
+                                     GoToStepCommand="{Binding DashboardGoToStepCommand}"
+                                     SelectCardCommand="{Binding SelectDashboardCardCommand}"
+                                     AddCardCommand="{Binding AddDashboardCardCommand}"
+                                     StartDragCommand="{Binding StartDashboardDragCommand}"
+                                     DropCommand="{Binding DropDashboardCardCommand}" />
+
+                    <c:DashboardDesignerPanel Grid.Column="1"
+                                              WidthRequest="360"
+                                              Session="{Binding ActiveDocument.Dashboard}"
+                                              RunCardCommand="{Binding RunDashboardCardCommand}"
+                                              DeleteCardCommand="{Binding DeleteDashboardCardCommand}"
+                                              MoveCardCommand="{Binding MoveDashboardCardCommand}"
+                                              ResizeCardCommand="{Binding ResizeDashboardCardCommand}"
+                                              OpenPageCommand="{Binding OpenDashboardDesignerPageCommand}"
+                                              AddPageCommand="{Binding AddDashboardPageCommand}"
+                                              DeletePageCommand="{Binding DeleteDashboardPageCommand}"
+                                              AddParameterCommand="{Binding AddDashboardParameterCommand}"
+                                              DeleteParameterCommand="{Binding DeleteDashboardParameterCommand}"
+                                              IsVisible="{Binding ActiveDocument.IsDashboardDesigning, FallbackValue=False}" />
+                </Grid>
             </Grid>
 
             <v:GridSplitter Grid.Row="1"

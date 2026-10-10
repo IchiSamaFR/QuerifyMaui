@@ -1,0 +1,259 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SqlToolManagerMaui.Views.Controls.Dashboards.DashboardDesignerPanel">
+
+    <!-- Les enfants se lient au controle lui-meme (et non au ViewModel de la page) -->
+    <ScrollView BindingContext="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardDesignerPanel}}, x:DataType=c:DashboardDesignerPanel}"
+                x:DataType="c:DashboardDesignerPanel"
+                Padding="0,8,8,8">
+        <VerticalStackLayout Spacing="20">
+
+            <!-- ============ Carte selectionnee ============ -->
+            <Label Text="Cliquez sur une case vide pour ajouter une carte, ou sur une carte pour la modifier. Glissez une carte sur une case pour la déplacer."
+                   Style="{StaticResource LabelTertiaryStyle}"
+                   LineBreakMode="WordWrap"
+                   IsVisible="{Binding Session.SelectedCard, Converter={StaticResource IsNullObjectConverter}}" />
+
+            <VerticalStackLayout Spacing="10"
+                                 IsVisible="{Binding Session.SelectedCard, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}">
+                <Label Text="Carte"
+                       Style="{StaticResource LabelSubHeaderStyle}" />
+
+                <inp:TextField Title="Titre"
+                               Text="{Binding Session.SelectedCard.Title, Mode=TwoWay, FallbackValue=''}" />
+
+                <Picker Title="Rendu"
+                        ItemsSource="{x:Static c:DashboardDesignerPanel.CardKinds}"
+                        SelectedItem="{Binding Session.SelectedCard.View, Mode=TwoWay}" />
+
+                <!-- Requete -->
+                <VerticalStackLayout Spacing="4"
+                                     IsVisible="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}">
+                    <Label Text="Requête SQL (paramètres : @Nom)"
+                           Style="{StaticResource LabelTertiaryStyle}" />
+                    <Border Style="{StaticResource SunkenSurfaceStyle}">
+                        <Editor Text="{Binding Session.SelectedCard.Query, Mode=TwoWay, FallbackValue=''}"
+                                FontFamily="Consolas"
+                                HeightRequest="160"
+                                AutoSize="Disabled" />
+                    </Border>
+                    <Button Style="{StaticResource SecondaryButtonStyle}"
+                            Text="Exécuter la requête"
+                            ImageSource="{icons:FluentFilled Icon=Play16Filled, IconSize=16}"
+                            Command="{Binding RunCardCommand}"
+                            CommandParameter="{Binding Session.SelectedCard}"
+                            HorizontalOptions="Start" />
+                </VerticalStackLayout>
+
+                <inp:TextField Title="Colonne des libellés (vide = la première)"
+                               Text="{Binding Session.SelectedCard.LabelColumn, Mode=TwoWay, FallbackValue=''}"
+                               IsVisible="{Binding Session.SelectedCard.IsChart, FallbackValue=False}" />
+
+                <inp:TextField Title="Colonnes de valeurs (séparées par des virgules)"
+                               Text="{Binding Session.SelectedCard.ValueColumnsText, Mode=TwoWay, FallbackValue=''}"
+                               IsVisible="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}" />
+
+                <!-- Texte libre / libelle du bouton -->
+                <VerticalStackLayout Spacing="4">
+                    <VerticalStackLayout.IsVisible>
+                        <MultiBinding Converter="{StaticResource IsOneTrueConverter}">
+                            <Binding Path="Session.SelectedCard.IsText"
+                                     FallbackValue="False" />
+                            <Binding Path="Session.SelectedCard.IsButton"
+                                     FallbackValue="False" />
+                        </MultiBinding>
+                    </VerticalStackLayout.IsVisible>
+                    <Label Text="Texte"
+                           Style="{StaticResource LabelTertiaryStyle}" />
+                    <Border Style="{StaticResource SunkenSurfaceStyle}">
+                        <Editor Text="{Binding Session.SelectedCard.Text, Mode=TwoWay, FallbackValue=''}"
+                                HeightRequest="80"
+                                AutoSize="Disabled" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Navigation : bouton, ou clic sur une ligne du tableau -->
+                <Picker Title="Page ouverte au clic (bouton, ligne du tableau)"
+                        ItemsSource="{Binding Session.PageIds}"
+                        SelectedItem="{Binding Session.SelectedCard.NavigationPage, Mode=TwoWay}" />
+
+                <VerticalStackLayout Spacing="4"
+                                     IsVisible="{Binding Session.SelectedCard.HasNavigation, FallbackValue=False}">
+                    <Label Text="Paramètres transmis, un par ligne : Param = Colonne, Param = @Autre, Param = 'texte'"
+                           Style="{StaticResource LabelTertiaryStyle}"
+                           LineBreakMode="WordWrap" />
+                    <Border Style="{StaticResource SunkenSurfaceStyle}">
+                        <Editor Text="{Binding Session.SelectedCard.NavigationParametersText, Mode=TwoWay, FallbackValue=''}"
+                                FontFamily="Consolas"
+                                HeightRequest="70"
+                                AutoSize="Disabled" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Position et taille -->
+                <Label Style="{StaticResource LabelTertiaryStyle}">
+                    <Label.Text>
+                        <MultiBinding StringFormat="Colonne {0}, ligne {1} · {2} × {3} cases">
+                            <Binding Path="Session.SelectedCard.Column"
+                                     FallbackValue="0" />
+                            <Binding Path="Session.SelectedCard.Row"
+                                     FallbackValue="0" />
+                            <Binding Path="Session.SelectedCard.ColumnSpan"
+                                     FallbackValue="0" />
+                            <Binding Path="Session.SelectedCard.RowSpan"
+                                     FallbackValue="0" />
+                        </MultiBinding>
+                    </Label.Text>
+                </Label>
+
+                <Grid ColumnDefinitions="*,*,*,*"
+                      RowDefinitions="Auto,Auto"
+                      ColumnSpacing="4"
+                      RowSpacing="4">
+                    <Button Grid.Column="0"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Text="←"
+                            Command="{Binding MoveCardCommand}"
+                            CommandParameter="Left"
+                            ToolTipProperties.Text="Déplacer à gauche" />
+                    <Button Grid.Column="1"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Text="→"
+                            Command="{Binding MoveCardCommand}"
+                            CommandParameter="Right"
+                            ToolTipProperties.Text="Déplacer à droite" />
+                    <Button Grid.Column="2"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Text="↑"
+                            Command="{Binding MoveCardCommand}"
+                            CommandParameter="Up"
+                            ToolTipProperties.Text="Monter" />
+                    <Button Grid.Column="3"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Text="↓"
+                            Command="{Binding MoveCardCommand}"
+                            CommandParameter="Down"
+                            ToolTipProperties.Text="Descendre" />
+                    <Button Grid.Row="1"
+                            Grid.Column="0"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Text="Larg. −"
+                            Command="{Binding ResizeCardCommand}"
+                            CommandParameter="Narrower" />
+                    <Button Grid.Row="1"
+                            Grid.Column="1"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Text="Larg. +"
+                            Command="{Binding ResizeCardCommand}"
+                            CommandParameter="Wider" />
+                    <Button Grid.Row="1"
+                            Grid.Column="2"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Text="Haut. −"
+                            Command="{Binding ResizeCardCommand}"
+                            CommandParameter="Shorter" />
+                    <Button Grid.Row="1"
+                            Grid.Column="3"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Text="Haut. +"
+                            Command="{Binding ResizeCardCommand}"
+                            CommandParameter="Taller" />
+                </Grid>
+
+                <Button Style="{StaticResource DangerButtonStyle}"
+                        Text="Supprimer la carte"
+                        Command="{Binding DeleteCardCommand}"
+                        CommandParameter="{Binding Session.SelectedCard}"
+                        HorizontalOptions="Start" />
+            </VerticalStackLayout>
+
+            <BoxView Style="{StaticResource DividerStyle}" />
+
+            <!-- ============ Pages ============ -->
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Pages"
+                       Style="{StaticResource LabelSubHeaderStyle}" />
+
+                <inp:TextField Title="Titre de la page affichée"
+                               Text="{Binding Session.Current.Title, Mode=TwoWay, FallbackValue=''}" />
+
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Session.Pages}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="m:DashboardPageDefinition">
+                            <Button Style="{StaticResource TextButtonStyle}"
+                                    HorizontalOptions="Start"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardDesignerPanel}}, Path=OpenPageCommand, x:DataType=c:DashboardDesignerPanel}"
+                                    CommandParameter="{Binding .}">
+                                <Button.Text>
+                                    <MultiBinding StringFormat="{}{0}  ({1})">
+                                        <Binding Path="Title" />
+                                        <Binding Path="Id" />
+                                    </MultiBinding>
+                                </Button.Text>
+                            </Button>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <HorizontalStackLayout Spacing="8">
+                    <Button Style="{StaticResource SecondaryButtonStyle}"
+                            Text="Nouvelle page"
+                            ImageSource="{icons:FluentFilled Icon=Add20Filled, IconSize=16}"
+                            Command="{Binding AddPageCommand}" />
+                    <Button Style="{StaticResource SecondaryButtonStyle}"
+                            Text="Supprimer cette page"
+                            Command="{Binding DeletePageCommand}" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+
+            <BoxView Style="{StaticResource DividerStyle}" />
+
+            <!-- ============ Parametres d'entree ============ -->
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Paramètres"
+                       Style="{StaticResource LabelSubHeaderStyle}" />
+                <Label Text="Utilisables dans toutes les requêtes sous la forme @Nom."
+                       Style="{StaticResource LabelTertiaryStyle}" />
+
+                <VerticalStackLayout Spacing="8"
+                                     BindableLayout.ItemsSource="{Binding Session.Parameters}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="m:DashboardParameterValue">
+                            <Grid ColumnDefinitions="*,*,Auto"
+                                  RowDefinitions="Auto,Auto"
+                                  ColumnSpacing="6"
+                                  RowSpacing="4">
+                                <inp:TextField Title="Nom"
+                                               Text="{Binding Name, Mode=TwoWay}" />
+                                <Picker Grid.Column="1"
+                                        Title="Type"
+                                        ItemsSource="{x:Static c:DashboardDesignerPanel.ParameterTypes}"
+                                        SelectedItem="{Binding Type, Mode=TwoWay}" />
+                                <Button Grid.Column="2"
+                                        Style="{StaticResource SimpleTextIconButtonStyle}"
+                                        ImageSource="{icons:FluentFilled Icon=Dismiss16Filled, IconSize=12}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardDesignerPanel}}, Path=DeleteParameterCommand, x:DataType=c:DashboardDesignerPanel}"
+                                        CommandParameter="{Binding .}"
+                                        ToolTipProperties.Text="Supprimer le paramètre" />
+                                <inp:TextField Grid.Row="1"
+                                               Title="Libellé"
+                                               Text="{Binding Label, Mode=TwoWay}" />
+                                <inp:TextField Grid.Row="1"
+                                               Grid.Column="1"
+                                               Title="Valeur par défaut"
+                                               Text="{Binding Default, Mode=TwoWay}" />
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <Button Style="{StaticResource SecondaryButtonStyle}"
+                        Text="Ajouter un paramètre"
+                        ImageSource="{icons:FluentFilled Icon=Add20Filled, IconSize=16}"
+                        Command="{Binding AddParameterCommand}"
+                        HorizontalOptions="Start" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentView>

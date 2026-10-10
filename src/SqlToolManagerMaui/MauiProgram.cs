@@ -1,8 +1,10 @@
 ﻿using CodeEdit.Maui;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Markup;
+using LiveChartsCore.SkiaSharpView.Maui;
 using MauiIcons.Fluent.Filled;
 using Microsoft.Extensions.Logging;
+using SkiaSharp.Views.Maui.Controls.Hosting;
 
 namespace SqlToolManagerMaui;
 
@@ -20,6 +22,8 @@ public static class MauiProgram
             })
             .UseFluentFilledMauiIcons()
             .UseCodeEditor()
+            .UseSkiaSharp()
+            .UseLiveCharts()
             .UseMauiCommunityToolkit(options => options.SetShouldEnableSnackbarOnWindows(true))
             .UseMauiCommunityToolkitMarkup();
 

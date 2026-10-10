@@ -14,6 +14,10 @@ public partial class FileMenuBarItem : MenuBarItem
     public partial ICommand? NewCommand { get; set; }
 
     /// <summary>Ouvrir un fichier (Ctrl+O).</summary>
+    /// <summary>Nouveau dashboard .schx (grille vide).</summary>
+    [BindableProperty]
+    public partial ICommand? NewDashboardCommand { get; set; }
+
     [BindableProperty]
     public partial ICommand? OpenCommand { get; set; }
 
