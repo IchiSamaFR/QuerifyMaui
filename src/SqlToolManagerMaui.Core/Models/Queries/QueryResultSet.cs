@@ -13,15 +13,19 @@ public sealed class QueryResultSet
     /// <summary>Vrai si la lecture a ete interrompue au plafond de lignes.</summary>
     public bool IsTruncated { get; }
 
-    public string Title => $"Résultats {Index}";
+    private readonly string? _title;
+
+    /// <summary>Titre de l'onglet : celui donne a l'execution (Dump("...")), sinon "Résultats n".</summary>
+    public string Title => string.IsNullOrWhiteSpace(_title) ? $"Résultats {Index}" : _title;
 
     public string Summary => IsTruncated
         ? $"{Rows.Count} premières lignes"
         : $"{Rows.Count} ligne(s)";
 
-    public QueryResultSet(int index, IReadOnlyList<QueryResultColumn> columns, IReadOnlyList<QueryResultRow> rows, bool isTruncated)
+    public QueryResultSet(int index, IReadOnlyList<QueryResultColumn> columns, IReadOnlyList<QueryResultRow> rows, bool isTruncated, string? title = null)
     {
         Index = index;
+        _title = title;
         Columns = columns;
         Rows = rows;
         IsTruncated = isTruncated;

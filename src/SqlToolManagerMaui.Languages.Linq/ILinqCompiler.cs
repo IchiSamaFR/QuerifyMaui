@@ -36,11 +36,18 @@ public sealed class LinqModelAssembly
 /// <summary>Requete compilee : un point d'entree executable, ou les erreurs de compilation.</summary>
 public sealed class LinqCompiledQuery
 {
-    public Func<DbContext, object?>? Run { get; init; }
+    /// <summary>Execute la requete ; chaque appel a Dump(valeur, titre) est transmis au second parametre.</summary>
+    public Func<DbContext, Action<object?, string?>?, object?>? Execute { get; init; }
+
+    /// <summary>Execution sans recuperation des Dump().</summary>
+    public Func<DbContext, object?>? Run => Execute is { } execute ? context => execute(context, null) : null;
+
+    /// <summary>Faux pour des instructions sans return : la valeur rendue (null) n'est pas un resultat.</summary>
+    public bool ReturnsValue { get; init; }
 
     public IReadOnlyList<LinqDiagnostic> Errors { get; init; } = [];
 
-    public bool Success => Run is not null;
+    public bool Success => Execute is not null;
 }
 
 /// <param name="Line">Ligne dans le texte de la requete (base 1).</param>

@@ -127,6 +127,35 @@ public class LinqCompilerTests
         Assert.Contains(compiled.Errors, e => e.Id == "CS0103" && e.Line == 1 && e.Column == 1);
     }
 
+    [Fact]
+    public void Dump_CollectsEachValueAndContinues()
+    {
+        var compiled = Compile("""
+            RaveOnDb.AspNetUsers.Dump("Utilisateurs");
+            var total = 40.Dump();
+            return total + 2;
+            """);
+
+        List<(object? Value, string? Title)> dumps = [];
+        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        var result = compiled.Execute!(context, (value, title) => dumps.Add((value, title)));
+
+        Assert.Equal(42, result);
+        Assert.Equal(2, dumps.Count);
+        Assert.IsAssignableFrom<IQueryable>(dumps[0].Value);
+        Assert.Equal("Utilisateurs", dumps[0].Title);
+        Assert.Equal(40, dumps[1].Value);
+        Assert.Null(dumps[1].Title);
+    }
+
+    [Theory]
+    [InlineData("RaveOnDb.AspNetUsers", true)]
+    [InlineData("RaveOnDb.AspNetUsers.Dump();", true)]
+    [InlineData("RaveOnDb.AspNetUsers.Dump();\nRaveOnDb.AspNetRoles.Dump();", false)]
+    [InlineData("var ids = RaveOnDb.AspNetUsers.Dump();\nreturn ids;", true)]
+    public void ReturnsValueDetection(string query, bool expected)
+        => Assert.Equal(expected, LinqCompiler.ReturnsValue(query));
+
     private static string Translate(string query)
     {
         var compiled = Compile(query);

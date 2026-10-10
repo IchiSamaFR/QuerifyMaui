@@ -20,6 +20,7 @@ public sealed class LinqCompiler : ILinqCompiler
     private const string QueryNamespace = "SqlToolManagerMaui.UserQueries";
     private const string QueryClass = "UserQuery";
     private const string QueryMethod = "Run";
+    private const string DumpClass = "QueryExtensions";
 
     /// <summary>Nom de fichier virtuel des diagnostics : les positions sont celles du texte de l'onglet.</summary>
     private const string QueryFileName = "requete";
@@ -72,7 +73,11 @@ public sealed class LinqCompiler : ILinqCompiler
         var assembly = new QueryLoadContext(model.Assembly).LoadFromStream(new MemoryStream(image));
         var method = assembly.GetType($"{QueryNamespace}.{QueryClass}", throwOnError: true)!.GetMethod(QueryMethod)!;
 
-        return new LinqCompiledQuery { Run = method.CreateDelegate<Func<DbContext, object?>>() };
+        return new LinqCompiledQuery
+        {
+            Execute = method.CreateDelegate<Func<DbContext, Action<object?, string?>?, object?>>(),
+            ReturnsValue = ReturnsValue(query)
+        };
     }
 
     public DbContext CreateContext(LinqModelAssembly model, string connectionString)
@@ -107,10 +112,24 @@ public sealed class LinqCompiler : ILinqCompiler
         code.AppendLine();
         code.AppendLine($"namespace {QueryNamespace};");
         code.AppendLine();
+        // Dump() facon LINQPad : affiche une valeur dans son propre onglet et la rend telle quelle.
+        // Le collecteur est statique : chaque requete est compilee dans sa propre assembly.
+        code.AppendLine($"public static class {DumpClass}");
+        code.AppendLine("{");
+        code.AppendLine("    internal static Action<object, string> __sink;");
+        code.AppendLine();
+        code.AppendLine("    public static T Dump<T>(this T value, string title = null)");
+        code.AppendLine("    {");
+        code.AppendLine("        __sink?.Invoke(value, title);");
+        code.AppendLine("        return value;");
+        code.AppendLine("    }");
+        code.AppendLine("}");
+        code.AppendLine();
         code.AppendLine($"public static class {QueryClass}");
         code.AppendLine("{");
-        code.AppendLine($"    public static object {QueryMethod}(DbContext __context)");
+        code.AppendLine($"    public static object {QueryMethod}(DbContext __context, Action<object, string> __dump)");
         code.AppendLine("    {");
+        code.AppendLine($"        {DumpClass}.__sink = __dump;");
         if (model is not null)
             code.AppendLine($"        var {model.ContextVariableName} = ({model.ContextClassName})__context;");
 
@@ -150,6 +169,10 @@ public sealed class LinqCompiler : ILinqCompiler
 
         return tokens.SkipLast(1).Any(t => t.IsKind(SyntaxKind.SemicolonToken));
     }
+
+    /// <summary>Une expression rend toujours une valeur ; des instructions, seulement si elles contiennent un return.</summary>
+    internal static bool ReturnsValue(string query)
+        => !IsStatementBlock(query) || SyntaxFactory.ParseTokens(query).Any(t => t.IsKind(SyntaxKind.ReturnKeyword));
 
     private static byte[]? Emit(string assemblyName, string source, IEnumerable<MetadataReference> references, out IReadOnlyList<LinqDiagnostic> errors)
     {

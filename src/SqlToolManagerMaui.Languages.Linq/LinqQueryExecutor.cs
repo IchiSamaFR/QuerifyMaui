@@ -62,13 +62,22 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             }
             else
             {
-                var outcome = await Task.Run(() => Run(model, compiled.Run!, connection.ConnectionString!, cancellationToken), cancellationToken);
+                var outputs = await Task.Run(() => Run(model, compiled, connection.ConnectionString!, cancellationToken), cancellationToken);
 
-                if (outcome.Sql is not null)
-                    messages.Add(new QueryMessage($"SQL généré :{Environment.NewLine}{outcome.Sql}"));
+                foreach (var output in outputs)
+                {
+                    // Plusieurs jeux : chaque message dit a quel onglet il se rapporte.
+                    var prefix = outputs.Count > 1 ? $"{output.ResultSet.Title} : " : string.Empty;
 
-                resultSets.Add(outcome.ResultSet);
-                messages.Add(new QueryMessage($"({outcome.ResultSet.Rows.Count} ligne(s))"));
+                    if (output.Sql is not null)
+                        messages.Add(new QueryMessage($"{prefix}SQL généré :{Environment.NewLine}{output.Sql}"));
+
+                    resultSets.Add(output.ResultSet);
+                    messages.Add(new QueryMessage($"{prefix}({output.ResultSet.Rows.Count} ligne(s))"));
+                }
+
+                if (outputs.Count == 0)
+                    messages.Add(new QueryMessage("Aucun résultat : terminez par return ou affichez une valeur avec .Dump()."));
             }
         }
         catch (OperationCanceledException)
@@ -100,12 +109,33 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
     // ---------- Execution ----------
 
-    private sealed record Outcome(QueryResultSet ResultSet, string? Sql);
+    private sealed record Output(QueryResultSet ResultSet, string? Sql);
 
-    private Outcome Run(LinqModelAssembly model, Func<Microsoft.EntityFrameworkCore.DbContext, object?> run, string connectionString, CancellationToken cancellationToken)
+    private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, CancellationToken cancellationToken)
     {
         using var context = _compiler.CreateContext(model, connectionString);
-        var value = run(context);
+
+        List<Output> outputs = [];
+        object? lastDumped = null;
+
+        // Capture immediate : un Dump() montre la valeur a cet instant, meme si le script la modifie ensuite.
+        var value = compiled.Execute!(context, (dumped, title) =>
+        {
+            lastDumped = dumped;
+            outputs.Add(Capture(dumped, outputs.Count + 1, title, cancellationToken));
+        });
+
+        // return x.Dump() : la valeur est deja affichee, pas de second onglet identique.
+        var isAlreadyDumped = outputs.Count > 0 && Equals(value, lastDumped);
+        if (compiled.ReturnsValue && !isAlreadyDumped)
+            outputs.Add(Capture(value, outputs.Count + 1, title: null, cancellationToken));
+
+        return outputs;
+    }
+
+    private static Output Capture(object? value, int index, string? title, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
         string? sql = null;
         if (value is IQueryable queryable)
@@ -116,7 +146,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             value = QueryableTake.MakeGenericMethod(queryable.ElementType).Invoke(null, [queryable, MaxRows + 1]);
         }
 
-        return new Outcome(ToResultSet(value, cancellationToken), sql);
+        return new Output(ToResultSet(value, index, title, cancellationToken), sql);
     }
 
     private static string? TryGetSql(IQueryable queryable)
@@ -134,11 +164,11 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
     // ---------- Conversion en grille ----------
 
-    private static QueryResultSet ToResultSet(object? value, CancellationToken cancellationToken)
+    private static QueryResultSet ToResultSet(object? value, int index, string? title, CancellationToken cancellationToken)
     {
         // Une valeur seule (Count(), First()...) s'affiche comme une ligne d'une colonne.
         if (value is null or string || value is not IEnumerable items || IsScalar(value.GetType()))
-            return Build(ElementTypeOf(value?.GetType()), [value], isTruncated: false);
+            return Build(ElementTypeOf(value?.GetType()), [value], isTruncated: false, index, title);
 
         List<object?> rows = [];
         var isTruncated = false;
@@ -160,16 +190,16 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             ? declared
             : rows.FirstOrDefault(r => r is not null)?.GetType() ?? typeof(object);
 
-        return Build(elementType, rows, isTruncated);
+        return Build(elementType, rows, isTruncated, index, title);
     }
 
-    private static QueryResultSet Build(Type elementType, IReadOnlyList<object?> items, bool isTruncated)
+    private static QueryResultSet Build(Type elementType, IReadOnlyList<object?> items, bool isTruncated, int index, string? title)
     {
         if (IsScalar(elementType))
         {
             var column = new QueryResultColumn("Valeur", FriendlyName(elementType));
             var scalarRows = items.Select((item, i) => new QueryResultRow(i + 1, [Format(item)])).ToArray();
-            return new QueryResultSet(1, [column], scalarRows, isTruncated);
+            return new QueryResultSet(index, [column], scalarRows, isTruncated, title);
         }
 
         var properties = elementType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -179,7 +209,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         var columns = properties.Select(p => new QueryResultColumn(p.Name, FriendlyName(p.PropertyType))).ToArray();
         var rows = items.Select((item, i) => new QueryResultRow(i + 1, properties.Select(p => item is null ? null : Format(p.GetValue(item))).ToArray())).ToArray();
 
-        return new QueryResultSet(1, columns, rows, isTruncated);
+        return new QueryResultSet(index, columns, rows, isTruncated, title);
     }
 
     private static Type ElementTypeOf(Type? type) => type ?? typeof(object);

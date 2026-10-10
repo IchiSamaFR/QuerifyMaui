@@ -280,6 +280,7 @@ Lors de la création d'une feature :
 * `SqlServerQueryExecutor` (`Languages.Sql/SqlServer/`) : une connexion par exécution (pas de session conservée entre deux F5), `CommandTimeout = 0`, lots `GO` / `GO n` découpés par `SqlBatchSplitter` (ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script exécuté. Les erreurs SQL sont rendues dans les messages, pas levées.
 * Plafond de `QueryExecutionLimits.MaxRowsPerResultSet` (`Languages.Commons`, 10 000) lignes par jeu, cellules converties en texte côté service (NULL = `null`).
 * Le résultat est rangé sur l'`EditorDocument` d'origine (`LastResult`, `IsExecuting`) : chaque onglet garde ses résultats.
+* **LINQ** : le script devient le corps d'une méthode générée (`LinqCompiler.BuildQuerySource`), le contexte porte le nom de la base. Le premier `return` termine le script ; `.Dump("titre")` (extension générée dans le même source, façon LINQPad) ajoute un jeu de résultats sans l'arrêter et rend la valeur. La valeur du `return` n'est affichée que si elle n'a pas déjà été dumpée ; des instructions sans `return` n'affichent que leurs Dump.
 * `Views/Controls/Queries/QueryResultGrid` est construit en code (colonnes connues à l'exécution) ; les lignes (`QueryResultRowView`) sont remplies au recyclage, sans binding. Styles dans `Resources/Styles/Controls/QueryResultStyles.xaml`.
 
 ### Connexions
