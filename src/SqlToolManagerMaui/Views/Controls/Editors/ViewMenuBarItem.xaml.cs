@@ -11,6 +11,14 @@ namespace SqlToolManagerMaui.Views.Controls.Editors;
 /// </summary>
 public partial class ViewMenuBarItem : MenuBarItem
 {
+    /// <summary>Ouvre ou ferme l'explorateur d'objets.</summary>
+    [BindableProperty]
+    public partial ICommand? ToggleObjectExplorerCommand { get; set; }
+
+    /// <summary>Etat courant de l'explorateur d'objets.</summary>
+    [BindableProperty]
+    public partial bool IsObjectExplorerOpen { get; set; }
+
     /// <summary>Bascule l'affichage des numeros de ligne.</summary>
     [BindableProperty]
     public partial ICommand? ToggleLineNumbersCommand { get; set; }

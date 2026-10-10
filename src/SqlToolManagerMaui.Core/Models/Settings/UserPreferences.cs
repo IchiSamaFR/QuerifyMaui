@@ -13,6 +13,9 @@ public sealed class UserPreferences
     /// <summary>Options d'affichage de l'editeur.</summary>
     public EditorConfiguration Editor { get; set; } = EditorConfiguration.CreateDefault();
 
+    /// <summary>Volets ouverts ou fermes.</summary>
+    public PanelPreferences Panels { get; set; } = new();
+
     /// <summary>Place le fichier en tete de liste (sans doublon) et tronque au-dela de <see cref="MaxRecentFiles"/>.</summary>
     public void AddRecentFile(string filePath)
     {
@@ -30,5 +33,6 @@ public sealed class UserPreferences
     {
         RecentFiles = [.. RecentFiles],
         Editor = Editor.Clone(),
+        Panels = Panels.Clone(),
     };
 }

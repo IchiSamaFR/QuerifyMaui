@@ -4,6 +4,12 @@
              x:Class="SqlToolManagerMaui.Views.Controls.Editors.ViewMenuBarItem"
              Text="Affichage">
 
+    <c:CheckedMenuFlyoutItem Label="Explorateur d'objets"
+                             IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=IsObjectExplorerOpen, x:DataType=c:ViewMenuBarItem}"
+                             Command="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=ToggleObjectExplorerCommand, x:DataType=c:ViewMenuBarItem}" />
+
+    <MenuFlyoutSeparator />
+
     <c:CheckedMenuFlyoutItem Label="Numéros de ligne"
                              IsChecked="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=AreLineNumbersVisible, x:DataType=c:ViewMenuBarItem}"
                              Command="{Binding Source={RelativeSource AncestorType={x:Type c:ViewMenuBarItem}}, Path=ToggleLineNumbersCommand, x:DataType=c:ViewMenuBarItem}" />

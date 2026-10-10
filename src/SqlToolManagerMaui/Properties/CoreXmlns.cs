@@ -13,6 +13,7 @@
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/enums", "SqlToolManagerMaui.Core.Enums.Databases.Connections", AssemblyName = "SqlToolManagerMaui.Core")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/enums", "SqlToolManagerMaui.Core.Enums.Editors.Completion", AssemblyName = "SqlToolManagerMaui.Core")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/enums", "SqlToolManagerMaui.Core.Enums.Editors.Highlighting", AssemblyName = "SqlToolManagerMaui.Core")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/enums", "SqlToolManagerMaui.Core.Enums.Settings", AssemblyName = "SqlToolManagerMaui.Core")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Databases", AssemblyName = "SqlToolManagerMaui.Core")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Databases.Connections", AssemblyName = "SqlToolManagerMaui.Core")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/models", "SqlToolManagerMaui.Core.Models.Databases.Schemas", AssemblyName = "SqlToolManagerMaui.Core")]

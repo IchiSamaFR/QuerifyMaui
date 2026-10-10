@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SqlToolManagerMaui.Core.Enums.Settings;
 using SqlToolManagerMaui.Core.Models.Settings;
 using System.ComponentModel;
 
@@ -14,6 +15,23 @@ public partial class QueryVM
     [ObservableProperty]
     public partial IReadOnlyList<string> RecentFiles { get; set; } = [];
 
+    /// <summary>Volet "Explorateur d'objets" ouvert ; la valeur est conservee dans les preferences.</summary>
+    [ObservableProperty]
+    public partial bool IsObjectExplorerOpen { get; set; } = true;
+
+    partial void OnIsObjectExplorerOpenChanged(bool value)
+    {
+        // Pendant le chargement, on applique les preferences sans les reecrire.
+        if (_arePreferencesLoaded)
+            StartAsBusy(token => UpdatePreferencesAsync(p => p.Panels.SetOpen(PanelKind.ObjectExplorer, value), token), blocking: false);
+    }
+
+    [RelayCommand]
+    private void CloseObjectExplorer() => IsObjectExplorerOpen = false;
+
+    [RelayCommand]
+    private void ToggleObjectExplorer() => IsObjectExplorerOpen = !IsObjectExplorerOpen;
+
     private async Task LoadPreferencesAsync()
     {
         if (_arePreferencesLoaded)
@@ -22,6 +40,7 @@ public partial class QueryVM
         var preferences = await _preferences.GetAsync(LifetimeToken);
         EditorConfiguration.Apply(preferences.Editor);
         RecentFiles = preferences.RecentFiles;
+        IsObjectExplorerOpen = preferences.Panels.IsOpen(PanelKind.ObjectExplorer);
 
         // Abonnement apres l'application des valeurs : le chargement ne doit pas reecrire le fichier.
         EditorConfiguration.PropertyChanged += OnEditorConfigurationChanged;

@@ -21,5 +21,9 @@ public partial class QueryPage : AbstractPage
     {
         InitializeComponent();
         ConnectionExplorerHost.Content = connectionExplorerView;
+
+        // La vue de l'explorateur porte son propre BindingContext : la commande est liee a la source explicite.
+        connectionExplorerView.SetBinding(ConnectionExplorerView.CloseCommandProperty,
+            new Binding(nameof(QueryVM.CloseObjectExplorerCommand), source: viewModel));
     }
 }

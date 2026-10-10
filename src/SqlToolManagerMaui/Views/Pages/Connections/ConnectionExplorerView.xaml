@@ -9,8 +9,16 @@
               RowSpacing="8">
 
             <!-- ============ En-tete + barre d'outils (Explorateur d'objets SSMS) ============ -->
-            <Label Text="Explorateur d'objets"
-                   Style="{StaticResource LabelThirdHeaderStyle}" />
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Text="Explorateur d'objets"
+                       Style="{StaticResource LabelThirdHeaderStyle}"
+                       VerticalOptions="Center" />
+                <Button Grid.Column="1"
+                        Style="{StaticResource TextButtonStyle}"
+                        Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
+                        ImageSource="{icons:FluentFilled Icon=Dismiss16Filled, IconSize=16}"
+                        ToolTipProperties.Text="Fermer l'explorateur" />
+            </Grid>
 
             <Grid ColumnDefinitions="*,Auto"
                   Grid.Row="1">

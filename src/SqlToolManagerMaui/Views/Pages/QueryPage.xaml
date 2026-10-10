@@ -17,7 +17,9 @@
 
         <c:EditMenuBarItem Editor="{Binding Source={x:Reference Editor}}" />
 
-        <c:ViewMenuBarItem ToggleLineNumbersCommand="{Binding ToggleLineNumbersCommand}"
+        <c:ViewMenuBarItem ToggleObjectExplorerCommand="{Binding ToggleObjectExplorerCommand}"
+                           IsObjectExplorerOpen="{Binding IsObjectExplorerOpen}"
+                           ToggleLineNumbersCommand="{Binding ToggleLineNumbersCommand}"
                            AreLineNumbersVisible="{Binding EditorConfiguration.IsLineDisplayed}"
                            ToggleWordWrapCommand="{Binding ToggleWordWrapCommand}"
                            IsWordWrapEnabled="{Binding EditorConfiguration.IsWordWrapped}"
@@ -33,11 +35,24 @@
     <Grid ColumnDefinitions="340,Auto,*"
           ColumnSpacing="8"
           Padding="8">
+        <Grid.Triggers>
+            <!-- Explorateur ferme : colonne et separateur disparaissent -->
+            <DataTrigger TargetType="Grid"
+                         Binding="{Binding IsObjectExplorerOpen}"
+                         Value="False">
+                <Setter Property="ColumnDefinitions"
+                        Value="0,0,*" />
+                <Setter Property="ColumnSpacing"
+                        Value="0" />
+            </DataTrigger>
+        </Grid.Triggers>
 
         <!-- ============ Colonne gauche : liste des connexions ============ -->
-        <ContentPresenter x:Name="ConnectionExplorerHost" />
+        <ContentPresenter x:Name="ConnectionExplorerHost"
+                          IsVisible="{Binding IsObjectExplorerOpen}" />
 
-        <v:GridSplitter Grid.Column="1" />
+        <v:GridSplitter Grid.Column="1"
+                        IsVisible="{Binding IsObjectExplorerOpen}" />
 
         <Grid Grid.Column="2"
               RowDefinitions="*,Auto,Auto"
