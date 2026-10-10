@@ -97,6 +97,8 @@ public sealed class XshdSyntaxConfigurationStore : ISyntaxConfigurationStore
         return string.IsNullOrEmpty(value) ? "--" : value;
     }
 
+    private const string DefaultColorName = "Default";
+
     private static SyntaxDefinition ParseDefinition(XElement root, XElement ruleSet, SyntaxLanguage language)
     {
         var colors = ReadColors(root);
@@ -131,6 +133,7 @@ public sealed class XshdSyntaxConfigurationStore : ISyntaxConfigurationStore
             Name = (string?)root.Attribute("name") ?? language.ToString(),
             Extensions = ((string?)root.Attribute("extensions"))?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
             Rules = rules,
+            DefaultColor = colors.TryGetValue(DefaultColorName, out var defaultColor) ? defaultColor : null,
             Keywords = keywords
         };
     }

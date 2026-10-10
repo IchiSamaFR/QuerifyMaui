@@ -8,6 +8,8 @@
 
 	<Property name="LineComment" value="//" />
 
+	<!-- Texte non reconnu : peint explicitement pour que la couleur d'un commentaire ne deborde pas a la frappe -->
+	<Color name="Default" foreground="#D4D4D4" />
 	<Color name="Comment" foreground="#6A9955" />
 	<Color name="String" foreground="#CE9178" />
 	<Color name="Number" foreground="#B5CEA8" />

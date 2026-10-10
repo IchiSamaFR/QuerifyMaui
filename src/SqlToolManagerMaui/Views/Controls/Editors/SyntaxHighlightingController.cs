@@ -69,16 +69,23 @@ public sealed class SyntaxHighlightingController : IDisposable
             var definition = _definition!;
             var tokens = await Task.Run(() => _highlighter.Tokenize(definition, snapshot.Text, cancellationToken), cancellationToken);
 
-            var decorations = tokens.Select(token => new RichTextDecoration(
-                                          new RichTextRange(token.Start, token.Length),
-                                          new RichTextDecorationStyle { ForegroundColor = token.Color }))
-                                    .ToArray();
+            var decorations = BuildDecorations(tokens, snapshot.Text.Length, definition.DefaultColor);
 
             _editor.Dispatcher.Dispatch(() =>
             {
-                // TrySet refuse une revision perimee : une frappe pendant l'analyse annule la passe.
-                if (!cancellationToken.IsCancellationRequested && !_isDisposed)
-                    _layer.TrySet(snapshot.Revision, decorations);
+                if (cancellationToken.IsCancellationRequested || _isDisposed)
+                    return;
+
+                // Revision perimee (frappe pendant l'analyse) : on relance sur le texte courant
+                // plutot que de laisser les anciennes decorations, etirees par l'edition.
+                var applied = _layer.TrySet(snapshot.Revision, decorations);
+                // DIAGNOSTIC TEMPORAIRE coloration
+                System.Diagnostics.Debug.WriteLine($"[Highlight] rev={snapshot.Revision.Version} docRev={_editor.Document.Revision.Version} applied={applied} len={snapshot.Text.Length} text={snapshot.Text.Replace("\r", "\\r").Replace("\n", "\\n")}");
+                foreach (var d in decorations)
+                    System.Diagnostics.Debug.WriteLine($"[Highlight]   {d.Range.Start}+{d.Range.Length} {d.Style.ForegroundColor?.ToHex()}");
+
+                if (!applied && _editor.Document.Revision != snapshot.Revision)
+                    Refresh();
             });
         }
         catch (OperationCanceledException)
@@ -86,6 +93,34 @@ public sealed class SyntaxHighlightingController : IDisposable
             // Passe remplacee par une plus recente.
         }
     }
+
+    /// <summary>
+    /// Le texte non reconnu recoit aussi une decoration (couleur par defaut) : sans elle, un caractere
+    /// tape apres un commentaire herite du vert du natif, et CodeEdit ne le repeint jamais faute de
+    /// difference dans sa projection.
+    /// </summary>
+    private static RichTextDecoration[] BuildDecorations(IReadOnlyList<SyntaxToken> tokens, int length, Color? defaultColor)
+    {
+        List<RichTextDecoration> decorations = new(tokens.Count * 2 + 1);
+        var position = 0;
+
+        foreach (var token in tokens)
+        {
+            if (defaultColor is not null && token.Start > position)
+                decorations.Add(Decorate(position, token.Start - position, defaultColor));
+
+            decorations.Add(Decorate(token.Start, token.Length, token.Color));
+            position = token.Start + token.Length;
+        }
+
+        if (defaultColor is not null && length > position)
+            decorations.Add(Decorate(position, length - position, defaultColor));
+
+        return [.. decorations];
+    }
+
+    private static RichTextDecoration Decorate(int start, int length, Color color)
+        => new(new RichTextRange(start, length), new RichTextDecorationStyle { ForegroundColor = color });
 
     public void Dispose()
     {
