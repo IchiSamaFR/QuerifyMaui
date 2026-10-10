@@ -8,9 +8,9 @@
         <c:FileMenuBarItem NewCommand="{Binding NewCommand}"
                            NewDashboardCommand="{Binding Dashboard.NewCommand}"
                            OpenCommand="{Binding OpenCommand}"
-                           RecentFiles="{Binding RecentFiles}"
+                           RecentFiles="{Binding Preferences.RecentFiles}"
                            OpenRecentCommand="{Binding OpenRecentCommand}"
-                           ClearRecentFilesCommand="{Binding ClearRecentFilesCommand}"
+                           ClearRecentFilesCommand="{Binding Preferences.ClearRecentFilesCommand}"
                            SaveCommand="{Binding SaveCommand}"
                            SaveAsCommand="{Binding SaveAsCommand}"
                            CloseTabCommand="{Binding CloseActiveCommand}"
@@ -18,14 +18,14 @@
 
         <c:EditMenuBarItem Editor="{Binding Source={x:Reference Editor}}" />
 
-        <c:ViewMenuBarItem ToggleObjectExplorerCommand="{Binding ToggleObjectExplorerCommand}"
-                           IsObjectExplorerOpen="{Binding IsObjectExplorerOpen}"
-                           ToggleLineNumbersCommand="{Binding ToggleLineNumbersCommand}"
-                           AreLineNumbersVisible="{Binding EditorConfiguration.IsLineDisplayed}"
-                           ToggleWordWrapCommand="{Binding ToggleWordWrapCommand}"
-                           IsWordWrapEnabled="{Binding EditorConfiguration.IsWordWrapped}"
-                           ToggleTabIndentationCommand="{Binding ToggleUseTabsCommand}"
-                           IsTabIndentationEnabled="{Binding EditorConfiguration.IsTabIndentation}"
+        <c:ViewMenuBarItem ToggleObjectExplorerCommand="{Binding Preferences.ToggleObjectExplorerCommand}"
+                           IsObjectExplorerOpen="{Binding Preferences.IsObjectExplorerOpen}"
+                           ToggleLineNumbersCommand="{Binding Preferences.ToggleLineNumbersCommand}"
+                           AreLineNumbersVisible="{Binding Preferences.EditorConfiguration.IsLineDisplayed}"
+                           ToggleWordWrapCommand="{Binding Preferences.ToggleWordWrapCommand}"
+                           IsWordWrapEnabled="{Binding Preferences.EditorConfiguration.IsWordWrapped}"
+                           ToggleTabIndentationCommand="{Binding Preferences.ToggleUseTabsCommand}"
+                           IsTabIndentationEnabled="{Binding Preferences.EditorConfiguration.IsTabIndentation}"
                            Language="{Binding ActiveDocument.Language, FallbackValue={x:Static en:SyntaxLanguage.Sql}}"
                            SetLanguageCommand="{Binding SetLanguageCommand}" />
 
@@ -39,7 +39,7 @@
         <Grid.Triggers>
             <!-- Explorateur ferme : colonne et separateur disparaissent -->
             <DataTrigger TargetType="Grid"
-                         Binding="{Binding IsObjectExplorerOpen}"
+                         Binding="{Binding Preferences.IsObjectExplorerOpen}"
                          Value="False">
                 <Setter Property="ColumnDefinitions"
                         Value="0,0,*" />
@@ -50,10 +50,10 @@
 
         <!-- ============ Colonne gauche : liste des connexions ============ -->
         <ContentPresenter x:Name="ConnectionExplorerHost"
-                          IsVisible="{Binding IsObjectExplorerOpen}" />
+                          IsVisible="{Binding Preferences.IsObjectExplorerOpen}" />
 
         <v:GridSplitter Grid.Column="1"
-                        IsVisible="{Binding IsObjectExplorerOpen}" />
+                        IsVisible="{Binding Preferences.IsObjectExplorerOpen}" />
 
         <Grid Grid.Column="2"
               RowDefinitions="*,Auto,Auto"
@@ -172,7 +172,7 @@
                                           Text="{Binding ActiveDocument.EditorText}"
                                           FilePath="{Binding ActiveDocument.FilePath}"
                                           Selection="{Binding ActiveDocument.Selection}"
-                                          EditorConfiguration="{Binding EditorConfiguration}"
+                                          EditorConfiguration="{Binding Preferences.EditorConfiguration}"
                                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
                                           Connection="{Binding ActiveConnection}"
                                           IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
@@ -197,7 +197,7 @@
                                                       WidthRequest="360"
                                                       Session="{Binding ActiveDocument.Dashboard}"
                                                       SyntaxConfiguration="{Binding SqlSyntaxConfiguration}"
-                                                      EditorConfiguration="{Binding EditorConfiguration}"
+                                                      EditorConfiguration="{Binding Preferences.EditorConfiguration}"
                                                       Connection="{Binding ActiveConnection}"
                                                       RunCardCommand="{Binding Dashboard.RunCardCommand}"
                                                       DeleteCardCommand="{Binding Dashboard.DeleteCardCommand}"

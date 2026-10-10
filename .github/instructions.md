@@ -85,7 +85,7 @@ SqlToolManagerMaui/
 │   │   │   ├── AbstractVM.cs                   # Base : navigation, chargement
 │   │   │   ├── AbstractVM_Busy.cs              # Base : gestion des tâches / IsBusy
 │   │   │   ├── ShellVM.cs                      # État du rail de navigation
-│   │   │   └── Pages/                          # QueryVM, Queries/ (DashboardVM, StatusBarVM, IQueryWorkspace), Connections/ (ConnectionExplorerVM, ConnectionEditorVM)
+│   │   │   └── Pages/                          # QueryVM, Queries/ (DashboardVM, EditorPreferencesVM, StatusBarVM, IQueryWorkspace), Connections/ (ConnectionExplorerVM, ConnectionEditorVM)
 │   │   ├── Views/
 │   │   │   ├── Pages/                          # AbstractPage + pages de l'app
 │   │   │   └── Controls/                       # NavigationRail + Editors/ (menus, onglets)
@@ -279,7 +279,7 @@ Lors de la création d'une feature :
 
 * `QueryVM.ExecuteQueryCommand` (async, `IncludeCancelCommand`) : texte = `Selection.SelectedText` s'il n'est pas vide, sinon `ActiveDocument.EditorText`. Volontairement **hors** `RunAsBusyAsync`, qui désactiverait la page et donc le bouton Annuler.
 * `QueryVM` exécute via `IQueryExecutorResolver.Resolve(document.Language)` : il ne connaît aucun langage en particulier.
-* `QueryVM` est découpé en sous-VM (`ViewModels/Pages/Queries/`) exposés en propriétés (`Dashboard`, `Status`) et liés en XAML par `{Binding Dashboard.XxxCommand}`. Ce sont des `ObservableObject` (pas des `AbstractVM`, réservé aux pages), injectés en `Transient` ; ils accèdent à l'état partagé (onglets, connexion, barre d'état, `LifetimeToken`) via `IQueryWorkspace`, implémenté par `QueryVM` et passé par `Attach`.
+* `QueryVM` est découpé en sous-VM (`ViewModels/Pages/Queries/`) exposés en propriétés (`Dashboard`, `Preferences`, `Status`) et liés en XAML par `{Binding Dashboard.XxxCommand}`. Ce sont des `ObservableObject` (pas des `AbstractVM`, réservé aux pages), injectés en `Transient` ; ils accèdent à l'état partagé (onglets, connexion, barre d'état, `LifetimeToken`, `RunAsBusyAsync` / `StartAsBusy`) via `IQueryWorkspace`, implémenté par `QueryVM` et passé par `Attach`.
 * **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(ISqlProviderExecutor))]` dans `Languages.Sql/[Moteur]/` ; `SqlQueryExecutor` le découvre seul.
 * `SqlServerQueryExecutor` (`Languages.Sql/SqlServer/`) : une connexion par exécution (pas de session conservée entre deux F5), `CommandTimeout = 0`, lots `GO` / `GO n` découpés par `SqlBatchSplitter` (ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script exécuté. Les erreurs SQL sont rendues dans les messages, pas levées.
 * Plafond de `QueryExecutionLimits.MaxRowsPerResultSet` (`Languages.Commons`, 10 000) lignes par jeu, cellules converties en texte côté service (NULL = `null`).

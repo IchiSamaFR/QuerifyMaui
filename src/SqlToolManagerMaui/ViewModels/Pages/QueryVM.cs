@@ -11,7 +11,6 @@ using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
-using SqlToolManagerMaui.Services.Settings;
 using SqlToolManagerMaui.UI.ViewModels;
 using SqlToolManagerMaui.ViewModels.Pages.Queries;
 using System.Collections.ObjectModel;
@@ -32,7 +31,6 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     private readonly IConnectionStore _connectionStore;
     private readonly ISyntaxConfigurationStore _syntaxConfigurations;
     private readonly IQueryExecutorResolver _executors;
-    private readonly IUserPreferencesStore _preferences;
 
     /// <summary>Compteur des documents "Sans titre" ouverts depuis le demarrage.</summary>
     private int _untitledCount;
@@ -68,14 +66,12 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     /// <summary>Onglets .schx : consultation et concepteur.</summary>
     public DashboardVM Dashboard { get; }
 
+    /// <summary>Fichiers recents, explorateur et options d'edition.</summary>
+    public EditorPreferencesVM Preferences { get; }
+
     IReadOnlyList<DatabaseConnectionInfo> IQueryWorkspace.Connections => Connections;
 
     CancellationToken IQueryWorkspace.LifetimeToken => LifetimeToken;
-
-    // ---------- Options d'edition, liees directement au CodeEditor ----------
-
-    /// <summary>Valeurs par defaut, remplacees par les preferences au chargement.</summary>
-    public EditorConfiguration EditorConfiguration { get; } = EditorConfiguration.CreateDefault();
 
     // ---------- Barre d'etat ----------
 
@@ -89,19 +85,20 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     /// <summary>Coloration SQL, quel que soit l'onglet actif (requetes des cartes du dashboard).</summary>
     public SyntaxConfiguration? SqlSyntaxConfiguration => _syntaxByLanguage.GetValueOrDefault(SyntaxLanguage.Sql);
 
-    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors, IUserPreferencesStore preferences, StatusBarVM status, DashboardVM dashboard)
+    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors, StatusBarVM status, DashboardVM dashboard, EditorPreferencesVM preferences)
     {
         // En premier : l'abonnement au store peut deja rappeler la page.
         Status = status;
         Dashboard = dashboard;
         Dashboard.Attach(this);
+        Preferences = preferences;
+        Preferences.Attach(this);
 
         _files = files;
         _connectionStore = connectionStore;
         _connectionStore.Subscribe(ApplyConnections);
         _syntaxConfigurations = syntaxConfigurations;
         _executors = executors;
-        _preferences = preferences;
 
         // Ajout, modification ou suppression depuis l'explorateur : le Picker suit le coffre.
         WeakReferenceMessenger.Default.Register<QueryVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
@@ -121,7 +118,7 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
             OnPropertyChanged(nameof(SqlSyntaxConfiguration));
         }
 
-        await LoadPreferencesAsync();
+        await Preferences.LoadAsync(LifetimeToken);
         await ReloadConnectionsAsync();
 
         if (Documents.Count == 0)

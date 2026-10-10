@@ -19,4 +19,10 @@ public interface IQueryWorkspace
 
     /// <summary>Annule au dechargement de la page.</summary>
     CancellationToken LifetimeToken { get; }
+
+    /// <summary>Tache suivie par l'indicateur d'occupation de la page (fourni par AbstractVM).</summary>
+    Task RunAsBusyAsync(Func<CancellationToken, Task> taskFunc, bool blocking = true, bool skipIfBusy = false);
+
+    /// <inheritdoc cref="RunAsBusyAsync(Func{CancellationToken, Task}, bool, bool)"/>
+    void StartAsBusy(Func<CancellationToken, Task> taskFunc, bool blocking = true, bool skipIfBusy = false);
 }

@@ -40,7 +40,7 @@ public partial class QueryVM
     /// <summary>Ouvre le contenu dans un nouvel onglet, ou reactive celui qui l'affiche deja.</summary>
     private async Task OpenContentAsync(EditorFileContent content, CancellationToken token)
     {
-        await UpdatePreferencesAsync(p => p.AddRecentFile(content.FilePath), token);
+        await Preferences.AddRecentFileAsync(content.FilePath, token);
 
         // Un fichier deja ouvert est reactive plutot que duplique.
         var existing = Documents.FirstOrDefault(d =>
@@ -64,6 +64,27 @@ public partial class QueryVM
         Documents.Add(document);
         ActiveDocument = document;
         Status.Set($"{document.FileName} ouvert.");
+    }
+
+    /// <summary>Rouvre un fichier recent ; un fichier disparu est retire de la liste.</summary>
+    [RelayCommand]
+    private Task OpenRecentAsync(string? filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+            return Task.CompletedTask;
+
+        return RunAsBusyAsync(async token =>
+        {
+            var content = await _files.ReadAsync(filePath, token);
+            if (content is null)
+            {
+                await Preferences.RemoveRecentFileAsync(filePath, token);
+                Status.Set($"{Path.GetFileName(filePath)} est introuvable : retiré des fichiers récents.", isError: true);
+                return;
+            }
+
+            await OpenContentAsync(content, token);
+        });
     }
 
     [RelayCommand]
@@ -93,7 +114,7 @@ public partial class QueryVM
                     return;
 
                 document.FilePath = path;
-                await UpdatePreferencesAsync(p => p.AddRecentFile(path), token);
+                await Preferences.AddRecentFileAsync(path, token);
             }
 
             document.MarkSaved();
@@ -154,17 +175,4 @@ public partial class QueryVM
         OnPropertyChanged(nameof(SyntaxConfiguration));
         Status.Set($"Langage de l'onglet : {SyntaxConfiguration?.Definition.Name ?? language.ToString()}.");
     }
-
-    [RelayCommand]
-    private void ToggleLineNumbers()
-        => EditorConfiguration.IsLineDisplayed = !EditorConfiguration.IsLineDisplayed;
-
-    [RelayCommand]
-    private void ToggleWordWrap()
-        => EditorConfiguration.IsWordWrapped = !EditorConfiguration.IsWordWrapped;
-
-    [RelayCommand]
-    private void ToggleUseTabs()
-        => EditorConfiguration.IsTabIndentation = !EditorConfiguration.IsTabIndentation;
-
 }
