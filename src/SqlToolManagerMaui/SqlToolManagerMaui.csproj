@@ -130,9 +130,6 @@
 	  <MauiXaml Update="Resources\Styles\Controls\ExpanderStyles.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Controls\Editors\FileTabItem.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="Views\Pages\Connections\ConnectionExplorerView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

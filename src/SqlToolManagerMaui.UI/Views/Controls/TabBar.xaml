@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SqlToolManagerMaui.UI.Views.Controls.TabBar"
+             x:Name="Root">
+
+    <!-- Explicite : la propriete de contenu de la TabBar est Items -->
+    <ContentView.Content>
+        <Grid RowDefinitions="Auto,*">
+
+            <Grid ColumnDefinitions="*,Auto"
+                  ColumnSpacing="16">
+
+                <ScrollView x:Name="TabScroll"
+                            Orientation="Horizontal"
+                            HorizontalScrollBarVisibility="Never"
+                            VerticalOptions="Fill"
+                            MinimumHeightRequest="{DynamicResource InputHeight}">
+                    <HorizontalStackLayout x:Name="TabsHost"
+                                           Spacing="2"
+                                           ChildAdded="OnHeaderAdded"
+                                           ChildRemoved="OnHeaderRemoved" />
+                </ScrollView>
+
+                <ContentView Grid.Column="1"
+                             Padding="0,4"
+                             VerticalOptions="Fill"
+                             MinimumHeightRequest="{DynamicResource InputHeight}"
+                             Content="{Binding TrailingContent, Source={x:Reference Root}, x:DataType=v:TabBar}" />
+            </Grid>
+
+            <ContentView Grid.Row="1"
+                         Content="{Binding SelectedContent, Source={x:Reference Root}, x:DataType=v:TabBar}" />
+        </Grid>
+    </ContentView.Content>
+</ContentView>

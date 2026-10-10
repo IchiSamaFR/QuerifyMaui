@@ -67,20 +67,21 @@
                 </DataTrigger>
             </Grid.Triggers>
 
-            <Grid Grid.Row="0"
-                  RowDefinitions="Auto,*">
-                <!-- ============ Onglets + execution ============ -->
-                <Grid Grid.Row="0"
-                      ColumnDefinitions="*,Auto"
-                      ColumnSpacing="16">
+            <!-- ============ Onglets + execution ============ -->
+            <v:TabBar Grid.Row="0"
+                      ItemsSource="{Binding Documents}"
+                      SelectedItem="{Binding ActiveDocument}"
+                      CloseCommand="{Binding CloseCommand}">
+                <v:TabBar.ItemTemplate>
+                    <DataTemplate x:DataType="m:EditorDocument">
+                        <v:TabBarItem Header="{Binding FileName}"
+                                      ToolTip="{Binding PathLabel}"
+                                      IsDirty="{Binding IsDirty}" />
+                    </DataTemplate>
+                </v:TabBar.ItemTemplate>
 
-                    <c:FileTabControl ItemsSource="{Binding Documents}"
-                                      SelectedItem="{Binding ActiveDocument}"
-                                      CloseCommand="{Binding CloseCommand}"
-                                      NewCommand="{Binding NewCommand}"/>
-
-                    <HorizontalStackLayout Grid.Column="1"
-                                           Spacing="8"
+                <v:TabBar.TrailingContent>
+                    <HorizontalStackLayout Spacing="8"
                                            VerticalOptions="Center">
                         <!-- Dashboard .schx : consultation / concepteur / JSON -->
                         <HorizontalStackLayout Spacing="2"
@@ -148,67 +149,70 @@
                         <inp:PickerField ItemsSource="{Binding Connections}"
                                          SelectedItem="{Binding SelectedConnection}"
                                          DisplayMemberPath="Name"
-                                         HeightRequest="28"
-                                         WidthRequest="220" />
+                                         WidthRequest="220"
+                                         FontSize="{StaticResource FontSize_Caption}" />
 
-                        <Button Style="{StaticResource PrimaryIconButtonStyle}"
-                                Command="{Binding ExecuteQueryCommand}"
-                                ImageSource="{icons:FluentFilled Icon=Play16Filled, IconSize=14}"
-                                ToolTipProperties.Text="Disponible dans une prochaine version" />
+                        <ImageButton Style="{StaticResource PrimaryImageButtonStyle}"
+                                     Command="{Binding ExecuteQueryCommand}"
+                                     Source="{icons:FluentFilled Icon=Play16Filled, IconSize=14}"
+                                     ToolTipProperties.Text="Disponible dans une prochaine version" />
                     </HorizontalStackLayout>
-                </Grid>
+                </v:TabBar.TrailingContent>
 
-                <!-- ============ Editeur ============ -->
-                <Border Grid.Row="1"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 0 0 4 4"
-                        Style="{StaticResource SunkenSurfaceStyle}"
-                        IsVisible="{Binding ActiveDocument.IsEditorVisible, FallbackValue=True}">
+                <!-- Editeur et dashboard partages par tous les onglets : ils suivent ActiveDocument -->
+                <v:TabBar.DefaultContent>
+                    <Grid>
+                        <!-- ============ Editeur ============ -->
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 0 4 4 4"
+                                Style="{StaticResource SunkenSurfaceStyle}"
+                                IsVisible="{Binding ActiveDocument.IsEditorVisible, FallbackValue=True}">
 
-                    <c:CodeEditor x:Name="Editor"
-                                  Text="{Binding ActiveDocument.EditorText}"
-                                  FilePath="{Binding ActiveDocument.FilePath}"
-                                  Selection="{Binding ActiveDocument.Selection}"
-                                  EditorConfiguration="{Binding EditorConfiguration}"
-                                  SyntaxConfiguration="{Binding SyntaxConfiguration}"
-                                  Connection="{Binding ActiveConnection}"
-                                  IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
-                </Border>
+                            <c:CodeEditor x:Name="Editor"
+                                          Text="{Binding ActiveDocument.EditorText}"
+                                          FilePath="{Binding ActiveDocument.FilePath}"
+                                          Selection="{Binding ActiveDocument.Selection}"
+                                          EditorConfiguration="{Binding EditorConfiguration}"
+                                          SyntaxConfiguration="{Binding SyntaxConfiguration}"
+                                          Connection="{Binding ActiveConnection}"
+                                          IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
+                        </Border>
 
-                <!-- ============ Dashboard (.schx) : grille + panneau du concepteur ============ -->
-                <Grid Grid.Row="1"
-                      ColumnDefinitions="*,Auto"
-                      ColumnSpacing="8"
-                      IsVisible="{Binding ActiveDocument.IsDashboardVisible, FallbackValue=False}">
-                    <c:DashboardView Session="{Binding ActiveDocument.Dashboard}"
-                                     RowCount="{Binding ActiveDocument.Dashboard.RowCount, FallbackValue=6}"
-                                     ColumnCount="{Binding ActiveDocument.Dashboard.ColumnCount, FallbackValue=12}"
-                                     ApplyParametersCommand="{Binding ApplyDashboardParametersCommand}"
-                                     BackCommand="{Binding DashboardBackCommand}"
-                                     GoToStepCommand="{Binding DashboardGoToStepCommand}"
-                                     SelectCardCommand="{Binding SelectDashboardCardCommand}"
-                                     AddCardCommand="{Binding AddDashboardCardCommand}"
-                                     StartDragCommand="{Binding StartDashboardDragCommand}"
-                                     DropCommand="{Binding DropDashboardCardCommand}" />
+                        <!-- ============ Dashboard (.schx) : grille + panneau du concepteur ============ -->
+                        <Grid ColumnDefinitions="*,Auto"
+                              ColumnSpacing="8"
+                              IsVisible="{Binding ActiveDocument.IsDashboardVisible, FallbackValue=False}">
+                            <c:DashboardView Session="{Binding ActiveDocument.Dashboard}"
+                                             RowCount="{Binding ActiveDocument.Dashboard.RowCount, FallbackValue=6}"
+                                             ColumnCount="{Binding ActiveDocument.Dashboard.ColumnCount, FallbackValue=12}"
+                                             ApplyParametersCommand="{Binding ApplyDashboardParametersCommand}"
+                                             BackCommand="{Binding DashboardBackCommand}"
+                                             GoToStepCommand="{Binding DashboardGoToStepCommand}"
+                                             SelectCardCommand="{Binding SelectDashboardCardCommand}"
+                                             AddCardCommand="{Binding AddDashboardCardCommand}"
+                                             StartDragCommand="{Binding StartDashboardDragCommand}"
+                                             DropCommand="{Binding DropDashboardCardCommand}" />
 
-                    <c:DashboardDesignerPanel Grid.Column="1"
-                                              WidthRequest="360"
-                                              Session="{Binding ActiveDocument.Dashboard}"
-                                              SyntaxConfiguration="{Binding SqlSyntaxConfiguration}"
-                                              EditorConfiguration="{Binding EditorConfiguration}"
-                                              Connection="{Binding ActiveConnection}"
-                                              RunCardCommand="{Binding RunDashboardCardCommand}"
-                                              DeleteCardCommand="{Binding DeleteDashboardCardCommand}"
-                                              MoveCardCommand="{Binding MoveDashboardCardCommand}"
-                                              ResizeCardCommand="{Binding ResizeDashboardCardCommand}"
-                                              OpenPageCommand="{Binding OpenDashboardDesignerPageCommand}"
-                                              AddPageCommand="{Binding AddDashboardPageCommand}"
-                                              DeletePageCommand="{Binding DeleteDashboardPageCommand}"
-                                              AddParameterCommand="{Binding AddDashboardParameterCommand}"
-                                              DeleteParameterCommand="{Binding DeleteDashboardParameterCommand}"
-                                              IsVisible="{Binding ActiveDocument.IsDashboardDesigning, FallbackValue=False}" />
-                </Grid>
-            </Grid>
+                            <c:DashboardDesignerPanel Grid.Column="1"
+                                                      WidthRequest="360"
+                                                      Session="{Binding ActiveDocument.Dashboard}"
+                                                      SyntaxConfiguration="{Binding SqlSyntaxConfiguration}"
+                                                      EditorConfiguration="{Binding EditorConfiguration}"
+                                                      Connection="{Binding ActiveConnection}"
+                                                      RunCardCommand="{Binding RunDashboardCardCommand}"
+                                                      DeleteCardCommand="{Binding DeleteDashboardCardCommand}"
+                                                      MoveCardCommand="{Binding MoveDashboardCardCommand}"
+                                                      ResizeCardCommand="{Binding ResizeDashboardCardCommand}"
+                                                      OpenPageCommand="{Binding OpenDashboardDesignerPageCommand}"
+                                                      AddPageCommand="{Binding AddDashboardPageCommand}"
+                                                      DeletePageCommand="{Binding DeleteDashboardPageCommand}"
+                                                      AddParameterCommand="{Binding AddDashboardParameterCommand}"
+                                                      DeleteParameterCommand="{Binding DeleteDashboardParameterCommand}"
+                                                      IsVisible="{Binding ActiveDocument.IsDashboardDesigning, FallbackValue=False}" />
+                        </Grid>
+                    </Grid>
+                </v:TabBar.DefaultContent>
+            </v:TabBar>
 
             <v:GridSplitter Grid.Row="1"
                             HeightRequest="2"

@@ -55,7 +55,9 @@ public partial class PickerField : InputField
         PickerView.SetBinding(Picker.TitleProperty, new Binding(nameof(Placeholder), source: this));
         PickerView.SetBinding(Picker.TitleColorProperty, new Binding(nameof(PlaceholderColor), source: this));
         PickerView.SetBinding(Picker.HorizontalTextAlignmentProperty, new Binding(nameof(HorizontalTextAlignment), source: this));
-        PickerView.SetBinding(Picker.HeightRequestProperty, new Binding(nameof(HeightRequest), source: this));
+
+        PickerView.SetBinding(Picker.FontSizeProperty, new Binding(nameof(FontSize), source: this));
+        PickerView.SetBinding(Picker.FontFamilyProperty, new Binding(nameof(FontFamily), source: this));
 
         RebuildEntries();
     }

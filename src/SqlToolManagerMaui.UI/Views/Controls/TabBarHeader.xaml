@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SqlToolManagerMaui.UI.Views.Controls.TabBarHeader"
+             x:DataType="v:TabBarItem"
+             x:Name="Root"
+             HorizontalOptions="Start"
+             VerticalOptions="Fill">
+
+    <ContentView.GestureRecognizers>
+        <PointerGestureRecognizer PointerEntered="OnPointerEntered"
+                                  PointerExited="OnPointerExited" />
+        <TapGestureRecognizer Tapped="OnTapped" />
+    </ContentView.GestureRecognizers>
+
+    <Border StrokeThickness="0"
+            BackgroundColor="Transparent"
+            ToolTipProperties.Text="{Binding ToolTip}">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="6,6,0,0" />
+        </Border.StrokeShape>
+
+        <!-- Survol puis selection : le dernier declencheur actif l'emporte -->
+        <Border.Triggers>
+            <DataTrigger TargetType="Border"
+                         Binding="{Binding IsPointerOver, Source={x:Reference Root}, x:DataType=v:TabBarHeader}"
+                         Value="True">
+                <Setter Property="BackgroundColor"
+                        Value="{StaticResource SubtleFillColorSecondary}" />
+            </DataTrigger>
+            <DataTrigger TargetType="Border"
+                         Binding="{Binding IsSelected}"
+                         Value="True">
+                <Setter Property="BackgroundColor"
+                        Value="{StaticResource ApplicationBackground}" />
+            </DataTrigger>
+        </Border.Triggers>
+
+        <Grid ColumnDefinitions="*,Auto"
+              ColumnSpacing="4"
+              Padding="14,0,8,0">
+
+            <Label Grid.Column="0"
+                   Text="{Binding Header}"
+                   Style="{StaticResource LabelStyle}"
+                   LineBreakMode="TailTruncation"
+                   MaximumWidthRequest="180"
+                   VerticalOptions="Fill" />
+
+            <!-- Pastille "modifie" et bouton fermer partagent le meme emplacement -->
+            <ImageButton Grid.Column="1"
+                         Style="{DynamicResource TextImageButtonStyle}"
+                         Source="{icons:FluentFilled Icon=Dismiss12Filled, IconSize=12}"
+                         Clicked="OnCloseClicked"/>
+        </Grid>
+    </Border>
+</ContentView>

@@ -13,28 +13,28 @@
                 <Label Text="Explorateur d'objets"
                        Style="{StaticResource LabelThirdHeaderStyle}"
                        VerticalOptions="Center" />
-                <Button Grid.Column="1"
-                        Style="{StaticResource TextButtonStyle}"
+                <ImageButton Grid.Column="1"
+                        Style="{StaticResource TextImageButtonStyle}"
                         Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
-                        ImageSource="{icons:FluentFilled Icon=Dismiss16Filled, IconSize=16}"
+                        Source="{icons:FluentFilled Icon=Dismiss16Filled, IconSize=16}"
                         ToolTipProperties.Text="Fermer l'explorateur" />
             </Grid>
 
             <Grid ColumnDefinitions="*,Auto"
                   Grid.Row="1">
                 <HorizontalStackLayout Spacing="4">
-                    <Button Style="{StaticResource PrimaryIconButtonStyle}"
-                            Command="{Binding AddConnectionCommand}"
-                            ImageSource="{icons:FluentFilled Icon=PlugConnectedAdd20Filled, IconSize=20}"
-                            ToolTipProperties.Text="Se connecter..." />
-                    <Button Style="{StaticResource SecondaryIconButtonStyle}"
-                            Command="{Binding RefreshCommand}"
-                            ImageSource="{icons:FluentFilled Icon=ArrowSync20Filled, IconSize=20}"
-                            ToolTipProperties.Text="Actualiser" />
-                    <Button Style="{StaticResource SecondaryIconButtonStyle}"
-                            Command="{Binding CollapseAllCommand}"
-                            ImageSource="{icons:FluentFilled Icon=ArrowCollapseAll20Filled, IconSize=20}"
-                            ToolTipProperties.Text="Reduire tout" />
+                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                                 Command="{Binding AddConnectionCommand}"
+                                 Source="{icons:FluentFilled Icon=PlugConnectedAdd20Filled, IconSize=20}"
+                                 ToolTipProperties.Text="Se connecter..." />
+                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                                 Command="{Binding RefreshCommand}"
+                                 Source="{icons:FluentFilled Icon=ArrowSync20Filled, IconSize=20}"
+                                 ToolTipProperties.Text="Actualiser" />
+                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                                 Command="{Binding CollapseAllCommand}"
+                                 Source="{icons:FluentFilled Icon=ArrowCollapseAll20Filled, IconSize=20}"
+                                 ToolTipProperties.Text="Reduire tout" />
                 </HorizontalStackLayout>
                 <HorizontalStackLayout Grid.Column="1"
                                        Spacing="4">
@@ -155,9 +155,9 @@
                                 <Ellipse.IsVisible>
                                     <MultiBinding Converter="{StaticResource IsAllTrueConverter}">
                                         <Binding Path="Connection.IsConnected" />
-                                        <Binding Path="Kind" 
+                                        <Binding Path="Kind"
                                                  Converter="{StaticResource IsEqualConverter}"
-                                                 ConverterParameter="Connection"/>
+                                                 ConverterParameter="Connection" />
                                     </MultiBinding>
                                 </Ellipse.IsVisible>
                             </Ellipse>

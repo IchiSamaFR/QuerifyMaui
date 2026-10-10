@@ -9,7 +9,10 @@
     <x:Double x:Key="XLCollectionSpacing">22</x:Double>
     <x:Double x:Key="XXLCollectionSpacing">26</x:Double>
 
-    <x:Double x:Key="DisabledOpacity">0.6</x:Double>
+    <x:Double x:Key="DisabledOpacity">0.5</x:Double>
+    <x:Double x:Key="PointerOverOpacity">0.8</x:Double>
+    <x:Double x:Key="PressedOpacity">0.7</x:Double>
+    
     <x:Double x:Key="FrontOpacity">1</x:Double>
 
     <x:Double x:Key="InputHeight">24</x:Double>

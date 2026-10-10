@@ -169,9 +169,22 @@ internal static class BorderlessHandlers
             handler.PlatformView.Background = null;
             handler.PlatformView.SetBackgroundColor(Android.Graphics.Color.Transparent);
             handler.PlatformView.SetPadding(0, 0, 0, 0);
+            if (handler.PlatformView.LayoutParameters is Android.Views.ViewGroup.MarginLayoutParams lp)
+            {
+                lp.SetMargins(0, 0, 0, 0);
+                handler.PlatformView.LayoutParameters = lp;
+            }
 #elif IOS || MACCATALYST
             handler.PlatformView.BorderStyle = UIKit.UITextBorderStyle.None;
             handler.PlatformView.BackgroundColor = UIKit.UIColor.Clear;
+            handler.PlatformView.LeftView = null;
+            handler.PlatformView.RightView = null;
+#elif WINDOWS
+            handler.PlatformView.Padding = new Microsoft.UI.Xaml.Thickness(8, 0, 8, 0);
+            handler.PlatformView.Margin = new Microsoft.UI.Xaml.Thickness(0);
+            handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+            handler.PlatformView.MinHeight = 0;
+            handler.PlatformView.Background = null;
 #endif
         });
 
@@ -216,7 +229,7 @@ internal static class BorderlessHandlers
     {
         textBox.MinHeight = 0;
         textBox.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-        textBox.Padding = new Microsoft.UI.Xaml.Thickness(8,0,8,0);
+        textBox.Padding = new Microsoft.UI.Xaml.Thickness(8, 0, 8, 0);
         textBox.VerticalContentAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center;
         textBox.Resources["TextControlThemeMinHeight"] = 0d;
         textBox.Resources["TextControlThemePadding"] = new Microsoft.UI.Xaml.Thickness(0);

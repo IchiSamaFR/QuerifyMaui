@@ -19,6 +19,7 @@
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/viewmodels", "SqlToolManagerMaui.UI.ViewModels")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.UI.Views")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.UI.Views.Controls")]
+[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.UI.Views.Controls.Layouts")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.UI.Views.Controls.Menus")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/attachments", "att")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/behaviors", "beh")]
@@ -26,4 +27,5 @@
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/inputs", "inp")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/views", "v")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/viewmodels", "vm")]
+[assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://www.aathifmahir.com/dotnet/2022/maui/icons", "icons")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("clr-namespace:MauiIcons.Core;assembly=MauiIcons.Core", "mi")]

@@ -9,9 +9,6 @@
     <!-- Le popup partage la cellule de l'editeur : ses coordonnees sont celles du controle -->
     <Grid RowDefinitions="Auto,*,Auto">
         <HorizontalStackLayout>
-            <ImageButton Source="{icons:FluentFilled Icon=Play12Filled, IconSize=16, IconColor={DynamicResource Primary}}"
-                         Style="{StaticResource TextImageButtonStyle}"/>
-
         </HorizontalStackLayout>
 
         <code:CodeEditor Grid.Row="1"
