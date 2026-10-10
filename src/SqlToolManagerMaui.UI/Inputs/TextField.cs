@@ -17,9 +17,9 @@ public partial class TextField : InputField
 
     public override View Content { get; set; } = new BorderlessEntry
     {
-        Margin = new Thickness(0, 0),
+        Margin = new Thickness(0),
         BackgroundColor = Colors.Transparent,
-        VerticalOptions = LayoutOptions.Start,
+        VerticalOptions = LayoutOptions.Fill,
         HorizontalOptions = LayoutOptions.Fill,
         VerticalTextAlignment = TextAlignment.Center,
     };

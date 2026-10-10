@@ -96,7 +96,7 @@
         <Setter Property="Padding"
                 Value="0" />
         <Setter Property="HeightRequest"
-                Value="36" />
+                Value="{DynamicResource ButtonHeight}" />
     </Style>
 
     <!-- ============ Button ============ -->
@@ -372,7 +372,7 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource TextButtonStyle}">
         <Setter Property="HeightRequest"
-                Value="36" />
+                Value="{DynamicResource ButtonHeight}" />
         <Setter Property="Padding"
                 Value="0" />
     </Style>

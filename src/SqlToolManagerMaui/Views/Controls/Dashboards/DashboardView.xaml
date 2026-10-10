@@ -14,7 +14,7 @@
                 BackgroundColor="{StaticResource WarningBackground}"
                 StrokeThickness="0"
                 StrokeShape="RoundRectangle 4"
-                Padding="12,8"
+                Padding="12,0"
                 IsVisible="{Binding Session.HasError, FallbackValue=False}">
             <Label Text="{Binding Session.Error, FallbackValue=''}"
                    TextColor="{StaticResource Warning}"
@@ -52,7 +52,6 @@
                 <Button Grid.Column="1"
                         Style="{StaticResource PrimaryButtonStyle}"
                         Text="Appliquer"
-                        ImageSource="{icons:FluentFilled Icon=ArrowSync20Filled, IconSize=16}"
                         Command="{Binding ApplyParametersCommand}"
                         VerticalOptions="End" />
             </Grid>

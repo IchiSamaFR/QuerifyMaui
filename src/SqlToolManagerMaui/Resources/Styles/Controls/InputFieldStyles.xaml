@@ -13,9 +13,9 @@
                 Value="True" />
         
         <Setter Property="FloatedTitleFontSize"
-                Value="{DynamicResource FontSize_Body}" />
+                Value="{DynamicResource FontSize_Caption}" />
         <Setter Property="TitleFontSize"
-                Value="{DynamicResource FontSize_Body}" />
+                Value="{DynamicResource FontSize_Caption}" />
         <Setter Property="TitleColor"
                 Value="{DynamicResource TextFillColorPrimary}" />
 

@@ -77,7 +77,7 @@
                     <c:FileTabControl ItemsSource="{Binding Documents}"
                                       SelectedItem="{Binding ActiveDocument}"
                                       CloseCommand="{Binding CloseCommand}"
-                                      NewCommand="{Binding NewCommand}" />
+                                      NewCommand="{Binding NewCommand}"/>
 
                     <HorizontalStackLayout Grid.Column="1"
                                            Spacing="8"
@@ -145,16 +145,16 @@
                             </Button>
                         </HorizontalStackLayout>
 
-                        <Picker ItemsSource="{Binding Connections}"
-                                SelectedItem="{Binding SelectedConnection}"
-                                ItemDisplayBinding="{Binding Name, x:DataType=m:DatabaseConnectionInfo}"
-                                WidthRequest="220" />
+                        <inp:PickerField ItemsSource="{Binding Connections}"
+                                         SelectedItem="{Binding SelectedConnection}"
+                                         DisplayMemberPath="Name"
+                                         HeightRequest="28"
+                                         WidthRequest="220" />
 
                         <Button Style="{StaticResource PrimaryIconButtonStyle}"
                                 Command="{Binding ExecuteQueryCommand}"
-                                ImageSource="{icons:FluentFilled Icon=Play16Filled, IconSize=16}"
-                                ToolTipProperties.Text="Disponible dans une prochaine version"
-                                Padding="-4,0,0,0" />
+                                ImageSource="{icons:FluentFilled Icon=Play16Filled, IconSize=14}"
+                                ToolTipProperties.Text="Disponible dans une prochaine version" />
                     </HorizontalStackLayout>
                 </Grid>
 

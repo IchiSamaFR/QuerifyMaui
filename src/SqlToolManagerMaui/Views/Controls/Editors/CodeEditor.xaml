@@ -7,8 +7,15 @@
              BackgroundColor="{DynamicResource ApplicationBackground}">
 
     <!-- Le popup partage la cellule de l'editeur : ses coordonnees sont celles du controle -->
-    <Grid RowDefinitions="*,Auto">
-        <code:CodeEditor x:Name="Native"
+    <Grid RowDefinitions="Auto,*,Auto">
+        <HorizontalStackLayout>
+            <ImageButton Source="{icons:FluentFilled Icon=Play12Filled, IconSize=16, IconColor={DynamicResource Primary}}"
+                         Style="{StaticResource TextImageButtonStyle}"/>
+
+        </HorizontalStackLayout>
+
+        <code:CodeEditor Grid.Row="1"
+                         x:Name="Native"
                          Background="Transparent"
                          BackgroundColor="Transparent"
                          ShowLineNumbers="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsLineDisplayed, x:DataType=c:CodeEditor}"
@@ -18,7 +25,7 @@
                          LineCommentPrefix="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=SyntaxConfiguration.Comments, x:DataType=c:CodeEditor}"
                          FontSize="{StaticResource FontSize_Normal}" />
 
-        <HorizontalStackLayout Grid.Row="1"
+        <HorizontalStackLayout Grid.Row="2"
                                Spacing="16"
                                Padding="8,0"
                                HorizontalOptions="End">

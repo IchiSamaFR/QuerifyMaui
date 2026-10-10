@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WinColor = Windows.UI.Color;
 using WinThickness = Microsoft.UI.Xaml.Thickness;
+using VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment;
 
 namespace SqlToolManagerMaui.UI.Inputs.Core;
 
@@ -78,6 +79,44 @@ public partial class ThemedPickerHandler
         comboBox.BorderThickness = new WinThickness(0);
         comboBox.Padding = new WinThickness(0);
         comboBox.MinHeight = 0;
+
+        // Hauteur et padding du template WinUI (min. 32) : sans ca, le texte est rogne dans un champ de 24.
+        resources["ComboBoxMinHeight"] = 0d;
+        resources["ComboBoxPadding"] = new WinThickness(0);
+        comboBox.Padding = new WinThickness(0);
+        comboBox.Margin = new WinThickness(0);
+        comboBox.BorderThickness = new WinThickness(0);
+        comboBox.VerticalAlignment = VerticalAlignment.Stretch;
+        comboBox.VerticalContentAlignment = VerticalAlignment.Stretch;
+        comboBox.Loaded += OnComboBoxLoaded;
+    }
+
+    /// <summary>Le ContentPresenter du template garde une marge verticale propre : on la retire une fois le template applique.</summary>
+    private static void OnComboBoxLoaded(object sender, RoutedEventArgs e)
+    {
+        var comboBox = (ComboBox)sender;
+        comboBox.Loaded -= OnComboBoxLoaded;
+
+        if (FindByName(comboBox, "ContentPresenter") is FrameworkElement presenter)
+        {
+            presenter.Margin = new WinThickness(0);
+            presenter.VerticalAlignment = VerticalAlignment.Stretch;
+        }
+    }
+
+    private static FrameworkElement? FindByName(DependencyObject root, string name)
+    {
+        for (var i = 0; i < Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is FrameworkElement { } element && element.Name == name)
+                return element;
+
+            if (FindByName(child, name) is { } found)
+                return found;
+        }
+
+        return null;
     }
 
     private static Microsoft.UI.Xaml.Media.SolidColorBrush WithOpacity(Microsoft.UI.Xaml.Media.SolidColorBrush brush, double opacity)

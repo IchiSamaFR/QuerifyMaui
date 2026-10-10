@@ -15,6 +15,8 @@
            ApplyToDerivedTypes="True">
         <Setter Property="HeightRequest"
                 Value="{DynamicResource ButtonHeight}" />
+        <Setter Property="MinimumWidthRequest"
+                Value="{DynamicResource ButtonHeight}" />
         <Setter Property="CornerRadius"
                 Value="{DynamicResource ControlCornerRadius}" />
         <Setter Property="DisabledOpacity"
@@ -96,7 +98,7 @@
         <Setter Property="Padding"
                 Value="0" />
         <Setter Property="HeightRequest"
-                Value="36" />
+                Value="{DynamicResource ButtonHeight}" />
     </Style>
 
     <!-- ============ Button ============ -->
@@ -286,14 +288,6 @@
            TargetType="Button"
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource PrimaryButtonStyle}">
-        <Setter Property="HeightRequest"
-                Value="32" />
-        <Setter Property="WidthRequest"
-                Value="32" />
-        <Setter Property="MinimumHeightRequest"
-                Value="-1" />
-        <Setter Property="MinimumWidthRequest"
-                Value="-1" />
         <Setter Property="Padding"
                 Value="0" />
         <Setter Property="Margin"
@@ -304,14 +298,6 @@
            TargetType="Button"
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource SecondaryButtonStyle}">
-        <Setter Property="HeightRequest"
-                Value="32" />
-        <Setter Property="WidthRequest"
-                Value="32" />
-        <Setter Property="MinimumHeightRequest"
-                Value="-1" />
-        <Setter Property="MinimumWidthRequest"
-                Value="-1" />
         <Setter Property="Padding"
                 Value="0" />
         <Setter Property="Margin"
@@ -322,14 +308,6 @@
            TargetType="Button"
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource OutlinedButtonStyle}">
-        <Setter Property="HeightRequest"
-                Value="32" />
-        <Setter Property="WidthRequest"
-                Value="32" />
-        <Setter Property="MinimumHeightRequest"
-                Value="-1" />
-        <Setter Property="MinimumWidthRequest"
-                Value="-1" />
         <Setter Property="Padding"
                 Value="0" />
         <Setter Property="Margin"
@@ -353,13 +331,9 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource TextButtonStyle}">
         <Setter Property="HeightRequest"
-                Value="32" />
+                Value="{DynamicResource ButtonHeight}" />
         <Setter Property="WidthRequest"
-                Value="32" />
-        <Setter Property="MinimumHeightRequest"
-                Value="-1" />
-        <Setter Property="MinimumWidthRequest"
-                Value="-1" />
+                Value="{DynamicResource ButtonHeight}" />
         <Setter Property="Padding"
                 Value="0" />
         <Setter Property="Margin"
@@ -372,9 +346,45 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource TextButtonStyle}">
         <Setter Property="HeightRequest"
-                Value="36" />
+                Value="{DynamicResource ButtonHeight}" />
         <Setter Property="Padding"
                 Value="0" />
+    </Style>
+    
+    <!-- ============ Image Button Styles ============ -->
+    <Style x:Key="PrimaryImageButtonStyle"
+           TargetType="ImageButton"
+           ApplyToDerivedTypes="True">
+        <Setter Property="Background"
+                Value="{DynamicResource Primary}" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource Primary}" />
+        <Setter Property="HeightRequest"
+                Value="{DynamicResource ButtonHeight}" />
+        <Setter Property="WidthRequest"
+                Value="{DynamicResource ButtonHeight}" />
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="Margin"
+                Value="0" />
+    </Style>
+    <Style x:Key="SecondaryImageButtonStyle"
+           TargetType="ImageButton"
+           BasedOn="{StaticResource PrimaryImageButtonStyle}"
+           ApplyToDerivedTypes="True">
+        <Setter Property="Background"
+                Value="{DynamicResource ButtonBackground}" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource ButtonBackground}" />
+    </Style>
+    <Style x:Key="TextImageButtonStyle"
+           TargetType="ImageButton"
+           ApplyToDerivedTypes="True"
+           BasedOn="{StaticResource PrimaryImageButtonStyle}">
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="BorderColor"
+                Value="Transparent" />
     </Style>
 
     <!-- ============ Styles par defaut ============ -->
@@ -384,4 +394,7 @@
     <Style TargetType="Button"
            BasedOn="{StaticResource SecondaryButtonStyle}" />
 
+    <Style TargetType="ImageButton"
+           BasedOn="{StaticResource SecondaryImageButtonStyle}" />
+    
 </ResourceDictionary>

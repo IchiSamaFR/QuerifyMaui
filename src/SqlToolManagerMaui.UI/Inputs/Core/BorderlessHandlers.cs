@@ -27,6 +27,8 @@ internal static class BorderlessHandlers
 #elif IOS || MACCATALYST
             handler.PlatformView.BorderStyle = UIKit.UITextBorderStyle.None;
             handler.PlatformView.BackgroundColor = UIKit.UIColor.Clear;
+#elif WINDOWS
+            ApplyWindowsCompactTextBox(handler.PlatformView);
 #endif
         });
 
@@ -206,6 +208,20 @@ internal static class BorderlessHandlers
     }
 
 #if WINDOWS
+    /// <summary>
+    /// Le TextBox WinUI impose une hauteur min. (32) et un padding vertical : sous 32 de haut,
+    /// le texte est rogne/decale. On les annule pour laisser le champ piloter la hauteur.
+    /// </summary>
+    private static void ApplyWindowsCompactTextBox(Microsoft.UI.Xaml.Controls.TextBox textBox)
+    {
+        textBox.MinHeight = 0;
+        textBox.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+        textBox.Padding = new Microsoft.UI.Xaml.Thickness(8,0,8,0);
+        textBox.VerticalContentAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center;
+        textBox.Resources["TextControlThemeMinHeight"] = 0d;
+        textBox.Resources["TextControlThemePadding"] = new Microsoft.UI.Xaml.Thickness(0);
+    }
+
     /// <summary>
     /// Surcharge la ressource WinUI qui pilote la bordure du TextBox en focus (accent systeme par
     /// defaut). Les ressources sont posees sur le controle lui-meme : elles priment sur celles de
