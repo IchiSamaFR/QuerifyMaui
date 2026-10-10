@@ -8,9 +8,8 @@ namespace SqlToolManagerMaui.Services.Editors;
 [AutoRegister(As = typeof(IEditorFileService))]
 public sealed class EditorFileService : IEditorFileService
 {
-    // UTF-8 sans BOM : SQL Server Management Studio et les outils en ligne de commande
-    // n'aiment pas la marque d'ordre sur un .sql.
-    private static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
+    // Avec BOM : sans lui, Notepad devine l'encodage et lit les accents en ANSI.
+    private static readonly UTF8Encoding Utf8Bom = new(encoderShouldEmitUTF8Identifier: true);
 
     private static readonly FilePickerFileType TextFileTypes = new(
         new Dictionary<DevicePlatform, IEnumerable<string>>
@@ -44,11 +43,11 @@ public sealed class EditorFileService : IEditorFileService
     }
 
     public Task SaveAsync(string filePath, string text, CancellationToken cancellationToken = default)
-        => File.WriteAllTextAsync(filePath, text, Utf8NoBom, cancellationToken);
+        => File.WriteAllTextAsync(filePath, text, Utf8Bom, cancellationToken);
 
     public async Task<string?> SaveAsAsync(string suggestedFileName, string text, CancellationToken cancellationToken = default)
     {
-        using var stream = new MemoryStream(Utf8NoBom.GetBytes(text));
+        using var stream = new MemoryStream([.. Utf8Bom.GetPreamble(), .. Utf8Bom.GetBytes(text)]);
         var result = await FileSaver.Default.SaveAsync(suggestedFileName, stream, cancellationToken);
 
         return result.IsSuccessful ? result.FilePath : null;
