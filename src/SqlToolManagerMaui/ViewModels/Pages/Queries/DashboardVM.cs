@@ -75,7 +75,7 @@ public partial class DashboardVM : ObservableObject
     private void New()
     {
         _untitledCount++;
-        var definition = DashboardDefinition.CreateEmpty(_workspace.SelectedConnection?.Name, database: null);
+        var definition = DashboardDefinition.CreateEmpty(_workspace.Connection.ActiveConnection?.Name, database: null);
 
         // Texte « enregistre » vide : l'onglet reste modifie tant qu'il n'a pas ete enregistre.
         var document = new EditorDocument($"Dashboard {_untitledCount.ToString(CultureInfo.InvariantCulture)}", filePath: null, fileText: string.Empty, SyntaxLanguage.None, DocumentKind.Dashboard)
@@ -95,11 +95,8 @@ public partial class DashboardVM : ObservableObject
 
         Load(document, force: true);
 
-        if (document.Dashboard.Definition?.Connection is { } name
-            && _workspace.Connections.FirstOrDefault(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase)) is { } connection)
-        {
-            _workspace.SelectedConnection = connection;
-        }
+        if (document.Dashboard.Definition?.Connection is { } name)
+            _workspace.Connection.SelectByName(name);
 
         Status.Set(document.Dashboard.HasError
             ? $"{document.FileName} : fichier invalide, corrigez-le dans la vue Source."
@@ -307,7 +304,7 @@ public partial class DashboardVM : ObservableObject
 
     private async Task<DatabaseConnectionInfo> OpenConnectionAsync(CancellationToken token)
     {
-        var connection = _workspace.SelectedConnection
+        var connection = _workspace.Connection.ActiveConnection
             ?? throw new InvalidOperationException("Choisissez une connexion pour alimenter les cartes.");
 
         if (!await _connectionStore.OpenConnectionAsync(connection, token))

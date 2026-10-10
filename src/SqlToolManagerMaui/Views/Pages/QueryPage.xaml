@@ -29,8 +29,8 @@
                            Language="{Binding ActiveDocument.Language, FallbackValue={x:Static en:SyntaxLanguage.Sql}}"
                            SetLanguageCommand="{Binding SetLanguageCommand}" />
 
-        <c:QueryMenuBarItem ExecuteCommand="{Binding ExecuteQueryCommand}"
-                            DisconnectCommand="{Binding DisconnectCommand}" />
+        <c:QueryMenuBarItem ExecuteCommand="{Binding Execution.ExecuteQueryCommand}"
+                            DisconnectCommand="{Binding Connection.DisconnectCommand}" />
     </ContentPage.MenuBarItems>
 
     <Grid ColumnDefinitions="340,Auto,*"
@@ -146,14 +146,14 @@
                             </Button>
                         </HorizontalStackLayout>
 
-                        <inp:PickerField ItemsSource="{Binding Connections}"
-                                         SelectedItem="{Binding SelectedConnection}"
+                        <inp:PickerField ItemsSource="{Binding Connection.Connections}"
+                                         SelectedItem="{Binding Connection.SelectedConnection}"
                                          DisplayMemberPath="Name"
                                          WidthRequest="220"
                                          FontSize="{StaticResource FontSize_Caption}" />
 
                         <ImageButton Style="{StaticResource PrimaryImageButtonStyle}"
-                                     Command="{Binding ExecuteQueryCommand}"
+                                     Command="{Binding Execution.ExecuteQueryCommand}"
                                      Source="{icons:FluentFilled Icon=Play16Filled, IconSize=14}"
                                      ToolTipProperties.Text="Disponible dans une prochaine version" />
                     </HorizontalStackLayout>
@@ -174,7 +174,7 @@
                                           Selection="{Binding ActiveDocument.Selection}"
                                           EditorConfiguration="{Binding Preferences.EditorConfiguration}"
                                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
-                                          Connection="{Binding ActiveConnection}"
+                                          Connection="{Binding Connection.ActiveConnection}"
                                           IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
                         </Border>
 
@@ -198,7 +198,7 @@
                                                       Session="{Binding ActiveDocument.Dashboard}"
                                                       SyntaxConfiguration="{Binding SqlSyntaxConfiguration}"
                                                       EditorConfiguration="{Binding Preferences.EditorConfiguration}"
-                                                      Connection="{Binding ActiveConnection}"
+                                                      Connection="{Binding Connection.ActiveConnection}"
                                                       RunCardCommand="{Binding Dashboard.RunCardCommand}"
                                                       DeleteCardCommand="{Binding Dashboard.DeleteCardCommand}"
                                                       MoveCardCommand="{Binding Dashboard.MoveCardCommand}"
@@ -226,7 +226,7 @@
                 <c:QueryResultsPanel Grid.Row="0"
                                      Result="{Binding ActiveDocument.LastResult}"
                                      IsExecuting="{Binding ActiveDocument.IsExecuting}"
-                                     CloseCommand="{Binding CloseResultsCommand}" />
+                                     CloseCommand="{Binding Execution.CloseResultsCommand}" />
 
                 <!-- ============ Barre d'etat ============ -->
                 <Grid Grid.Row="1"

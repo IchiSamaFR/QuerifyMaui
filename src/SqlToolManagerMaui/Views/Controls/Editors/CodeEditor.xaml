@@ -3,14 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:code="clr-namespace:CodeEdit.Maui;assembly=CodeEdit.Maui"
              x:Class="SqlToolManagerMaui.Views.Controls.Editors.CodeEditor"
-             Background="{DynamicResource ApplicationBackground}"
-             BackgroundColor="{DynamicResource ApplicationBackground}">
+             Background="{DynamicResource CardBackground}"
+             BackgroundColor="{DynamicResource CardBackground}">
 
     <!-- Le popup partage la cellule de l'editeur : ses coordonnees sont celles du controle -->
     <Grid RowDefinitions="*,Auto">
         <code:CodeEditor Grid.Row="0"
                          x:Name="Native"
-                         Background="Transparent"
+                         Background="{DynamicResource CardBackground}"
                          BackgroundColor="Transparent"
                          ShowLineNumbers="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsLineDisplayed, x:DataType=c:CodeEditor}"
                          WordWrap="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorConfiguration.IsWordWrapped, x:DataType=c:CodeEditor}"

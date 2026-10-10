@@ -14,7 +14,6 @@
     </ContentView.GestureRecognizers>
 
     <Border StrokeThickness="0"
-            BackgroundColor="Transparent"
             ToolTipProperties.Text="{Binding ToolTip}">
         <Border.StrokeShape>
             <RoundRectangle CornerRadius="6,6,0,0" />
@@ -25,14 +24,21 @@
             <DataTrigger TargetType="Border"
                          Binding="{Binding IsPointerOver, Source={x:Reference Root}, x:DataType=v:TabBarHeader}"
                          Value="True">
-                <Setter Property="BackgroundColor"
-                        Value="{StaticResource SubtleFillColorSecondary}" />
+                <Setter Property="Opacity"
+                        Value="{DynamicResource PointerOverOpacity}" />
             </DataTrigger>
             <DataTrigger TargetType="Border"
                          Binding="{Binding IsSelected}"
                          Value="True">
                 <Setter Property="BackgroundColor"
-                        Value="{StaticResource ApplicationBackground}" />
+                        Value="{DynamicResource CardBackground}" />
+            </DataTrigger>
+
+            <DataTrigger TargetType="Border"
+                         Binding="{Binding IsSelected}"
+                         Value="False">
+                <Setter Property="Background"
+                        Value="{DynamicResource ApplicationBackgroundBrush}" />
             </DataTrigger>
         </Border.Triggers>
 
@@ -51,7 +57,7 @@
             <ImageButton Grid.Column="1"
                          Style="{DynamicResource TextImageButtonStyle}"
                          Source="{icons:FluentFilled Icon=Dismiss12Filled, IconSize=12}"
-                         Clicked="OnCloseClicked"/>
+                         Clicked="OnCloseClicked" />
         </Grid>
     </Border>
 </ContentView>

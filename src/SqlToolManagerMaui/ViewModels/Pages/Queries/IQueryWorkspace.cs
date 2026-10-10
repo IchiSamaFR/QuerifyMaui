@@ -1,5 +1,4 @@
-﻿using SqlToolManagerMaui.Core.Models.Databases.Connections;
-using SqlToolManagerMaui.Core.Models.Editors;
+﻿using SqlToolManagerMaui.Core.Models.Editors;
 using System.Collections.ObjectModel;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Queries;
@@ -11,9 +10,7 @@ public interface IQueryWorkspace
 
     EditorDocument? ActiveDocument { get; set; }
 
-    IReadOnlyList<DatabaseConnectionInfo> Connections { get; }
-
-    DatabaseConnectionInfo? SelectedConnection { get; set; }
+    QueryConnectionVM Connection { get; }
 
     StatusBarVM Status { get; }
 

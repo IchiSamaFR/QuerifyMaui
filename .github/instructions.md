@@ -85,7 +85,7 @@ SqlToolManagerMaui/
 │   │   │   ├── AbstractVM.cs                   # Base : navigation, chargement
 │   │   │   ├── AbstractVM_Busy.cs              # Base : gestion des tâches / IsBusy
 │   │   │   ├── ShellVM.cs                      # État du rail de navigation
-│   │   │   └── Pages/                          # QueryVM, Queries/ (DashboardVM, EditorPreferencesVM, StatusBarVM, IQueryWorkspace), Connections/ (ConnectionExplorerVM, ConnectionEditorVM)
+│   │   │   └── Pages/                          # QueryVM, Queries/ (QueryConnectionVM, QueryExecutionVM, DashboardVM, EditorPreferencesVM, StatusBarVM, IQueryWorkspace), Connections/ (ConnectionExplorerVM, ConnectionEditorVM)
 │   │   ├── Views/
 │   │   │   ├── Pages/                          # AbstractPage + pages de l'app
 │   │   │   └── Controls/                       # NavigationRail + Editors/ (menus, onglets)
@@ -277,9 +277,9 @@ Lors de la création d'une feature :
 
 ### Exécution des requêtes
 
-* `QueryVM.ExecuteQueryCommand` (async, `IncludeCancelCommand`) : texte = `Selection.SelectedText` s'il n'est pas vide, sinon `ActiveDocument.EditorText`. Volontairement **hors** `RunAsBusyAsync`, qui désactiverait la page et donc le bouton Annuler.
-* `QueryVM` exécute via `IQueryExecutorResolver.Resolve(document.Language)` : il ne connaît aucun langage en particulier.
-* `QueryVM` est découpé en sous-VM (`ViewModels/Pages/Queries/`) exposés en propriétés (`Dashboard`, `Preferences`, `Status`) et liés en XAML par `{Binding Dashboard.XxxCommand}`. Ce sont des `ObservableObject` (pas des `AbstractVM`, réservé aux pages), injectés en `Transient` ; ils accèdent à l'état partagé (onglets, connexion, barre d'état, `LifetimeToken`, `RunAsBusyAsync` / `StartAsBusy`) via `IQueryWorkspace`, implémenté par `QueryVM` et passé par `Attach`.
+* `QueryExecutionVM.ExecuteQueryCommand` (async, `IncludeCancelCommand`) : texte = `Selection.SelectedText` s'il n'est pas vide, sinon `ActiveDocument.EditorText`. Volontairement **hors** `RunAsBusyAsync`, qui désactiverait la page et donc le bouton Annuler.
+* `QueryExecutionVM` exécute via `IQueryExecutorResolver.Resolve(document.Language)` : il ne connaît aucun langage en particulier.
+* `QueryVM` est découpé en sous-VM (`ViewModels/Pages/Queries/`) exposés en propriétés (`Connection`, `Execution`, `Dashboard`, `Preferences`, `Status`) et liés en XAML par `{Binding Dashboard.XxxCommand}`. Ce sont des `ObservableObject` (pas des `AbstractVM`, réservé aux pages), injectés en `Transient` ; ils accèdent à l'état partagé (onglets, connexion, barre d'état, `LifetimeToken`, `RunAsBusyAsync` / `StartAsBusy`) via `IQueryWorkspace`, implémenté par `QueryVM` et passé par `Attach`. `QueryVM` câble les dépendances croisées : un changement d'onglet actif ou de connexion (`QueryConnectionVM.SelectedConnectionChanged`) rafraîchit `Execution.RefreshCanExecute()` et les cartes du dashboard.
 * **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(ISqlProviderExecutor))]` dans `Languages.Sql/[Moteur]/` ; `SqlQueryExecutor` le découvre seul.
 * `SqlServerQueryExecutor` (`Languages.Sql/SqlServer/`) : une connexion par exécution (pas de session conservée entre deux F5), `CommandTimeout = 0`, lots `GO` / `GO n` découpés par `SqlBatchSplitter` (ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script exécuté. Les erreurs SQL sont rendues dans les messages, pas levées.
 * Plafond de `QueryExecutionLimits.MaxRowsPerResultSet` (`Languages.Commons`, 10 000) lignes par jeu, cellules converties en texte côté service (NULL = `null`).
@@ -303,7 +303,7 @@ Lors de la création d'une feature :
 * Toutes les écritures passent par un sémaphore, le fichier est réécrit en entier.
 * **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(IConnectionTester))]` dans `Databases/[Moteur]/` ; `ConnectionTesterResolver` le découvre seul.
 * La popup « Se connecter » (`ConnectionEditorPopup` + `ConnectionEditorVM`, transient) travaille sur un `DatabaseConnectionDraft` (clone) pour qu'« Annuler » ne modifie rien. Elle est ouverte par `IConnectionDialogService.EditAsync` et fermée par le VM via `IPopupService.ClosePopupAsync(shell, Guid?)` (Id enregistré, ou null).
-* Après un ajout / une modification / une suppression, `ConnectionsChangedMessage` est publié (WeakReferenceMessenger) : `QueryVM` recharge son Picker.
+* Après un ajout / une modification / une suppression, `ConnectionsChangedMessage` est publié (WeakReferenceMessenger) : `QueryConnectionVM` recharge son Picker.
 * **Explorateur** : `ConnectionExplorerVM` garde l'arbre (`Roots`), affiché par le contrôle générique `v:TreeView` de `SqlToolManagerMaui.UI/Views` (MAUI n'en fournit pas) : nœuds imbriqués, `ChildrenPath` / `IsExpandedPath` / `CanExpandPath`, `ExpandingCommand` appelé à chaque ouverture pour le chargement paresseux. Aucun `ExplorerNode` ne porte la chaîne : elle est relue dans le coffre à chaque chargement. Une erreur de chargement devient un nœud « Erreur : ... ».
 * **Catalogue d'un moteur** = une classe `[AutoRegister(As = typeof(IDatabaseSchemaReader))]` dans `Databases/[Moteur]/` (résolu par `DatabaseSchemaReaderResolver`), sur le modèle des testeurs.
 
@@ -311,7 +311,7 @@ Lors de la création d'une feature :
 
 * `UserPreferences` (`Core/Models/Settings/`) : fichiers récents (10 max, du plus récent au plus ancien, sans doublon) et options d'affichage de l'éditeur (`EditorConfiguration`).
 * Persistées par `IUserPreferencesStore` (`Services/Settings/`) dans `preferences.json` (AppDataDirectory, écriture atomique, sémaphore). `GetAsync` / `UpdateAsync` rendent une copie : modifier le résultat n'enregistre rien.
-* `QueryVM` (partie `QueryVM.Preferences.cs`) charge les préférences dans `LoadDatasBusyAsync`, enregistre à chaque changement d'`EditorConfiguration` et ajoute un fichier aux récents à l'ouverture et à l'« Enregistrer sous ». Un récent introuvable est retiré de la liste.
+* `EditorPreferencesVM` charge les préférences (appelé par `QueryVM.LoadDatasBusyAsync`), enregistre à chaque changement d'`EditorConfiguration` et ajoute un fichier aux récents à l'ouverture et à l'« Enregistrer sous ». Un récent introuvable est retiré de la liste.
 * Menu Fichier > Fichiers récents : `MenuFlyoutSubItem` sans ItemsSource, reconstruit en code par `FileMenuBarItem` à chaque changement de `RecentFiles`.
 * Dossier nommé `Settings` (et non `Preferences`) pour ne pas masquer `Microsoft.Maui.Storage.Preferences`.
 

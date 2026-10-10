@@ -3,12 +3,9 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Queries;
-using SqlToolManagerMaui.Languages.Queries;
-using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.UI.ViewModels;
@@ -21,16 +18,13 @@ namespace SqlToolManagerMaui.ViewModels.Pages;
 /// Editeur de texte multi-onglets (facon Notepad) pose sur CodeEdit.Maui.
 /// Chaque onglet est un <see cref="EditorDocument"/> ; la page n'affiche qu'un seul
 /// <c>CodeEditor</c>, dont la propriete Document suit <see cref="ActiveDocument"/>.
-/// L'execution porte sur le texte selectionne, ou sur tout le document a defaut, et son
-/// resultat est range sur l'onglet d'origine.
+/// Les autres responsabilites sont deleguees aux sous-VM de <c>Queries/</c>.
 /// </summary>
 [AutoRegister]
 public partial class QueryVM : AbstractVM, IQueryWorkspace
 {
     private readonly IEditorFileService _files;
-    private readonly IConnectionStore _connectionStore;
     private readonly ISyntaxConfigurationStore _syntaxConfigurations;
-    private readonly IQueryExecutorResolver _executors;
 
     /// <summary>Compteur des documents "Sans titre" ouverts depuis le demarrage.</summary>
     private int _untitledCount;
@@ -39,29 +33,17 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     public ObservableCollection<EditorDocument> Documents { get; } = new();
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ExecuteQueryCommand))]
     [NotifyPropertyChangedFor(nameof(SyntaxConfiguration))]
     public partial EditorDocument? ActiveDocument { get; set; }
 
-    /// <summary>Connexions proposees pour l'execution : les instances partagees du store.</summary>
-    [ObservableProperty]
-    public partial List<DatabaseConnectionInfo> Connections { get; set; } = [];
-
-    /// <summary>Element selectionne dans le Picker ; null = aucune connexion (Title du Picker).</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ActiveConnection))]
-    [NotifyPropertyChangedFor(nameof(IsConnected))]
-    [NotifyCanExecuteChangedFor(nameof(DisconnectCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ExecuteQueryCommand))]
-    public partial DatabaseConnectionInfo? SelectedConnection { get; set; }
-
-    /// <summary>Connexion reellement retenue, ou null si l'utilisateur est deconnecte.</summary>
-    public DatabaseConnectionInfo? ActiveConnection => SelectedConnection;
-
-    public bool IsConnected => ActiveConnection is not null;
-
     /// <summary>Barre d'etat (enregistrement, erreur d'ouverture...).</summary>
     public StatusBarVM Status { get; }
+
+    /// <summary>Connexion choisie dans le Picker.</summary>
+    public QueryConnectionVM Connection { get; }
+
+    /// <summary>Execution de la selection ou du document, et panneau de resultats.</summary>
+    public QueryExecutionVM Execution { get; }
 
     /// <summary>Onglets .schx : consultation et concepteur.</summary>
     public DashboardVM Dashboard { get; }
@@ -69,11 +51,7 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     /// <summary>Fichiers recents, explorateur et options d'edition.</summary>
     public EditorPreferencesVM Preferences { get; }
 
-    IReadOnlyList<DatabaseConnectionInfo> IQueryWorkspace.Connections => Connections;
-
     CancellationToken IQueryWorkspace.LifetimeToken => LifetimeToken;
-
-    // ---------- Barre d'etat ----------
 
     /// <summary>Configurations de tous les langages, chargees une fois : changer d'onglet ne relit aucun .xshd.</summary>
     private readonly Dictionary<SyntaxLanguage, SyntaxConfiguration> _syntaxByLanguage = [];
@@ -85,22 +63,24 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     /// <summary>Coloration SQL, quel que soit l'onglet actif (requetes des cartes du dashboard).</summary>
     public SyntaxConfiguration? SqlSyntaxConfiguration => _syntaxByLanguage.GetValueOrDefault(SyntaxLanguage.Sql);
 
-    public QueryVM(IEditorFileService files, IConnectionStore connectionStore, ISyntaxConfigurationStore syntaxConfigurations, IQueryExecutorResolver executors, StatusBarVM status, DashboardVM dashboard, EditorPreferencesVM preferences)
+    public QueryVM(IEditorFileService files, ISyntaxConfigurationStore syntaxConfigurations, StatusBarVM status, QueryConnectionVM connection, QueryExecutionVM execution, DashboardVM dashboard, EditorPreferencesVM preferences)
     {
-        // En premier : l'abonnement au store peut deja rappeler la page.
-        Status = status;
-        Dashboard = dashboard;
-        Dashboard.Attach(this);
-        Preferences = preferences;
-        Preferences.Attach(this);
-
         _files = files;
-        _connectionStore = connectionStore;
-        _connectionStore.Subscribe(ApplyConnections);
         _syntaxConfigurations = syntaxConfigurations;
-        _executors = executors;
 
-        // Ajout, modification ou suppression depuis l'explorateur : le Picker suit le coffre.
+        Status = status;
+        Connection = connection;
+        Execution = execution;
+        Dashboard = dashboard;
+        Preferences = preferences;
+
+        Execution.Attach(this);
+        Dashboard.Attach(this);
+        Preferences.Attach(this);
+        Connection.SelectedConnectionChanged += OnSelectedConnectionChanged;
+        // En dernier : l'abonnement au store peut deja rappeler la page.
+        Connection.Attach(this);
+
         WeakReferenceMessenger.Default.Register<QueryVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
     }
 
@@ -119,109 +99,22 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
         }
 
         await Preferences.LoadAsync(LifetimeToken);
-        await ReloadConnectionsAsync();
+        await Connection.RefreshAsync(LifetimeToken);
 
         if (Documents.Count == 0)
             New();
-    }
-
-    private async Task ReloadConnectionsAsync()
-    {
-        await _connectionStore.RefreshAsync(LifetimeToken);
     }
 
     /// <summary>Ferme l'application (entree Fichier > Quitter).</summary>
     [RelayCommand]
     private static void Quit() => Application.Current?.Quit();
 
-    // ---------- Connexion ----------
+    partial void OnActiveDocumentChanged(EditorDocument? value) => Execution.RefreshCanExecute();
 
-    private void ApplyConnections(IReadOnlyList<DatabaseConnectionInfo> connections)
+    private void OnSelectedConnectionChanged(object? sender, EventArgs e)
     {
-        var selectedConnectionId = SelectedConnection?.Id;
-
-        Connections = connections.ToList();
-
-        if (selectedConnectionId is not null)
-            SelectedConnection = Connections.FirstOrDefault(c => c.Id == selectedConnectionId) ?? SelectedConnection;
-    }
-
-    /// <summary>Reinitialise la selection du Picker (aucune connexion).</summary>
-    [RelayCommand(CanExecute = nameof(IsConnected))]
-    private void Disconnect()
-    {
-        SelectedConnection = null;
-    }
-
-    partial void OnSelectedConnectionChanged(DatabaseConnectionInfo? value)
-    {
-        Status.Set(ActiveConnection is null
-            ? "Deconnecte."
-            : $"Connexion active : {ActiveConnection.Name}.");
-
-        if (ActiveConnection != null)
-            _connectionStore.OpenConnectionAsync(ActiveConnection);
-
+        Execution.RefreshCanExecute();
         Dashboard.OnConnectionChanged();
-    }
-
-    // ---------- Execution ----------
-
-    private bool CanExecuteQuery() => IsConnected && ActiveDocument is { IsDashboard: false };
-
-    /// <summary>
-    /// Execute la selection, ou tout le document si rien n'est selectionne.
-    /// Volontairement hors RunAsBusyAsync : la page doit rester active pour pouvoir annuler.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanExecuteQuery), IncludeCancelCommand = true)]
-    private async Task ExecuteQueryAsync(CancellationToken token)
-    {
-        var document = ActiveDocument;
-        var connection = ActiveConnection;
-        if (document is null || connection is null)
-            return;
-
-        var selectedText = document.Selection.SelectedText;
-        var isSelection = !string.IsNullOrWhiteSpace(selectedText);
-        var script = isSelection ? selectedText : document.EditorText;
-        if (string.IsNullOrWhiteSpace(script))
-        {
-            Status.Set("Rien à exécuter : le document est vide.", isError: true);
-            return;
-        }
-
-        document.LastResult = null;
-        document.IsExecuting = true;
-        Status.Set(isSelection
-            ? $"Exécution de la sélection sur {connection.Name}..."
-            : $"Exécution sur {connection.Name}...");
-
-        try
-        {
-            // Ouverture a la demande : la connexion est partagee avec l'explorateur.
-            if (!await _connectionStore.OpenConnectionAsync(connection, token))
-            {
-                Status.Set($"La chaîne de connexion de {connection.Name} est introuvable : réenregistrez-la depuis la page Connexions.", isError: true);
-                return;
-            }
-
-            // LINQ : la premiere execution sur une base genere et compile son DbContext (quelques secondes).
-            var result = await _executors.Resolve(document.Language).ExecuteAsync(connection, script, token);
-            document.LastResult = result;
-            Status.Set(result.StatusLabel, isError: result.HasErrors || result.WasCancelled);
-        }
-        catch (OperationCanceledException)
-        {
-            Status.Set("Exécution annulée.", isError: true);
-        }
-        catch (Exception ex)
-        {
-            Status.Set($"Échec de l'exécution : {ex.Message}", isError: true);
-        }
-        finally
-        {
-            document.IsExecuting = false;
-        }
     }
 
     // ---------- Insertion depuis l'explorateur ----------
@@ -236,7 +129,7 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
         if (ActiveDocument is not { } document)
             return;
 
-        SelectedConnection = Connections.FirstOrDefault(c => c.Id == message.Connection.Id) ?? SelectedConnection;
+        Connection.Select(message.Connection.Id);
 
         var text = document.EditorText ?? string.Empty;
         var newLine = text.Contains("\r\n") ? "\r\n" : text.Contains('\r') ? "\r" : Environment.NewLine;
@@ -252,13 +145,5 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
         // Selection d'abord : l'editeur la restaure apres le changement de texte (curseur apres la requete).
         selection.Anchor = selection.Active = start + query.Length;
         document.EditorText = text[..start] + query + text[end..];
-    }
-
-    /// <summary>Masque le panneau de resultats de l'onglet courant.</summary>
-    [RelayCommand]
-    private void CloseResults()
-    {
-        if (ActiveDocument is { IsExecuting: false } document)
-            document.LastResult = null;
     }
 }
