@@ -69,6 +69,36 @@ public class LinqCompletionEngineTests
         Assert.Contains(items, i => i.InsertText == "Now");
     }
 
+    [Fact]
+    public async Task StartOfExpression_OnlyQueryUsefulItems()
+    {
+        var items = await CompleteAsync("|");
+
+        Assert.Contains(items, i => i.InsertText == "RaveOnDb");
+        Assert.Contains(items, i => i.InsertText == "new" && i.Kind == "Keyword");
+        Assert.Contains(items, i => i.InsertText == "DateTime");
+        Assert.DoesNotContain(items, i => i.Kind == "Namespace");
+        Assert.DoesNotContain(items, i => i.InsertText is "System" or "__context" or "__dump" or "UserQuery");
+    }
+
+    [Fact]
+    public async Task Context_HidesDbContextPlumbing()
+    {
+        var items = await CompleteAsync("RaveOnDb.|");
+
+        Assert.Contains(items, i => i.InsertText == "AspNetUsers");
+        Assert.DoesNotContain(items, i => i.InsertText is "SaveChanges" or "ChangeTracker" or "Database" or "GetHashCode");
+    }
+
+    [Fact]
+    public async Task Queryable_HidesAsyncAndObjectMembers()
+    {
+        var items = await CompleteAsync("RaveOnDb.AspNetUsers.|");
+
+        Assert.Contains(items, i => i.InsertText == "Where");
+        Assert.DoesNotContain(items, i => i.InsertText is "ToListAsync" or "Equals" or "GetType");
+    }
+
     private static Task<IReadOnlyList<LinqCompletionCandidate>> CompleteAsync(string queryWithCaret)
     {
         var caret = queryWithCaret.IndexOf('|', StringComparison.Ordinal);

@@ -73,7 +73,12 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
         var position = queryStart + Math.Clamp(caretOffset, 0, query.Length);
         var list = await service.GetCompletionsAsync(document, position, cancellationToken: cancellationToken);
 
+        // Roslyn propose tout ce qui est visible (System.Security, System.IO, snippets...) :
+        // on ne garde que ce qui sert a ecrire une requete EF.
+        var filter = new LinqCompletionFilter(model?.Model, MemberAccessTarget(source, list.Span.Start));
+
         return list.ItemsList
+            .Where(item => filter.Keeps(item.DisplayText, KindOf(item.Tags)))
             .Select(item => new LinqCompletionCandidate(
                 item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix,
                 item.DisplayText,
@@ -103,6 +108,30 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
             var (source, _) = LinqCompiler.BuildQuerySource(model?.Model, string.Empty);
             return _workspace.AddDocument(projectId, "requete.cs", SourceText.From(source)).Id;
         }
+    }
+
+    /// <summary>
+    /// Expression avant le "." qui precede le mot complete : son dernier identifiant ("RaveOnDb", "u"),
+    /// chaine vide si c'est autre chose (appel, indexeur) ; null hors acces membre.
+    /// </summary>
+    private static string? MemberAccessTarget(string source, int wordStart)
+    {
+        var i = wordStart - 1;
+        while (i >= 0 && char.IsWhiteSpace(source[i]))
+            i--;
+
+        if (i < 0 || source[i] != '.')
+            return null;
+
+        i--;
+        while (i >= 0 && char.IsWhiteSpace(source[i]))
+            i--;
+
+        var end = i + 1;
+        while (i >= 0 && (char.IsLetterOrDigit(source[i]) || source[i] == '_'))
+            i--;
+
+        return source[(i + 1)..end];
     }
 
     private static string KindOf(ImmutableArray<string> tags)

@@ -42,14 +42,14 @@
                                 </DataTrigger>
                             </Grid.Triggers>
 
-                            <mi:MauiIcon Grid.Column="0"
-                                         Icon="{Binding Item.Kind, Converter={StaticResource CompletionItemIconConverter}}"
-                                         IconColor="{Binding Item.Kind, Converter={StaticResource CompletionItemIconColorConverter}}"
-                                         IconSize="16"
-                                         WidthRequest="16"
-                                         HeightRequest="16"
-                                         HorizontalOptions="Center"
-                                         VerticalOptions="Center" />
+                            <!-- Glyphe dans un Label : se met a jour a coup sur quand la ligne est recyclee -->
+                            <Label Grid.Column="0"
+                                   Text="{Binding Item.Kind, Converter={StaticResource CompletionItemIconConverter}}"
+                                   TextColor="{Binding Item.Kind, Converter={StaticResource CompletionItemIconColorConverter}}"
+                                   FontFamily="FluentFilledIcons"
+                                   FontSize="16"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
 
                             <Label Grid.Column="1"
                                    Text="{Binding Item.Label}"
