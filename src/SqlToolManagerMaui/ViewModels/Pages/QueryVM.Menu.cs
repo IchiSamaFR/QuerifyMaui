@@ -98,6 +98,9 @@ public partial class QueryVM
         if (document is null)
             return Task.CompletedTask;
 
+        // Dernieres modifications du concepteur pas encore reecrites dans le texte.
+        Dashboard.FlushPendingWrites();
+
         return RunAsBusyAsync(async token =>
         {
             var text = document.EditorText;

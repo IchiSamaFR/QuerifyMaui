@@ -1,6 +1,7 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Editors.Completion;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Languages.Commons.Editors.Completion;
@@ -22,6 +23,22 @@ public sealed class LinqCompletionProvider : ICompletionProvider
     {
         _models = models;
         _engine = engine;
+    }
+
+    /// <summary>
+    /// Composition MEF de Roslyn (1 a 2 s), JIT de la completion et compilation du DbContext genere :
+    /// faits a l'ouverture de l'onglet plutot qu'a la premiere frappe.
+    /// </summary>
+    public async Task WarmUpAsync(SyntaxLanguage language, DatabaseConnectionInfo? connection, CancellationToken cancellationToken = default)
+    {
+        if (language != SyntaxLanguage.Linq)
+            return;
+
+        LinqModelAssembly? model = null;
+        if (connection is { IsConnected: true })
+            model = await _models.GetModelAsync(connection, cancellationToken);
+
+        await _engine.GetCompletionsAsync(model, string.Empty, 0, cancellationToken);
     }
 
     public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default)

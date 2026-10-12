@@ -6,6 +6,7 @@ using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Languages.Commons.Editors.Completion;
 using SqlToolManagerMaui.Languages.Sql.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using System.Collections.Concurrent;
 
 namespace SqlToolManagerMaui.Services.Editors.Completion;
 
@@ -17,6 +18,9 @@ namespace SqlToolManagerMaui.Services.Editors.Completion;
 public sealed class DocumentWordCompletionProvider : ICompletionProvider
 {
     private readonly ISyntaxConfigurationStore _configurations;
+
+    /// <summary>Mots-cles par langage : construits une fois, et non a chaque ouverture de la liste.</summary>
+    private readonly ConcurrentDictionary<SyntaxLanguage, HashSet<string>> _keywords = new();
 
     public DocumentWordCompletionProvider(ISyntaxConfigurationStore configurations)
     {
@@ -31,10 +35,18 @@ public sealed class DocumentWordCompletionProvider : ICompletionProvider
         if (request.Language != SyntaxLanguage.Sql || context.Kind is CompletionContextKind.None or CompletionContextKind.DataType or CompletionContextKind.AfterTableName)
             return [];
 
-        var configuration = await _configurations.GetAsync(request.Language, cancellationToken);
-        var keywords = new HashSet<string>(configuration?.Definition.Keywords.Select(k => k.Word) ?? [], StringComparer.OrdinalIgnoreCase);
+        var keywords = await GetKeywordsAsync(request.Language, cancellationToken);
+        return CollectWords(request, keywords);
+    }
 
-        return await Task.Run(() => CollectWords(request, keywords), cancellationToken);
+    private async Task<HashSet<string>> GetKeywordsAsync(SyntaxLanguage language, CancellationToken cancellationToken)
+    {
+        if (_keywords.TryGetValue(language, out var cached))
+            return cached;
+
+        var configuration = await _configurations.GetAsync(language, cancellationToken);
+        var keywords = new HashSet<string>(configuration?.Definition.Keywords.Select(k => k.Word) ?? [], StringComparer.OrdinalIgnoreCase);
+        return _keywords.GetOrAdd(language, keywords);
     }
 
     /// <summary>Le mot en cours de frappe est exclu : il se proposerait lui-meme.</summary>

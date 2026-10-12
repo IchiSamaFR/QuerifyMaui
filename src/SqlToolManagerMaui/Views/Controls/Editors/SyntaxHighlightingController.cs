@@ -2,6 +2,7 @@
 using RichEdit.Maui;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using System.Collections.Concurrent;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
 namespace SqlToolManagerMaui.Views.Controls.Editors;
@@ -67,9 +68,14 @@ public sealed class SyntaxHighlightingController : IDisposable
             await Task.Delay(DebounceDelay, cancellationToken);
 
             var definition = _definition!;
-            var tokens = await Task.Run(() => _highlighter.Tokenize(definition, snapshot.Text, cancellationToken), cancellationToken);
 
-            var decorations = BuildDecorations(tokens, snapshot.Text.Length, definition.DefaultColor);
+            // Tokenisation ET construction des decorations hors du thread UI : seul TrySet y reste.
+            var decorations = await Task.Run(() =>
+            {
+                var text = snapshot.Text;
+                var tokens = _highlighter.Tokenize(definition, text, cancellationToken);
+                return BuildDecorations(tokens, text.Length, definition.DefaultColor);
+            }, cancellationToken);
 
             _editor.Dispatcher.Dispatch(() =>
             {
@@ -79,10 +85,6 @@ public sealed class SyntaxHighlightingController : IDisposable
                 // Revision perimee (frappe pendant l'analyse) : on relance sur le texte courant
                 // plutot que de laisser les anciennes decorations, etirees par l'edition.
                 var applied = _layer.TrySet(snapshot.Revision, decorations);
-                // DIAGNOSTIC TEMPORAIRE coloration
-                System.Diagnostics.Debug.WriteLine($"[Highlight] rev={snapshot.Revision.Version} docRev={_editor.Document.Revision.Version} applied={applied} len={snapshot.Text.Length} text={snapshot.Text.Replace("\r", "\\r").Replace("\n", "\\n")}");
-                foreach (var d in decorations)
-                    System.Diagnostics.Debug.WriteLine($"[Highlight]   {d.Range.Start}+{d.Range.Length} {d.Style.ForegroundColor?.ToHex()}");
 
                 if (!applied && _editor.Document.Revision != snapshot.Revision)
                     Refresh();
@@ -119,8 +121,11 @@ public sealed class SyntaxHighlightingController : IDisposable
         return [.. decorations];
     }
 
+    /// <summary>Une poignee de couleurs par langage : parsees une fois, pas a chaque token.</summary>
+    private static readonly ConcurrentDictionary<string, Color> Colors = new(StringComparer.OrdinalIgnoreCase);
+
     private static RichTextDecoration Decorate(int start, int length, string color)
-        => new(new RichTextRange(start, length), new RichTextDecorationStyle { ForegroundColor = Color.FromArgb(color) });
+        => new(new RichTextRange(start, length), new RichTextDecorationStyle { ForegroundColor = Colors.GetOrAdd(color, Color.FromArgb) });
 
     public void Dispose()
     {

@@ -51,8 +51,27 @@ public partial class CodeEditor : ContentView
     public partial EditorSelection? Selection { get; set; } = new EditorSelection();
 
     /// <summary>Connexion dont le schema alimente l'autocompletion ; null = mots-cles seulement.</summary>
-    [BindableProperty]
+    [BindableProperty(PropertyChangedMethodName = nameof(OnConnectionPropertyChanged))]
     public partial DatabaseConnectionInfo? Connection { get; set; }
+
+    /// <summary>Nouvelle connexion, ou connexion qui vient de s'ouvrir : son catalogue est precharge pour l'autocompletion.</summary>
+    private static void OnConnectionPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        var editor = (CodeEditor)bindable;
+
+        if (oldValue is DatabaseConnectionInfo oldConnection)
+            oldConnection.PropertyChanged -= editor.OnConnectionStateChanged;
+        if (newValue is DatabaseConnectionInfo newConnection)
+            newConnection.PropertyChanged += editor.OnConnectionStateChanged;
+
+        editor._completion?.WarmUp();
+    }
+
+    private void OnConnectionStateChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(DatabaseConnectionInfo.IsConnected))
+            _completion?.WarmUp();
+    }
 
     /// <summary>
     /// Commandes d'edition de l'editeur natif (annuler, copier, coller...), exposees telles

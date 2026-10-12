@@ -45,7 +45,7 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
         if (request.Language != SyntaxLanguage.Sql || request.Connection is not { IsConnected: true } connection)
             return [];
 
-        _reservedWords ??= await LoadReservedWordsAsync(request, cancellationToken);
+        _reservedWords ??= await LoadReservedWordsAsync(request.Language, cancellationToken);
 
         try
         {
@@ -64,6 +64,18 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
             // Serveur injoignable ou droits insuffisants : la completion se rabat sur les mots-cles.
             return [];
         }
+    }
+
+    /// <summary>Catalogue de la base par defaut et liste des bases charges des la connexion, pas a la premiere frappe.</summary>
+    public async Task WarmUpAsync(SyntaxLanguage language, DatabaseConnectionInfo? connection, CancellationToken cancellationToken = default)
+    {
+        if (language != SyntaxLanguage.Sql || connection is not { IsConnected: true })
+            return;
+
+        _reservedWords ??= await LoadReservedWordsAsync(language, cancellationToken);
+        await Task.WhenAll(
+            _cache.GetSchemaAsync(connection, null, cancellationToken),
+            _cache.GetDatabasesAsync(connection, cancellationToken));
     }
 
     private static readonly DatabaseObjectKind[] DataSourceKinds = [DatabaseObjectKind.Table, DatabaseObjectKind.View];
@@ -250,9 +262,9 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
             : $"[{name.Replace("]", "]]", StringComparison.Ordinal)}]";
 
     /// <summary>Seuls les mots-cles reserves : une colonne Year ou Date n'a pas besoin de crochets.</summary>
-    private async Task<HashSet<string>> LoadReservedWordsAsync(CompletionRequest request, CancellationToken cancellationToken)
+    private async Task<HashSet<string>> LoadReservedWordsAsync(SyntaxLanguage language, CancellationToken cancellationToken)
     {
-        var configuration = await _configurations.GetAsync(request.Language, cancellationToken);
+        var configuration = await _configurations.GetAsync(language, cancellationToken);
         return new HashSet<string>(configuration?.Definition.Keywords.Where(k => k.Category == "Keyword").Select(k => k.Word) ?? [], StringComparer.OrdinalIgnoreCase);
     }
 }

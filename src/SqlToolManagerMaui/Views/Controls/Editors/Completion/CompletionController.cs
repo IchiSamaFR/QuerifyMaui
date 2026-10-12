@@ -19,6 +19,9 @@ public sealed class CompletionController : IDisposable
 {
     private const double CaretGap = 2;
 
+    /// <summary>Laisse passer une rafale de frappe avant de charger les candidats.</summary>
+    private static readonly TimeSpan TypingDelay = TimeSpan.FromMilliseconds(120);
+
     private static readonly RichTextEditOptions CommitOptions = new(RichTextUndoBehavior.CreateUnit, "Autocompletion", null);
 
     private readonly NativeCodeEditor _editor;
@@ -61,6 +64,18 @@ public sealed class CompletionController : IDisposable
 
         if (_focusTarget is not null)
             _focusTarget.Unfocused += OnUnfocused;
+
+        WarmUp();
+    }
+
+    /// <summary>
+    /// Precharge en arriere-plan ce que la premiere liste demanderait (catalogue, Roslyn...) :
+    /// la premiere frappe n'attend plus ces chargements. Rappele quand la connexion change.
+    /// </summary>
+    public void WarmUp()
+    {
+        if (!_isDisposed)
+            _ = _service.WarmUpAsync(_language, _connection());
     }
 
     public void Dispose()
@@ -281,11 +296,13 @@ public sealed class CompletionController : IDisposable
             Connection = _connection()
         };
 
-        if (isDelay)
-            await Task.Delay(150, cancellation.Token);
         IReadOnlyList<CompletionItem> candidates;
         try
         {
+            // Dans le try : une frappe qui remplace la demande ne doit pas laisser d'exception non observee.
+            if (isDelay)
+                await Task.Delay(TypingDelay, cancellation.Token);
+
             candidates = await _service.GetCandidatesAsync(request, cancellation.Token);
         }
         catch (OperationCanceledException)

@@ -1,4 +1,6 @@
-﻿using SqlToolManagerMaui.Core.Models.Editors.Completion;
+﻿using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Editors.Completion;
 
 namespace SqlToolManagerMaui.Languages.Commons.Editors.Completion;
 
@@ -9,4 +11,8 @@ namespace SqlToolManagerMaui.Languages.Commons.Editors.Completion;
 public interface ICompletionProvider
 {
     Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default);
+
+    /// <summary>Precharge ce dont la premiere demande aura besoin (a l'ouverture d'un onglet, au changement de connexion).</summary>
+    Task WarmUpAsync(SyntaxLanguage language, DatabaseConnectionInfo? connection, CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
 }

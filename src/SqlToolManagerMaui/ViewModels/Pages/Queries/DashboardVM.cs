@@ -30,8 +30,15 @@ public partial class DashboardVM : ObservableObject
     // Fourni par Attach : QueryVM recoit ce VM par injection avant de pouvoir se passer en hote.
     private IQueryWorkspace _workspace = null!;
 
+    /// <summary>Delai de regroupement des modifications du concepteur avant reecriture du fichier.</summary>
+    private static readonly TimeSpan WriteDelay = TimeSpan.FromMilliseconds(250);
+
     private CancellationTokenSource? _cancellation;
     private int _untitledCount;
+
+    /// <summary>Onglets dont la definition a change depuis la derniere reecriture du texte.</summary>
+    private readonly HashSet<EditorDocument> _pendingWrites = [];
+    private CancellationTokenSource? _writeDelay;
 
     public DashboardVM(IDashboardDataService dashboardData, IConnectionStore connectionStore)
     {
@@ -56,6 +63,7 @@ public partial class DashboardVM : ObservableObject
     {
         foreach (var document in e.OldItems?.OfType<EditorDocument>().Where(d => d.IsDashboard) ?? [])
         {
+            _pendingWrites.Remove(document);
             document.Dashboard.DefinitionChanged -= OnDefinitionChanged;
             document.Dashboard.NavigationRequested -= OnNavigationRequested;
         }
@@ -151,6 +159,9 @@ public partial class DashboardVM : ObservableObject
         if (ActiveDocument is not { IsDashboard: true } document || document.DashboardMode == mode)
             return;
 
+        // La vue Source doit montrer le JSON a jour, et Load comparer au dernier texte ecrit.
+        FlushPendingWrites();
+
         document.DashboardMode = mode;
         document.Dashboard.IsDesigning = mode == DashboardMode.Design;
 
@@ -159,15 +170,56 @@ public partial class DashboardVM : ObservableObject
             Load(document);
     }
 
-    /// <summary>Le concepteur a modifie la definition : le fichier est reecrit (l'onglet passe en modifie).</summary>
+    /// <summary>
+    /// Le concepteur a modifie la definition : le fichier est reecrit (l'onglet passe en modifie).
+    /// Regroupe : chaque touche frappee dans le concepteur reserialisait tout le JSON et rechargeait
+    /// l'editeur texte (masque) de l'onglet, coloration comprise.
+    /// </summary>
     private void OnDefinitionChanged(object? sender, EventArgs e)
     {
-        if (FindDocument(sender) is not { Dashboard.Definition: { } definition } document)
+        if (FindDocument(sender) is not { } document)
             return;
 
-        var text = DashboardSerializer.Serialize(definition);
-        document.Dashboard.MarkWritten(text);
-        document.EditorText = text;
+        _pendingWrites.Add(document);
+
+        _writeDelay?.Cancel();
+        _writeDelay?.Dispose();
+        _writeDelay = new CancellationTokenSource();
+        _ = FlushLaterAsync(_writeDelay.Token);
+    }
+
+    private async Task FlushLaterAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(WriteDelay, token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        FlushPendingWrites();
+    }
+
+    /// <summary>Reecrit tout de suite le texte des onglets modifies ; appele avant un enregistrement ou un changement de vue.</summary>
+    public void FlushPendingWrites()
+    {
+        _writeDelay?.Cancel();
+        _writeDelay?.Dispose();
+        _writeDelay = null;
+
+        foreach (var document in _pendingWrites)
+        {
+            if (document.Dashboard.Definition is not { } definition)
+                continue;
+
+            var text = DashboardSerializer.Serialize(definition);
+            document.Dashboard.MarkWritten(text);
+            document.EditorText = text;
+        }
+
+        _pendingWrites.Clear();
     }
 
     // ---------- Consultation ----------

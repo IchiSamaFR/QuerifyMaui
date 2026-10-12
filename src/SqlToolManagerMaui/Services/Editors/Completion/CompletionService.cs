@@ -1,6 +1,7 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Editors.Completion;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Services.Editors.Completion;
@@ -39,12 +40,36 @@ public sealed class CompletionService : ICompletionService
         if (context.Kind == CompletionContextKind.None)
             return [];
 
-        var results = await Task.WhenAll(_providers.Select(provider => provider.GetItemsAsync(request, context, cancellationToken)));
+        // Chaque fournisseur hors du thread UI : Roslyn ou un catalogue volumineux ont une partie synchrone
+        // non negligeable avant leur premier await, qui figeait la frappe.
+        var results = await Task.WhenAll(_providers.Select(provider => Task.Run(() => provider.GetItemsAsync(request, context, cancellationToken), cancellationToken)));
 
+        return await Task.Run(() => Merge(results), cancellationToken);
+    }
+
+    public Task WarmUpAsync(SyntaxLanguage language, DatabaseConnectionInfo? connection, CancellationToken cancellationToken = default)
+        => Task.WhenAll(_providers.Select(provider => Task.Run(async () =>
+        {
+            try
+            {
+                await provider.WarmUpAsync(language, connection, cancellationToken);
+            }
+            catch (Exception)
+            {
+                // Prechargement opportuniste : la vraie demande retentera et gerera l'erreur.
+            }
+        }, CancellationToken.None)));
+
+    private static CompletionItem[] Merge(IReadOnlyList<CompletionItem>[] results)
+    {
         // MAX est a la fois type et fonction, Users peut exister dans deux schemas : seuls les vrais doublons partent.
-        var items = results.SelectMany(batch => batch)
-                           .DistinctBy(item => (item.Label.ToUpperInvariant(), item.Kind, item.Detail))
-                           .ToArray();
+        var seen = new HashSet<(string, CompletionItemKind, string?)>();
+        var items = new List<CompletionItem>(results.Sum(batch => batch.Count));
+        foreach (var item in results.SelectMany(batch => batch))
+        {
+            if (seen.Add((item.Label.ToUpperInvariant(), item.Kind, item.Detail)))
+                items.Add(item);
+        }
 
         // Un mot du document deja connu du schema ou des mots-cles ferait doublon, sans type ni icone.
         var known = items.Where(item => item.Kind != CompletionItemKind.Text)
@@ -55,18 +80,35 @@ public sealed class CompletionService : ICompletionService
                     .ToArray();
     }
 
+    /// <summary>Rejoue a chaque touche sur le thread UI : une passe, un tri en place, sans LINQ.</summary>
     public IReadOnlyList<CompletionItem> Filter(IReadOnlyList<CompletionItem> candidates, string prefix)
     {
         ArgumentNullException.ThrowIfNull(candidates);
+        prefix ??= string.Empty;
 
-        return candidates.Select(item => (Item: item, Score: Score(item.Label, prefix ?? string.Empty)))
-                         .Where(match => match.Score >= 0)
-                         .OrderBy(match => match.Score)
-                         .ThenBy(match => match.Item.Kind)
-                         .ThenBy(match => match.Item.Label, StringComparer.OrdinalIgnoreCase)
-                         .Take(MaxResults)
-                         .Select(match => match.Item)
-                         .ToArray();
+        var matches = new List<(CompletionItem Item, int Score)>(Math.Min(candidates.Count, 512));
+        for (var i = 0; i < candidates.Count; i++)
+        {
+            var item = candidates[i];
+            var score = Score(item.Label, prefix);
+            if (score >= 0)
+                matches.Add((item, score));
+        }
+
+        matches.Sort(static (a, b) =>
+        {
+            var result = a.Score.CompareTo(b.Score);
+            if (result == 0)
+                result = a.Item.Kind.CompareTo(b.Item.Kind);
+            return result != 0 ? result : StringComparer.OrdinalIgnoreCase.Compare(a.Item.Label, b.Item.Label);
+        });
+
+        var count = Math.Min(matches.Count, MaxResults);
+        var items = new CompletionItem[count];
+        for (var i = 0; i < count; i++)
+            items[i] = matches[i].Item;
+
+        return items;
     }
 
     /// <summary>0 = commence par, 1 = debut d'un segment (NUM -> ROW_NUMBER), 2 = contient, -1 = rejete.</summary>

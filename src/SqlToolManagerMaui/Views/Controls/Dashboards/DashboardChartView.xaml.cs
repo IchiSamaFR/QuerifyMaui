@@ -2,6 +2,7 @@
 using LiveChartsCore;
 using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Maui;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
@@ -12,12 +13,24 @@ namespace SqlToolManagerMaui.Views.Controls.Dashboards;
 
 /// <summary>
 /// Graphique d'une carte (LiveCharts2). Les series dependent des colonnes du resultat, connues
-/// seulement a l'execution : elles sont recalculees en code a chaque changement.
+/// seulement a l'execution : elles sont recalculees en code, une seule fois par lot de changements.
 /// </summary>
 public sealed partial class DashboardChartView : ContentView
 {
     // Gris lisible sur les deux themes : les axes ne suivent pas les ressources MAUI.
     private static readonly SKColor LabelColor = new(0x9A, 0x9A, 0x9A);
+
+    /// <summary>Au-dela, les parts sont illisibles et chaque part est une serie : le reste est regroupe.</summary>
+    private const int MaxPieSlices = 12;
+
+    private const string OtherSliceName = "Autres";
+
+    /// <summary>Au-dela, les points d'une courbe ne sont plus dessines (des milliers de geometries sinon).</summary>
+    private const int MaxLinePointsWithMarkers = 60;
+
+    private PieChart? _pie;
+    private CartesianChart? _cartesian;
+    private bool _isRenderScheduled;
 
     [BindableProperty(PropertyChangedMethodName = nameof(OnChartChanged))]
     public partial QueryResultSet? ResultSet { get; set; }
@@ -36,21 +49,73 @@ public sealed partial class DashboardChartView : ContentView
     public DashboardChartView()
     {
         InitializeComponent();
-
-        // Un pinceau par graphique : LiveCharts ne partage pas un paint entre deux canevas.
-        Pie.LegendTextPaint = new SolidColorPaint(LabelColor);
-        Cartesian.LegendTextPaint = new SolidColorPaint(LabelColor);
     }
 
+    /// <summary>
+    /// Les quatre proprietes arrivent ensemble (liaison initiale, nouveau resultat) :
+    /// un seul rendu au prochain tour du dispatcher au lieu de quatre.
+    /// </summary>
     private static void OnChartChanged(BindableObject bindable, object oldValue, object newValue)
-        => ((DashboardChartView)bindable).Show(((DashboardChartView)bindable).Render());
+        => ((DashboardChartView)bindable).ScheduleRender();
+
+    private void ScheduleRender()
+    {
+        if (_isRenderScheduled)
+            return;
+
+        _isRenderScheduled = true;
+        Dispatcher.Dispatch(() =>
+        {
+            _isRenderScheduled = false;
+            Show(Render());
+        });
+    }
 
     private void Show(VisualElement? visible)
     {
         NoValueLabel.IsVisible = visible == NoValueLabel;
-        Pie.IsVisible = visible == Pie;
-        Cartesian.IsVisible = visible == Cartesian;
+        if (_pie is not null)
+            _pie.IsVisible = visible == _pie;
+        if (_cartesian is not null)
+            _cartesian.IsVisible = visible == _cartesian;
     }
+
+    // ---------- Graphiques crees a la demande ----------
+
+    private PieChart Pie => _pie ??= AddChart(new PieChart
+    {
+        LegendPosition = LegendPosition.Right,
+        LegendTextPaint = new SolidColorPaint(LabelColor),
+    });
+
+    private CartesianChart Cartesian => _cartesian ??= AddChart(new CartesianChart
+    {
+        LegendTextPaint = new SolidColorPaint(LabelColor),
+    });
+
+    /// <summary>Sans animation : chaque lecture de carte relancait une animation par serie et par point.</summary>
+    private T AddChart<T>(T chart) where T : Microsoft.Maui.Controls.View
+    {
+        chart.Background = Brush.Transparent;
+        chart.IsVisible = false;
+
+        switch (chart)
+        {
+            case PieChart pie:
+                pie.EasingFunction = null;
+                pie.AnimationsSpeed = TimeSpan.Zero;
+                break;
+            case CartesianChart cartesian:
+                cartesian.EasingFunction = null;
+                cartesian.AnimationsSpeed = TimeSpan.Zero;
+                break;
+        }
+
+        Root.Add(chart);
+        return chart;
+    }
+
+    // ---------- Rendu ----------
 
     /// <summary>Alimente le rendu adapte et le renvoie (null : rien a afficher).</summary>
     private VisualElement? Render()
@@ -63,37 +128,68 @@ public sealed partial class DashboardChartView : ContentView
         if (valueIndexes.Count == 0)
             return NoValueLabel;
 
-        var labels = resultSet.Rows.Select(r => Cell(r, labelIndex) ?? "NULL").ToArray();
+        var rows = resultSet.Rows;
+        var labels = new string[rows.Count];
+        for (var i = 0; i < rows.Count; i++)
+            labels[i] = Cell(rows[i], labelIndex) ?? "NULL";
 
         if (View == DashboardCardKind.PieChart)
         {
-            var valueIndex = valueIndexes[0];
-            Pie.Series = resultSet.Rows.Select((row, i) => (ISeries)new PieSeries<double>
-            {
-                Name = labels[i],
-                Values = [Number(Cell(row, valueIndex))],
-            }).ToArray();
+            Pie.Series = BuildPieSeries(rows, labels, valueIndexes[0]);
             return Pie;
         }
 
-        var series = valueIndexes.Select(index => View == DashboardCardKind.LineChart
-            ? (ISeries)new LineSeries<double>
-            {
-                Name = resultSet.Columns[index].Name,
-                Values = resultSet.Rows.Select(r => Number(Cell(r, index))).ToArray(),
-                Fill = null,
-            }
-            : new ColumnSeries<double>
-            {
-                Name = resultSet.Columns[index].Name,
-                Values = resultSet.Rows.Select(r => Number(Cell(r, index))).ToArray(),
-            }).ToArray();
+        var isLine = View == DashboardCardKind.LineChart;
+        var series = new ISeries[valueIndexes.Count];
+        for (var s = 0; s < valueIndexes.Count; s++)
+        {
+            var index = valueIndexes[s];
+            var values = new double[rows.Count];
+            for (var i = 0; i < rows.Count; i++)
+                values[i] = Number(Cell(rows[i], index));
 
-        Cartesian.Series = series;
-        Cartesian.XAxes = [new Axis { Labels = labels, LabelsPaint = new SolidColorPaint(LabelColor) }];
-        Cartesian.YAxes = [new Axis { LabelsPaint = new SolidColorPaint(LabelColor) }];
-        Cartesian.LegendPosition = series.Length > 1 ? LegendPosition.Top : LegendPosition.Hidden;
-        return Cartesian;
+            series[s] = isLine
+                ? new LineSeries<double>
+                {
+                    Name = resultSet.Columns[index].Name,
+                    Values = values,
+                    Fill = null,
+                    GeometrySize = rows.Count > MaxLinePointsWithMarkers ? 0 : 8,
+                }
+                : new ColumnSeries<double>
+                {
+                    Name = resultSet.Columns[index].Name,
+                    Values = values,
+                };
+        }
+
+        var chart = Cartesian;
+        chart.Series = series;
+        chart.XAxes = [new Axis { Labels = labels, LabelsPaint = new SolidColorPaint(LabelColor) }];
+        chart.YAxes = [new Axis { LabelsPaint = new SolidColorPaint(LabelColor) }];
+        chart.LegendPosition = series.Length > 1 ? LegendPosition.Top : LegendPosition.Hidden;
+        return chart;
+    }
+
+    /// <summary>Une serie par part : les plus grosses parts gardent leur nom, le reste est cumule dans « Autres ».</summary>
+    private static ISeries[] BuildPieSeries(IReadOnlyList<QueryResultRow> rows, string[] labels, int valueIndex)
+    {
+        var slices = new (string Name, double Value)[rows.Count];
+        for (var i = 0; i < rows.Count; i++)
+            slices[i] = (labels[i], Number(Cell(rows[i], valueIndex)));
+
+        if (slices.Length > MaxPieSlices)
+        {
+            var ordered = slices.OrderByDescending(s => s.Value).ToArray();
+            var other = ordered.Skip(MaxPieSlices - 1).Sum(s => s.Value);
+            slices = [.. ordered.Take(MaxPieSlices - 1), (OtherSliceName, other)];
+        }
+
+        return slices.Select(slice => (ISeries)new PieSeries<double>
+        {
+            Name = slice.Name,
+            Values = [slice.Value],
+        }).ToArray();
     }
 
     /// <summary>Colonnes choisies, sinon toutes celles dont la premiere ligne est un nombre.</summary>
@@ -109,9 +205,19 @@ public sealed partial class DashboardChartView : ContentView
     }
 
     private static int IndexOf(QueryResultSet resultSet, string? column)
-        => string.IsNullOrWhiteSpace(column)
-            ? -1
-            : resultSet.Columns.ToList().FindIndex(c => string.Equals(c.Name, column.Trim(), StringComparison.OrdinalIgnoreCase));
+    {
+        if (string.IsNullOrWhiteSpace(column))
+            return -1;
+
+        var name = column.Trim();
+        for (var i = 0; i < resultSet.Columns.Count; i++)
+        {
+            if (string.Equals(resultSet.Columns[i].Name, name, StringComparison.OrdinalIgnoreCase))
+                return i;
+        }
+
+        return -1;
+    }
 
     private static string? Cell(QueryResultRow row, int index) => index < row.Cells.Length ? row.Cells[index] : null;
 

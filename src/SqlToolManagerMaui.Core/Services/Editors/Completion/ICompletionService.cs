@@ -1,4 +1,6 @@
-﻿using SqlToolManagerMaui.Core.Models.Editors.Completion;
+﻿using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Core.Models.Editors.Completion;
 
 namespace SqlToolManagerMaui.Core.Services.Editors.Completion;
 
@@ -10,4 +12,7 @@ public interface ICompletionService
 
     /// <summary>Filtre et trie les candidats sur le prefixe frappe ; rejoue a chaque touche, sans I/O.</summary>
     IReadOnlyList<CompletionItem> Filter(IReadOnlyList<CompletionItem> candidates, string prefix);
+
+    /// <summary>Precharge les fournisseurs (catalogue, Roslyn...) en arriere-plan ; n'echoue jamais.</summary>
+    Task WarmUpAsync(SyntaxLanguage language, DatabaseConnectionInfo? connection, CancellationToken cancellationToken = default);
 }

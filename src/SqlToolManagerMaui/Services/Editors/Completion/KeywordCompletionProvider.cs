@@ -1,10 +1,12 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Editors.Completion;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Languages.Commons.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using System.Collections.Concurrent;
 
 namespace SqlToolManagerMaui.Services.Editors.Completion;
 
@@ -20,7 +22,8 @@ public sealed class KeywordCompletionProvider : ICompletionProvider
     };
 
     private readonly ISyntaxConfigurationStore _configurations;
-    private readonly Dictionary<SyntaxLanguage, IReadOnlyList<CompletionItem>> _cache = [];
+    // Concurrent : prechargement et demandes tournent maintenant hors du thread UI, en parallele.
+    private readonly ConcurrentDictionary<SyntaxLanguage, IReadOnlyList<CompletionItem>> _cache = new();
 
     public KeywordCompletionProvider(ISyntaxConfigurationStore configurations)
     {
@@ -50,6 +53,12 @@ public sealed class KeywordCompletionProvider : ICompletionProvider
             return [];
 
         return (await GetKeywordsAsync(request.Language, cancellationToken)).Where(accepts).ToArray();
+    }
+
+    public async Task WarmUpAsync(SyntaxLanguage language, DatabaseConnectionInfo? connection, CancellationToken cancellationToken = default)
+    {
+        if (language != SyntaxLanguage.Linq)
+            await GetKeywordsAsync(language, cancellationToken);
     }
 
     private async Task<IReadOnlyList<CompletionItem>> GetKeywordsAsync(SyntaxLanguage language, CancellationToken cancellationToken)

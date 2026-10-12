@@ -6,8 +6,10 @@
              VerticalOptions="Start"
              IsVisible="False">
 
-    <!-- Pas de CollectionView : la liste ne doit jamais prendre le focus a l'editeur -->
-    <Border BackgroundColor="{DynamicResource FlyoutBackground}"
+    <!-- Pas de CollectionView : la liste ne doit jamais prendre le focus a l'editeur.
+         Lignes en nombre fixe (VisibleRows), creees une fois et recyclees par le code-behind. -->
+    <Border x:Name="Surface"
+            BackgroundColor="{DynamicResource FlyoutBackground}"
             Stroke="{DynamicResource SurfaceStrokeColorDefault}"
             StrokeThickness="1"
             StrokeShape="RoundRectangle 6"
@@ -19,13 +21,14 @@
                     Offset="0,4" />
         </Border.Shadow>
 
-        <ScrollView x:Name="Scroller">
+        <Grid>
             <VerticalStackLayout x:Name="Rows">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="m:CompletionEntry">
                         <Grid ColumnDefinitions="20,*,Auto"
                               ColumnSpacing="8"
-                              Padding="6,0"
+                              Padding="6,0,10,0"
+                              IsVisible="{Binding HasItem}"
                               HeightRequest="{x:Static c:CompletionPopup.RowHeight}">
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnRowTapped" />
@@ -64,7 +67,18 @@
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
-        </ScrollView>
+
+            <!-- Indicateur de position quand la liste depasse la fenetre visible -->
+            <BoxView x:Name="ScrollThumb"
+                     WidthRequest="3"
+                     CornerRadius="1.5"
+                     HorizontalOptions="End"
+                     VerticalOptions="Start"
+                     Color="{DynamicResource LabelTertiary}"
+                     Opacity="0.6"
+                     InputTransparent="True"
+                     IsVisible="False" />
+        </Grid>
     </Border>
 
 </ContentView>

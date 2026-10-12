@@ -39,15 +39,10 @@
 
             <!-- ============ Contenu selon le rendu ============ -->
             <Grid Grid.Row="1">
-                <c:QueryResultGrid ResultSet="{Binding Card.Result, FallbackValue={x:Null}}"
-                                   RowTappedCommand="{Binding Card.ActivateRowCommand, FallbackValue={x:Null}}"
-                                   IsVisible="{Binding Card.IsGrid, FallbackValue=False}" />
-
-                <c:DashboardChartView ResultSet="{Binding Card.Result, FallbackValue={x:Null}}"
-                                      View="{Binding Card.View, FallbackValue={x:Static en:DashboardCardKind.BarChart}}"
-                                      LabelColumn="{Binding Card.LabelColumn, FallbackValue=''}"
-                                      ValueColumns="{Binding Card.ValueColumnsText, FallbackValue=''}"
-                                      IsVisible="{Binding Card.IsChart, FallbackValue=False}" />
+                <!-- Tableau ou graphique : cree par le code-behind seulement si la carte en a besoin
+                     (un rendu masque par IsVisible garde sa vue native : deux canevas Skia et une
+                     CollectionView par carte, meme pour une carte Valeur ou Texte) -->
+                <ContentView x:Name="ResultHost" />
 
                 <Label Text="{Binding Card.ValueText, FallbackValue=''}"
                        IsVisible="{Binding Card.IsValue, FallbackValue=False}"
