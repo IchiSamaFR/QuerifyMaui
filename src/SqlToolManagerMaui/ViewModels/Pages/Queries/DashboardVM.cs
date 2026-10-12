@@ -224,7 +224,27 @@ public partial class DashboardVM : ObservableObject
 
     // ---------- Consultation ----------
 
-    [RelayCommand]
+    /// <summary>Vrai tant qu'une lecture de cartes est en cours (le bouton Arreter n'est actif que pendant).</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CancelLoadingCommand))]
+    public partial bool IsLoading { get; private set; }
+
+    /// <summary>Lectures en cours : une nouvelle lecture peut demarrer avant la fin de l'annulation de la precedente.</summary>
+    private int _activeLoads;
+
+    /// <summary>A rappeler quand la connexion ou l'onglet actif change.</summary>
+    public void RefreshCanExecute()
+    {
+        ApplyParametersCommand.NotifyCanExecuteChanged();
+        CancelLoadingCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanApplyParameters()
+        => _workspace.Connection.IsConnected && ActiveDocument is { IsDashboard: true, Dashboard.Current: not null };
+
+    private bool CanCancelLoading() => _workspace.Connection.IsConnected && IsLoading;
+
+    [RelayCommand(CanExecute = nameof(CanApplyParameters))]
     private Task ApplyParametersAsync()
     {
         if (ActiveDocument is not { IsDashboard: true, Dashboard.Current: { } page } document)
@@ -233,6 +253,10 @@ public partial class DashboardVM : ObservableObject
         document.Dashboard.SnapshotValues();
         return LoadCardsAsync(document, page.Cards);
     }
+
+    /// <summary>Interrompt la lecture des cartes en cours : elles gardent leur dernier resultat.</summary>
+    [RelayCommand(CanExecute = nameof(CanCancelLoading))]
+    private void CancelLoading() => _cancellation?.Cancel();
 
     [RelayCommand]
     private void Back() => ActiveDocument?.Dashboard.Back();
@@ -272,6 +296,9 @@ public partial class DashboardVM : ObservableObject
     private void OpenPage(EditorDocument document, DashboardPageDefinition page, bool asRoot)
     {
         var state = document.Dashboard.Open(page, asRoot);
+
+        // Une page est maintenant affichee : Executer peut s'activer.
+        RefreshCanExecute();
         _ = LoadCardsAsync(document, state.Cards);
     }
 
@@ -285,6 +312,21 @@ public partial class DashboardVM : ObservableObject
         if (queried.Count == 0)
             return;
 
+        _activeLoads++;
+        IsLoading = true;
+        try
+        {
+            await LoadQueriedCardsAsync(session, queried);
+        }
+        finally
+        {
+            _activeLoads--;
+            IsLoading = _activeLoads > 0;
+        }
+    }
+
+    private async Task LoadQueriedCardsAsync(DashboardSession session, List<DashboardCardState> queried)
+    {
         _cancellation?.Cancel();
         _cancellation = CancellationTokenSource.CreateLinkedTokenSource(_workspace.LifetimeToken);
         var token = _cancellation.Token;

@@ -79,111 +79,30 @@
                     </DataTemplate>
                 </v:TabBar.ItemTemplate>
 
-                <v:TabBar.TrailingContent>
-                    <HorizontalStackLayout Spacing="8"
-                                           VerticalOptions="Center">
-                        <!-- Dashboard .schx : consultation / concepteur / JSON -->
-                        <HorizontalStackLayout Spacing="2"
-                                               Margin="0,0,8,0"
-                                               VerticalOptions="Center"
-                                               IsVisible="{Binding ActiveDocument.IsDashboard, FallbackValue=False}">
-                            <Button Style="{StaticResource TextButtonStyle}"
-                                    Text="Dashboard"
-                                    ImageSource="{icons:FluentFilled Icon=Table16Filled, IconSize=16}"
-                                    Command="{Binding Dashboard.ShowViewCommand}"
-                                    ToolTipProperties.Text="Consulter le dashboard">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button"
-                                                 Binding="{Binding ActiveDocument.DashboardMode, FallbackValue={x:Null}}"
-                                                 Value="{x:Static en:DashboardMode.View}">
-                                        <Setter Property="BackgroundColor"
-                                                Value="{DynamicResource ButtonBackground}" />
-                                        <Setter Property="BorderColor"
-                                                Value="{DynamicResource ButtonBorder}" />
-                                        <Setter Property="BorderWidth"
-                                                Value="1" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-
-                            <Button Style="{StaticResource TextButtonStyle}"
-                                    Text="Concepteur"
-                                    ImageSource="{icons:FluentFilled Icon=Braces16Filled, IconSize=16}"
-                                    Command="{Binding Dashboard.ShowDesignerCommand}"
-                                    ToolTipProperties.Text="Placer et configurer les cartes">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button"
-                                                 Binding="{Binding ActiveDocument.DashboardMode, FallbackValue={x:Null}}"
-                                                 Value="{x:Static en:DashboardMode.Design}">
-                                        <Setter Property="BackgroundColor"
-                                                Value="{DynamicResource ButtonBackground}" />
-                                        <Setter Property="BorderColor"
-                                                Value="{DynamicResource ButtonBorder}" />
-                                        <Setter Property="BorderWidth"
-                                                Value="1" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-
-                            <Button Style="{StaticResource TextButtonStyle}"
-                                    Text="Source"
-                                    ImageSource="{icons:FluentFilled Icon=Code16Filled, IconSize=16}"
-                                    Command="{Binding Dashboard.ShowSourceCommand}"
-                                    ToolTipProperties.Text="Modifier le JSON du fichier">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button"
-                                                 Binding="{Binding ActiveDocument.DashboardMode, FallbackValue={x:Null}}"
-                                                 Value="{x:Static en:DashboardMode.Source}">
-                                        <Setter Property="BackgroundColor"
-                                                Value="{DynamicResource ButtonBackground}" />
-                                        <Setter Property="BorderColor"
-                                                Value="{DynamicResource ButtonBorder}" />
-                                        <Setter Property="BorderWidth"
-                                                Value="1" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                        </HorizontalStackLayout>
-                    </HorizontalStackLayout>
-                </v:TabBar.TrailingContent>
-
                 <!-- Editeur et dashboard partages par tous les onglets : ils suivent ActiveDocument -->
                 <v:TabBar.DefaultContent>
                     <Border StrokeThickness="0"
                             StrokeShape="RoundRectangle 0 4 4 4"
                             Style="{StaticResource CardStyle}">
-                        <Grid>
+                        <Grid RowDefinitions="Auto,*">
+                            <!-- ============ Barre commune a l'editeur et au dashboard ============ -->
+                            <c:QueryToolbar IsDashboard="{Binding ActiveDocument.IsDashboard, FallbackValue=False}"
+                                            DashboardMode="{Binding ActiveDocument.DashboardMode, FallbackValue={x:Null}}"
+                                            ExecuteCommand="{Binding Execution.ExecuteQueryCommand}"
+                                            CancelCommand="{Binding Execution.ExecuteQueryCancelCommand}"
+                                            DashboardExecuteCommand="{Binding Dashboard.ApplyParametersCommand}"
+                                            DashboardCancelCommand="{Binding Dashboard.CancelLoadingCommand}"
+                                            DisconnectCommand="{Binding Connection.DisconnectCommand}"
+                                            Connections="{Binding Connection.Connections}"
+                                            SelectedConnection="{Binding Connection.SelectedConnection}"
+                                            ShowViewCommand="{Binding Dashboard.ShowViewCommand}"
+                                            ShowDesignerCommand="{Binding Dashboard.ShowDesignerCommand}"
+                                            ShowSourceCommand="{Binding Dashboard.ShowSourceCommand}" />
+
                             <!-- ============ Editeur ============ -->
-                            <Grid RowDefinitions="Auto,*"
+                            <Grid Grid.Row="1"
                                   IsVisible="{Binding ActiveDocument.IsEditorVisible, FallbackValue=True}">
-                                <HorizontalStackLayout Spacing="8">
-                                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                                 Command="{Binding Execution.ExecuteQueryCommand}"
-                                                 Source="{icons:Fluent Icon=Play16, IconSize=16, IconColor={StaticResource Success}}"
-                                                 ToolTipProperties.Text="Exécuter la requête" />
-
-                                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                                 Command="{Binding Execution.ExecuteQueryCancelCommand}"
-                                                 Source="{icons:Fluent Icon=Stop16, IconSize=16, IconColor={StaticResource Danger}}"
-                                                 ToolTipProperties.Text="Arrêter l'exécution de la requête" />
-
-                                    <v:GridSplitter Background="{DynamicResource InputBackground}" />
-
-                                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                                 Command="{Binding Connection.DisconnectCommand}"
-                                                 Source="{icons:Fluent Icon=PlugDisconnected20, IconSize=16, IconColor={StaticResource Danger}}"
-                                                 ToolTipProperties.Text="Déconnecter la connexion" />
-
-                                    <inp:PickerField ItemsSource="{Binding Connection.Connections}"
-                                                     SelectedItem="{Binding Connection.SelectedConnection}"
-                                                     DisplayMemberPath="Name"
-                                                     WidthRequest="220"
-                                                     FontSize="{StaticResource FontSize_Caption}" />
-
-                                </HorizontalStackLayout>
-
-                                <c:CodeEditor Grid.Row="1"
-                                              x:Name="Editor"
+                                <c:CodeEditor x:Name="Editor"
                                               Text="{Binding ActiveDocument.EditorText}"
                                               FilePath="{Binding ActiveDocument.FilePath}"
                                               Selection="{Binding ActiveDocument.Selection}"
@@ -194,7 +113,8 @@
                             </Grid>
 
                             <!-- ============ Dashboard (.schx) : grille + panneau du concepteur ============ -->
-                            <Grid ColumnDefinitions="*,Auto"
+                            <Grid Grid.Row="1"
+                                  ColumnDefinitions="*,Auto"
                                   ColumnSpacing="8"
                                   IsVisible="{Binding ActiveDocument.IsDashboardVisible, FallbackValue=False}">
                                 <c:DashboardView Session="{Binding ActiveDocument.Dashboard}"

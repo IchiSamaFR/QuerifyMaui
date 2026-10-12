@@ -109,11 +109,16 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     [RelayCommand]
     private static void Quit() => Application.Current?.Quit();
 
-    partial void OnActiveDocumentChanged(EditorDocument? value) => Execution.RefreshCanExecute();
+    partial void OnActiveDocumentChanged(EditorDocument? value)
+    {
+        Execution.RefreshCanExecute();
+        Dashboard.RefreshCanExecute();
+    }
 
     private void OnSelectedConnectionChanged(object? sender, EventArgs e)
     {
         Execution.RefreshCanExecute();
+        Dashboard.RefreshCanExecute();
         Dashboard.OnConnectionChanged();
     }
 
