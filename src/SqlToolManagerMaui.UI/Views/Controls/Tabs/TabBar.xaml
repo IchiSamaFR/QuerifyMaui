@@ -6,11 +6,12 @@
 
     <!-- Explicite : la propriete de contenu de la TabBar est Items -->
     <ContentView.Content>
-        <Grid RowDefinitions="Auto,*">
-
-            <Grid ColumnDefinitions="*,Auto"
+        <Border StrokeThickness="0"
+                StrokeShape="RoundRectangle 4 4 4 4"
+                Background="Transparent">
+            <Grid RowDefinitions="Auto,*"
+                  ColumnDefinitions="*,Auto"
                   ColumnSpacing="16">
-
                 <ScrollView x:Name="TabScroll"
                             Orientation="Horizontal"
                             HorizontalScrollBarVisibility="Never"
@@ -26,10 +27,13 @@
                              VerticalOptions="Fill"
                              MinimumHeightRequest="{DynamicResource InputHeight}"
                              Content="{Binding TrailingContent, Source={x:Reference Root}, x:DataType=v:TabBar}" />
-            </Grid>
 
-            <ContentView Grid.Row="1"
-                         Content="{Binding SelectedContent, Source={x:Reference Root}, x:DataType=v:TabBar}" />
-        </Grid>
+                <ContentView Grid.Row="1"
+                             Grid.ColumnSpan="2"
+                             Padding="{DynamicResource CardContentPadding}"
+                             Background="{DynamicResource CardBackground}"
+                             Content="{Binding SelectedContent, Source={x:Reference Root}, x:DataType=v:TabBar}" />
+            </Grid>
+        </Border>
     </ContentView.Content>
 </ContentView>
