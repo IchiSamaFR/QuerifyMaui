@@ -1,0 +1,7 @@
+<Project>
+	<PropertyGroup>
+		<!-- Sortie courte : bin\Debug\ (cible Windows uniquement) -->
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+	</PropertyGroup>
+</Project>
