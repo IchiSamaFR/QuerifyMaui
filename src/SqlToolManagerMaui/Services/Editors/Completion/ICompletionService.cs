@@ -2,7 +2,7 @@
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 
-namespace SqlToolManagerMaui.Core.Services.Editors.Completion;
+namespace SqlToolManagerMaui.Services.Editors.Completion;
 
 /// <summary>Point d'entree de l'autocompletion pour l'editeur.</summary>
 public interface ICompletionService
