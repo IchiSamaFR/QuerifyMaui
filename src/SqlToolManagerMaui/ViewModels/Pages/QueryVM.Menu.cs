@@ -1,9 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using Newtonsoft.Json.Linq;
 using SqlToolManagerMaui.Core.Enums.Editors;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Databases.Dashboards;
 using SqlToolManagerMaui.Services.Editors;
+using SqlToolManagerMaui.ViewModels.Pages.Queries;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
@@ -177,10 +179,84 @@ public partial class QueryVM
 
         document.Language = language;
         OnPropertyChanged(nameof(SyntaxConfiguration));
+        RefreshViewMenuLanguage();
         Status.Set($"Langage de l'onglet : {SyntaxConfiguration?.Definition.Name ?? language.ToString()}.");
     }
 
     // ---------- Barre de menus commune ----------
+
+    private void AttachEditMenu()
+    {
+        var menu = MainMenuBar.EditMenuContext;
+        menu.UndoCommand = EditionCommands?.Undo;
+        menu.RedoCommand = EditionCommands?.Redo;
+        menu.CutCommand = EditionCommands?.Cut;
+        menu.CopyCommand = EditionCommands?.Copy;
+        menu.PasteCommand = EditionCommands?.Paste;
+        menu.SelectAllCommand = EditionCommands?.SelectAll;
+    }
+
+    private void AttachFileMenu()
+    {
+        var menu = MainMenuBar.FileMenuContext;
+        menu.NewFileCommand = NewCommand;
+        menu.NewDashboardFileCommand = Dashboard.NewCommand;
+        menu.OpenFileCommand = OpenCommand;
+        menu.OpenRecentFilesCommand = OpenRecentCommand;
+        menu.ClearFilesCommand = Preferences.ClearRecentFilesCommand;
+        menu.SaveFileCommand = SaveCommand;
+        menu.SaveAsFileCommand = SaveAsCommand;
+        menu.CloseFileCommand = CloseActiveCommand;
+        menu.RecentFiles = Preferences.RecentFiles;
+
+        // RecentFiles est remplacee (pas modifiee) a chaque mise a jour des preferences.
+        Preferences.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(EditorPreferencesVM.RecentFiles))
+                menu.RecentFiles = Preferences.RecentFiles;
+        };
+    }
+
+    private void AttachViewMenu()
+    {
+        var menu = MainMenuBar.ViewMenuContext;
+        menu.ToggleObjectExplorerCommand = Preferences.ToggleObjectExplorerCommand;
+        menu.ToggleLineNumbersCommand = Preferences.ToggleLineNumbersCommand;
+        menu.ToggleWordWrapCommand = Preferences.ToggleWordWrapCommand;
+        menu.ToggleTabIndentationCommand = Preferences.ToggleUseTabsCommand;
+        menu.SetLanguageCommand = SetLanguageCommand;
+
+        RefreshViewMenuStates();
+        RefreshViewMenuLanguage();
+
+        Preferences.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(EditorPreferencesVM.IsObjectExplorerOpen))
+                menu.IsObjectExplorerOpen = Preferences.IsObjectExplorerOpen;
+        };
+        Preferences.EditorConfiguration.PropertyChanged += (_, _) => RefreshViewMenuStates();
+    }
+
+    private void RefreshViewMenuStates()
+    {
+        var menu = MainMenuBar.ViewMenuContext;
+        var configuration = Preferences.EditorConfiguration;
+        menu.IsObjectExplorerOpen = Preferences.IsObjectExplorerOpen;
+        menu.AreLineNumbersVisible = configuration.IsLineDisplayed;
+        menu.IsWordWrapEnabled = configuration.IsWordWrapped;
+        menu.IsTabIndentationEnabled = configuration.IsTabIndentation;
+    }
+
+    private void RefreshViewMenuLanguage()
+        => MainMenuBar.ViewMenuContext.Language = ActiveDocument?.Language ?? SyntaxLanguage.Sql;
+
+    private void AttachQueryMenu()
+    {
+        var menu = MainMenuBar.QueryMenuContext;
+        menu.ExecuteCommand = Execution.ExecuteQueryCommand;
+        menu.CancelCommand = Execution.ExecuteQueryCancelCommand;
+        menu.DisconnectCommand = Connection.DisconnectCommand;
+    }
 
     private static void Run(ICommand command, object? parameter)
     {

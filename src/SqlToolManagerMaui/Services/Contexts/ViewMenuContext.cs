@@ -2,79 +2,62 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.ViewModels.Pages.Queries;
-using System.ComponentModel;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Services.Contexts;
 
-/// <summary>Observable : les entrees cochees du menu Affichage sont liees a ces etats.</summary>
 [AutoRegister]
 public partial class ViewMenuContext : AbstractMenuContext
 {
-    private readonly EditorPreferencesVM _editorPreferences;
-
     private MenuBarItem _menu;
 
-    public ICommand? ToggleObjectExplorerCommand { get; set; }
-    public ICommand? ToggleLineNumbersCommand { get; set; }
-    public ICommand? ToggleWordWrapCommand { get; set; }
-    public ICommand? ToggleTabIndentationCommand { get; set; }
-    public ICommand? SetLanguageCommand { get; set; }
+    // Observables : commandes et etats sont fournis par la page apres la creation du menu.
+    [ObservableProperty]
+    public partial ICommand? ToggleObjectExplorerCommand { get; set; }
 
-    public bool IsObjectExplorerOpen => _editorPreferences.IsObjectExplorerOpen;
+    [ObservableProperty]
+    public partial ICommand? ToggleLineNumbersCommand { get; set; }
 
-    public bool AreLineNumbersVisible => _editorPreferences.EditorConfiguration.IsLineDisplayed;
+    [ObservableProperty]
+    public partial ICommand? ToggleWordWrapCommand { get; set; }
 
-    public bool IsWordWrapEnabled => _editorPreferences.EditorConfiguration.IsWordWrapped;
+    [ObservableProperty]
+    public partial ICommand? ToggleTabIndentationCommand { get; set; }
 
-    public bool IsTabIndentationEnabled => _editorPreferences.EditorConfiguration.IsTabIndentation;
+    /// <summary>Parametre : la valeur de <see cref="SyntaxLanguage"/>.</summary>
+    [ObservableProperty]
+    public partial ICommand? SetLanguageCommand { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsObjectExplorerOpen { get; set; }
+
+    [ObservableProperty]
+    public partial bool AreLineNumbersVisible { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsWordWrapEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsTabIndentationEnabled { get; set; }
 
     [ObservableProperty]
     public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
-
-    public ViewMenuContext(EditorPreferencesVM editorPreferences)
-    {
-        _editorPreferences = editorPreferences;
-
-        ToggleObjectExplorerCommand = new Command(() => _editorPreferences.ToggleObjectExplorerCommand.Execute(null));
-        ToggleLineNumbersCommand = new Command(() => _editorPreferences.ToggleLineNumbersCommand.Execute(null));
-        ToggleWordWrapCommand = new Command(() => _editorPreferences.ToggleWordWrapCommand.Execute(null));
-        ToggleTabIndentationCommand = new Command(() => _editorPreferences.ToggleUseTabsCommand.Execute(null));
-
-        _editorPreferences.PropertyChanged += OnPreferencesChanged;
-        _editorPreferences.EditorConfiguration.PropertyChanged += OnEditorConfigurationChanged;
-    }
-
-    private void OnPreferencesChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(EditorPreferencesVM.IsObjectExplorerOpen))
-            OnPropertyChanged(nameof(IsObjectExplorerOpen));
-    }
-
-    private void OnEditorConfigurationChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        // Notifie toutes les entrees : le nom de propriete source peut differer.
-        OnPropertyChanged(nameof(AreLineNumbersVisible));
-        OnPropertyChanged(nameof(IsWordWrapEnabled));
-        OnPropertyChanged(nameof(IsTabIndentationEnabled));
-    }
 
     public override MenuBarItem CreateMenu()
     {
         var isEqual = new IsEqualConverter();
         _menu ??= CreateItem("Affichage", new List<IMenuFlyoutItem>
         {
-            CreateCheckedItem("Explorateur d'objets", ToggleObjectExplorerCommand, this, nameof(ViewMenuContext.IsObjectExplorerOpen)),
+            CreateBoundCheckedItem("Explorateur d'objets", nameof(ToggleObjectExplorerCommand), nameof(IsObjectExplorerOpen)),
             CreateSeparator(),
-            CreateCheckedItem("Numéros de ligne", ToggleLineNumbersCommand, this, nameof(ViewMenuContext.AreLineNumbersVisible)),
-            CreateCheckedItem("Retour à la ligne", ToggleWordWrapCommand, this, nameof(ViewMenuContext.IsWordWrapEnabled)),
-            CreateCheckedItem("Indentation par tabulations", ToggleTabIndentationCommand, this, nameof(ViewMenuContext.IsTabIndentationEnabled)),
+            CreateBoundCheckedItem("Numéros de ligne", nameof(ToggleLineNumbersCommand), nameof(AreLineNumbersVisible)),
+            CreateBoundCheckedItem("Retour à la ligne", nameof(ToggleWordWrapCommand), nameof(IsWordWrapEnabled)),
+            CreateBoundCheckedItem("Indentation par tabulations", nameof(ToggleTabIndentationCommand), nameof(IsTabIndentationEnabled)),
             CreateSeparator(),
             CreateSubMenu("Langage", new List<IMenuFlyoutItem>
             {
-                CreateCheckedItem("SQL (T-SQL)", SetLanguageCommand, this, nameof(ViewMenuContext.Language), isEqual, SyntaxLanguage.Sql, SyntaxLanguage.Sql),
-                CreateCheckedItem("LINQ (Entity Framework)", SetLanguageCommand, this, nameof(ViewMenuContext.Language), isEqual, SyntaxLanguage.Linq, SyntaxLanguage.Linq)
+                CreateBoundCheckedItem("SQL (T-SQL)", nameof(SetLanguageCommand), nameof(Language), isEqual, SyntaxLanguage.Sql, SyntaxLanguage.Sql),
+                CreateBoundCheckedItem("LINQ (Entity Framework)", nameof(SetLanguageCommand), nameof(Language), isEqual, SyntaxLanguage.Linq, SyntaxLanguage.Linq)
             })
         });
         return _menu;

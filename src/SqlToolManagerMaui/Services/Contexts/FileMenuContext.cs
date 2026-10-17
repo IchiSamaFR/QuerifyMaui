@@ -1,5 +1,6 @@
-﻿using SqlToolManagerMaui.Core.Ioc;
-using System.Collections.ObjectModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.UI.Constants;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Services.Contexts;
@@ -9,30 +10,48 @@ public partial class FileMenuContext : AbstractMenuContext
 {
     private MenuBarItem _menu;
 
-    public ICommand? NewFileCommand { get; set; }
-    public ICommand? NewDashboardFileCommand { get; set; }
-    public ICommand? OpenFileCommand { get; set; }
-    public ICommand? SaveFileCommand { get; set; }
-    public ICommand? SaveAsFileCommand { get; set; }
-    public ICommand? CloseFileCommand { get; set; }
+    // Observables : les commandes sont fournies par la page apres la creation du menu.
+    [ObservableProperty]
+    public partial ICommand? NewFileCommand { get; set; }
 
-    public ICommand? OpenRecentFilesCommand { get; set; }
-    public ICommand? ClearFilesCommand { get; set; }
-    public ObservableCollection<string> RecentFiles { get; set; }
+    [ObservableProperty]
+    public partial ICommand? NewDashboardFileCommand { get; set; }
+
+    [ObservableProperty]
+    public partial ICommand? OpenFileCommand { get; set; }
+
+    [ObservableProperty]
+    public partial ICommand? SaveFileCommand { get; set; }
+
+    [ObservableProperty]
+    public partial ICommand? SaveAsFileCommand { get; set; }
+
+    [ObservableProperty]
+    public partial ICommand? CloseFileCommand { get; set; }
+
+    /// <summary>Rouvre un fichier recent ; parametre : son chemin.</summary>
+    [ObservableProperty]
+    public partial ICommand? OpenRecentFilesCommand { get; set; }
+
+    [ObservableProperty]
+    public partial ICommand? ClearFilesCommand { get; set; }
+
+    [ObservableProperty]
+    public partial IEnumerable<string>? RecentFiles { get; set; }
 
     public override MenuBarItem CreateMenu()
     {
         _menu ??= CreateItem("Fichier", new List<IMenuFlyoutItem>
         {
-            CreateItem("Nouveau fichier", NewFileCommand),
-            CreateItem("Nouveau tableau de bord", NewDashboardFileCommand),
-            CreateItem("Ouvrir", OpenFileCommand),
-            CreateSubItem("Fichiers récents", "Aucun fichier récent", RecentFiles, OpenRecentFilesCommand, ClearFilesCommand),
+            CreateBoundItem("Nouveau fichier", nameof(NewFileCommand), KeyboardShortcutConstants.NewFile),
+            CreateBoundItem("Nouveau tableau de bord", nameof(NewDashboardFileCommand), KeyboardShortcutConstants.NewDashboardFile),
+            CreateBoundItem("Ouvrir", nameof(OpenFileCommand), KeyboardShortcutConstants.OpenFile),
+            CreateBoundSubItem("Fichiers récents", "Aucun fichier récent", nameof(RecentFiles), nameof(OpenRecentFilesCommand), nameof(ClearFilesCommand)),
             CreateSeparator(),
-            CreateItem("Enregistrer", SaveFileCommand),
-            CreateItem("Enregistrer sous", SaveAsFileCommand),
+            CreateBoundItem("Enregistrer", nameof(SaveFileCommand), KeyboardShortcutConstants.SaveFile),
+            CreateBoundItem("Enregistrer sous", nameof(SaveAsFileCommand)),
             CreateSeparator(),
-            CreateItem("Fermer", CloseFileCommand)
+            CreateBoundItem("Fermer", nameof(CloseFileCommand))
         });
         return _menu;
     }

@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using SqlToolManagerMaui.UI.Models.Keyboards;
 using SqlToolManagerMaui.UI.Views.Controls.Menus;
-using SqlToolManagerMaui.Views.Controls.Editors.Menus;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Services.Contexts;
@@ -33,6 +33,13 @@ public abstract class AbstractMenuContext : ObservableObject
         return item;
     }
 
+    protected IMenuFlyoutItem CreateBoundItem(string text, string commandPath, KeyboardShortcut shortcut)
+    {
+        var item = CreateBoundItem(text, commandPath) as MenuFlyoutItem;
+        item!.KeyboardAccelerators.Add(new KeyboardAccelerator { Key = shortcut.Key, Modifiers = shortcut.Modifiers });
+        return item;
+    }
+
     protected IMenuFlyoutItem CreateSubItem(string text,
         string emptyText,
         IEnumerable<string> itemSource,
@@ -47,6 +54,24 @@ public abstract class AbstractMenuContext : ObservableObject
             ItemCommand = itemCommand,
             FooterCommand = footerCommand
         };
+    }
+
+    /// <summary>Sous-menu alimente par une liste : source et commandes sont liees aux chemins du contexte.</summary>
+    protected IMenuFlyoutItem CreateBoundSubItem(string text,
+        string emptyText,
+        string itemsSourcePath,
+        string itemCommandPath,
+        string footerCommandPath)
+    {
+        var item = new MenuFlyoutSubItemExtended
+        {
+            Text = text,
+            EmptyText = emptyText
+        };
+        item.SetBinding(MenuFlyoutSubItemExtended.ItemsSourceProperty, new Binding(itemsSourcePath, BindingMode.OneWay, source: this));
+        item.SetBinding(MenuFlyoutSubItemExtended.ItemCommandProperty, new Binding(itemCommandPath, BindingMode.OneWay, source: this));
+        item.SetBinding(MenuFlyoutSubItemExtended.FooterCommandProperty, new Binding(footerCommandPath, BindingMode.OneWay, source: this));
+        return item;
     }
 
     protected MenuBarItem CreateItem(string text, IList<IMenuFlyoutItem> list)
@@ -72,6 +97,25 @@ public abstract class AbstractMenuContext : ObservableObject
         {
             item.Add(menu);
         }
+        return item;
+    }
+
+    /// <summary>Entree cochable dont la commande et l'etat sont lies aux chemins du contexte.</summary>
+    protected IMenuFlyoutItem CreateBoundCheckedItem(string text,
+        string commandPath,
+        string isCheckedPath,
+        IValueConverter? converter = null,
+        object? converterParameter = null,
+        object? commandParameter = null)
+    {
+        var item = new CheckedMenuFlyoutItem
+        {
+            Label = text,
+            CommandParameter = commandParameter
+        };
+        item.SetBinding(MenuItem.CommandProperty, new Binding(commandPath, BindingMode.OneWay, source: this));
+        item.SetBinding(CheckedMenuFlyoutItem.IsCheckedProperty,
+            new Binding(isCheckedPath, BindingMode.OneWay, converter, converterParameter, source: this));
         return item;
     }
 

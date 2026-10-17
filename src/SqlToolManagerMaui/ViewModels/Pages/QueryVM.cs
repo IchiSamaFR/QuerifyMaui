@@ -98,6 +98,9 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
         Connection.Attach(this);
 
         WeakReferenceMessenger.Default.Register<QueryVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
+        AttachFileMenu();
+        AttachViewMenu();
+        AttachQueryMenu();
     }
 
     protected override async Task LoadDatasBusyAsync()
@@ -125,6 +128,7 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     {
         Execution.RefreshCanExecute();
         Dashboard.RefreshCanExecute();
+        RefreshViewMenuLanguage();
     }
 
     private void OnSelectedConnectionChanged(object? sender, EventArgs e)
@@ -136,13 +140,7 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
 
     partial void OnEditionCommandsChanged(CodeEditorCommands? value)
     {
-        var menu = MainMenuBar.EditMenuContext;
-        menu.UndoCommand = value?.Undo;
-        menu.RedoCommand = value?.Redo;
-        menu.CutCommand = value?.Cut;
-        menu.CopyCommand = value?.Copy;
-        menu.PasteCommand = value?.Paste;
-        menu.SelectAllCommand = value?.SelectAll;
+        AttachEditMenu();
     }
 
     // ---------- Insertion depuis l'explorateur ----------

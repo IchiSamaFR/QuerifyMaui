@@ -1,25 +1,33 @@
-﻿using SqlToolManagerMaui.Core.Ioc;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.UI.Constants;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Services.Contexts;
 
 [AutoRegister]
-public class QueryMenuContext : AbstractMenuContext
+public partial class QueryMenuContext : AbstractMenuContext
 {
     private MenuBarItem _menu;
 
-    public ICommand? ExecuteCommand { get; set; }
-    public ICommand? CancelCommand { get; set; }
-    public ICommand? DisconnectCommand { get; set; }
+    // Observables : les commandes sont fournies par la page apres la creation du menu.
+    [ObservableProperty]
+    public partial ICommand? ExecuteCommand { get; set; }
+
+    [ObservableProperty]
+    public partial ICommand? CancelCommand { get; set; }
+
+    [ObservableProperty]
+    public partial ICommand? DisconnectCommand { get; set; }
 
     public override MenuBarItem CreateMenu()
     {
         _menu ??= CreateItem("Requête", new List<IMenuFlyoutItem>
         {
-            CreateItem("Exécuter", ExecuteCommand),
-            CreateItem("Annuler l'exécution", CancelCommand),
+            CreateBoundItem("Exécuter", nameof(ExecuteCommand), KeyboardShortcutConstants.ExecuteQuery),
+            CreateBoundItem("Annuler l'exécution", nameof(CancelCommand)),
             CreateSeparator(),
-            CreateItem("Se déconnecter", DisconnectCommand)
+            CreateBoundItem("Se déconnecter", nameof(DisconnectCommand))
         });
         return _menu;
     }
