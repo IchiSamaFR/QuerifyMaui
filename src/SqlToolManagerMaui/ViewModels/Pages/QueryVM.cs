@@ -1,5 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+﻿using CodeEdit.Maui;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
@@ -9,6 +9,7 @@ using SqlToolManagerMaui.Core.Models.Queries;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.UI.ViewModels;
+using SqlToolManagerMaui.ViewModels.Controls.Menus;
 using SqlToolManagerMaui.ViewModels.Pages.Queries;
 using System.Collections.ObjectModel;
 
@@ -51,6 +52,13 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     /// <summary>Fichiers recents, explorateur et options d'edition.</summary>
     public EditorPreferencesVM Preferences { get; }
 
+    /// <summary>Barre de menu principale.</summary>
+    public MainMenuBarVM MainMenuBar { get; }
+
+    /// <summary>Commandes d'edition de l'editeur, poussees par le controle (OneWayToSource).</summary>
+    [ObservableProperty]
+    public partial CodeEditorCommands? EditionCommands { get; set; }
+
     CancellationToken IQueryWorkspace.LifetimeToken => LifetimeToken;
 
     /// <summary>Configurations de tous les langages, chargees une fois : changer d'onglet ne relit aucun .xshd.</summary>
@@ -63,7 +71,14 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     /// <summary>Coloration SQL, quel que soit l'onglet actif (requetes des cartes du dashboard).</summary>
     public SyntaxConfiguration? SqlSyntaxConfiguration => _syntaxByLanguage.GetValueOrDefault(SyntaxLanguage.Sql);
 
-    public QueryVM(IEditorFileService files, ISyntaxConfigurationStore syntaxConfigurations, StatusBarVM status, QueryConnectionVM connection, QueryExecutionVM execution, DashboardVM dashboard, EditorPreferencesVM preferences)
+    public QueryVM(IEditorFileService files,
+        ISyntaxConfigurationStore syntaxConfigurations,
+        StatusBarVM status,
+        QueryConnectionVM connection,
+        QueryExecutionVM execution,
+        DashboardVM dashboard,
+        EditorPreferencesVM preferences,
+        MainMenuBarVM mainMenuBar)
     {
         _files = files;
         _syntaxConfigurations = syntaxConfigurations;
@@ -73,6 +88,7 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
         Execution = execution;
         Dashboard = dashboard;
         Preferences = preferences;
+        MainMenuBar = mainMenuBar;
 
         Execution.Attach(this);
         Dashboard.Attach(this);
@@ -105,10 +121,6 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
             New();
     }
 
-    /// <summary>Ferme l'application (entree Fichier > Quitter).</summary>
-    [RelayCommand]
-    private static void Quit() => Application.Current?.Quit();
-
     partial void OnActiveDocumentChanged(EditorDocument? value)
     {
         Execution.RefreshCanExecute();
@@ -120,6 +132,17 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
         Execution.RefreshCanExecute();
         Dashboard.RefreshCanExecute();
         Dashboard.OnConnectionChanged();
+    }
+
+    partial void OnEditionCommandsChanged(CodeEditorCommands? value)
+    {
+        var menu = MainMenuBar.EditMenuContext;
+        menu.UndoCommand = value?.Undo;
+        menu.RedoCommand = value?.Redo;
+        menu.CutCommand = value?.Cut;
+        menu.CopyCommand = value?.Copy;
+        menu.PasteCommand = value?.Paste;
+        menu.SelectAllCommand = value?.SelectAll;
     }
 
     // ---------- Insertion depuis l'explorateur ----------

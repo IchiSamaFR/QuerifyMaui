@@ -274,7 +274,7 @@ Lors de la création d'une feature :
 * Un onglet = un `EditorDocument` (CodeDocument + chemin + IsDirty). Le namespace est `Models.Editors` (et non `Editor`) pour ne pas masquer `Microsoft.Maui.Controls.Editor`.
 * Le `CodeEditor` notifie par **événements** (`ContentChanged`, `SelectionChanged`, `DocumentChanged`), pas par bindings : le code-behind de `QueryPage` les relaie au VM.
 * Ouverture par `FilePicker`, « Enregistrer sous » par `FileSaver` (CommunityToolkit), UTF-8 sans BOM.
-* **Barre de menus** : les actions sont des contrôles `MenuBarItem` dédiés (`Views/Controls/Editors/Menus/*MenuBarItem`), branchés depuis `QueryPage` via leurs `BindableProperty`. Sous Windows, MAUI rend le MenuBar dans le `MauiToolbar` du Shell : la page doit porter `Shell.NavBarIsVisible="True"` **et** un `Title` non vide (cf. dotnet/maui#6303).
+* **Barre de menus** : les actions sont des contrôles `MenuBarItem` dédiés (`Views/Controls/Editors/Menus/*MenuBarItem`), regroupés dans `MainMenuBarView` (liée à `MainMenuBarVM`) et posés sur la page par `AttachTo`. Chaque entrée publie un enum `Weak*MenuBarType` (ou un message `OpenRecentFileMessage` / `SetLanguageMessage`) via `IWeakReferenceService` ; la page active s'y abonne en `MessageScope.WhenAlive` et renvoie l'état affiché (coches, fichiers récents, exécution) par `MenuBarStateMessage`. Les commandes d'édition, propres au `CodeEditor`, sont relayées par `QueryPage`. Sous Windows, MAUI rend le MenuBar dans le `MauiToolbar` du Shell : la page doit porter `Shell.NavBarIsVisible="True"` **et** un `Title` non vide (cf. dotnet/maui#6303).
 * `MenuFlyoutItem` n'a pas d'état « coché » : les bascules changent leur libellé via un `DataTrigger` sur une propriété d'état du contrôle.
 
 ### Exécution des requêtes

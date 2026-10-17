@@ -5,7 +5,6 @@ using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Databases.Schemas;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
-using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Databases.Schemas;
 using SqlToolManagerMaui.Languages.Commons.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;

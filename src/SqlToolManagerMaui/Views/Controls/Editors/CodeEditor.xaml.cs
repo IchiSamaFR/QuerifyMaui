@@ -4,11 +4,12 @@ using RichEdit.Maui;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
-using SqlToolManagerMaui.Core.Services.Editors.Completion;
+using SqlToolManagerMaui.Services.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
-using System.ComponentModel;
 using SqlToolManagerMaui.UI.Extensions;
 using SqlToolManagerMaui.Views.Controls.Editors.Completion;
+using System.ComponentModel;
+using System.Windows.Input;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
 namespace SqlToolManagerMaui.Views.Controls.Editors;
@@ -54,31 +55,36 @@ public partial class CodeEditor : ContentView
     [BindableProperty(PropertyChangedMethodName = nameof(OnConnectionPropertyChanged))]
     public partial DatabaseConnectionInfo? Connection { get; set; }
 
-    /// <summary>Nouvelle connexion, ou connexion qui vient de s'ouvrir : son catalogue est precharge pour l'autocompletion.</summary>
-    private static void OnConnectionPropertyChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        var editor = (CodeEditor)bindable;
-
-        if (oldValue is DatabaseConnectionInfo oldConnection)
-            oldConnection.PropertyChanged -= editor.OnConnectionStateChanged;
-        if (newValue is DatabaseConnectionInfo newConnection)
-            newConnection.PropertyChanged += editor.OnConnectionStateChanged;
-
-        editor._completion?.WarmUp();
-    }
-
-    private void OnConnectionStateChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(DatabaseConnectionInfo.IsConnected))
-            _completion?.WarmUp();
-    }
-
     /// <summary>
     /// Commandes d'edition de l'editeur natif (annuler, copier, coller...), exposees telles
     /// quelles pour le menu Edition.
     /// </summary>
-    [BindableProperty]
+    [BindableProperty(PropertyChangedMethodName = nameof(OnCommandsPropertyChanged))]
     public partial CodeEdit.Maui.CodeEditorCommands? Commands { get; private set; }
+
+    /// <summary>Commande Annuler de l'editeur natif.</summary>
+    [BindableProperty]
+    public partial ICommand? UndoCommand { get; private set; }
+
+    /// <summary>Commande Retablir de l'editeur natif.</summary>
+    [BindableProperty]
+    public partial ICommand? RedoCommand { get; private set; }
+
+    /// <summary>Commande Tout selectionner de l'editeur natif.</summary>
+    [BindableProperty]
+    public partial ICommand? SelectAllCommand { get; private set; }
+
+    /// <summary>Commande Copier de l'editeur natif.</summary>
+    [BindableProperty]
+    public partial ICommand? CopyCommand { get; private set; }
+
+    /// <summary>Commande Couper de l'editeur natif.</summary>
+    [BindableProperty]
+    public partial ICommand? CutCommand { get; private set; }
+
+    /// <summary>Commande Coller de l'editeur natif.</summary>
+    [BindableProperty]
+    public partial ICommand? PasteCommand { get; private set; }
 
     /// <summary>Editeur natif encapsule, pour les rares appels imperatifs (ScrollIntoView...).</summary>
     public NativeCodeEditor NativeEditor => Native;
@@ -121,6 +127,39 @@ public partial class CodeEditor : ContentView
 #if WINDOWS
         DisableWindowsHoverState();
 #endif
+    }
+
+    /// <summary>Nouvelle connexion, ou connexion qui vient de s'ouvrir : son catalogue est precharge pour l'autocompletion.</summary>
+    private static void OnConnectionPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        var editor = (CodeEditor)bindable;
+
+        if (oldValue is DatabaseConnectionInfo oldConnection)
+            oldConnection.PropertyChanged -= editor.OnConnectionStateChanged;
+        if (newValue is DatabaseConnectionInfo newConnection)
+            newConnection.PropertyChanged += editor.OnConnectionStateChanged;
+
+        editor._completion?.WarmUp();
+    }
+
+    private void OnConnectionStateChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(DatabaseConnectionInfo.IsConnected))
+            _completion?.WarmUp();
+    }
+
+    /// <summary>Repercute les commandes natives sur les proprietes bindables dediees.</summary>
+    private static void OnCommandsPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        var editor = (CodeEditor)bindable;
+        var commands = newValue as CodeEdit.Maui.CodeEditorCommands;
+
+        editor.UndoCommand = commands?.Undo;
+        editor.RedoCommand = commands?.Redo;
+        editor.SelectAllCommand = commands?.SelectAll;
+        editor.CopyCommand = commands?.Copy;
+        editor.CutCommand = commands?.Cut;
+        editor.PasteCommand = commands?.Paste;
     }
 
 #if WINDOWS

@@ -12,8 +12,7 @@
     </MenuFlyoutItem>
 
     <MenuFlyoutItem Text="Annuler l'exécution"
-                    Command="{Binding CancelCommand, Source={x:Reference root}, x:DataType=c:QueryMenuBarItem}"
-                    IsEnabled="{Binding ExecuteCommand.IsRunning, Source={x:Reference root}, x:DataType=c:QueryMenuBarItem}"/>
+                    Command="{Binding CancelCommand, Source={x:Reference root}, x:DataType=c:QueryMenuBarItem}" />
 
     <MenuFlyoutSeparator />
 

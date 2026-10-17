@@ -1,38 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <v:AbstractPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:code="clr-namespace:CodeEdit.Maui;assembly=CodeEdit.Maui"
                 x:Class="SqlToolManagerMaui.Views.Pages.QueryPage"
                 x:DataType="vm:QueryVM"
                 Shell.NavBarIsVisible="True">
-    <ContentPage.MenuBarItems>
-        <c:FileMenuBarItem NewCommand="{Binding NewCommand}"
-                           NewDashboardCommand="{Binding Dashboard.NewCommand}"
-                           OpenCommand="{Binding OpenCommand}"
-                           RecentFiles="{Binding Preferences.RecentFiles}"
-                           OpenRecentCommand="{Binding OpenRecentCommand}"
-                           ClearRecentFilesCommand="{Binding Preferences.ClearRecentFilesCommand}"
-                           SaveCommand="{Binding SaveCommand}"
-                           SaveAsCommand="{Binding SaveAsCommand}"
-                           CloseTabCommand="{Binding CloseActiveCommand}"
-                           QuitCommand="{Binding QuitCommand}" />
-
-        <c:EditMenuBarItem Editor="{Binding Source={x:Reference Editor}}" />
-
-        <c:ViewMenuBarItem ToggleObjectExplorerCommand="{Binding Preferences.ToggleObjectExplorerCommand}"
-                           IsObjectExplorerOpen="{Binding Preferences.IsObjectExplorerOpen}"
-                           ToggleLineNumbersCommand="{Binding Preferences.ToggleLineNumbersCommand}"
-                           AreLineNumbersVisible="{Binding Preferences.EditorConfiguration.IsLineDisplayed}"
-                           ToggleWordWrapCommand="{Binding Preferences.ToggleWordWrapCommand}"
-                           IsWordWrapEnabled="{Binding Preferences.EditorConfiguration.IsWordWrapped}"
-                           ToggleTabIndentationCommand="{Binding Preferences.ToggleUseTabsCommand}"
-                           IsTabIndentationEnabled="{Binding Preferences.EditorConfiguration.IsTabIndentation}"
-                           Language="{Binding ActiveDocument.Language, FallbackValue={x:Static en:SyntaxLanguage.Sql}}"
-                           SetLanguageCommand="{Binding SetLanguageCommand}" />
-
-        <c:QueryMenuBarItem ExecuteCommand="{Binding Execution.ExecuteQueryCommand}"
-                            DisconnectCommand="{Binding Connection.DisconnectCommand}" />
-    </ContentPage.MenuBarItems>
-
     <Grid ColumnDefinitions="340,Auto,*"
           ColumnSpacing="8"
           Padding="8">
@@ -106,7 +78,9 @@
                                           EditorConfiguration="{Binding Preferences.EditorConfiguration}"
                                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
                                           Connection="{Binding Connection.ActiveConnection}"
+                                          Commands="{Binding EditionCommands, Mode=OneWayToSource}"
                                           IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
+
                         </Grid>
 
                         <!-- ============ Dashboard (.schx) : grille + panneau du concepteur ============ -->

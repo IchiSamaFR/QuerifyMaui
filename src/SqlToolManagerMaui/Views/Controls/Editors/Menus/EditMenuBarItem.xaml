@@ -4,21 +4,21 @@
              x:Class="SqlToolManagerMaui.Views.Controls.Editors.Menus.EditMenuBarItem"
              Text="Édition">
     <MenuFlyoutItem Text="Annuler"
-                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=Editor.Commands.Undo, x:DataType=c:EditMenuBarItem}" />
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=UndoCommand, x:DataType=c:EditMenuBarItem}" />
     <MenuFlyoutItem Text="Rétablir"
-                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=Editor.Commands.Redo, x:DataType=c:EditMenuBarItem}" />
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=RedoCommand, x:DataType=c:EditMenuBarItem}" />
 
     <MenuFlyoutSeparator />
 
     <MenuFlyoutItem Text="Couper"
-                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=Editor.Commands.Cut, x:DataType=c:EditMenuBarItem}" />
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=CutCommand, x:DataType=c:EditMenuBarItem}" />
     <MenuFlyoutItem Text="Copier"
-                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=Editor.Commands.Copy, x:DataType=c:EditMenuBarItem}" />
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=CopyCommand, x:DataType=c:EditMenuBarItem}" />
     <MenuFlyoutItem Text="Coller"
-                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=Editor.Commands.Paste, x:DataType=c:EditMenuBarItem}" />
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=PasteCommand, x:DataType=c:EditMenuBarItem}" />
 
     <MenuFlyoutSeparator />
 
     <MenuFlyoutItem Text="Tout sélectionner"
-                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=Editor.Commands.SelectAll, x:DataType=c:EditMenuBarItem}" />
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:EditMenuBarItem}}, Path=SelectAllCommand, x:DataType=c:EditMenuBarItem}" />
 </MenuBarItem>

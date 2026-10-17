@@ -4,6 +4,7 @@ using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Databases.Dashboards;
 using SqlToolManagerMaui.Services.Editors;
+using System.Windows.Input;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 
@@ -177,5 +178,13 @@ public partial class QueryVM
         document.Language = language;
         OnPropertyChanged(nameof(SyntaxConfiguration));
         Status.Set($"Langage de l'onglet : {SyntaxConfiguration?.Definition.Name ?? language.ToString()}.");
+    }
+
+    // ---------- Barre de menus commune ----------
+
+    private static void Run(ICommand command, object? parameter)
+    {
+        if (command.CanExecute(parameter))
+            command.Execute(parameter);
     }
 }
