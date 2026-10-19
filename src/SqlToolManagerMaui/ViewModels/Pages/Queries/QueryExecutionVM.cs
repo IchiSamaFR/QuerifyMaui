@@ -16,7 +16,7 @@ public partial class QueryExecutionVM : ObservableObject
     private readonly IConnectionStore _connectionStore;
     private readonly IQueryExecutorResolver _executors;
 
-    // Fourni par Attach : QueryVM recoit ce VM par injection avant de pouvoir se passer en hote.
+    // Fourni par Attach : MainVM recoit ce VM par injection avant de pouvoir se passer en hote.
     private IQueryWorkspace _workspace = null!;
 
     public QueryExecutionVM(IConnectionStore connectionStore, IQueryExecutorResolver executors)
@@ -25,7 +25,7 @@ public partial class QueryExecutionVM : ObservableObject
         _executors = executors;
     }
 
-    /// <summary>Branche le VM sur la page hote ; appele une seule fois, par QueryVM.</summary>
+    /// <summary>Branche le VM sur la page hote ; appele une seule fois, par MainVM.</summary>
     public void Attach(IQueryWorkspace workspace) => _workspace = workspace;
 
     /// <summary>A appeler quand l'onglet actif ou la connexion change.</summary>

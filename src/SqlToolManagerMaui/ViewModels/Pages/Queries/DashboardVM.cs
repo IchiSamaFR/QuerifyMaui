@@ -27,7 +27,7 @@ public partial class DashboardVM : ObservableObject
     private readonly IDashboardDataService _dashboardData;
     private readonly IConnectionStore _connectionStore;
 
-    // Fourni par Attach : QueryVM recoit ce VM par injection avant de pouvoir se passer en hote.
+    // Fourni par Attach : MainVM recoit ce VM par injection avant de pouvoir se passer en hote.
     private IQueryWorkspace _workspace = null!;
 
     /// <summary>Delai de regroupement des modifications du concepteur avant reecriture du fichier.</summary>
@@ -50,7 +50,7 @@ public partial class DashboardVM : ObservableObject
 
     private StatusBarVM Status => _workspace.Status;
 
-    /// <summary>Branche le VM sur la page hote ; appele une seule fois, par QueryVM.</summary>
+    /// <summary>Branche le VM sur la page hote ; appele une seule fois, par MainVM.</summary>
     public void Attach(IQueryWorkspace workspace)
     {
         _workspace = workspace;

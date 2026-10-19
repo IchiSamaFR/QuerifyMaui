@@ -121,6 +121,9 @@
 		  <AutoGen>True</AutoGen>
 		  <DependentUpon>CoreXmlns.tt</DependentUpon>
 		</Compile>
+		<Compile Update="Views\Pages\MainPage.xaml.cs">
+		  <DependentUpon>MainPage.xaml</DependentUpon>
+		</Compile>
 	</ItemGroup>
 
 	<!-- ===================== Services ===================== -->

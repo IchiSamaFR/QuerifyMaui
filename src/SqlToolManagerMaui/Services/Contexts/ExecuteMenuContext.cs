@@ -6,7 +6,7 @@ using System.Windows.Input;
 namespace SqlToolManagerMaui.Services.Contexts;
 
 [AutoRegister]
-public partial class QueryMenuContext : AbstractMenuContext
+public partial class ExecuteMenuContext : AbstractMenuContext
 {
     private MenuBarItem _menu;
 

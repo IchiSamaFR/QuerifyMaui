@@ -3,14 +3,14 @@ using System.Collections.ObjectModel;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Queries;
 
-/// <summary>Etat de la page Requete partage avec ses sous-VM (implemente par QueryVM).</summary>
+/// <summary>Etat de la page Requete partage avec ses sous-VM (implemente par MainVM).</summary>
 public interface IQueryWorkspace
 {
     ObservableCollection<EditorDocument> Documents { get; }
 
     EditorDocument? ActiveDocument { get; set; }
 
-    QueryConnectionVM Connection { get; }
+    DatabaseConnectionVM Connection { get; }
 
     StatusBarVM Status { get; }
 

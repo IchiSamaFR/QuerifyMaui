@@ -12,12 +12,12 @@ namespace SqlToolManagerMaui.Views.Pages;
 /// la page n'a plus de logique propre.
 /// </summary>
 [AutoRegister]
-public partial class QueryPage : AbstractPage
+public partial class MainPage : AbstractPage
 {
-    public static readonly string PAGE_ROUTE = nameof(QueryPage);
+    public static readonly string PAGE_ROUTE = nameof(MainPage);
     protected override string PageRoute => PAGE_ROUTE;
 
-    public QueryPage(QueryVM viewModel, ConnectionExplorerView connectionExplorerView)
+    public MainPage(MainVM viewModel, ConnectionExplorerView connectionExplorerView)
     : base(viewModel)
     {
         InitializeComponent();
@@ -32,7 +32,7 @@ public partial class QueryPage : AbstractPage
         base.OnBindingContextChanged();
 
         MenuBarItems.Clear();
-        if (ContextViewModel is QueryVM vm)
+        if (ContextViewModel is MainVM vm)
         {
             foreach (var item in vm.MainMenuBar.MenuItems)
                 MenuBarItems.Add(item);

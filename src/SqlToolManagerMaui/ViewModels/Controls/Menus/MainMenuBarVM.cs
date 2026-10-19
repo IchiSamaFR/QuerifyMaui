@@ -10,7 +10,7 @@ public partial class MainMenuBarVM : ObservableObject
     public FileMenuContext FileMenuContext { get; }
     public EditMenuContext EditMenuContext { get; }
     public ViewMenuContext ViewMenuContext { get; }
-    public QueryMenuContext QueryMenuContext { get; }
+    public ExecuteMenuContext QueryMenuContext { get; }
 
     [ObservableProperty]
     public partial IList<MenuBarItem> MenuItems { get; set; } = Array.Empty<MenuBarItem>();
@@ -18,7 +18,7 @@ public partial class MainMenuBarVM : ObservableObject
     public MainMenuBarVM(FileMenuContext fileMenuContext,
         EditMenuContext editMenuContext,
         ViewMenuContext viewMenuContext,
-        QueryMenuContext queryMenuContext)
+        ExecuteMenuContext queryMenuContext)
     {
         FileMenuContext = fileMenuContext;
         EditMenuContext = editMenuContext;

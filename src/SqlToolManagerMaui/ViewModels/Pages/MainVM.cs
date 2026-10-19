@@ -22,7 +22,7 @@ namespace SqlToolManagerMaui.ViewModels.Pages;
 /// Les autres responsabilites sont deleguees aux sous-VM de <c>Queries/</c>.
 /// </summary>
 [AutoRegister]
-public partial class QueryVM : AbstractVM, IQueryWorkspace
+public partial class MainVM : AbstractVM, IQueryWorkspace
 {
     private readonly IEditorFileService _files;
     private readonly ISyntaxConfigurationStore _syntaxConfigurations;
@@ -41,7 +41,7 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     public StatusBarVM Status { get; }
 
     /// <summary>Connexion choisie dans le Picker.</summary>
-    public QueryConnectionVM Connection { get; }
+    public DatabaseConnectionVM Connection { get; }
 
     /// <summary>Execution de la selection ou du document, et panneau de resultats.</summary>
     public QueryExecutionVM Execution { get; }
@@ -71,10 +71,10 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
     /// <summary>Coloration SQL, quel que soit l'onglet actif (requetes des cartes du dashboard).</summary>
     public SyntaxConfiguration? SqlSyntaxConfiguration => _syntaxByLanguage.GetValueOrDefault(SyntaxLanguage.Sql);
 
-    public QueryVM(IEditorFileService files,
+    public MainVM(IEditorFileService files,
         ISyntaxConfigurationStore syntaxConfigurations,
         StatusBarVM status,
-        QueryConnectionVM connection,
+        DatabaseConnectionVM connection,
         QueryExecutionVM execution,
         DashboardVM dashboard,
         EditorPreferencesVM preferences,
@@ -97,7 +97,7 @@ public partial class QueryVM : AbstractVM, IQueryWorkspace
         // En dernier : l'abonnement au store peut deja rappeler la page.
         Connection.Attach(this);
 
-        WeakReferenceMessenger.Default.Register<QueryVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
+        WeakReferenceMessenger.Default.Register<MainVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
         AttachFileMenu();
         AttachViewMenu();
         AttachQueryMenu();

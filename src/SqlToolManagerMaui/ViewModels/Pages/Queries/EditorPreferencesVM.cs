@@ -15,7 +15,7 @@ public partial class EditorPreferencesVM : ObservableObject
 {
     private readonly IUserPreferencesStore _preferences;
 
-    // Fourni par Attach : QueryVM recoit ce VM par injection avant de pouvoir se passer en hote.
+    // Fourni par Attach : MainVM recoit ce VM par injection avant de pouvoir se passer en hote.
     private IQueryWorkspace _workspace = null!;
 
     private bool _isLoaded;
@@ -36,7 +36,7 @@ public partial class EditorPreferencesVM : ObservableObject
     [ObservableProperty]
     public partial bool IsObjectExplorerOpen { get; set; } = true;
 
-    /// <summary>Branche le VM sur la page hote ; appele une seule fois, par QueryVM.</summary>
+    /// <summary>Branche le VM sur la page hote ; appele une seule fois, par MainVM.</summary>
     public void Attach(IQueryWorkspace workspace) => _workspace = workspace;
 
     public async Task LoadAsync(CancellationToken token)

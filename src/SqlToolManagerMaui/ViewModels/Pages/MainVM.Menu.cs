@@ -16,7 +16,7 @@ namespace SqlToolManagerMaui.ViewModels.Pages;
 /// <c>CodeEditor</c>, dont la propriete Document suit <see cref="ActiveDocument"/>.
 /// Partie "menus" : commandes fichier, onglets et affichage.
 /// </summary>
-public partial class QueryVM
+public partial class MainVM
 {
     // ---------- Commandes fichier ----------
 

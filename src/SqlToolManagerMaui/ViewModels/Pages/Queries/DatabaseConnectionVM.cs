@@ -8,14 +8,14 @@ namespace SqlToolManagerMaui.ViewModels.Pages.Queries;
 
 /// <summary>Connexion choisie dans le Picker de la page Requete, partagee par l'execution et les dashboards.</summary>
 [AutoRegister(Lifetime = ServiceLifetime.Transient)]
-public partial class QueryConnectionVM : ObservableObject
+public partial class DatabaseConnectionVM : ObservableObject
 {
     private readonly IConnectionStore _connectionStore;
 
-    // Fourni par Attach : QueryVM recoit ce VM par injection avant de pouvoir se passer en hote.
+    // Fourni par Attach : MainVM recoit ce VM par injection avant de pouvoir se passer en hote.
     private IQueryWorkspace _workspace = null!;
 
-    public QueryConnectionVM(IConnectionStore connectionStore)
+    public DatabaseConnectionVM(IConnectionStore connectionStore)
     {
         _connectionStore = connectionStore;
     }
@@ -39,7 +39,7 @@ public partial class QueryConnectionVM : ObservableObject
 
     public bool IsConnected => ActiveConnection is not null;
 
-    /// <summary>Branche le VM sur la page hote ; appele une seule fois, par QueryVM.</summary>
+    /// <summary>Branche le VM sur la page hote ; appele une seule fois, par MainVM.</summary>
     public void Attach(IQueryWorkspace workspace)
     {
         _workspace = workspace;
