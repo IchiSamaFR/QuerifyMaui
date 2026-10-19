@@ -4,23 +4,25 @@ using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Services.Databases;
 
-namespace SqlToolManagerMaui.ViewModels.Pages.Queries;
+namespace SqlToolManagerMaui.ViewModels.Pages.Shared;
 
-/// <summary>Connexion choisie dans le Picker de la page Requete, partagee par l'execution et les dashboards.</summary>
-[AutoRegister(Lifetime = ServiceLifetime.Transient)]
+/// <summary>Connexion choisie dans l'en-tete des onglets : une seule pour toute la page.</summary>
+[AutoRegister]
 public partial class DatabaseConnectionVM : ObservableObject
 {
     private readonly IConnectionStore _connectionStore;
+    private readonly StatusBarVM _status;
 
-    // Fourni par Attach : MainVM recoit ce VM par injection avant de pouvoir se passer en hote.
-    private IQueryWorkspace _workspace = null!;
-
-    public DatabaseConnectionVM(IConnectionStore connectionStore)
+    public DatabaseConnectionVM(IConnectionStore connectionStore, StatusBarVM status)
     {
         _connectionStore = connectionStore;
+        _status = status;
+
+        // Ajout, modification ou suppression depuis l'explorateur : le Picker suit le coffre.
+        _connectionStore.Subscribe(ApplyConnections);
     }
 
-    /// <summary>Levé apres chaque changement de connexion (execution et cartes du dashboard suivent).</summary>
+    /// <summary>Leve apres chaque changement de connexion (les onglets ouverts suivent).</summary>
     public event EventHandler? SelectedConnectionChanged;
 
     /// <summary>Connexions proposees : les instances partagees du store.</summary>
@@ -38,15 +40,6 @@ public partial class DatabaseConnectionVM : ObservableObject
     public DatabaseConnectionInfo? ActiveConnection => SelectedConnection;
 
     public bool IsConnected => ActiveConnection is not null;
-
-    /// <summary>Branche le VM sur la page hote ; appele une seule fois, par MainVM.</summary>
-    public void Attach(IQueryWorkspace workspace)
-    {
-        _workspace = workspace;
-
-        // Ajout, modification ou suppression depuis l'explorateur : le Picker suit le coffre.
-        _connectionStore.Subscribe(ApplyConnections);
-    }
 
     public Task RefreshAsync(CancellationToken token) => _connectionStore.RefreshAsync(token);
 
@@ -80,7 +73,7 @@ public partial class DatabaseConnectionVM : ObservableObject
 
     partial void OnSelectedConnectionChanged(DatabaseConnectionInfo? value)
     {
-        _workspace.Status.Set(value is null
+        _status.Set(value is null
             ? "Deconnecte."
             : $"Connexion active : {value.Name}.");
 

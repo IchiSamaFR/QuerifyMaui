@@ -7,25 +7,24 @@ using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Services.Settings;
 using System.ComponentModel;
 
-namespace SqlToolManagerMaui.ViewModels.Pages.Queries;
+namespace SqlToolManagerMaui.ViewModels.Pages.Shared;
 
-/// <summary>Fichiers recents et options d'affichage de la page Requete, conserves d'une session a l'autre.</summary>
-[AutoRegister(Lifetime = ServiceLifetime.Transient)]
+/// <summary>Fichiers recents et options d'affichage, conserves d'une session a l'autre et partages par tous les onglets.</summary>
+[AutoRegister]
 public partial class EditorPreferencesVM : ObservableObject
 {
     private readonly IUserPreferencesStore _preferences;
-
-    // Fourni par Attach : MainVM recoit ce VM par injection avant de pouvoir se passer en hote.
-    private IQueryWorkspace _workspace = null!;
+    private readonly StatusBarVM _status;
 
     private bool _isLoaded;
 
-    public EditorPreferencesVM(IUserPreferencesStore preferences)
+    public EditorPreferencesVM(IUserPreferencesStore preferences, StatusBarVM status)
     {
         _preferences = preferences;
+        _status = status;
     }
 
-    /// <summary>Options d'edition liees au CodeEditor ; valeurs par defaut remplacees au chargement.</summary>
+    /// <summary>Options d'edition liees aux CodeEditor ; valeurs par defaut remplacees au chargement.</summary>
     public EditorConfiguration EditorConfiguration { get; } = EditorConfiguration.CreateDefault();
 
     /// <summary>Derniers fichiers ouverts ou enregistres, du plus recent au plus ancien.</summary>
@@ -35,9 +34,6 @@ public partial class EditorPreferencesVM : ObservableObject
     /// <summary>Volet "Explorateur d'objets" ouvert.</summary>
     [ObservableProperty]
     public partial bool IsObjectExplorerOpen { get; set; } = true;
-
-    /// <summary>Branche le VM sur la page hote ; appele une seule fois, par MainVM.</summary>
-    public void Attach(IQueryWorkspace workspace) => _workspace = workspace;
 
     public async Task LoadAsync(CancellationToken token)
     {
@@ -64,13 +60,13 @@ public partial class EditorPreferencesVM : ObservableObject
     {
         // Pendant le chargement, on applique les preferences sans les reecrire.
         if (_isLoaded)
-            _workspace.StartAsBusy(token => UpdateAsync(p => p.Panels.SetOpen(PanelKind.ObjectExplorer, value), token), blocking: false);
+            _ = UpdateAsync(p => p.Panels.SetOpen(PanelKind.ObjectExplorer, value), CancellationToken.None);
     }
 
     private void OnEditorConfigurationChanged(object? sender, PropertyChangedEventArgs e)
     {
         var editor = EditorConfiguration.Clone();
-        _workspace.StartAsBusy(token => UpdateAsync(p => p.Editor = editor, token), blocking: false);
+        _ = UpdateAsync(p => p.Editor = editor, CancellationToken.None);
     }
 
     private async Task UpdateAsync(Action<UserPreferences> update, CancellationToken token)
@@ -82,15 +78,14 @@ public partial class EditorPreferencesVM : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            _workspace.Status.Set($"Préférences non enregistrées : {ex.Message}", isError: true);
+            _status.Set($"Préférences non enregistrées : {ex.Message}", isError: true);
         }
     }
 
     // ---------- Commandes ----------
 
     [RelayCommand]
-    private Task ClearRecentFilesAsync()
-        => _workspace.RunAsBusyAsync(token => UpdateAsync(p => p.RecentFiles.Clear(), token));
+    private Task ClearRecentFilesAsync() => UpdateAsync(p => p.RecentFiles.Clear(), CancellationToken.None);
 
     [RelayCommand]
     private void CloseObjectExplorer() => IsObjectExplorerOpen = false;

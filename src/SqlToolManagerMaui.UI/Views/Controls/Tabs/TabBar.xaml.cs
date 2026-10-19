@@ -21,7 +21,10 @@ public partial class TabBar : ContentView
     [BindableProperty(PropertyChangedMethodName = nameof(OnTabsDefinitionChanged))]
     public partial DataTemplate? ItemTemplate { get; set; }
 
-    /// <summary>Contenu genere pour l'element selectionne (BindingContext = <see cref="SelectedItem"/>).</summary>
+    /// <summary>
+    /// Contenu genere pour l'element selectionne (BindingContext = <see cref="SelectedItem"/>). Accepte un
+    /// <see cref="DataTemplateSelector"/> ; une vue est creee une fois par gabarit puis reutilisee d'un onglet a l'autre.
+    /// </summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnContentDefinitionChanged))]
     public partial DataTemplate? ContentTemplate { get; set; }
 
@@ -48,8 +51,7 @@ public partial class TabBar : ContentView
 
     private readonly ObservableCollection<TabBarItem> _tabs = [];
     private INotifyCollectionChanged? _observedSource;
-    private object? _templatedContentItem;
-    private View? _templatedContent;
+    private readonly Dictionary<DataTemplate, View> _templatedContents = [];
 
     public TabBar()
     {
@@ -88,8 +90,7 @@ public partial class TabBar : ContentView
     private static void OnContentDefinitionChanged(BindableObject bindable, object oldValue, object newValue)
     {
         var bar = (TabBar)bindable;
-        bar._templatedContentItem = null;
-        bar._templatedContent = null;
+        bar._templatedContents.Clear();
         bar.UpdateSelection();
     }
 
@@ -165,16 +166,22 @@ public partial class TabBar : ContentView
         if (ContentTemplate is null || SelectedItem is null)
             return null;
 
-        if (!Equals(_templatedContentItem, SelectedItem))
+        var template = ContentTemplate is DataTemplateSelector selector ? selector.SelectTemplate(SelectedItem, this) : ContentTemplate;
+        if (template is null)
+            return null;
+
+        // Recreer la vue a chaque changement d'onglet reconstruirait des controles lourds (editeur natif).
+        if (!_templatedContents.TryGetValue(template, out var content))
         {
-            var template = ContentTemplate is DataTemplateSelector selector ? selector.SelectTemplate(SelectedItem, this) : ContentTemplate;
-            _templatedContent = template?.CreateContent() as View;
-            if (_templatedContent is not null)
-                _templatedContent.BindingContext = SelectedItem;
-            _templatedContentItem = SelectedItem;
+            if (template.CreateContent() is not View created)
+                return null;
+
+            content = created;
+            _templatedContents[template] = content;
         }
 
-        return _templatedContent;
+        content.BindingContext = SelectedItem;
+        return content;
     }
 
     private void OnHeaderAdded(object? sender, ElementEventArgs e)

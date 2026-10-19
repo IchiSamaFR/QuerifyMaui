@@ -1,10 +1,25 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <v:AbstractPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-                xmlns:code="clr-namespace:CodeEdit.Maui;assembly=CodeEdit.Maui"
                 x:Class="SqlToolManagerMaui.Views.Pages.MainPage"
                 x:DataType="vm:MainVM"
                 Shell.NavBarIsVisible="True">
+    <v:AbstractPage.Resources>
+        <!-- Une vue par type de document ; la TabBar reutilise la meme vue d'un onglet a l'autre -->
+        <v:DocumentTemplateSelector x:Key="DocumentTemplateSelector">
+            <v:DocumentTemplateSelector.CodeEditorTemplate>
+                <DataTemplate x:DataType="vm:CodeEditorVM">
+                    <v:CodeEditorView />
+                </DataTemplate>
+            </v:DocumentTemplateSelector.CodeEditorTemplate>
+            <v:DocumentTemplateSelector.DashboardTemplate>
+                <DataTemplate x:DataType="vm:DashboardVM">
+                    <v:DashboardView />
+                </DataTemplate>
+            </v:DocumentTemplateSelector.DashboardTemplate>
+        </v:DocumentTemplateSelector>
+    </v:AbstractPage.Resources>
+
     <Grid ColumnDefinitions="340,Auto,*"
           ColumnSpacing="8"
           Padding="8">
@@ -27,132 +42,19 @@
         <v:GridSplitter Grid.Column="1"
                         IsVisible="{Binding Preferences.IsObjectExplorerOpen}" />
 
-        <Grid Grid.Column="2"
-              RowDefinitions="*,Auto,Auto"
-              RowSpacing="8">
-            <Grid.Triggers>
-                <DataTrigger TargetType="Grid"
-                             Binding="{Binding ActiveDocument.HasResultsPanel, FallbackValue=False}"
-                             Value="False">
-                    <Setter Property="RowSpacing"
-                            Value="0" />
-                </DataTrigger>
-            </Grid.Triggers>
-
-            <!-- ============ Onglets + execution ============ -->
-            <v:TabBar ItemsSource="{Binding Documents}"
-                      SelectedItem="{Binding ActiveDocument}"
-                      CloseCommand="{Binding CloseCommand}">
-                <v:TabBar.ItemTemplate>
-                    <DataTemplate x:DataType="m:EditorDocument">
-                        <v:TabBarItem Header="{Binding FileName}"
-                                      ToolTip="{Binding PathLabel}"
-                                      IsDirty="{Binding IsDirty}" />
-                    </DataTemplate>
-                </v:TabBar.ItemTemplate>
-
-                <!-- Editeur et dashboard partages par tous les onglets : ils suivent ActiveDocument -->
-                <v:TabBar.DefaultContent>
-                    <Grid RowDefinitions="Auto,*">
-                        <!-- ============ Barre commune a l'editeur et au dashboard ============ -->
-                        <c:QueryToolbar IsDashboard="{Binding ActiveDocument.IsDashboard, FallbackValue=False}"
-                                        DashboardMode="{Binding ActiveDocument.DashboardMode, FallbackValue={x:Null}}"
-                                        ExecuteCommand="{Binding Execution.ExecuteQueryCommand}"
-                                        CancelCommand="{Binding Execution.ExecuteQueryCancelCommand}"
-                                        DashboardExecuteCommand="{Binding Dashboard.ApplyParametersCommand}"
-                                        DashboardCancelCommand="{Binding Dashboard.CancelLoadingCommand}"
-                                        DisconnectCommand="{Binding Connection.DisconnectCommand}"
-                                        Connections="{Binding Connection.Connections}"
-                                        SelectedConnection="{Binding Connection.SelectedConnection}"
-                                        ShowViewCommand="{Binding Dashboard.ShowViewCommand}"
-                                        ShowDesignerCommand="{Binding Dashboard.ShowDesignerCommand}"
-                                        ShowSourceCommand="{Binding Dashboard.ShowSourceCommand}" />
-
-                        <!-- ============ Editeur ============ -->
-                        <Grid Grid.Row="1"
-                              IsVisible="{Binding ActiveDocument.IsEditorVisible, FallbackValue=True}">
-                            <c:CodeEditor x:Name="Editor"
-                                          Text="{Binding ActiveDocument.EditorText}"
-                                          FilePath="{Binding ActiveDocument.FilePath}"
-                                          Selection="{Binding ActiveDocument.Selection}"
-                                          EditorConfiguration="{Binding Preferences.EditorConfiguration}"
-                                          SyntaxConfiguration="{Binding SyntaxConfiguration}"
-                                          Connection="{Binding Connection.ActiveConnection}"
-                                          Commands="{Binding EditionCommands, Mode=OneWayToSource}"
-                                          IsVisible="{Binding ActiveDocument, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}" />
-
-                        </Grid>
-
-                        <!-- ============ Dashboard (.schx) : grille + panneau du concepteur ============ -->
-                        <Grid Grid.Row="1"
-                              ColumnDefinitions="*,Auto"
-                              ColumnSpacing="8"
-                              IsVisible="{Binding ActiveDocument.IsDashboardVisible, FallbackValue=False}">
-                            <c:DashboardView Session="{Binding ActiveDocument.Dashboard}"
-                                             RowCount="{Binding ActiveDocument.Dashboard.RowCount, FallbackValue=6}"
-                                             ColumnCount="{Binding ActiveDocument.Dashboard.ColumnCount, FallbackValue=12}"
-                                             ApplyParametersCommand="{Binding Dashboard.ApplyParametersCommand}"
-                                             BackCommand="{Binding Dashboard.BackCommand}"
-                                             GoToStepCommand="{Binding Dashboard.GoToStepCommand}"
-                                             SelectCardCommand="{Binding Dashboard.SelectCardCommand}"
-                                             AddCardCommand="{Binding Dashboard.AddCardCommand}"
-                                             StartDragCommand="{Binding Dashboard.StartDragCommand}"
-                                             DropCommand="{Binding Dashboard.DropCardCommand}" />
-
-                            <c:DashboardDesignerPanel Grid.Column="1"
-                                                      WidthRequest="360"
-                                                      Session="{Binding ActiveDocument.Dashboard}"
-                                                      SyntaxConfiguration="{Binding SqlSyntaxConfiguration}"
-                                                      EditorConfiguration="{Binding Preferences.EditorConfiguration}"
-                                                      Connection="{Binding Connection.ActiveConnection}"
-                                                      RunCardCommand="{Binding Dashboard.RunCardCommand}"
-                                                      DeleteCardCommand="{Binding Dashboard.DeleteCardCommand}"
-                                                      MoveCardCommand="{Binding Dashboard.MoveCardCommand}"
-                                                      ResizeCardCommand="{Binding Dashboard.ResizeCardCommand}"
-                                                      OpenPageCommand="{Binding Dashboard.OpenDesignerPageCommand}"
-                                                      AddPageCommand="{Binding Dashboard.AddPageCommand}"
-                                                      DeletePageCommand="{Binding Dashboard.DeletePageCommand}"
-                                                      AddParameterCommand="{Binding Dashboard.AddParameterCommand}"
-                                                      DeleteParameterCommand="{Binding Dashboard.DeleteParameterCommand}"
-                                                      IsVisible="{Binding ActiveDocument.IsDashboardDesigning, FallbackValue=False}" />
-                        </Grid>
-                    </Grid>
-                </v:TabBar.DefaultContent>
-            </v:TabBar>
-
-            <v:GridSplitter Grid.Row="1"
-                            IsVisible="{Binding ActiveDocument.HasResultsPanel, FallbackValue=False}" />
-
-            <Grid Grid.Row="2"
-                  HeightRequest="300"
-                  RowDefinitions="*,Auto"
-                  IsVisible="{Binding ActiveDocument.HasResultsPanel, FallbackValue=False}">
-                <!-- ============ Resultats ============ -->
-                <c:QueryResultsPanel Result="{Binding ActiveDocument.LastResult}"
-                                     IsExecuting="{Binding ActiveDocument.IsExecuting}"
-                                     CloseCommand="{Binding Execution.CloseResultsCommand}" />
-
-                <!-- ============ Barre d'etat ============ -->
-                <Grid Grid.Row="1"
-                      ColumnDefinitions="*,Auto"
-                      ColumnSpacing="16">
-
-                    <Label Grid.Column="0"
-                           Text="{Binding Status.Message}"
-                           Style="{StaticResource LabelTertiaryStyle}"
-                           LineBreakMode="TailTruncation"
-                           VerticalOptions="Center">
-                        <Label.Triggers>
-                            <DataTrigger TargetType="Label"
-                                         Binding="{Binding Status.IsError}"
-                                         Value="True">
-                                <Setter Property="TextColor"
-                                        Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
-                </Grid>
-            </Grid>
-        </Grid>
+        <!-- ============ Onglets : le contenu suit le document selectionne ============ -->
+        <v:TabBar Grid.Column="2"
+                  ItemsSource="{Binding Documents}"
+                  SelectedItem="{Binding SelectedDocument}"
+                  CloseCommand="{Binding CloseCommand}"
+                  ContentTemplate="{StaticResource DocumentTemplateSelector}">
+            <v:TabBar.ItemTemplate>
+                <DataTemplate x:DataType="vm:DocumentVM">
+                    <v:TabBarItem Header="{Binding Document.FileName}"
+                                  ToolTip="{Binding Document.PathLabel}"
+                                  IsDirty="{Binding Document.IsDirty}" />
+                </DataTemplate>
+            </v:TabBar.ItemTemplate>
+        </v:TabBar>
     </Grid>
 </v:AbstractPage>

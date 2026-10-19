@@ -1,16 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using SqlToolManagerMaui.Core.Enums.Dashboards;
-using SqlToolManagerMaui.Core.Enums.Editors;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
-using SqlToolManagerMaui.Core.Models.Dashboards;
-using SqlToolManagerMaui.Core.Models.Queries;
 
 namespace SqlToolManagerMaui.Core.Models.Editors;
 
 /// <summary>
-/// Un onglet de l'editeur : le texte enregistre, le texte en cours d'edition et le chemin
+/// Fichier d'un onglet : le texte enregistre, le texte en cours d'edition et le chemin
 /// sur disque (null tant que le document n'a jamais ete enregistre). L'ecart entre les deux
-/// textes fait l'etat modifie.
+/// textes fait l'etat modifie. L'etat d'affichage (resultats, dashboard) appartient au ViewModel de l'onglet.
 /// </summary>
 public sealed partial class EditorDocument : ObservableObject
 {
@@ -48,38 +44,6 @@ public sealed partial class EditorDocument : ObservableObject
     [ObservableProperty]
     public partial EditorSelection Selection { get; set; } = new();
 
-    /// <summary>Resultat de la derniere execution lancee depuis cet onglet.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasResultsPanel))]
-    public partial QueryExecutionResult? LastResult { get; set; }
-
-    /// <summary>Vrai tant qu'une execution lancee depuis cet onglet est en cours.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasResultsPanel))]
-    public partial bool IsExecuting { get; set; }
-
-    /// <summary>Script, ou dashboard .schx.</summary>
-    public DocumentKind Kind { get; }
-
-    public bool IsDashboard => Kind == DocumentKind.Dashboard;
-
-    /// <summary>Dashboard : consultation, concepteur ou JSON.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsEditorVisible), nameof(IsDashboardVisible), nameof(IsDashboardDesigning))]
-    public partial DashboardMode DashboardMode { get; set; }
-
-    public bool IsEditorVisible => !IsDashboard || DashboardMode == DashboardMode.Source;
-
-    public bool IsDashboardVisible => IsDashboard && DashboardMode != DashboardMode.Source;
-
-    public bool IsDashboardDesigning => IsDashboard && DashboardMode == DashboardMode.Design;
-
-    /// <summary>Etat du dashboard (onglet .schx uniquement).</summary>
-    public DashboardSession Dashboard { get; } = new();
-
-    /// <summary>Le panneau de resultats n'apparait qu'apres une premiere execution.</summary>
-    public bool HasResultsPanel => IsExecuting || LastResult is not null;
-
     /// <summary>Vrai des que le contenu differe de la derniere version enregistree.</summary>
     public bool IsDirty => !string.Equals(FileText, EditorText, StringComparison.Ordinal);
 
@@ -93,9 +57,8 @@ public sealed partial class EditorDocument : ObservableObject
     /// <summary>Chemin affiche dans la barre d'etat.</summary>
     public string PathLabel => HasPath ? FilePath! : "Non enregistre";
 
-    public EditorDocument(string fallbackName, string? filePath, string fileText, SyntaxLanguage language = SyntaxLanguage.Sql, DocumentKind kind = DocumentKind.Script)
+    public EditorDocument(string fallbackName, string? filePath, string fileText, SyntaxLanguage language = SyntaxLanguage.Sql)
     {
-        Kind = kind;
         Language = language;
         FallbackName = fallbackName;
         FileText = Normalize(fileText);

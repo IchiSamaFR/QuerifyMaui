@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SqlToolManagerMaui.Views.Pages.Documents.CodeEditorView"
+             x:DataType="vm:CodeEditorVM">
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- ============ En-tete : execution et connexion ============ -->
+        <HorizontalStackLayout Spacing="8">
+            <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                         Command="{Binding ExecuteQueryCommand}"
+                         Source="{icons:Fluent Icon=Play16, IconSize=16, IconColor={StaticResource Success}}"
+                         ToolTipProperties.Text="Exécuter la requête" />
+
+            <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                         Command="{Binding ExecuteQueryCancelCommand}"
+                         Source="{icons:Fluent Icon=Stop16, IconSize=16, IconColor={StaticResource Danger}}"
+                         ToolTipProperties.Text="Arrêter l'exécution de la requête" />
+
+            <v:GridSplitter Background="{DynamicResource InputBackground}" />
+
+            <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                         Command="{Binding Connection.DisconnectCommand}"
+                         Source="{icons:Fluent Icon=PlugDisconnected20, IconSize=16, IconColor={StaticResource Danger}}"
+                         ToolTipProperties.Text="Déconnecter la connexion" />
+
+            <inp:PickerField ItemsSource="{Binding Connection.Connections}"
+                             SelectedItem="{Binding Connection.SelectedConnection, Mode=TwoWay}"
+                             DisplayMemberPath="Name"
+                             WidthRequest="220"
+                             FontSize="{StaticResource FontSize_Caption}" />
+        </HorizontalStackLayout>
+
+        <Grid Grid.Row="1"
+              RowDefinitions="*,Auto,Auto"
+              RowSpacing="8">
+            <Grid.Triggers>
+                <DataTrigger TargetType="Grid"
+                             Binding="{Binding HasResultsPanel}"
+                             Value="False">
+                    <Setter Property="RowSpacing"
+                            Value="0" />
+                </DataTrigger>
+            </Grid.Triggers>
+
+            <!-- ============ Editeur ============ -->
+            <c:CodeEditor Text="{Binding Document.EditorText}"
+                          FilePath="{Binding Document.FilePath}"
+                          Selection="{Binding Document.Selection}"
+                          EditorConfiguration="{Binding Preferences.EditorConfiguration}"
+                          SyntaxConfiguration="{Binding SyntaxConfiguration}"
+                          Connection="{Binding Connection.ActiveConnection}"
+                          Commands="{Binding EditionCommands, Mode=OneWayToSource}" />
+
+            <v:GridSplitter Grid.Row="1"
+                            IsVisible="{Binding HasResultsPanel}" />
+
+            <!-- ============ Resultats + barre d'etat ============ -->
+            <Grid Grid.Row="2"
+                  HeightRequest="300"
+                  RowDefinitions="*,Auto"
+                  IsVisible="{Binding HasResultsPanel}">
+                <c:QueryResultsPanel Result="{Binding LastResult}"
+                                     IsExecuting="{Binding IsExecuting}"
+                                     CloseCommand="{Binding CloseResultsCommand}" />
+
+                <Label Grid.Row="1"
+                       Text="{Binding Status.Message}"
+                       Style="{StaticResource LabelTertiaryStyle}"
+                       LineBreakMode="TailTruncation"
+                       VerticalOptions="Center">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label"
+                                     Binding="{Binding Status.IsError}"
+                                     Value="True">
+                            <Setter Property="TextColor"
+                                    Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentView>

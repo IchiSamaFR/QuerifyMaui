@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SqlToolManagerMaui.Views.Pages.Documents.DashboardView"
+             x:DataType="vm:DashboardVM">
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- ============ En-tete : chargement des cartes, connexion et vue ============ -->
+        <HorizontalStackLayout Spacing="8">
+            <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                         Command="{Binding ApplyParametersCommand}"
+                         Source="{icons:Fluent Icon=Play16, IconSize=16, IconColor={StaticResource Success}}"
+                         ToolTipProperties.Text="Appliquer les paramètres et recharger les cartes" />
+
+            <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                         Command="{Binding CancelLoadingCommand}"
+                         Source="{icons:Fluent Icon=Stop16, IconSize=16, IconColor={StaticResource Danger}}"
+                         ToolTipProperties.Text="Arrêter le chargement des cartes" />
+
+            <v:GridSplitter Background="{DynamicResource InputBackground}" />
+
+            <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                         Command="{Binding Connection.DisconnectCommand}"
+                         Source="{icons:Fluent Icon=PlugDisconnected20, IconSize=16, IconColor={StaticResource Danger}}"
+                         ToolTipProperties.Text="Déconnecter la connexion" />
+
+            <inp:PickerField ItemsSource="{Binding Connection.Connections}"
+                             SelectedItem="{Binding Connection.SelectedConnection, Mode=TwoWay}"
+                             DisplayMemberPath="Name"
+                             WidthRequest="220"
+                             FontSize="{StaticResource FontSize_Caption}" />
+
+            <inp:PickerField ItemsSource="{x:Static vm:DashboardVM.Modes}"
+                             SelectedKey="{Binding SelectedModeKey, Mode=TwoWay}"
+                             WidthRequest="140"
+                             FontSize="{StaticResource FontSize_Caption}"
+                             ToolTipProperties.Text="Vue du dashboard" />
+        </HorizontalStackLayout>
+
+        <!-- ============ Source : JSON du fichier ============ -->
+        <c:CodeEditor Grid.Row="1"
+                      Text="{Binding Document.EditorText}"
+                      FilePath="{Binding Document.FilePath}"
+                      Selection="{Binding Document.Selection}"
+                      EditorConfiguration="{Binding Preferences.EditorConfiguration}"
+                      Commands="{Binding EditionCommands, Mode=OneWayToSource}"
+                      IsVisible="{Binding IsSourceMode}" />
+
+        <!-- ============ Dashboard / Concepteur : grille + panneau du concepteur ============ -->
+        <Grid Grid.Row="1"
+              ColumnDefinitions="*,Auto"
+              ColumnSpacing="8"
+              IsVisible="{Binding IsGridMode}">
+            <c:DashboardGrid Session="{Binding Session}"
+                             RowCount="{Binding Session.RowCount}"
+                             ColumnCount="{Binding Session.ColumnCount}"
+                             ApplyParametersCommand="{Binding ApplyParametersCommand}"
+                             BackCommand="{Binding BackCommand}"
+                             GoToStepCommand="{Binding GoToStepCommand}"
+                             SelectCardCommand="{Binding SelectCardCommand}"
+                             AddCardCommand="{Binding AddCardCommand}"
+                             StartDragCommand="{Binding StartDragCommand}"
+                             DropCommand="{Binding DropCardCommand}" />
+
+            <c:DashboardDesignerPanel Grid.Column="1"
+                                      WidthRequest="360"
+                                      Session="{Binding Session}"
+                                      SyntaxConfiguration="{Binding SqlSyntaxConfiguration}"
+                                      EditorConfiguration="{Binding Preferences.EditorConfiguration}"
+                                      Connection="{Binding Connection.ActiveConnection}"
+                                      RunCardCommand="{Binding RunCardCommand}"
+                                      DeleteCardCommand="{Binding DeleteCardCommand}"
+                                      MoveCardCommand="{Binding MoveCardCommand}"
+                                      ResizeCardCommand="{Binding ResizeCardCommand}"
+                                      OpenPageCommand="{Binding OpenDesignerPageCommand}"
+                                      AddPageCommand="{Binding AddPageCommand}"
+                                      DeletePageCommand="{Binding DeletePageCommand}"
+                                      AddParameterCommand="{Binding AddParameterCommand}"
+                                      DeleteParameterCommand="{Binding DeleteParameterCommand}"
+                                      IsVisible="{Binding IsDesigning}" />
+        </Grid>
+    </Grid>
+</ContentView>

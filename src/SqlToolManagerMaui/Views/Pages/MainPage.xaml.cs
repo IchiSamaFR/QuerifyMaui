@@ -1,16 +1,12 @@
 ﻿using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.UI.Views;
 using SqlToolManagerMaui.ViewModels.Pages;
-using SqlToolManagerMaui.ViewModels.Pages.Queries;
+using SqlToolManagerMaui.ViewModels.Pages.Shared;
 using SqlToolManagerMaui.Views.Pages.Connections;
 
 namespace SqlToolManagerMaui.Views.Pages;
 
-/// <summary>
-/// Editeur de texte / SQL multi-onglets. Le contenu, les options d'affichage, la position
-/// du curseur et la coloration passent par des bindings sur le controle CodeEditor :
-/// la page n'a plus de logique propre.
-/// </summary>
+/// <summary>Page principale : explorateur d'objets et onglets, dont la vue est choisie par DocumentTemplateSelector.</summary>
 [AutoRegister]
 public partial class MainPage : AbstractPage
 {
@@ -27,6 +23,7 @@ public partial class MainPage : AbstractPage
         connectionExplorerView.SetBinding(ConnectionExplorerView.CloseCommandProperty,
             new Binding(nameof(EditorPreferencesVM.CloseObjectExplorerCommand), source: viewModel.Preferences));
     }
+
     protected override void OnBindingContextChanged()
     {
         base.OnBindingContextChanged();

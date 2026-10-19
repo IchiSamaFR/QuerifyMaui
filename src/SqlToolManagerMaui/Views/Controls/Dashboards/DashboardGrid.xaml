@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="SqlToolManagerMaui.Views.Controls.Dashboards.DashboardView">
+             x:Class="SqlToolManagerMaui.Views.Controls.Dashboards.DashboardGrid">
 
     <Border>
         <!-- Les enfants se lient au controle lui-meme (et non au ViewModel de la page) -->
-        <Grid BindingContext="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, x:DataType=c:DashboardView}"
-              x:DataType="c:DashboardView"
+        <Grid BindingContext="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, x:DataType=c:DashboardGrid}"
+              x:DataType="c:DashboardGrid"
               RowDefinitions="Auto,Auto,Auto,*"
               RowSpacing="8">
 
@@ -26,7 +26,7 @@
             <Border Grid.Row="1"
                     Style="{StaticResource CardStyle}"
                     IsVisible="{Binding Session.HasParameters, FallbackValue=False}">
-                <!-- Validation : Entree dans un champ, ou le bouton Executer de la barre commune -->
+                <!-- Validation : Entree dans un champ, ou le bouton Executer de l'en-tete -->
                 <v:WrapLayout HorizontalSpacing="12"
                               HorizontalOptions="Start"
                               BindableLayout.ItemsSource="{Binding Session.Parameters}">
@@ -37,7 +37,7 @@
                                 <inp:TextField Title="{Binding DisplayName}"
                                                Text="{Binding Value, Mode=TwoWay}"
                                                Placeholder="{Binding Hint}"
-                                               ReturnCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=ApplyParametersCommand, x:DataType=c:DashboardView}"
+                                               ReturnCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=ApplyParametersCommand, x:DataType=c:DashboardGrid}"
                                                HorizontalOptions="Fill" />
                                 <Label Text="{Binding Error}"
                                        IsVisible="{Binding HasError}"
@@ -72,7 +72,7 @@
                                            VerticalOptions="Center" />
                                     <Button Style="{StaticResource TextButtonStyle}"
                                             Text="{Binding Title}"
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=GoToStepCommand, x:DataType=c:DashboardView}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=GoToStepCommand, x:DataType=c:DashboardGrid}"
                                             CommandParameter="{Binding .}" />
                                 </HorizontalStackLayout>
                             </DataTemplate>
@@ -101,12 +101,12 @@
                                                 VerticalOptions="Fill"
                                                 BorderColor="{DynamicResource DividerStrokeColorDefault}"
                                                 BorderThickness="1"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=AddCardCommand, x:DataType=c:DashboardView}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=AddCardCommand, x:DataType=c:DashboardGrid}"
                                                 CommandParameter="{Binding .}"
                                                 ToolTipProperties.Text="Ajouter une carte ici">
                                     <inp:ButtonView.GestureRecognizers>
                                         <DropGestureRecognizer AllowDrop="True"
-                                                               DropCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=DropCommand, x:DataType=c:DashboardView}"
+                                                               DropCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=DropCommand, x:DataType=c:DashboardGrid}"
                                                                DropCommandParameter="{Binding .}" />
                                     </inp:ButtonView.GestureRecognizers>
                                     <Label Text="+"
@@ -139,13 +139,13 @@
                                                     HeightRequest="-1"
                                                     HorizontalOptions="Fill"
                                                     VerticalOptions="Fill"
-                                                    IsVisible="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=Session.IsDesigning, FallbackValue=False, x:DataType=c:DashboardView}"
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=SelectCardCommand, x:DataType=c:DashboardView}"
+                                                    IsVisible="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=Session.IsDesigning, FallbackValue=False, x:DataType=c:DashboardGrid}"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=SelectCardCommand, x:DataType=c:DashboardGrid}"
                                                     CommandParameter="{Binding .}"
                                                     ToolTipProperties.Text="Cliquer pour modifier, glisser pour déplacer">
                                         <inp:ButtonView.GestureRecognizers>
                                             <DragGestureRecognizer CanDrag="True"
-                                                                   DragStartingCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardView}}, Path=StartDragCommand, x:DataType=c:DashboardView}"
+                                                                   DragStartingCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=StartDragCommand, x:DataType=c:DashboardGrid}"
                                                                    DragStartingCommandParameter="{Binding .}" />
                                         </inp:ButtonView.GestureRecognizers>
                                     </inp:ButtonView>

@@ -1,10 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using SqlToolManagerMaui.Core.Ioc;
 
-namespace SqlToolManagerMaui.ViewModels.Pages.Queries;
+namespace SqlToolManagerMaui.ViewModels.Pages.Shared;
 
-/// <summary>Barre d'etat de la page Requete, partagee par ses sous-VM.</summary>
-[AutoRegister(Lifetime = ServiceLifetime.Transient)]
+/// <summary>Barre d'etat de la page principale, partagee par tous les onglets.</summary>
+[AutoRegister]
 public partial class StatusBarVM : ObservableObject
 {
     [ObservableProperty]

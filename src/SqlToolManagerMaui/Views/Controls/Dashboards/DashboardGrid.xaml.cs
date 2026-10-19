@@ -8,7 +8,7 @@ namespace SqlToolManagerMaui.Views.Controls.Dashboards;
 /// Dashboard d'un onglet .schx : parametres, fil d'Ariane et grille de cartes. Dans le concepteur,
 /// les cases libres permettent d'ajouter une carte ou d'y deposer la carte glissee.
 /// </summary>
-public partial class DashboardView : ContentView
+public partial class DashboardGrid : ContentView
 {
     [BindableProperty]
     public partial DashboardSession? Session { get; set; }
@@ -51,14 +51,14 @@ public partial class DashboardView : ContentView
     [BindableProperty]
     public partial ICommand? DropCommand { get; set; }
 
-    public DashboardView()
+    public DashboardGrid()
     {
         InitializeComponent();
         ApplyGridSize();
     }
 
     private static void OnGridSizeChanged(BindableObject bindable, object oldValue, object newValue)
-        => ((DashboardView)bindable).ApplyGridSize();
+        => ((DashboardGrid)bindable).ApplyGridSize();
 
     /// <summary>Les deux calques (cases, cartes) partagent les memes colonnes et lignes.</summary>
     private void ApplyGridSize()

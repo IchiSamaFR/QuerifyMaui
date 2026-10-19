@@ -1,175 +1,95 @@
-﻿using CodeEdit.Maui;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Editors;
-using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Queries;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.UI.ViewModels;
 using SqlToolManagerMaui.ViewModels.Controls.Menus;
-using SqlToolManagerMaui.ViewModels.Pages.Queries;
+using SqlToolManagerMaui.ViewModels.Pages.Documents;
+using SqlToolManagerMaui.ViewModels.Pages.Shared;
 using System.Collections.ObjectModel;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 
 /// <summary>
-/// Editeur de texte multi-onglets (facon Notepad) pose sur CodeEdit.Maui.
-/// Chaque onglet est un <see cref="EditorDocument"/> ; la page n'affiche qu'un seul
-/// <c>CodeEditor</c>, dont la propriete Document suit <see cref="ActiveDocument"/>.
-/// Les autres responsabilites sont deleguees aux sous-VM de <c>Queries/</c>.
+/// Page principale : les onglets ouverts et le document selectionne. Chaque onglet est un
+/// <see cref="DocumentVM"/> autonome, affiche par la vue que choisit le DataTemplateSelector de la page.
 /// </summary>
 [AutoRegister]
-public partial class MainVM : AbstractVM, IQueryWorkspace
+public partial class MainVM : AbstractVM
 {
     private readonly IEditorFileService _files;
     private readonly ISyntaxConfigurationStore _syntaxConfigurations;
-
-    /// <summary>Compteur des documents "Sans titre" ouverts depuis le demarrage.</summary>
-    private int _untitledCount;
-
-    /// <summary>Onglets ouverts, dans l'ordre d'ouverture.</summary>
-    public ObservableCollection<EditorDocument> Documents { get; } = new();
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SyntaxConfiguration))]
-    public partial EditorDocument? ActiveDocument { get; set; }
-
-    /// <summary>Barre d'etat (enregistrement, erreur d'ouverture...).</summary>
-    public StatusBarVM Status { get; }
-
-    /// <summary>Connexion choisie dans le Picker.</summary>
-    public DatabaseConnectionVM Connection { get; }
-
-    /// <summary>Execution de la selection ou du document, et panneau de resultats.</summary>
-    public QueryExecutionVM Execution { get; }
-
-    /// <summary>Onglets .schx : consultation et concepteur.</summary>
-    public DashboardVM Dashboard { get; }
-
-    /// <summary>Fichiers recents, explorateur et options d'edition.</summary>
-    public EditorPreferencesVM Preferences { get; }
-
-    /// <summary>Barre de menu principale.</summary>
-    public MainMenuBarVM MainMenuBar { get; }
-
-    /// <summary>Commandes d'edition de l'editeur, poussees par le controle (OneWayToSource).</summary>
-    [ObservableProperty]
-    public partial CodeEditorCommands? EditionCommands { get; set; }
-
-    CancellationToken IQueryWorkspace.LifetimeToken => LifetimeToken;
-
-    /// <summary>Configurations de tous les langages, chargees une fois : changer d'onglet ne relit aucun .xshd.</summary>
-    private readonly Dictionary<SyntaxLanguage, SyntaxConfiguration> _syntaxByLanguage = [];
-
-    /// <summary>Langage de l'onglet actif (coloration, commentaires, autocompletion).</summary>
-    public SyntaxConfiguration? SyntaxConfiguration
-        => ActiveDocument is { } document && _syntaxByLanguage.TryGetValue(document.Language, out var configuration) ? configuration : null;
-
-    /// <summary>Coloration SQL, quel que soit l'onglet actif (requetes des cartes du dashboard).</summary>
-    public SyntaxConfiguration? SqlSyntaxConfiguration => _syntaxByLanguage.GetValueOrDefault(SyntaxLanguage.Sql);
+    private readonly DocumentVMFactory _documentFactory;
+    private readonly DatabaseConnectionVM _connection;
+    private readonly StatusBarVM _status;
 
     public MainVM(IEditorFileService files,
         ISyntaxConfigurationStore syntaxConfigurations,
-        StatusBarVM status,
+        DocumentVMFactory documentFactory,
         DatabaseConnectionVM connection,
-        QueryExecutionVM execution,
-        DashboardVM dashboard,
+        StatusBarVM status,
         EditorPreferencesVM preferences,
         MainMenuBarVM mainMenuBar)
     {
         _files = files;
         _syntaxConfigurations = syntaxConfigurations;
-
-        Status = status;
-        Connection = connection;
-        Execution = execution;
-        Dashboard = dashboard;
+        _documentFactory = documentFactory;
+        _connection = connection;
+        _status = status;
         Preferences = preferences;
         MainMenuBar = mainMenuBar;
 
-        Execution.Attach(this);
-        Dashboard.Attach(this);
-        Preferences.Attach(this);
-        Connection.SelectedConnectionChanged += OnSelectedConnectionChanged;
-        // En dernier : l'abonnement au store peut deja rappeler la page.
-        Connection.Attach(this);
-
+        MainMenuBar.AttachFileCommands(this);
         WeakReferenceMessenger.Default.Register<MainVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
-        AttachFileMenu();
-        AttachViewMenu();
-        AttachQueryMenu();
     }
+
+    /// <summary>Onglets ouverts, dans l'ordre d'ouverture.</summary>
+    public ObservableCollection<DocumentVM> Documents { get; } = new();
+
+    [ObservableProperty]
+    public partial DocumentVM? SelectedDocument { get; set; }
+
+    /// <summary>Volet de l'explorateur d'objets (disposition de la page).</summary>
+    public EditorPreferencesVM Preferences { get; }
+
+    public MainMenuBarVM MainMenuBar { get; }
 
     protected override async Task LoadDatasBusyAsync()
     {
-        if (_syntaxByLanguage.Count == 0)
-        {
-            foreach (var language in Enum.GetValues<SyntaxLanguage>())
-            {
-                if (await _syntaxConfigurations.GetAsync(language, LifetimeToken) is { } configuration)
-                    _syntaxByLanguage[language] = configuration;
-            }
-
-            OnPropertyChanged(nameof(SyntaxConfiguration));
-            OnPropertyChanged(nameof(SqlSyntaxConfiguration));
-        }
-
         await Preferences.LoadAsync(LifetimeToken);
-        await Connection.RefreshAsync(LifetimeToken);
+        await _connection.RefreshAsync(LifetimeToken);
 
         if (Documents.Count == 0)
             New();
     }
 
-    partial void OnActiveDocumentChanged(EditorDocument? value)
+    partial void OnSelectedDocumentChanged(DocumentVM? oldValue, DocumentVM? newValue)
     {
-        Execution.RefreshCanExecute();
-        Dashboard.RefreshCanExecute();
-        RefreshViewMenuLanguage();
+        if (oldValue is not null)
+            oldValue.IsActive = false;
+
+        if (newValue is not null)
+            newValue.IsActive = true;
+
+        MainMenuBar.AttachDocument(newValue);
     }
 
-    private void OnSelectedConnectionChanged(object? sender, EventArgs e)
+    /// <summary>Ajoute l'onglet et le selectionne.</summary>
+    private void Add(DocumentVM document)
     {
-        Execution.RefreshCanExecute();
-        Dashboard.RefreshCanExecute();
-        Dashboard.OnConnectionChanged();
+        Documents.Add(document);
+        SelectedDocument = document;
+        document.OnOpened();
     }
 
-    partial void OnEditionCommandsChanged(CodeEditorCommands? value)
-    {
-        AttachEditMenu();
-    }
-
-    // ---------- Insertion depuis l'explorateur ----------
-
-    /// <summary>Colle la requete au curseur (a la place de la selection) et bascule sur sa connexion.</summary>
+    /// <summary>La requete de l'explorateur part dans l'onglet de script courant, ou dans un nouveau.</summary>
     private void InsertQuery(InsertQueryMessage message)
     {
-        // Un dashboard n'accueille pas de SQL : la requete part dans un nouvel onglet.
-        if (ActiveDocument is null or { IsDashboard: true })
+        if (SelectedDocument is not CodeEditorVM)
             New();
 
-        if (ActiveDocument is not { } document)
-            return;
-
-        Connection.Select(message.Connection.Id);
-
-        var text = document.EditorText ?? string.Empty;
-        var newLine = text.Contains("\r\n") ? "\r\n" : text.Contains('\r') ? "\r" : Environment.NewLine;
-
-        var selection = document.Selection;
-        var start = Math.Clamp(Math.Min(selection.Anchor, selection.Active), 0, text.Length);
-        var end = Math.Clamp(Math.Max(selection.Anchor, selection.Active), 0, text.Length);
-
-        // Curseur en milieu de ligne : la requete part sur une nouvelle ligne.
-        var prefix = start > 0 && text[start - 1] is not ('\n' or '\r') ? newLine : string.Empty;
-        var query = prefix + message.Query.Replace("\n", newLine) + newLine;
-
-        // Selection d'abord : l'editeur la restaure apres le changement de texte (curseur apres la requete).
-        selection.Anchor = selection.Active = start + query.Length;
-        document.EditorText = text[..start] + query + text[end..];
+        (SelectedDocument as CodeEditorVM)?.InsertQuery(message);
     }
 }
