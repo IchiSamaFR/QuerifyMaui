@@ -2,9 +2,9 @@
 using Microsoft.Maui.Platform;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment;
 using WinColor = Windows.UI.Color;
 using WinThickness = Microsoft.UI.Xaml.Thickness;
-using VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment;
 
 namespace SqlToolManagerMaui.UI.Inputs.Core;
 

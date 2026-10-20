@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SqlToolManagerMaui.UI.Models.Keyboards;
+﻿namespace SqlToolManagerMaui.UI.Models.Keyboards;
 
 public class KeyboardShortcut
 {

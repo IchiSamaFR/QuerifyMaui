@@ -1,7 +1,4 @@
 ﻿using SqlToolManagerMaui.UI.Models.Keyboards;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SqlToolManagerMaui.UI.Constants;
 
