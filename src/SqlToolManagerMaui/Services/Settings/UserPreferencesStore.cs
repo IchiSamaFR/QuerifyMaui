@@ -1,8 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Newtonsoft.Json;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Helpers.Extensions;
-using System.ComponentModel;
+using SqlToolManagerMaui.Helpers.Tools;
+using SqlToolManagerMaui.UI.Extensions;
 
 namespace SqlToolManagerMaui.Services.Settings;
 
@@ -12,16 +14,24 @@ public sealed class UserPreferencesStore : IUserPreferencesStore
 {
     private const string FileName = "preferences.json";
 
+    /// <summary>Regroupe les modifications rapprochees (bascules de menu, fichiers recents) en une seule ecriture.</summary>
+    private static readonly TimeSpan SaveDelay = TimeSpan.FromMilliseconds(300);
+
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly string _filePath = Path.Combine(FileSystem.AppDataDirectory, FileName);
 
     private bool _isLoaded;
 
-    /// <inheritdoc/>
-    public UserPreferences Preferences { get; } = new();
+    /// <summary>Fichier present mais non relu (verrouille, corrompu sans copie possible) : jamais reecrit pendant la session.</summary>
+    private bool _isReadOnly;
+    private bool _isReadOnlyReported;
+
+    /// <summary>Derniere modification demandee et derniere ecrite : une ecriture plus ancienne n'ecrase jamais une plus recente.</summary>
+    private int _requestedVersion;
+    private int _writtenVersion;
 
     /// <inheritdoc/>
-    public event EventHandler<Exception>? SaveFailed;
+    public UserPreferences Preferences { get; } = new();
 
     /// <inheritdoc/>
     public async Task LoadAsync(CancellationToken cancellationToken = default)
@@ -42,6 +52,37 @@ public sealed class UserPreferencesStore : IUserPreferencesStore
         _isLoaded = true;
     }
 
+    /// <inheritdoc/>
+    public void Flush()
+    {
+        var version = Volatile.Read(ref _requestedVersion);
+        if (_isReadOnly || version <= Volatile.Read(ref _writtenVersion))
+            return;
+
+        try
+        {
+            var json = Serialize();
+            _gate.Wait();
+            try
+            {
+                if (version <= _writtenVersion)
+                    return;
+
+                WriteFile(json);
+                _writtenVersion = version;
+            }
+            finally
+            {
+                _gate.Release();
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+        {
+            // Fenetre en cours de fermeture : seul le journal peut encore le signaler.
+            WeakReferenceMessenger.Default.LogError(ex, $"Préférences non enregistrées à la fermeture : {ex.Message}");
+        }
+    }
+
     private async Task<UserPreferences?> ReadAsync(CancellationToken cancellationToken)
     {
         if (!File.Exists(_filePath))
@@ -51,35 +92,85 @@ public sealed class UserPreferencesStore : IUserPreferencesStore
         {
             return JsonConvert.DeserializeObject<UserPreferences>(await File.ReadAllTextAsync(_filePath, cancellationToken));
         }
-        catch (Exception ex) when (ex is JsonException or IOException)
+        catch (JsonException ex)
         {
-            // Fichier corrompu ou verrouille : les valeurs par defaut valent mieux qu'un demarrage bloque.
+            // Valeurs par defaut, mais l'ancien fichier est garde : la prochaine ecriture l'aurait efface.
+            var backupPath = CorruptFileHelper.Backup(_filePath);
+            _isReadOnly = backupPath is null;
+            WeakReferenceMessenger.Default.LogError(ex, backupPath is null
+                ? $"{FileName} corrompu : préférences par défaut, fichier conservé tel quel."
+                : $"{FileName} corrompu : préférences par défaut, copie conservée sous {Path.GetFileName(backupPath)}.");
+            return null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // Fichier verrouille : le reecrire avec les valeurs par defaut ferait perdre les preferences.
+            _isReadOnly = true;
+            WeakReferenceMessenger.Default.LogError(ex, $"Préférences illisibles : {ex.Message}");
             return null;
         }
     }
 
-    private async void OnPreferencesChanged()
-    {
-        // Copie avant l'attente : les modifications suivantes ne doivent pas se meler a cette ecriture.
-        var json = JsonConvert.SerializeObject(Preferences, Formatting.Indented);
+    private void OnPreferencesChanged() => _ = SaveLaterAsync(Interlocked.Increment(ref _requestedVersion));
 
-        await _gate.WaitAsync();
+    /// <summary>Aucune exception ne s'en echappe : elle est journalisee (barre d'etat et fichier).</summary>
+    private async Task SaveLaterAsync(int version)
+    {
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
+            await Task.Delay(SaveDelay);
 
-            // Ecriture atomique : un crash en cours d'ecriture ne laisse pas un JSON tronque.
-            var tempPath = _filePath + ".tmp";
-            await File.WriteAllTextAsync(tempPath, json);
-            File.Move(tempPath, _filePath, overwrite: true);
+            // Une modification plus recente a programme sa propre ecriture.
+            if (version != Volatile.Read(ref _requestedVersion))
+                return;
+
+            await WriteAsync(version);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        catch (Exception ex)
         {
-            SaveFailed?.Invoke(this, ex);
+            WeakReferenceMessenger.Default.LogError(ex, $"Préférences non enregistrées : {ex.Message}");
+        }
+    }
+
+    private async Task WriteAsync(int version)
+    {
+        if (_isReadOnly)
+        {
+            if (_isReadOnlyReported)
+                return;
+
+            _isReadOnlyReported = true;
+            throw new IOException($"{FileName} etait illisible au demarrage : modifications non enregistrees pour ne pas l'ecraser.");
+        }
+
+        // Serialise sur le thread appelant (UI), comme les modifications : contenu au moins aussi recent que la version.
+        var json = Serialize();
+
+        // ConfigureAwait(false) : Flush peut bloquer le thread UI sur ce verrou pendant la fermeture.
+        await _gate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            if (version <= _writtenVersion)
+                return;
+
+            WriteFile(json);
+            _writtenVersion = version;
         }
         finally
         {
             _gate.Release();
         }
+    }
+
+    private string Serialize() => JsonConvert.SerializeObject(Preferences, Formatting.Indented);
+
+    /// <summary>Ecriture atomique : un arret en cours d'ecriture ne laisse pas un JSON tronque.</summary>
+    private void WriteFile(string json)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
+
+        var tempPath = _filePath + ".tmp";
+        File.WriteAllText(tempPath, json);
+        File.Move(tempPath, _filePath, overwrite: true);
     }
 }

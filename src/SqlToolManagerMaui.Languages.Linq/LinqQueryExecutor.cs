@@ -55,7 +55,8 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             var model = await _models.GetModelAsync(connection, cancellationToken);
             messages.Add(new QueryMessage($"Contexte {model.Model.ContextVariableName} ({model.Model.ContextClassName}) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
 
-            var compiled = await Task.Run(() => _compiler.CompileQuery(model, query), cancellationToken);
+            // Dispose : decharge l'assembly de la requete une fois les resultats convertis.
+            using var compiled = await Task.Run(() => _compiler.CompileQuery(model, query), cancellationToken);
             if (!compiled.Success)
             {
                 hasErrors = true;

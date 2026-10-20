@@ -1,7 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Newtonsoft.Json;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Helpers.Extensions;
+using SqlToolManagerMaui.Helpers.Tools;
+using SqlToolManagerMaui.UI.Extensions;
 
 namespace SqlToolManagerMaui.Services.Databases.Connections;
 
@@ -45,7 +48,7 @@ public sealed class ConnectionStore : IConnectionStore
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            var items = await LoadUnsafeAsync(cancellationToken);
+            var items = await LoadUnsafeAsync(forWrite: false, cancellationToken);
             _onChanged?.Invoke(items.OrderBy(c => c.Name).ToList());
             return true;
         }
@@ -62,7 +65,7 @@ public sealed class ConnectionStore : IConnectionStore
         try
         {
             _onChanged += action;
-            var items = await LoadUnsafeAsync(cancellationToken);
+            var items = await LoadUnsafeAsync(forWrite: false, cancellationToken);
             _onChanged?.Invoke(items.OrderBy(c => c.Name).ToList());
             return true;
         }
@@ -114,7 +117,7 @@ public sealed class ConnectionStore : IConnectionStore
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            var items = await LoadUnsafeAsync(cancellationToken);
+            var items = await LoadUnsafeAsync(forWrite: true, cancellationToken);
             var index = items.FindIndex(i => i.Id == info.Id);
 
             info.UpdatedAt = DateTimeOffset.Now;
@@ -155,7 +158,7 @@ public sealed class ConnectionStore : IConnectionStore
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            var items = await LoadUnsafeAsync(cancellationToken);
+            var items = await LoadUnsafeAsync(forWrite: true, cancellationToken);
             var removed = items.FirstOrDefault(i => i.Id == id);
             if (removed is not null)
             {
@@ -182,7 +185,12 @@ public sealed class ConnectionStore : IConnectionStore
 
     private static string SecureKey(Guid id) => $"{SecureKeyPrefix}{id:N}";
 
-    private async Task<List<DatabaseConnectionInfo>> LoadUnsafeAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// Fichier corrompu : copie mise de cote, puis liste vide (la reecriture ne perd plus rien).
+    /// Fichier illisible (verrouille, droits) ou copie impossible : rien n'est mis en cache et une
+    /// ecriture (<paramref name="forWrite"/>) est refusee, sinon elle effacerait les connexions enregistrees.
+    /// </summary>
+    private async Task<List<DatabaseConnectionInfo>> LoadUnsafeAsync(bool forWrite, CancellationToken cancellationToken)
     {
         if (_cache is not null)
             return _cache;
@@ -190,24 +198,39 @@ public sealed class ConnectionStore : IConnectionStore
         if (!File.Exists(_filePath))
             return _cache = [];
 
+        string json;
         try
         {
-            await using var stream = File.OpenRead(_filePath);
-            using var reader = new StreamReader(stream);
-            var json = await reader.ReadToEndAsync();
-            var items = JsonConvert.DeserializeObject<List<DatabaseConnectionInfo>>(json);
+            json = await File.ReadAllTextAsync(_filePath, cancellationToken);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return Unreadable(forWrite, ex, $"Connexions illisibles : {ex.Message}");
+        }
 
-            return _cache = items ?? [];
-        }
-        catch (JsonException)
+        try
         {
-            // Fichier corrompu : on repart d'une liste vide plutot que de bloquer la page.
+            return _cache = JsonConvert.DeserializeObject<List<DatabaseConnectionInfo>>(json) ?? [];
+        }
+        catch (JsonException ex)
+        {
+            var backupPath = CorruptFileHelper.Backup(_filePath);
+            if (backupPath is null)
+                return Unreadable(forWrite, ex, $"{FileName} est corrompu et n'a pas pu être copié : connexions non chargées.");
+
+            WeakReferenceMessenger.Default.LogError(ex, $"{FileName} était corrompu : copie conservée sous {Path.GetFileName(backupPath)}.");
             return _cache = [];
         }
-        catch (IOException)
-        {
-            return _cache = [];
-        }
+    }
+
+    private static List<DatabaseConnectionInfo> Unreadable(bool forWrite, Exception exception, string message)
+    {
+        // En ecriture, l'appelant recoit l'erreur (RunAsBusyAsync ou popup la journalisent).
+        if (forWrite)
+            throw new IOException($"{message} Modification annulée pour ne pas écraser les connexions enregistrées.", exception);
+
+        WeakReferenceMessenger.Default.LogError(exception, message);
+        return [];
     }
 
     private async Task SaveUnsafeAsync(List<DatabaseConnectionInfo> items, CancellationToken cancellationToken)

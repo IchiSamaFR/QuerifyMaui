@@ -15,9 +15,15 @@ namespace SqlToolManagerMaui
         protected override Window CreateWindow(IActivationState? activationState)
         {
             var window = new Window(Ioc.GetRequiredService<AppShell>());
+            var main = Ioc.GetRequiredService<MainVM>();
+
+#if WINDOWS
+            // Demande d'enregistrer les onglets modifies ; « Annuler » garde la fenetre ouverte.
+            WinUI.WindowCloseGuard.Attach(window, main.CanCloseAsync);
+#endif
 
             // Fermeture : les onglets ouverts sont memorises pour etre rouverts au prochain demarrage.
-            window.Destroying += (_, _) => Ioc.GetRequiredService<MainVM>().SaveWorkspace();
+            window.Destroying += (_, _) => main.SaveWorkspace();
 
             return window;
         }

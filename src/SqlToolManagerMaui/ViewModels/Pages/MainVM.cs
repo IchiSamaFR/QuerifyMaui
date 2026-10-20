@@ -6,6 +6,7 @@ using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Languages.Queries;
+using SqlToolManagerMaui.Services.Dialogs;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Settings;
@@ -31,13 +32,14 @@ public partial class MainVM : AbstractVM
     private readonly StatusBarVM _status;
     private readonly IWorkspaceStore _workspace;
     private readonly IUserPreferencesStore _preferencesStore;
+    private readonly IDialogService _dialogs;
 
     /// <summary>Onglets ouverts, dans l'ordre d'ouverture.</summary>
     [ObservableProperty]
     public partial ObservableCollection<AbstractSession> Sessions { get; set; } = new();
 
     [ObservableProperty]
-    public partial AbstractSession SelectedSession { get; set; }
+    public partial AbstractSession? SelectedSession { get; set; }
 
     /// <summary>Volet de l'explorateur d'objets (disposition de la page).</summary>
     public UserPreferences Preferences { get; }
@@ -51,7 +53,8 @@ public partial class MainVM : AbstractVM
         StatusBarVM status,
         IUserPreferencesStore preferences,
         MainMenuBarVM mainMenuBar,
-        IWorkspaceStore workspace)
+        IWorkspaceStore workspace,
+        IDialogService dialogs)
     {
         _files = files;
         _syntaxConfigurations = syntaxConfigurations;
@@ -60,11 +63,11 @@ public partial class MainVM : AbstractVM
         _status = status;
         _workspace = workspace;
         _preferencesStore = preferences;
+        _dialogs = dialogs;
         Preferences = preferences.Preferences;
         MainMenuBar = mainMenuBar;
 
         MainMenuBar.AttachFileCommands(this);
-        preferences.SaveFailed += (_, ex) => _status.Set($"Préférences non enregistrées : {ex.Message}", isError: true);
         WeakReferenceMessenger.Default.Register<MainVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
     }
 

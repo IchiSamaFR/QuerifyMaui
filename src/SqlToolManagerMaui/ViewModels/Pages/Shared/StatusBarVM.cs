@@ -1,5 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.Logging;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.UI.Extensions;
+using SqlToolManagerMaui.UI.Models.Messagings;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Shared;
 
@@ -17,6 +21,21 @@ public partial class StatusBarVM : ObservableObject
     {
         Message = message;
         IsError = isError;
+    }
+
+    public StatusBarVM()
+    {
+        // Erreurs journalisees (taches des VM, stores...) : affichees ici plutot que perdues.
+        WeakReferenceMessenger.Default.RegisterLogHandler(this, HandleLog);
+    }
+
+    private void HandleLog(WeakLog log)
+    {
+        if (log.Level != LogLevel.Error)
+            return;
+
+        // L'erreur a pu etre publiee hors du thread UI.
+        MainThread.BeginInvokeOnMainThread(() => Set($"Erreur : {log.Message ?? log.Exception?.Message}", isError: true));
     }
 
     public void Clear() => Set(string.Empty);

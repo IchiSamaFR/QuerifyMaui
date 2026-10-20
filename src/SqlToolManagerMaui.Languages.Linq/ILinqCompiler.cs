@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System.Runtime.Loader;
 
 namespace SqlToolManagerMaui.Languages.Linq;
 
@@ -33,9 +34,17 @@ public sealed class LinqModelAssembly
     public required MetadataReference Reference { get; init; }
 }
 
-/// <summary>Requete compilee : un point d'entree executable, ou les erreurs de compilation.</summary>
-public sealed class LinqCompiledQuery
+/// <summary>
+/// Requete compilee : un point d'entree executable, ou les erreurs de compilation.
+/// <see cref="Dispose"/> decharge son assembly : a appeler une fois l'execution terminee.
+/// </summary>
+public sealed class LinqCompiledQuery : IDisposable
 {
+    private int _isDisposed;
+
+    /// <summary>Contexte collectable de l'assembly de la requete ; null en cas d'erreur de compilation.</summary>
+    public AssemblyLoadContext? LoadContext { get; init; }
+
     /// <summary>Execute la requete ; chaque appel a Dump(valeur, titre) est transmis au second parametre.</summary>
     public Func<DbContext, Action<object?, string?>?, object?>? Execute { get; init; }
 
@@ -48,6 +57,13 @@ public sealed class LinqCompiledQuery
     public IReadOnlyList<LinqDiagnostic> Errors { get; init; } = [];
 
     public bool Success => Execute is not null;
+
+    /// <summary>L'assembly est libere par le GC des que plus rien ne reference ses types (resultats deja convertis en texte).</summary>
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _isDisposed, 1) == 0)
+            LoadContext?.Unload();
+    }
 }
 
 /// <param name="Line">Ligne dans le texte de la requete (base 1).</param>

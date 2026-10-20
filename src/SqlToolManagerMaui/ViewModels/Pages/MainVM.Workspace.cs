@@ -1,7 +1,9 @@
-﻿using SqlToolManagerMaui.Core.Enums.Settings;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using SqlToolManagerMaui.Core.Enums.Settings;
 using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Settings;
+using SqlToolManagerMaui.UI.Extensions;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
 
@@ -11,9 +13,30 @@ public partial class MainVM
     /// <summary>Faux tant que la restauration n'a pas eu lieu : fermer avant ecraserait les onglets memorises.</summary>
     private bool _isWorkspaceRestored;
 
+    /// <summary>
+    /// Vrai si la fenetre peut se fermer. Les onglets rouverts au demarrage gardent leurs modifications ;
+    /// sinon chaque onglet modifie est confirme, et « Annuler » garde la fenetre ouverte.
+    /// </summary>
+    public async Task<bool> CanCloseAsync()
+    {
+        if (Preferences.RestoreOpenTabs && _isWorkspaceRestored)
+            return true;
+
+        foreach (var session in Sessions.ToList())
+        {
+            if (!await ConfirmDiscardAsync(session))
+                return false;
+        }
+
+        return true;
+    }
+
     /// <summary>Memorise les onglets ouverts ; synchrone car appele pendant la fermeture de la fenetre.</summary>
     public void SaveWorkspace()
     {
+        // Une modification de preference encore en attente d'ecriture serait perdue.
+        _preferencesStore.Flush();
+
         if (!_isWorkspaceRestored)
             return;
 
@@ -37,7 +60,8 @@ public partial class MainVM
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // Application en cours de fermeture : plus personne a qui le signaler.
+            // Application en cours de fermeture : seul le journal peut encore le signaler.
+            WeakReferenceMessenger.Default.LogError(ex, $"Onglets ouverts non mémorisés : {ex.Message}");
         }
     }
 

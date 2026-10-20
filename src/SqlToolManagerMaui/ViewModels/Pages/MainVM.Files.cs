@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
+using SqlToolManagerMaui.Core.Enums.Editors;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors;
@@ -102,21 +103,22 @@ public partial class MainVM
     }
 
     [RelayCommand]
-    private Task SaveAsync() => SaveSessionAsync(SelectedSession, forceSaveAs: false);
+    private async Task SaveAsync() => await TrySaveSessionAsync(SelectedSession, forceSaveAs: false);
 
     [RelayCommand]
-    private Task SaveAsAsync() => SaveSessionAsync(SelectedSession, forceSaveAs: true);
+    private async Task SaveAsAsync() => await TrySaveSessionAsync(SelectedSession, forceSaveAs: true);
 
-    private Task SaveSessionAsync(AbstractSession? session, bool forceSaveAs)
+    /// <summary>Faux si l'enregistrement a echoue (erreur publiee par RunAsBusyAsync) ou si « Enregistrer sous » a ete annule.</summary>
+    private async Task<bool> TrySaveSessionAsync(AbstractSession? session, bool forceSaveAs)
     {
         if (session is null)
-            return Task.CompletedTask;
+            return false;
 
         // Dernieres modifications du concepteur pas encore reecrites dans le texte.
         _dashboard.FlushPendingWrites();
         var document = session.Document;
 
-        return RunAsBusyAsync(async token =>
+        return await RunAsBusyAsync(async token =>
         {
             var text = document.EditorText;
 
@@ -129,7 +131,7 @@ public partial class MainVM
                 var suggested = document.HasPath ? document.FileName : $"{document.FallbackName}{await DefaultExtensionAsync(session, token)}";
                 var path = await _files.SaveAsAsync(suggested, text, token);
                 if (path is null)
-                    return;
+                    return false;
 
                 document.FilePath = path;
                 AddRecentFile(path);
@@ -137,6 +139,7 @@ public partial class MainVM
 
             document.MarkSaved();
             _status.Set($"{document.FileName} enregistre.");
+            return true;
         });
     }
 
@@ -150,13 +153,38 @@ public partial class MainVM
         return configuration is { Definition.Extensions: [var extension, ..] } ? extension : ".sql";
     }
 
-    /// <summary>Ferme un onglet ; le dernier est remplace par un document vide.</summary>
+    /// <summary>Ferme un onglet, apres confirmation s'il est modifie ; le dernier est remplace par un document vide.</summary>
     [RelayCommand]
-    private void Close(AbstractSession? session)
+    private async Task CloseAsync(AbstractSession? session)
     {
-        if (session is null)
+        if (session is null || !Sessions.Contains(session))
             return;
 
+        if (await ConfirmDiscardAsync(session))
+            Remove(session);
+    }
+
+    /// <summary>Vrai si l'onglet peut etre ferme : non modifie, enregistre, ou modifications abandonnees.</summary>
+    private async Task<bool> ConfirmDiscardAsync(AbstractSession session)
+    {
+        // Dernieres modifications du concepteur : elles comptent dans IsDirty.
+        _dashboard.FlushPendingWrites();
+        if (!session.Document.IsDirty)
+            return true;
+
+        // L'utilisateur voit le document dont il est question.
+        SelectedSession = session;
+
+        return await _dialogs.AskSaveChangesAsync(session.Document.FileName) switch
+        {
+            SaveChangesChoice.Save => await TrySaveSessionAsync(session, forceSaveAs: false),
+            SaveChangesChoice.Discard => true,
+            _ => false,
+        };
+    }
+
+    private void Remove(AbstractSession session)
+    {
         var index = Sessions.IndexOf(session);
         if (index < 0)
             return;
@@ -174,7 +202,7 @@ public partial class MainVM
 
     /// <summary>Ferme l'onglet courant (entree de menu, sans parametre).</summary>
     [RelayCommand]
-    private void CloseActive() => Close(SelectedSession);
+    private Task CloseActiveAsync() => CloseAsync(SelectedSession);
 
     // ---------- Fichiers recents ----------
 

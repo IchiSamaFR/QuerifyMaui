@@ -1,4 +1,8 @@
-﻿namespace SqlToolManagerMaui.UI.ViewModels;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using SqlToolManagerMaui.UI.Extensions;
+using SqlToolManagerMaui.UI.Models.Messagings;
+
+namespace SqlToolManagerMaui.UI.ViewModels;
 
 public abstract partial class AbstractVM
 {
@@ -39,8 +43,8 @@ public abstract partial class AbstractVM
     }
 
     /// <summary>
-    /// Exécute une tâche en marquant le ViewModel occupé. Les exceptions sont remontées
-    /// via le messenger : inutile de rajouter un try/catch au niveau de l'appelant.
+    /// Exécute une tâche en marquant le ViewModel occupé. Les exceptions sont publiées
+    /// (<see cref="WeakLog"/>) : inutile de rajouter un try/catch au niveau de l'appelant.
     /// </summary>
     /// <param name="blocking">False pour un refresh/notification de fond qui ne doit pas inhiber l'UI.</param>
     /// <param name="skipIfBusy">True pour ignorer l'appel si une tâche du même type est déjà en cours (anti double-tap).</param>
@@ -76,9 +80,10 @@ public abstract partial class AbstractVM
             // Sortie de page : ce n'est pas une erreur à remonter à l'utilisateur.
             return default;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Une exception levée par la tâche ne doit pas interrompre l'exécution : elle est ignorée.
+            // N'interrompt pas l'appelant, mais l'erreur est affichée et journalisée par l'application.
+            WeakReferenceMessenger.Default.LogError(ex, ex.Message);
             return default;
         }
         finally

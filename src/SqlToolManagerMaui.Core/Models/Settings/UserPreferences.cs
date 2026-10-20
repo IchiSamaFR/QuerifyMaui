@@ -21,7 +21,8 @@ public partial class UserPreferences : ObservableObject
 
     public PanelPreferences Panels { get; } = new();
 
-    public Action PreferencesChanged { get; set; }
+    /// <summary>Leve a chaque modification (y compris de Editor et Panels) ; evenement, donc jamais serialise.</summary>
+    public event Action? PreferencesChanged;
 
     public UserPreferences()
     {
@@ -30,7 +31,7 @@ public partial class UserPreferences : ObservableObject
         Panels.PropertyChanged += OnPropertyChangedHandlers;
     }
 
-    private void OnPropertyChangedHandlers(object sender, PropertyChangedEventArgs e)
+    private void OnPropertyChangedHandlers(object? sender, PropertyChangedEventArgs e)
     {
         PreferencesChanged?.Invoke();
     }

@@ -70,13 +70,15 @@ public sealed class LinqCompiler : ILinqCompiler
         if (image is null)
             return new LinqCompiledQuery { Errors = errors };
 
-        var assembly = new QueryLoadContext(model.Assembly).LoadFromStream(new MemoryStream(image));
+        var loadContext = new QueryLoadContext(model.Assembly);
+        var assembly = loadContext.LoadFromStream(new MemoryStream(image));
         var method = assembly.GetType($"{QueryNamespace}.{QueryClass}", throwOnError: true)!.GetMethod(QueryMethod)!;
 
         return new LinqCompiledQuery
         {
             Execute = method.CreateDelegate<Func<DbContext, Action<object?, string?>?, object?>>(),
-            ReturnsValue = ReturnsValue(query)
+            ReturnsValue = ReturnsValue(query),
+            LoadContext = loadContext,
         };
     }
 
@@ -215,8 +217,11 @@ public sealed class LinqCompiler : ILinqCompiler
                     .ToArray();
     }
 
-    /// <summary>Contexte d'une requete : le modele est servi tel quel, le reste vient du contexte par defaut.</summary>
-    private sealed class QueryLoadContext(Assembly model) : AssemblyLoadContext(isCollectible: false)
+    /// <summary>
+    /// Contexte d'une requete : le modele est servi tel quel, le reste vient du contexte par defaut.
+    /// Collectable : sinon chaque execution garde son assembly en memoire jusqu'a la fermeture de l'application.
+    /// </summary>
+    private sealed class QueryLoadContext(Assembly model) : AssemblyLoadContext(isCollectible: true)
     {
         protected override Assembly? Load(AssemblyName assemblyName)
             => AssemblyName.ReferenceMatchesDefinition(assemblyName, model.GetName()) ? model : null;

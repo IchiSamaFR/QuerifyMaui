@@ -1,6 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Newtonsoft.Json;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Settings;
+using SqlToolManagerMaui.Helpers.Tools;
+using SqlToolManagerMaui.UI.Extensions;
 
 namespace SqlToolManagerMaui.Services.Settings;
 
@@ -25,7 +28,12 @@ public sealed class WorkspaceStore : IWorkspaceStore
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
         {
-            // Fichier corrompu ou verrouille : demarrer sans onglets restaures plutot que bloquer.
+            // Demarrer sans onglets restaures plutot que bloquer ; la copie garde les textes non enregistres
+            // que la sauvegarde de fin de session ecrasera.
+            var backupPath = CorruptFileHelper.Backup(_filePath);
+            WeakReferenceMessenger.Default.LogError(ex, backupPath is null
+                ? $"Onglets précédents non restaurés : {FileName} illisible."
+                : $"Onglets précédents non restaurés : copie conservée sous {Path.GetFileName(backupPath)}.");
             return null;
         }
     }

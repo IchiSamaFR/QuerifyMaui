@@ -1,12 +1,14 @@
 ﻿using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Databases.Connections;
 using SqlToolManagerMaui.Databases.Enums;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Services.Databases;
+using SqlToolManagerMaui.UI.Extensions;
 using SqlToolManagerMaui.UI.ViewModels;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Connections;
@@ -91,7 +93,18 @@ public partial class ConnectionEditorVM : AbstractVM
 
         if (info.IsNew)
             info.Id = Guid.NewGuid();
-        await _store.SaveAsync(info, connectionString, LifetimeToken);
+
+        try
+        {
+            await _store.SaveAsync(info, connectionString, LifetimeToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Affiche aussi dans la popup, restee ouverte : la barre d'etat de la page est masquee dessous.
+            WeakReferenceMessenger.Default.LogError(ex, $"Connexion non enregistrée : {ex.Message}");
+            SetStatus($"Enregistrement impossible : {ex.Message}", isError: true);
+            return;
+        }
 
         await CloseAsync(info.Id);
     }
