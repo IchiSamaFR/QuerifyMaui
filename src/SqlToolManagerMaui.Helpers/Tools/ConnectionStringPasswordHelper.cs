@@ -127,10 +127,11 @@ public static class ConnectionStringPasswordHelper
         return (separator + 1, end - separator - 1);
     }
 
+    /// <summary>Regle ADO.NET : dans une valeur entre quotes, la quote doublee vaut une quote.</summary>
     private static string Unquote(string value)
     {
         if (value.Length >= 2 && (value[0] is '\'' or '"') && value[^1] == value[0])
-            return value[1..^1];
+            return value[1..^1].Replace(new string(value[0], 2), value[..1], StringComparison.Ordinal);
 
         return value;
     }
@@ -141,8 +142,9 @@ public static class ConnectionStringPasswordHelper
         if (value.Length == 0)
             return value;
 
-        var needsQuotes = value.Contains(';') || value.Contains('=')
-            || value[0] is '\'' or '"' or ' ' || value[^1] == ' ';
+        // Une quote, meme interne, est toujours protegee : la lecture ADO.NET reste sans ambiguite.
+        var needsQuotes = value.Contains(';') || value.Contains('=') || value.Contains('\'') || value.Contains('"')
+            || value[0] == ' ' || value[^1] == ' ';
 
         if (!needsQuotes)
             return value;

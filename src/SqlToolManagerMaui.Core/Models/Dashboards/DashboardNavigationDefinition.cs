@@ -8,7 +8,8 @@ public sealed class DashboardNavigationDefinition
 {
     public required string Page { get; set; }
 
-    public List<DashboardParameterMapping> Parameters { get; init; } = [];
+    // set et non init : le generateur System.Text.Json remet a null une propriete init absente du JSON.
+    public List<DashboardParameterMapping> Parameters { get; set; } = [];
 
     /// <summary>
     /// Valeurs a donner aux parametres : colonne de la ligne cliquee, autre parametre (@Nom) ou texte fixe.

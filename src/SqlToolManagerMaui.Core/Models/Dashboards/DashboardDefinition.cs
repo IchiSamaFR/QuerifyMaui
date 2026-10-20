@@ -27,9 +27,11 @@ public sealed class DashboardDefinition
     public string? StartPage { get; set; }
 
     /// <summary>Parametres communs a toutes les pages (@Nom dans les requetes).</summary>
-    public List<DashboardParameterDefinition> Parameters { get; init; } = [];
+    // set et non init : le generateur System.Text.Json remet a null une propriete init absente du JSON.
+    public List<DashboardParameterDefinition> Parameters { get; set; } = [];
 
-    public List<DashboardPageDefinition> Pages { get; init; } = [];
+    // set et non init : le generateur System.Text.Json remet a null une propriete init absente du JSON.
+    public List<DashboardPageDefinition> Pages { get; set; } = [];
 
     public DashboardPageDefinition? FindPage(string? id)
         => Pages.FirstOrDefault(p => string.Equals(p.Id, id, StringComparison.OrdinalIgnoreCase));

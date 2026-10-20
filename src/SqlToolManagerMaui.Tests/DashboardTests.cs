@@ -178,4 +178,14 @@ public class DashboardTests
         Assert.NotNull(request);
         Assert.Same(page.Cards[0], request.Card);
     }
+
+    [Fact]
+    public void MissingCollectionsDeserializeEmpty()
+    {
+        var definition = DashboardSerializer.Deserialize("""{ "pages": [ { "id": "vide" }, { "id": "carte", "cards": [ { "view": "grid" } ] } ] }""");
+
+        Assert.Empty(definition.Parameters);
+        Assert.Empty(definition.Pages[0].Cards);
+        Assert.Empty(definition.Pages[1].Cards[0].ValueColumns);
+    }
 }

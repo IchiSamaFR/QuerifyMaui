@@ -97,11 +97,11 @@ public abstract partial class AbstractVM
     /// sûre car aucune exception ne peut s'échapper de la tâche.
     /// </summary>
     public void StartAsBusy(Func<Task> taskFunc, bool blocking = true, bool skipIfBusy = false)
-        => _ = RunAsBusyAsync(taskFunc, blocking, skipIfBusy);
+        => RunAsBusyAsync(taskFunc, blocking, skipIfBusy).FireAndForget();
 
     /// <inheritdoc cref="StartAsBusy(Func{Task}, bool, bool)"/>
     public void StartAsBusy(Func<CancellationToken, Task> taskFunc, bool blocking = true, bool skipIfBusy = false)
-        => _ = RunAsBusyAsync(taskFunc, blocking, skipIfBusy);
+        => RunAsBusyAsync(taskFunc, blocking, skipIfBusy).FireAndForget();
 
     private void EnterBusy(bool blocking)
     {
@@ -131,20 +131,25 @@ public abstract partial class AbstractVM
 
     private void NotifyBusyChanged(bool blocking)
     {
-        string propertyName = blocking ? nameof(IsBusy) : nameof(IsBackgroundBusy);
-
         // La continuation peut reprendre sur un thread du pool : le binding doit être notifié sur le thread UI.
         if (MainThread.IsMainThread)
         {
-            NotifySafe(propertyName);
+            RaiseBusyChanged(blocking);
             return;
         }
-        MainThread.BeginInvokeOnMainThread(() => NotifySafe(propertyName));
+        MainThread.BeginInvokeOnMainThread(() => RaiseBusyChanged(blocking));
     }
 
-    // Une exception levée par un binding et échappée d'ici atteint la frontière native iOS et abort() le process.
-    private void NotifySafe(string propertyName)
+    private void RaiseBusyChanged(bool blocking)
     {
-        OnPropertyChanged(propertyName);
+        if (!blocking)
+        {
+            OnPropertyChanged(nameof(IsBackgroundBusy));
+            return;
+        }
+
+        // IsNotBusy aussi : AbstractPage et AbstractContentView y lient IsEnabled.
+        OnPropertyChanged(nameof(IsBusy));
+        OnPropertyChanged(nameof(IsNotBusy));
     }
 }

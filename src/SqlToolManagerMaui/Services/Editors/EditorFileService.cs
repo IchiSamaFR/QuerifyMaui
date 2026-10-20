@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Maui.Storage;
 using SqlToolManagerMaui.Core.Ioc;
-using System.Text;
+using SqlToolManagerMaui.Helpers.Tools;
 
 namespace SqlToolManagerMaui.Services.Editors;
 
@@ -8,9 +8,6 @@ namespace SqlToolManagerMaui.Services.Editors;
 [AutoRegister(As = typeof(IEditorFileService))]
 public sealed class EditorFileService : IEditorFileService
 {
-    // Avec BOM : sans lui, Notepad devine l'encodage et lit les accents en ANSI.
-    private static readonly UTF8Encoding Utf8Bom = new(encoderShouldEmitUTF8Identifier: true);
-
     private static readonly FilePickerFileType TextFileTypes = new(
         new Dictionary<DevicePlatform, IEnumerable<string>>
         {
@@ -38,18 +35,53 @@ public sealed class EditorFileService : IEditorFileService
         if (!File.Exists(filePath))
             return null;
 
-        var text = await File.ReadAllTextAsync(filePath, cancellationToken);
-        return new EditorFileContent(filePath, text);
+        var bytes = await File.ReadAllBytesAsync(filePath, cancellationToken);
+        return new EditorFileContent(filePath, TextFileEncoding.Decode(bytes, TextFileEncoding.Detect(bytes)));
     }
 
-    public Task SaveAsync(string filePath, string text, CancellationToken cancellationToken = default)
-        => File.WriteAllTextAsync(filePath, text, Utf8Bom, cancellationToken);
+    public async Task SaveAsync(string filePath, string text, CancellationToken cancellationToken = default)
+    {
+        // Encodage du fichier tel qu'il est sur le disque : l'enregistrer ne doit pas le convertir.
+        var encoding = File.Exists(filePath)
+            ? TextFileEncoding.Detect(await File.ReadAllBytesAsync(filePath, cancellationToken))
+            : TextFileEncoding.Default;
+
+        // Ecriture atomique : un arret en cours d'ecriture ne laisse pas le script tronque.
+        var tempPath = filePath + ".tmp";
+        try
+        {
+            await File.WriteAllBytesAsync(tempPath, TextFileEncoding.Encode(text, encoding), cancellationToken);
+
+            // Replace garde les attributs et la date de creation du fichier d'origine.
+            if (File.Exists(filePath))
+                File.Replace(tempPath, filePath, destinationBackupFileName: null);
+            else
+                File.Move(tempPath, filePath);
+        }
+        catch
+        {
+            TryDelete(tempPath);
+            throw;
+        }
+    }
 
     public async Task<string?> SaveAsAsync(string suggestedFileName, string text, CancellationToken cancellationToken = default)
     {
-        using var stream = new MemoryStream([.. Utf8Bom.GetPreamble(), .. Utf8Bom.GetBytes(text)]);
+        using var stream = new MemoryStream(TextFileEncoding.Encode(text, TextFileEncoding.Default));
         var result = await FileSaver.Default.SaveAsync(suggestedFileName, stream, cancellationToken);
 
         return result.IsSuccessful ? result.FilePath : null;
+    }
+
+    private static void TryDelete(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // Fichier temporaire residuel : sans effet, ecrase au prochain enregistrement.
+        }
     }
 }

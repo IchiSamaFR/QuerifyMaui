@@ -29,7 +29,8 @@ public sealed class DashboardCardDefinition
     public string? LabelColumn { get; set; }
 
     /// <summary>Graphique / valeur : colonnes numeriques affichees ; a defaut, toutes les autres.</summary>
-    public List<string> ValueColumns { get; init; } = [];
+    // set et non init : le generateur System.Text.Json remet a null une propriete init absente du JSON.
+    public List<string> ValueColumns { get; set; } = [];
 
     /// <summary>Bouton, ou clic sur une ligne du tableau : page ouverte et parametres transmis.</summary>
     public DashboardNavigationDefinition? Navigation { get; set; }

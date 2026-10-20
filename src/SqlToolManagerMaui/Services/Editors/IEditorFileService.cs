@@ -2,7 +2,7 @@ namespace SqlToolManagerMaui.Services.Editors;
 
 /// <summary>Contenu d'un fichier ouvert depuis le disque.</summary>
 /// <param name="FilePath">Chemin complet retenu par le selecteur.</param>
-/// <param name="Text">Texte decode en UTF-8.</param>
+/// <param name="Text">Texte decode selon l'encodage detecte (BOM, UTF-8, sinon ANSI).</param>
 public sealed record EditorFileContent(string FilePath, string Text);
 
 /// <summary>
@@ -17,7 +17,7 @@ public interface IEditorFileService
     /// <summary>Lit un fichier connu (fichier recent). Retourne null s'il n'existe plus.</summary>
     Task<EditorFileContent?> ReadAsync(string filePath, CancellationToken cancellationToken = default);
 
-    /// <summary>Ecrit le texte a un chemin connu (UTF-8 sans BOM).</summary>
+    /// <summary>Ecrit le texte a un chemin connu, de facon atomique, dans l'encodage actuel du fichier (UTF-8 avec BOM s'il n'existe pas).</summary>
     Task SaveAsync(string filePath, string text, CancellationToken cancellationToken = default);
 
     /// <summary>Ouvre un selecteur d'enregistrement. Retourne le chemin retenu, ou null si annule.</summary>

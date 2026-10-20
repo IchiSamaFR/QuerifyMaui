@@ -8,5 +8,6 @@ public sealed class DashboardPageDefinition
 
     public string Title { get; set; } = string.Empty;
 
-    public List<DashboardCardDefinition> Cards { get; init; } = [];
+    // set et non init : le generateur System.Text.Json remet a null une propriete init absente du JSON.
+    public List<DashboardCardDefinition> Cards { get; set; } = [];
 }

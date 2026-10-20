@@ -10,6 +10,7 @@ using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Settings;
+using SqlToolManagerMaui.UI.Extensions;
 using SqlToolManagerMaui.ViewModels.Pages.Shared;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Documents;
@@ -66,7 +67,8 @@ public partial class CodeEditorVM : ObservableObject
         Connection.SelectedConnectionChanged += (_, _) => ExecuteQueryCommand.NotifyCanExecuteChanged();
     }
 
-    partial void OnSessionChanged(CodeEditorSession? value) => _ = RefreshSyntaxConfigurationAsync();
+    partial void OnSessionChanged(CodeEditorSession? value)
+        => RefreshSyntaxConfigurationAsync().FireAndForget("Coloration syntaxique indisponible pour cet onglet.");
 
     private async Task RefreshSyntaxConfigurationAsync()
     {

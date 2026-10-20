@@ -14,6 +14,7 @@ using SqlToolManagerMaui.Databases.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Settings;
+using SqlToolManagerMaui.UI.Extensions;
 using SqlToolManagerMaui.ViewModels.Pages.Shared;
 using System.Globalization;
 
@@ -81,7 +82,7 @@ public partial class DashboardVM : ObservableObject
         _connectionStore = connectionStore;
 
         Connection.SelectedConnectionChanged += (_, _) => OnConnectionChanged();
-        _ = LoadSqlSyntaxConfigurationAsync(syntaxConfigurations);
+        LoadSqlSyntaxConfigurationAsync(syntaxConfigurations).FireAndForget("Coloration SQL du concepteur indisponible.");
     }
 
     /// <summary>Cle de la liste deroulante des vues (object) : une valeur nulle ou inconnue est ignoree.</summary>
@@ -149,7 +150,7 @@ public partial class DashboardVM : ObservableObject
         RefreshCanExecute();
 
         if (Session is { Current: { } page } session)
-            _ = LoadCardsAsync(session, page.Cards);
+            LoadCardsAsync(session, page.Cards).FireAndForget("Lecture des cartes du dashboard en échec.");
     }
 
     /// <summary>Relit le fichier s'il a change depuis la derniere lecture ou ecriture, puis ouvre la page de depart.</summary>
@@ -206,7 +207,7 @@ public partial class DashboardVM : ObservableObject
 
         CancelWriteDelay();
         _writeDelay = new CancellationTokenSource();
-        _ = FlushLaterAsync(_writeDelay.Token);
+        FlushLaterAsync(_writeDelay.Token).FireAndForget("Dashboard non réécrit dans le texte du fichier.");
     }
 
     private async Task FlushLaterAsync(CancellationToken token)
@@ -309,7 +310,7 @@ public partial class DashboardVM : ObservableObject
     private void OpenPage(DashboardSession session, DashboardPageDefinition page, bool asRoot)
     {
         var state = session.Open(page, asRoot);
-        _ = LoadCardsAsync(session, state.Cards);
+        LoadCardsAsync(session, state.Cards).FireAndForget("Lecture des cartes du dashboard en échec.");
     }
 
     // ---------- Lecture des cartes ----------

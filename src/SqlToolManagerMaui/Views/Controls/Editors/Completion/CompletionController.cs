@@ -5,6 +5,7 @@ using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Services.Editors.Completion;
+using SqlToolManagerMaui.UI.Extensions;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
 namespace SqlToolManagerMaui.Views.Controls.Editors.Completion;
@@ -74,7 +75,7 @@ public sealed class CompletionController : IDisposable
     public void WarmUp()
     {
         if (!_isDisposed)
-            _ = _service.WarmUpAsync(_language, _connection());
+            _service.WarmUpAsync(_language, _connection()).FireAndForget();
     }
 
     public void Dispose()
@@ -224,7 +225,7 @@ public sealed class CompletionController : IDisposable
 
         var text = _editor.Document.Text;
         var caret = _editor.SelectionState.Active;
-        _ = StartSessionAsync(CompletionTrigger.Explicit, text, caret, CompletionRequest.FindWordStart(text, caret), false);
+        StartSessionAsync(CompletionTrigger.Explicit, text, caret, CompletionRequest.FindWordStart(text, caret), false).FireAndForget("Autocomplétion indisponible.");
     }
 
     /// <summary>TextChanged et SelectionChanged arrivent ensemble a chaque frappe : un seul recalcul.</summary>
@@ -265,7 +266,7 @@ public sealed class CompletionController : IDisposable
             if (trigger == CompletionTrigger.Typing && (caret == wordStart || char.IsDigit(text[wordStart])))
                 return;
 
-            _ = StartSessionAsync(trigger, text, caret, wordStart);
+            StartSessionAsync(trigger, text, caret, wordStart).FireAndForget("Autocomplétion indisponible.");
             return;
         }
 

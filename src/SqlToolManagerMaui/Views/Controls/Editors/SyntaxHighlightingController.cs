@@ -2,6 +2,7 @@
 using RichEdit.Maui;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using SqlToolManagerMaui.UI.Extensions;
 using System.Collections.Concurrent;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
@@ -58,7 +59,7 @@ public sealed class SyntaxHighlightingController : IDisposable
         _pending = cancellation;
 
         // Le snapshot se prend sur le thread UI ; l'analyse, elle, part en arriere-plan.
-        _ = HighlightAsync(_editor.Document.CurrentSnapshot, cancellation.Token);
+        HighlightAsync(_editor.Document.CurrentSnapshot, cancellation.Token).FireAndForget("Coloration syntaxique en échec.");
     }
 
     private async Task HighlightAsync(CodeDocumentSnapshot snapshot, CancellationToken cancellationToken)

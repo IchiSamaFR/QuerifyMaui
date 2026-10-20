@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Services.Databases;
+using SqlToolManagerMaui.UI.Extensions;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Shared;
 
@@ -19,7 +20,7 @@ public partial class DatabaseConnectionVM : ObservableObject
         _status = status;
 
         // Ajout, modification ou suppression depuis l'explorateur : le Picker suit le coffre.
-        _connectionStore.Subscribe(ApplyConnections);
+        _connectionStore.Subscribe(ApplyConnections).FireAndForget("Liste des connexions non chargée.");
     }
 
     /// <summary>Leve apres chaque changement de connexion (les onglets ouverts suivent).</summary>
@@ -77,8 +78,9 @@ public partial class DatabaseConnectionVM : ObservableObject
             ? "Deconnecte."
             : $"Connexion active : {value.Name}.");
 
+        // Ouverture anticipee : l'execution la refait de toute facon (await) si elle a echoue.
         if (value is not null)
-            _connectionStore.OpenConnectionAsync(value);
+            _connectionStore.OpenConnectionAsync(value).FireAndForget($"Connexion {value.Name} non ouverte.");
 
         SelectedConnectionChanged?.Invoke(this, EventArgs.Empty);
     }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maui.Controls.Shapes;
+using SqlToolManagerMaui.UI.Extensions;
 using SqlToolManagerMaui.UI.Inputs.Converters;
 using SqlToolManagerMaui.UI.Inputs.Core;
 using System.Collections.ObjectModel;
@@ -272,8 +273,8 @@ public abstract partial class InputField : Grid, IValidatable
 
         if (animate && IsLoaded)
         {
-            _ = titleLabel.TranslateToAsync(targetX, targetY, 150, Easing.SinOut);
-            _ = titleLabel.ScaleToAsync(targetScale, 150, Easing.SinOut);
+            titleLabel.TranslateToAsync(targetX, targetY, 150, Easing.SinOut).FireAndForget();
+            titleLabel.ScaleToAsync(targetScale, 150, Easing.SinOut).FireAndForget();
         }
         else
         {

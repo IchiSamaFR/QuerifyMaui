@@ -23,7 +23,6 @@
     
     <conv:IsDateTimeCompared x:Key="IsDateTimeCompared" />
 
-    <conv:ConnectionStringMaskerConverter x:Key="ConnectionStringMaskerConverter" />
 
     <appconv:ExplorerNodeIconConverter x:Key="ExplorerNodeIconConverter" />
     <appconv:ExplorerNodeIconColorConverter x:Key="ExplorerNodeIconColorConverter" />
