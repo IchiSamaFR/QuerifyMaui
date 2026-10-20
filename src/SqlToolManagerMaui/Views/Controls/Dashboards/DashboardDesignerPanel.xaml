@@ -10,16 +10,17 @@
         <VerticalStackLayout Spacing="8">
 
             <!-- ============ Carte selectionnee ============ -->
-            <v:ExpanderExtended Title="Carte">
+            <v:ExpanderExtended Title="Carte"
+                                Padding="{DynamicResource CardContentPadding}">
                 <VerticalStackLayout Spacing="8"
                                      Margin="0,8,0,0"
                                      IsVisible="{Binding Session.SelectedCard, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert}">
                     <inp:TextField Title="Titre"
                                    Text="{Binding Session.SelectedCard.Title, Mode=TwoWay, FallbackValue=''}" />
 
-                    <Picker Title="Rendu"
-                            ItemsSource="{x:Static c:DashboardDesignerPanel.CardKinds}"
-                            SelectedItem="{Binding Session.SelectedCard.View, Mode=TwoWay}" />
+                    <inp:PickerField Title="Rendu"
+                                     ItemsSource="{x:Static c:DashboardDesignerPanel.CardKinds}"
+                                     SelectedItem="{Binding Session.SelectedCard.View, Mode=TwoWay}" />
 
                     <!-- Requete -->
                     <VerticalStackLayout Spacing="4"
@@ -69,9 +70,9 @@
                     </VerticalStackLayout>
 
                     <!-- Navigation : bouton, ou clic sur une ligne du tableau -->
-                    <Picker Title="Page ouverte au clic (bouton, ligne du tableau)"
-                            ItemsSource="{Binding Session.PageIds}"
-                            SelectedItem="{Binding Session.SelectedCard.NavigationPage, Mode=TwoWay}" />
+                    <inp:PickerField Title="Page ouverte au clic (bouton, ligne du tableau)"
+                                     ItemsSource="{Binding Session.PageIds}"
+                                     SelectedItem="{Binding Session.SelectedCard.NavigationPage, Mode=TwoWay}" />
 
                     <VerticalStackLayout Spacing="4"
                                          IsVisible="{Binding Session.SelectedCard.HasNavigation, FallbackValue=False}">
@@ -164,15 +165,13 @@
                 </VerticalStackLayout>
             </v:ExpanderExtended>
 
-            <v:Separator Orientation="Horizontal" />
-
             <!-- ============ Pages ============ -->
-            <v:ExpanderExtended Title="Pages">
+            <v:ExpanderExtended Title="Pages"
+                                Padding="{DynamicResource CardContentPadding}">
                 <VerticalStackLayout Spacing="8"
                                      Margin="0,8,0,0">
                     <inp:TextField Title="Titre de la page affichée"
-                                   Text="{Binding Session.Current.Title, Mode=TwoWay, FallbackValue=''}" 
-                                   Padding="20,0,0,0"/>
+                                   Text="{Binding Session.Current.Title, Mode=TwoWay, FallbackValue=''}" />
 
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Session.Pages}">
                         <BindableLayout.ItemTemplate>
@@ -204,10 +203,9 @@
                 </VerticalStackLayout>
             </v:ExpanderExtended>
 
-            <v:Separator Orientation="Horizontal" />
-
             <!-- ============ Parametres d'entree ============ -->
-            <v:ExpanderExtended Title="Paramètres d'entrée">
+            <v:ExpanderExtended Title="Paramètres d'entrée"
+                                Padding="{DynamicResource CardContentPadding}">
                 <VerticalStackLayout Spacing="8"
                                      Margin="0,8,0,0">
                     <VerticalStackLayout Spacing="8"

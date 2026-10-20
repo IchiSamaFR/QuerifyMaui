@@ -156,6 +156,32 @@
                 Value="{DynamicResource ButtonBorder}" />
         <Setter Property="BorderWidth"
                 Value="1" />
+
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity"
+                                    Value="{DynamicResource PointerOverOpacity}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity"
+                                    Value="{DynamicResource PressedOpacity}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity"
+                                    Value="{DynamicResource DisabledOpacity}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter> 
     </Style>
 
     <Style x:Key="SecondaryButtonStyle"
@@ -359,8 +385,8 @@
            BasedOn="{StaticResource PrimaryImageButtonStyle}">
         <Setter Property="Background"
                 Value="Transparent" />
-        <Setter Property="BorderColor"
-                Value="Transparent" />
+        <Setter Property="BorderWidth"
+                Value="0" />
     </Style>
 
     <!-- ============ Styles par defaut ============ -->

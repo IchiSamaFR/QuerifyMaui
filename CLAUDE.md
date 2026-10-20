@@ -74,6 +74,7 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 - Ne PAS utiliser les API Xamarin.Forms — toujours MAUI
 - Ne PAS contourner `AbstractVM` / `AbstractPage` pour une nouvelle page
 - Ne PAS construire en C# l'arborescence visuelle d'un contrôle quand un `.xaml` peut la porter
+- Ne PAS déclarer plusieurs types (classe, record, interface, enum) dans un même fichier : un type = un fichier nommé comme lui. Seule exception : une classe **privée imbriquée**, utile uniquement au service ou au type qui la contient
 
 ---
 

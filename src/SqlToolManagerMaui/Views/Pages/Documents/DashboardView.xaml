@@ -37,6 +37,25 @@
                              WidthRequest="140"
                              FontSize="{StaticResource FontSize_Caption}"
                              ToolTipProperties.Text="Vue du dashboard" />
+
+            <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                         Command="{Binding ShowSettingsCommand}"
+                         Source="{mk:FluentImage Icon=EditSettings20}"
+                         Opacity="{DynamicResource DisabledOpacity}"
+                         ToolTipProperties.Text="Afficher les paramètres">
+                <ImageButton.Triggers>
+                    <DataTrigger TargetType="ImageButton"
+                                 Binding="{Binding Preferences.IsDashboardParamsOpen}"
+                                 Value="True">
+                        <Setter Property="Background"
+                                Value="{DynamicResource ButtonBackground}" />
+                        <Setter Property="Opacity"
+                                Value="{DynamicResource FrontOpacity}" />
+                        <Setter Property="ToolTipProperties.Text"
+                                Value="Cacher les paramètres" />
+                    </DataTrigger>
+                </ImageButton.Triggers>
+            </ImageButton>
         </HorizontalStackLayout>
 
         <!-- ============ Source : JSON du fichier ============ -->
@@ -62,7 +81,8 @@
                              SelectCardCommand="{Binding SelectCardCommand}"
                              AddCardCommand="{Binding AddCardCommand}"
                              StartDragCommand="{Binding StartDragCommand}"
-                             DropCommand="{Binding DropCardCommand}" />
+                             DropCommand="{Binding DropCardCommand}"
+                             IsDashboardParamsOpen="{Binding Preferences.IsDashboardParamsOpen}" />
 
             <c:DashboardDesignerPanel Grid.Column="1"
                                       WidthRequest="360"

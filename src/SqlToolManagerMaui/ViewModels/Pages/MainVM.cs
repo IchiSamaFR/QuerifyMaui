@@ -6,6 +6,7 @@ using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using SqlToolManagerMaui.Services.Settings;
 using SqlToolManagerMaui.UI.ViewModels;
 using SqlToolManagerMaui.ViewModels.Controls.Menus;
 using SqlToolManagerMaui.ViewModels.Pages.Documents;
@@ -26,6 +27,7 @@ public partial class MainVM : AbstractVM
     private readonly DashboardVM _dashboard;
     private readonly DatabaseConnectionVM _connection;
     private readonly StatusBarVM _status;
+    private readonly IWorkspaceStore _workspace;
 
     /// <summary>Onglets ouverts, dans l'ordre d'ouverture.</summary>
     [ObservableProperty]
@@ -45,13 +47,15 @@ public partial class MainVM : AbstractVM
         DatabaseConnectionVM connection,
         StatusBarVM status,
         EditorPreferencesVM preferences,
-        MainMenuBarVM mainMenuBar)
+        MainMenuBarVM mainMenuBar,
+        IWorkspaceStore workspace)
     {
         _files = files;
         _syntaxConfigurations = syntaxConfigurations;
         _dashboard = dashboard;
         _connection = connection;
         _status = status;
+        _workspace = workspace;
         Preferences = preferences;
         MainMenuBar = mainMenuBar;
 
@@ -62,6 +66,7 @@ public partial class MainVM : AbstractVM
     protected override async Task LoadDatasBusyAsync()
     {
         await Preferences.LoadAsync(LifetimeToken);
+        await RestoreWorkspaceAsync(LifetimeToken);
         await _connection.RefreshAsync(LifetimeToken);
 
         if (Sessions.Count == 0)

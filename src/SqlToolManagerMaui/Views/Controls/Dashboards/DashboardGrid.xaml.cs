@@ -13,6 +13,9 @@ public partial class DashboardGrid : ContentView
     [BindableProperty]
     public partial DashboardSession? Session { get; set; }
 
+    [BindableProperty]
+    public partial bool IsDashboardParamsOpen { get; set; }
+
     /// <summary>Nombre de lignes de la grille (les definitions de lignes sont creees en code).</summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnGridSizeChanged))]
     public partial int RowCount { get; set; } = 6;

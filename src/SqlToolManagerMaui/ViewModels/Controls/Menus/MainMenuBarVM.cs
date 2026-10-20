@@ -147,6 +147,7 @@ public partial class MainMenuBarVM : ObservableObject
     private void AttachPreferences()
     {
         FileMenuContext.ClearFilesCommand = _preferences.ClearRecentFilesCommand;
+        FileMenuContext.ToggleRestoreOpenTabsCommand = _preferences.ToggleRestoreOpenTabsCommand;
 
         var view = ViewMenuContext;
         view.ToggleObjectExplorerCommand = _preferences.ToggleObjectExplorerCommand;
@@ -165,6 +166,7 @@ public partial class MainMenuBarVM : ObservableObject
     {
         var configuration = _preferences.EditorConfiguration;
         FileMenuContext.RecentFiles = _preferences.RecentFiles;
+        FileMenuContext.IsRestoreOpenTabsEnabled = _preferences.RestoreOpenTabs;
         ViewMenuContext.IsObjectExplorerOpen = _preferences.IsObjectExplorerOpen;
         ViewMenuContext.AreLineNumbersVisible = configuration.IsLineDisplayed;
         ViewMenuContext.IsWordWrapEnabled = configuration.IsWordWrapped;

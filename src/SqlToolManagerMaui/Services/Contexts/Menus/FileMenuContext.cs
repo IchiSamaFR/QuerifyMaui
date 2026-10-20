@@ -40,6 +40,12 @@ public partial class FileMenuContext : AbstractMenuContext
     [ObservableProperty]
     public partial IEnumerable<string>? RecentFiles { get; set; }
 
+    [ObservableProperty]
+    public partial ICommand? ToggleRestoreOpenTabsCommand { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsRestoreOpenTabsEnabled { get; set; }
+
     public override MenuBarItem CreateMenu()
     {
         _menu ??= CreateItem("Fichier", new List<IMenuFlyoutItem>
@@ -48,6 +54,7 @@ public partial class FileMenuContext : AbstractMenuContext
             CreateBoundItem("Nouveau tableau de bord", nameof(NewDashboardFileCommand), KeyboardShortcutConstants.NewDashboardFile),
             CreateBoundItem("Ouvrir", nameof(OpenFileCommand), KeyboardShortcutConstants.OpenFile),
             CreateBoundSubItem("Fichiers récents", "Aucun fichier récent", nameof(RecentFiles), nameof(OpenRecentFilesCommand), nameof(ClearFilesCommand)),
+            CreateBoundCheckedItem("Rouvrir les onglets au démarrage", nameof(ToggleRestoreOpenTabsCommand), nameof(IsRestoreOpenTabsEnabled)),
             CreateSeparator(),
             CreateBoundItem("Enregistrer", nameof(SaveFileCommand), KeyboardShortcutConstants.SaveFile),
             CreateBoundItem("Enregistrer sous", nameof(SaveAsFileCommand)),

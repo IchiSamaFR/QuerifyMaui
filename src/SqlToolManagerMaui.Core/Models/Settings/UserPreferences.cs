@@ -16,6 +16,9 @@ public sealed class UserPreferences
     /// <summary>Volets ouverts ou fermes.</summary>
     public PanelPreferences Panels { get; set; } = new();
 
+    /// <summary>Rouvrir au demarrage les onglets laisses ouverts a la fermeture (modifications non enregistrees comprises).</summary>
+    public bool RestoreOpenTabs { get; set; } = true;
+
     /// <summary>Place le fichier en tete de liste (sans doublon) et tronque au-dela de <see cref="MaxRecentFiles"/>.</summary>
     public void AddRecentFile(string filePath)
     {
@@ -34,5 +37,6 @@ public sealed class UserPreferences
         RecentFiles = [.. RecentFiles],
         Editor = Editor.Clone(),
         Panels = Panels.Clone(),
+        RestoreOpenTabs = RestoreOpenTabs,
     };
 }

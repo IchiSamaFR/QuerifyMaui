@@ -35,6 +35,14 @@ public partial class EditorPreferencesVM : ObservableObject
     [ObservableProperty]
     public partial bool IsObjectExplorerOpen { get; set; } = true;
 
+    /// <summary>Rouvrir au demarrage les onglets laisses ouverts a la fermeture.</summary>
+    [ObservableProperty]
+    public partial bool RestoreOpenTabs { get; set; } = true;
+
+    /// <summary>Rouvrir au demarrage les onglets laisses ouverts a la fermeture.</summary>
+    [ObservableProperty]
+    public partial bool IsDashboardParamsOpen { get; set; } = true;
+
     public async Task LoadAsync(CancellationToken token)
     {
         if (_isLoaded)
@@ -44,6 +52,7 @@ public partial class EditorPreferencesVM : ObservableObject
         EditorConfiguration.Apply(preferences.Editor);
         RecentFiles = preferences.RecentFiles;
         IsObjectExplorerOpen = preferences.Panels.IsOpen(PanelKind.ObjectExplorer);
+        RestoreOpenTabs = preferences.RestoreOpenTabs;
 
         // Abonnement apres l'application des valeurs : le chargement ne doit pas reecrire le fichier.
         EditorConfiguration.PropertyChanged += OnEditorConfigurationChanged;
@@ -61,6 +70,12 @@ public partial class EditorPreferencesVM : ObservableObject
         // Pendant le chargement, on applique les preferences sans les reecrire.
         if (_isLoaded)
             _ = UpdateAsync(p => p.Panels.SetOpen(PanelKind.ObjectExplorer, value), CancellationToken.None);
+    }
+
+    partial void OnRestoreOpenTabsChanged(bool value)
+    {
+        if (_isLoaded)
+            _ = UpdateAsync(p => p.RestoreOpenTabs = value, CancellationToken.None);
     }
 
     private void OnEditorConfigurationChanged(object? sender, PropertyChangedEventArgs e)
@@ -92,6 +107,9 @@ public partial class EditorPreferencesVM : ObservableObject
 
     [RelayCommand]
     private void ToggleObjectExplorer() => IsObjectExplorerOpen = !IsObjectExplorerOpen;
+
+    [RelayCommand]
+    private void ToggleRestoreOpenTabs() => RestoreOpenTabs = !RestoreOpenTabs;
 
     [RelayCommand]
     private void ToggleLineNumbers()

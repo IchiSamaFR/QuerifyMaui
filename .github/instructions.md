@@ -173,7 +173,7 @@ SqlToolManagerMaui/
 * **SOLID** et injection par constructeur.
 * **Async/Await** obligatoire pour tout I/O (disque, SecureStorage, base).
 * **Magic numbers** : remplacer par des constantes ou des tokens XAML.
-* **Une classe par fichier**, namespaces **file-scoped** (imposé par `.editorconfig`).
+* **Une classe par fichier**, namespaces **file-scoped** (imposé par `.editorconfig`). Vaut pour tout type (classe, record, interface, enum, struct) : chaque type public ou internal a son propre fichier, nommé comme lui. Seule exception : une classe **privée imbriquée**, utile uniquement au type qui la contient (ex. état interne d'un service).
 
 ### Conventions de nommage
 
@@ -341,6 +341,7 @@ Lors de la création d'une feature :
 * Ne PAS ignorer async/await pour les accès disque, SecureStorage ou base.
 * Ne PAS utiliser les API Xamarin.Forms — toujours les équivalents .NET MAUI.
 * Ne PAS contourner `AbstractVM` / `AbstractPage` pour une nouvelle page.
+* Ne PAS déclarer plusieurs types dans un même fichier — sauf une classe privée imbriquée propre au type qui la contient.
 
 ---
 

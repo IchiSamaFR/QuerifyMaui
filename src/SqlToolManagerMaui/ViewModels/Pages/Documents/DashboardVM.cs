@@ -572,4 +572,10 @@ public partial class DashboardVM : ObservableObject
         if (parameter is not null)
             Session?.RemoveParameter(parameter);
     }
+
+    [RelayCommand]
+    private void ShowSettings()
+    {
+        Preferences.IsDashboardParamsOpen = !Preferences.IsDashboardParamsOpen;
+    }
 }
