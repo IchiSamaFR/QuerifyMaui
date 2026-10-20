@@ -1,18 +1,28 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.UI.Extensions;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Shared;
 
-/// <summary>Connexion choisie dans l'en-tete des onglets : une seule pour toute la page.</summary>
+/// <summary>
+/// Connexion choisie dans l'en-tete des onglets. Le Picker est partage, mais chaque onglet garde sa
+/// connexion (<see cref="AbstractSession.ConnectionId"/>) : il la retrouve quand il redevient visible.
+/// </summary>
 [AutoRegister]
 public partial class DatabaseConnectionVM : ObservableObject
 {
     private readonly IConnectionStore _connectionStore;
     private readonly StatusBarVM _status;
+
+    /// <summary>Onglet affiche, dont la connexion suit le Picker.</summary>
+    private AbstractSession? _session;
+
+    /// <summary>Vrai pendant un changement d'onglet : la connexion de l'onglet affiche, elle, n'a pas change.</summary>
+    private bool _isAttaching;
 
     public DatabaseConnectionVM(IConnectionStore connectionStore, StatusBarVM status)
     {
@@ -23,7 +33,7 @@ public partial class DatabaseConnectionVM : ObservableObject
         _connectionStore.Subscribe(ApplyConnections).FireAndForget("Liste des connexions non chargée.");
     }
 
-    /// <summary>Leve apres chaque changement de connexion (les onglets ouverts suivent).</summary>
+    /// <summary>Leve quand l'utilisateur change la connexion de l'onglet affiche (pas lors d'un changement d'onglet).</summary>
     public event EventHandler? SelectedConnectionChanged;
 
     /// <summary>Connexions proposees : les instances partagees du store.</summary>
@@ -55,13 +65,34 @@ public partial class DatabaseConnectionVM : ObservableObject
             SelectedConnection = connection;
     }
 
+    /// <summary>Affiche dans le Picker la connexion de l'onglet ; sans onglet, la selection reste.</summary>
+    public void AttachSession(AbstractSession? session)
+    {
+        _session = session;
+        if (session is null)
+            return;
+
+        _isAttaching = true;
+        try
+        {
+            SelectedConnection = session.ConnectionId is { } id ? Connections.FirstOrDefault(c => c.Id == id) : null;
+        }
+        finally
+        {
+            _isAttaching = false;
+        }
+    }
+
     private void ApplyConnections(IReadOnlyList<DatabaseConnectionInfo> connections)
     {
         var selectedConnectionId = SelectedConnection?.Id;
 
         Connections = connections.ToList();
 
-        if (selectedConnectionId is { } id)
+        // Liste chargee apres la restauration des onglets, ou connexion supprimee : l'onglet retrouve la sienne.
+        if (_session is not null)
+            AttachSession(_session);
+        else if (selectedConnectionId is { } id)
             Select(id);
     }
 
@@ -74,13 +105,19 @@ public partial class DatabaseConnectionVM : ObservableObject
 
     partial void OnSelectedConnectionChanged(DatabaseConnectionInfo? value)
     {
-        _status.Set(value is null
-            ? "Deconnecte."
-            : $"Connexion active : {value.Name}.");
-
         // Ouverture anticipee : l'execution la refait de toute facon (await) si elle a echoue.
         if (value is not null)
             _connectionStore.OpenConnectionAsync(value).FireAndForget($"Connexion {value.Name} non ouverte.");
+
+        if (_isAttaching)
+            return;
+
+        if (_session is not null)
+            _session.ConnectionId = value?.Id;
+
+        _status.Set(value is null
+            ? "Deconnecte."
+            : $"Connexion active : {value.Name}.");
 
         SelectedConnectionChanged?.Invoke(this, EventArgs.Empty);
     }

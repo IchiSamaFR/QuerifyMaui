@@ -83,11 +83,16 @@ public partial class MainVM : AbstractVM
     [RelayCommand]
     private void CloseObjectExplorer() => Preferences.Panels.IsObjectExplorerOpen = false;
 
-    partial void OnSelectedSessionChanged(AbstractSession? value) => MainMenuBar.AttachSession(value);
+    partial void OnSelectedSessionChanged(AbstractSession? value)
+    {
+        _connection.AttachSession(value);
+        MainMenuBar.AttachSession(value);
+    }
 
-    /// <summary>Ajoute l'onglet et le selectionne.</summary>
+    /// <summary>Ajoute l'onglet et le selectionne ; sans connexion propre, il prend celle de l'onglet courant.</summary>
     private void Add(AbstractSession session)
     {
+        session.ConnectionId ??= _connection.ActiveConnection?.Id;
         Sessions.Add(session);
         SelectedSession = session;
     }

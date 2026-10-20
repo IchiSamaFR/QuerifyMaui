@@ -64,7 +64,10 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             }
             else
             {
-                var outputs = await Task.Run(() => Run(model, compiled, connection.ConnectionString!, cancellationToken), cancellationToken);
+                // WaitAsync : l'annulation rend la main tout de suite. Le code de l'utilisateur, lui, ne peut pas
+                // etre interrompu dans le processus (boucle infinie...) : il se termine en arriere-plan.
+                var outputs = await Task.Run(() => Run(model, compiled, connection.ConnectionString!, cancellationToken), CancellationToken.None)
+                    .WaitAsync(cancellationToken);
 
                 foreach (var output in outputs)
                 {
@@ -92,11 +95,16 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             messages.Add(new QueryMessage(ex.Message, IsError: true));
             messages.AddRange(ex.Errors.Take(20).Select(e => new QueryMessage(e.ToString(), IsError: true)));
         }
-        catch (Exception ex) when (ex is DbException or InvalidOperationException or ArgumentException or NotSupportedException or InvalidCastException or NullReferenceException or TimeoutException)
+        catch (DbException ex)
         {
-            // Traduction EF impossible, erreur SQL, null dans la requete... : rapporte comme une erreur SQL.
             hasErrors = true;
             messages.Add(new QueryMessage(ex.Message, IsError: true));
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Le script est du code de l'utilisateur : toute exception (traduction EF, null, division...) est un resultat.
+            hasErrors = true;
+            messages.Add(new QueryMessage($"{ex.GetType().Name} : {ex.Message}", IsError: true));
         }
 
         stopwatch.Stop();

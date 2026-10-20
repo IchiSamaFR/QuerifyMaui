@@ -4,8 +4,12 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>SqlToolManagerMaui</RootNamespace>
-		<ApplicationTitle>SqlToolManagerMaui</ApplicationTitle>
-		<ApplicationId>com.companyname.sqltoolmanagermaui</ApplicationId>
+		<ApplicationTitle>Querify</ApplicationTitle>
+		<!--
+		  Nomme le dossier de donnees (%LOCALAPPDATA%\User Name\<ApplicationId>) : connexions, coffre, preferences, journaux.
+		  Ne pas le changer sans mettre l'ancien dans MauiProgram.PreviousApplicationId (copie au premier lancement).
+		-->
+		<ApplicationId>fr.ichisamafr.querify</ApplicationId>
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 		<WindowsPackageType>None</WindowsPackageType>

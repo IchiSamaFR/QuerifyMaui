@@ -17,6 +17,9 @@ public abstract class AbstractSession : ObservableObject, IDisposable
 
     public EditorDocument Document { get; }
 
+    /// <summary>Connexion choisie pour cet onglet ; null = aucune. Chaque onglet garde la sienne.</summary>
+    public Guid? ConnectionId { get; set; }
+
     /// <summary>Annule a la fermeture de l'onglet : les traitements lances pour lui s'arretent.</summary>
     public CancellationToken LifetimeToken => _lifetime.Token;
 

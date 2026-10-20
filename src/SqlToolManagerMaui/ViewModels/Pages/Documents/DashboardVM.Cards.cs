@@ -23,7 +23,7 @@ public partial class DashboardVM
 {
     // ---------- Consultation ----------
 
-    private void RefreshCanExecute()
+    protected override void RefreshCanExecute()
     {
         ApplyParametersCommand.NotifyCanExecuteChanged();
         CancelLoadingCommand.NotifyCanExecuteChanged();

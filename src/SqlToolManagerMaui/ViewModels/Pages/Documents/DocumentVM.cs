@@ -35,6 +35,13 @@ public abstract partial class DocumentVM<TSession> : ObservableObject
         Preferences = preferences.Preferences;
 
         Connection.SelectedConnectionChanged += (_, _) => OnConnectionChanged();
+
+        // Aussi lors d'un changement d'onglet, qui ne leve pas SelectedConnectionChanged.
+        Connection.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(DatabaseConnectionVM.IsConnected))
+                RefreshCanExecute();
+        };
     }
 
     partial void OnSessionChanged(TSession? oldValue, TSession? newValue) => OnSessionSwitched(oldValue, newValue);
@@ -42,6 +49,11 @@ public abstract partial class DocumentVM<TSession> : ObservableObject
     /// <summary>Changement d'onglet affiche (ou plus aucun onglet de ce type).</summary>
     protected abstract void OnSessionSwitched(TSession? oldValue, TSession? newValue);
 
-    /// <summary>Connexion active changee dans l'en-tete.</summary>
-    protected abstract void OnConnectionChanged();
+    /// <summary>L'utilisateur a change la connexion de l'onglet affiche.</summary>
+    protected virtual void OnConnectionChanged()
+    {
+    }
+
+    /// <summary>Les commandes qui dependent de la connexion reevaluent leur CanExecute.</summary>
+    protected abstract void RefreshCanExecute();
 }

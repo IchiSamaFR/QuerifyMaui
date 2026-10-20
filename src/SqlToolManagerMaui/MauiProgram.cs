@@ -15,8 +15,16 @@ namespace SqlToolManagerMaui;
 
 public static class MauiProgram
 {
+    /// <summary>Identifiant precedent (voir ApplicationId dans le csproj) : son dossier de donnees est repris.</summary>
+    private const string PreviousApplicationId = "com.companyname.sqltoolmanagermaui";
+
     public static MauiApp CreateMauiApp()
     {
+#if WINDOWS
+        // Avant tout acces au dossier de donnees (stores, journal).
+        var migrationError = WinUI.AppDataMigration.MigrateFrom(PreviousApplicationId);
+#endif
+
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
@@ -46,6 +54,12 @@ public static class MauiProgram
         // Journal abonne des le demarrage : aucune erreur ne doit lui echapper.
         app.Services.GetRequiredService<FileLogWriter>();
         LogUnhandledExceptions();
+
+#if WINDOWS
+        if (migrationError is not null)
+            WeakReferenceMessenger.Default.LogError(migrationError, $"Données de l'ancienne version non reprises : {migrationError.Message}");
+#endif
+
         return app;
     }
 

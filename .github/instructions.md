@@ -6,7 +6,7 @@
 
 ## À propos du projet
 
-SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant d'écrire et d'exécuter des requêtes SQL / EntityFramework : éditeur multi-onglets avec coloration syntaxique, gestion des connexions aux bases, le tout dans un habillage **Windows 11**. Architecture MVVM basée sur CommunityToolkit.Mvvm.
+SqlToolManagerMaui (nom affiché : **Querify**) est une application **desktop Windows** .NET MAUI permettant d'écrire et d'exécuter des requêtes SQL / EntityFramework : éditeur multi-onglets avec coloration syntaxique, gestion des connexions aux bases, le tout dans un habillage **Windows 11**. Architecture MVVM basée sur CommunityToolkit.Mvvm.
 
 ---
 
@@ -17,7 +17,8 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 * **Explorateur d'objets** (façon SSMS) : arbre Serveur > Bases (+ dossier « Bases de données système ») > Tables / Vues / Procédures stockées > Colonnes (« Id (PK, int, not null) »), chargé à l'ouverture de chaque nœud. Ajout / modification / test d'une connexion dans la popup « Se connecter » (CommunityToolkit `Popup`).
 * **Moteur supporté** : SQL Server uniquement (Microsoft.Data.SqlClient). L'architecture prévoit l'ajout d'autres moteurs.
 * **Dashboards (`.schx`)** : onglet à trois vues (Dashboard / Concepteur / Source). Une grille de 12 colonnes × 6 lignes (allongée par les cartes) porte des cartes (tableau, valeur, graphiques barres / lignes / secteurs, texte, bouton) alimentées par des requêtes SQL qui utilisent les paramètres d'entrée du dashboard (`@UserId`…). Un bouton, ou un clic sur une ligne de tableau, ouvre une autre page en transmettant des valeurs (fil d'Ariane, retour). Fichier > Nouveau tableau de bord.
-* **Exécution des requêtes** : F5 / bouton Exécuter sur la connexion choisie. Exécute la sélection, ou tout le document à défaut. Découpage sur `GO` comme SSMS, résultats par onglet d'éditeur (un onglet par jeu de résultats + Messages), annulation possible.
+* **Connexion par onglet** : le sélecteur de l'en-tête est partagé, mais chaque onglet garde sa connexion (`AbstractSession.ConnectionId`, mémorisée avec les onglets) ; un nouvel onglet prend celle de l'onglet courant.
+* **Exécution des requêtes** : F5 / bouton Exécuter sur la connexion de l'onglet. Exécute la sélection, ou tout le document à défaut. Découpage sur `GO` comme SSMS, résultats par onglet d'éditeur (un onglet par jeu de résultats + Messages), annulation possible.
 
 **Règles à respecter absolument** :
 * Ne jamais générer du code Xamarin.Forms — toujours les équivalents .NET MAUI.
@@ -220,7 +221,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * `MainVM` porte `Sessions`, `SelectedSession` et les commandes fichier. Fermer un onglet modifié passe par `IDialogService.AskSaveChangesAsync`.
 * `CodeEditorVM` et `DashboardVM` (`DocumentVM<TSession>`) sont des **singletons** partagés par tous les onglets de leur type : la vue leur pousse `Session` (null quand aucun onglet de ce type n'est affiché). Aucun état propre à un onglet dans le VM.
 * **Vues** : `DocumentViewSelector` (un `ViewSelector`, pas un `DataTemplateSelector`) réaffiche une seule instance de `CodeEditorView` / `DashboardView` d'un onglet à l'autre ; la vue transmet la session reçue (`Session="{Binding .}"`) à son VM.
-* `MainMenuBarVM.AttachSession` branche les menus Édition, Requête et Langage sur le VM du type de la session sélectionnée.
+* `MainVM.OnSelectedSessionChanged` appelle `DatabaseConnectionVM.AttachSession` (le sélecteur affiche la connexion de l'onglet, sans lever `SelectedConnectionChanged`) puis `MainMenuBarVM.AttachSession` (menus Édition, Requête et Langage branchés sur le VM du type de la session). `SelectedConnectionChanged` n'est levé que quand l'utilisateur change la connexion de l'onglet affiché.
 * Le `CodeEditor` notifie par **événements** (`ContentChanged`, `SelectionChanged`, `DocumentChanged`), relayés par son code-behind.
 * Fichiers : ouverture par `FilePicker`, « Enregistrer sous » par `FileSaver`. L'encodage du fichier est détecté (BOM, UTF-8, sinon ANSI Windows-1252) et conservé ; un nouveau fichier est en UTF-8 avec BOM.
 
@@ -231,7 +232,8 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(ISqlProviderExecutor))]` dans `Languages.Sql/[Moteur]/`.
 * `SqlServerQueryExecutor` : une connexion par exécution, `CommandTimeout = 0`, lots `GO` / `GO n` (`SqlBatchSplitter`, qui ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script, erreurs SQL rendues dans les messages.
 * Plafond de `QueryExecutionLimits.MaxRowsPerResultSet` (10 000) lignes par jeu, cellules converties en texte (NULL = `null`).
-* **LINQ** : le script devient le corps d'une méthode générée (`LinqCompiler.BuildQuerySource`), le contexte porte le nom de la base. Le premier `return` termine le script ; `.Dump("titre")` ajoute un jeu de résultats. Chaque requête est chargée dans un `AssemblyLoadContext` **collectable**, déchargé après l'exécution (`LinqCompiledQuery.Dispose`).
+* **LINQ** : le script devient le corps d'une méthode générée (`LinqCompiler.BuildQuerySource`), le contexte porte le nom de la base. Le premier `return` termine le script ; `.Dump("titre")` ajoute un jeu de résultats. Chaque requête est chargée dans un `AssemblyLoadContext` **collectable**, déchargé après l'exécution (`LinqCompiledQuery.Dispose`). Toute exception du script est rendue dans les messages.
+* **Limite LINQ** : le script tourne dans le processus de l'application. Annuler rend la main tout de suite, mais une boucle infinie continue en arrière-plan jusqu'à la fermeture, et un débordement de pile arrête l'application. Isoler l'exécution dans un processus séparé serait la seule vraie protection.
 * `QueryResultGrid` : squelette XAML, en-tête et gabarit de ligne posés en code, lignes remplies au recyclage.
 
 ### Dashboards (`.schx`)
@@ -260,6 +262,16 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * Persistées par `IUserPreferencesStore` dans `preferences.json` : écriture regroupée (300 ms), jamais une version plus ancienne par-dessus une plus récente, `Flush()` à la fermeture. `PreferencesChanged` est un `event`.
 * Onglets mémorisés : `IWorkspaceStore` (`workspace.json`), écrits à la fermeture, relus par `MainVM.LoadDatasBusyAsync`.
 * Dossier nommé `Settings` (et non `Preferences`) pour ne pas masquer `Microsoft.Maui.Storage.Preferences`.
+
+### Identité de l'application
+
+* `ApplicationTitle` = Querify. `ApplicationId` (`fr.ichisamafr.querify`) nomme le dossier de données `%LOCALAPPDATA%\User Name\<ApplicationId>` (Data, Settings, coffre).
+* Changer l'`ApplicationId` déplace ce dossier : renseigner l'ancien dans `MauiProgram.PreviousApplicationId`, `AppDataMigration` le recopie au premier lancement (l'ancien reste en place).
+
+### Dépendances fragiles
+
+* **CodeEdit.Maui / RichEdit.Maui** sont en préversion : une mise à jour peut casser l'éditeur. Ils imposent `Microsoft.Maui.Controls` >= 10.0.101 et la projection Windows `WindowsSdkPackageVersion` 10.0.19041.87 (sinon `FileNotFoundException` WinRT.Runtime au démarrage). Monter leur version seule, puis tester ouverture, coloration, complétion et sélection.
+* L'usage de CodeEdit est regroupé dans `Views/Controls/Editors/` (`CodeEditor`, contrôleurs de complétion et de coloration) ; les VM n'en utilisent que `CodeEditorCommands`.
 
 ### Pièges connus
 

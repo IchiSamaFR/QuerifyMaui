@@ -52,7 +52,7 @@ public partial class CodeEditorVM : DocumentVM<CodeEditorSession>
         RefreshSyntaxConfigurationAsync().FireAndForget("Coloration syntaxique indisponible pour cet onglet.");
     }
 
-    protected override void OnConnectionChanged() => ExecuteQueryCommand.NotifyCanExecuteChanged();
+    protected override void RefreshCanExecute() => ExecuteQueryCommand.NotifyCanExecuteChanged();
 
     private async Task RefreshSyntaxConfigurationAsync()
     {

@@ -1,5 +1,4 @@
-﻿using SqlToolManagerMaui.Core.Enums.Dashboards;
-using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
+﻿using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Enums.Settings;
 
 namespace SqlToolManagerMaui.Core.Models.Settings;
@@ -27,7 +26,4 @@ public sealed class WorkspaceTab
     public int SelectionAnchor { get; set; }
 
     public int SelectionActive { get; set; }
-
-    /// <summary>Vue d'un dashboard (consultation, concepteur ou JSON).</summary>
-    public DashboardMode DashboardMode { get; set; }
 }

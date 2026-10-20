@@ -82,7 +82,6 @@ public partial class MainVM
             EditorText = keepText ? document.EditorText : null,
             SelectionAnchor = document.Selection.Anchor,
             SelectionActive = document.Selection.Active,
-            DashboardMode = session is DashboardSession dashboard ? dashboard.Mode : default,
         };
     }
 
@@ -160,8 +159,9 @@ public partial class MainVM
         document.Selection.Anchor = Math.Clamp(tab.SelectionAnchor, 0, length);
         document.Selection.Active = Math.Clamp(tab.SelectionActive, 0, length);
 
-        return tab.Kind == WorkspaceTabKind.Dashboard
-            ? new DashboardSession(document) { Mode = tab.DashboardMode }
+        AbstractSession session = tab.Kind == WorkspaceTabKind.Dashboard
+            ? new DashboardSession(document)
             : new CodeEditorSession(document);
+        return session;
     }
 }
