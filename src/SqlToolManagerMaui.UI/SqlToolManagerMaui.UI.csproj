@@ -1,71 +1,50 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<!-- ===================== General settings ===================== -->
-	<PropertyGroup>
-		<UseMaui>true</UseMaui>
-		<ImplicitUsings>true</ImplicitUsings>
-		<SingleProject>true</SingleProject>
-		<Nullable>enable</Nullable>
-		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
-		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
-		<EnableWindowsTargeting>true</EnableWindowsTargeting>
-		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<NoWarn>$(NoWarn);MVVMTK0045;CA2007;CA1515;MCTEXP001</NoWarn>
-	</PropertyGroup>
-
-	<!-- ===================== Target platforms & configurations ===================== -->
 	<PropertyGroup>
 		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
-		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-		<RuntimeIdentifier Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">win-x64</RuntimeIdentifier>
-		<RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">win-x64</RuntimeIdentifiers>
-		<SelfContained Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">false</SelfContained>
+		<SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+		<SelfContained>false</SelfContained>
+		<UseMaui>true</UseMaui>
+		<SingleProject>true</SingleProject>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<NoWarn>$(NoWarn);MVVMTK0045;MCTEXP001</NoWarn>
 	</PropertyGroup>
 
-	<!-- ===================== XAML / MAUI compilation ===================== -->
+	<!-- ===================== XAML ===================== -->
 	<PropertyGroup>
-		<!-- Force XAML compilation for all configurations -->
+		<!-- Bindings compiles partout ; un x:DataType manquant casse le build -->
 		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
-		<DefineConstants>$(DefineConstants);MauiAllowImplicitXmlnsDeclaration</DefineConstants>
-		<!--<MauiXamlInflator>SourceGen</MauiXamlInflator>-->
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
-
-		<LangVersion>preview</LangVersion>
-		<AnalysisLevel>latest-all</AnalysisLevel>
 		<MauiStrictXamlCompilation>true</MauiStrictXamlCompilation>
-		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-		<EnableAotAnalyzer>true</EnableAotAnalyzer>
+		<DefineConstants>$(DefineConstants);MauiAllowImplicitXmlnsDeclaration</DefineConstants>
 	</PropertyGroup>
-	
+
 	<!-- Tout le XAML est du MAUI : on le retire des pages WinUI (sinon erreurs WMC0001) -->
 	<ItemGroup>
-	  <Page Remove="**\*.xaml" />
-	  <MauiXaml Update="**\*.xaml" Generator="MSBuild:Compile" />
+		<Page Remove="**\*.xaml" />
+		<MauiXaml Update="**\*.xaml" Generator="MSBuild:Compile" />
 	</ItemGroup>
 
-	<!-- ===================== NuGet references ===================== -->
 	<ItemGroup>
-		<PackageReference Include="AathifMahir.Maui.MauiIcons.Fluent" Version="6.0.0" />
-		<PackageReference Include="AathifMahir.Maui.MauiIcons.Fluent.Filled" Version="6.0.0" />
-		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\SqlToolManagerMaui.Helpers\SqlToolManagerMaui.Helpers.csproj" />
+		<PackageReference Include="AathifMahir.Maui.MauiIcons.Fluent" />
+		<PackageReference Include="AathifMahir.Maui.MauiIcons.Fluent.Filled" />
+		<PackageReference Include="CommunityToolkit.Maui" />
+		<PackageReference Include="CommunityToolkit.Mvvm" />
+		<PackageReference Include="Microsoft.Maui.Controls" />
 	</ItemGroup>
 
-	<!-- ===================== Code generation (T4) ===================== -->
+	<ItemGroup>
+		<ProjectReference Include="..\SqlToolManagerMaui.Helpers\SqlToolManagerMaui.Helpers.csproj" />
+	</ItemGroup>
+
+	<!-- ===================== Generation T4 (ne tourne pas au build) ===================== -->
 	<ItemGroup>
 		<None Update="Properties\AppXmlns.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>AppXmlns.cs</LastGenOutput>
 		</None>
-		
 		<Compile Update="Properties\AppXmlns.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
@@ -73,7 +52,6 @@
 		</Compile>
 	</ItemGroup>
 
-	<!-- ===================== Services ===================== -->
 	<ItemGroup>
 		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
 	</ItemGroup>

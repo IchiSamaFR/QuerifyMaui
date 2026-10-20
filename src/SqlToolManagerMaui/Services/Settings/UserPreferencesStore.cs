@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using Newtonsoft.Json;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Helpers.Extensions;
@@ -76,7 +75,7 @@ public sealed class UserPreferencesStore : IUserPreferencesStore
                 _gate.Release();
             }
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+        catch (Exception ex)
         {
             // Fenetre en cours de fermeture : seul le journal peut encore le signaler.
             WeakReferenceMessenger.Default.LogError(ex, $"Préférences non enregistrées à la fermeture : {ex.Message}");
@@ -85,29 +84,24 @@ public sealed class UserPreferencesStore : IUserPreferencesStore
 
     private async Task<UserPreferences?> ReadAsync(CancellationToken cancellationToken)
     {
-        if (!File.Exists(_filePath))
-            return null;
-
-        try
+        var result = await JsonFile.ReadAsync<UserPreferences>(_filePath, cancellationToken);
+        switch (result.Status)
         {
-            return JsonConvert.DeserializeObject<UserPreferences>(await File.ReadAllTextAsync(_filePath, cancellationToken));
-        }
-        catch (JsonException ex)
-        {
-            // Valeurs par defaut, mais l'ancien fichier est garde : la prochaine ecriture l'aurait efface.
-            var backupPath = CorruptFileHelper.Backup(_filePath);
-            _isReadOnly = backupPath is null;
-            WeakReferenceMessenger.Default.LogError(ex, backupPath is null
-                ? $"{FileName} corrompu : préférences par défaut, fichier conservé tel quel."
-                : $"{FileName} corrompu : préférences par défaut, copie conservée sous {Path.GetFileName(backupPath)}.");
-            return null;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            // Fichier verrouille : le reecrire avec les valeurs par defaut ferait perdre les preferences.
-            _isReadOnly = true;
-            WeakReferenceMessenger.Default.LogError(ex, $"Préférences illisibles : {ex.Message}");
-            return null;
+            case JsonFileStatus.Missing:
+            case JsonFileStatus.Loaded:
+                return result.Value;
+            case JsonFileStatus.Corrupted:
+                // Valeurs par defaut ; sans copie, l'ancien fichier n'est jamais reecrit.
+                _isReadOnly = result.BackupPath is null;
+                WeakReferenceMessenger.Default.LogError(result.Error!, result.BackupPath is null
+                    ? $"{FileName} corrompu : préférences par défaut, fichier conservé tel quel."
+                    : $"{FileName} corrompu : préférences par défaut, copie conservée sous {Path.GetFileName(result.BackupPath)}.");
+                return null;
+            default:
+                // Fichier verrouille : le reecrire avec les valeurs par defaut ferait perdre les preferences.
+                _isReadOnly = true;
+                WeakReferenceMessenger.Default.LogError(result.Error!, $"Préférences illisibles : {result.Error!.Message}");
+                return null;
         }
     }
 
@@ -162,15 +156,7 @@ public sealed class UserPreferencesStore : IUserPreferencesStore
         }
     }
 
-    private string Serialize() => JsonConvert.SerializeObject(Preferences, Formatting.Indented);
+    private string Serialize() => JsonFile.Serialize(Preferences);
 
-    /// <summary>Ecriture atomique : un arret en cours d'ecriture ne laisse pas un JSON tronque.</summary>
-    private void WriteFile(string json)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
-
-        var tempPath = _filePath + ".tmp";
-        File.WriteAllText(tempPath, json);
-        File.Move(tempPath, _filePath, overwrite: true);
-    }
+    private void WriteFile(string json) => JsonFile.WriteAllText(_filePath, json);
 }

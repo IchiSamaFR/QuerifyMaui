@@ -82,7 +82,7 @@ public abstract partial class InputField : Grid, IValidatable
 
     /// <summary>
     /// Le contrôle qui porte réellement le focus. Par défaut <see cref="Content"/> ; les champs dont
-    /// le Content est un conteneur (PinInput et son Entry cachée) le redéfinissent.
+    /// le Content est un conteneur (une Entry cachée derrière un rendu custom) le redéfinissent.
     /// </summary>
     protected virtual View FocusTarget => Content;
 

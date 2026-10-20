@@ -1,30 +1,14 @@
 ﻿using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.ViewModels;
-using SqlToolManagerMaui.Views.Pages.Connections;
 
 namespace SqlToolManagerMaui;
 
+/// <summary>Une seule page (MainPage) : pas de volet de navigation, l'explorateur d'objets vit dans la page.</summary>
 [AutoRegister]
 public partial class AppShell : Shell
 {
-    public ShellVM ContextViewModel { get; }
-
-    public AppShell(ConnectionExplorerView flyoutContent, ShellVM viewModel)
+    public AppShell()
     {
-        FlyoutContent = flyoutContent;
-        ContextViewModel = viewModel;
-        BindingContext = viewModel;
         InitializeComponent();
-    }
-
-    protected override void OnNavigated(ShellNavigatedEventArgs args)
-    {
-        base.OnNavigated(args);
-
-        // Garde la selection du menu alignee sur la page reellement affichee.
-        var route = CurrentState?.Location?.OriginalString?.Trim('/');
-        if (!string.IsNullOrEmpty(route))
-            ContextViewModel.CurrentRoute = route.Split('/').Last();
     }
 
 #if WINDOWS

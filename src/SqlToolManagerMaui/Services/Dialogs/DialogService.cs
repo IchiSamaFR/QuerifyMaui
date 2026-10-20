@@ -30,4 +30,13 @@ public sealed class DialogService : IDialogService
             _ => SaveChangesChoice.Cancel,
         };
     }
+
+    public async Task<bool> ConfirmAsync(string title, string message, string accept)
+    {
+        // Sans page pour demander, l'action n'a pas lieu.
+        if (Shell.Current?.CurrentPage is not { } page)
+            return false;
+
+        return await page.DisplayAlertAsync(title, message, accept, CancelLabel);
+    }
 }

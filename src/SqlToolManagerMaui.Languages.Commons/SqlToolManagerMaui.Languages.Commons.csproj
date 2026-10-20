@@ -1,25 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<!-- ===================== General settings ===================== -->
-	<PropertyGroup>
-		<RootNamespace>SqlToolManagerMaui.Languages.Commons</RootNamespace>
-		<ImplicitUsings>true</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
-		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
-		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<NoWarn>$(NoWarn);CA2007;CA1515</NoWarn>
-		<LangVersion>preview</LangVersion>
-		<AnalysisLevel>latest-all</AnalysisLevel>
-		<!-- Core active les fonctionnalites en preversion : les consommateurs doivent opter aussi (CA2252) -->
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
-		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-		<EnableAotAnalyzer>true</EnableAotAnalyzer>
-	</PropertyGroup>
-
-	<!-- ===================== Target platforms & configurations ===================== -->
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
+		<RootNamespace>SqlToolManagerMaui.Languages.Commons</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

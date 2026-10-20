@@ -1,45 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	
-	<!-- ===================== General settings ===================== -->
-	<PropertyGroup>
-		<ImplicitUsings>true</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
-		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
-		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<NoWarn>$(NoWarn);MVVMTK0045;CA2007;CA1515</NoWarn>
-	</PropertyGroup>
-	
-	<!-- ===================== Target platforms & configurations ===================== -->
+
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
+		<RootNamespace>SqlToolManagerMaui.Core</RootNamespace>
+		<NoWarn>$(NoWarn);MVVMTK0045</NoWarn>
 	</PropertyGroup>
 
-	<!-- ===================== Compilation ===================== -->
-	<PropertyGroup>
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
-		<LangVersion>preview</LangVersion>
-		<AnalysisLevel>latest-all</AnalysisLevel>
-		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-		<EnableAotAnalyzer>true</EnableAotAnalyzer>
-	</PropertyGroup>
-
-	<!-- ===================== NuGet references ===================== -->
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\SqlToolManagerMaui.Helpers\SqlToolManagerMaui.Helpers.csproj" />
-	  <ProjectReference Include="..\SqlToolManagerMaui.Databases\SqlToolManagerMaui.Databases.csproj" />
+		<PackageReference Include="CommunityToolkit.Mvvm" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 	</ItemGroup>
 
-	<!-- ===================== Services ===================== -->
 	<ItemGroup>
-		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Helpers\SqlToolManagerMaui.Helpers.csproj" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Databases\SqlToolManagerMaui.Databases.csproj" />
 	</ItemGroup>
 
 </Project>

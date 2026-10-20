@@ -28,12 +28,5 @@
     <appconv:ExplorerNodeIconColorConverter x:Key="ExplorerNodeIconColorConverter" />
     <appconv:CompletionItemIconConverter x:Key="CompletionItemIconConverter" />
     <appconv:CompletionItemIconColorConverter x:Key="CompletionItemIconColorConverter" />
-    
-    <toolkit:IsListNotNullOrEmptyConverter x:Key="IsListNotNullOrEmptyConverter" />
-    <toolkit:IsListNullOrEmptyConverter x:Key="IsListNullOrEmptyConverter" />
-    
-    <toolkit:VariableMultiValueConverter x:Key="AnyVariableMultiValueConverter"
-                                         ConditionType="Any" />
-    <toolkit:VariableMultiValueConverter x:Key="AllTrueMultiValueConverter"
-                                         ConditionType="All" />
+
 </ResourceDictionary>

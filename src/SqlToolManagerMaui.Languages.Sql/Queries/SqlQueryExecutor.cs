@@ -1,6 +1,7 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Databases.Common;
 using SqlToolManagerMaui.Databases.Enums;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Languages.Commons.Queries;
@@ -11,12 +12,11 @@ namespace SqlToolManagerMaui.Languages.Sql.Queries;
 [AutoRegister(As = typeof(IQueryExecutor))]
 public sealed class SqlQueryExecutor : IQueryExecutor
 {
-    private readonly Dictionary<DatabaseProvider, ISqlProviderExecutor> _executors;
+    private readonly KeyedServiceMap<DatabaseProvider, ISqlProviderExecutor> _executors;
 
     public SqlQueryExecutor(IEnumerable<ISqlProviderExecutor> executors)
     {
-        ArgumentNullException.ThrowIfNull(executors);
-        _executors = executors.ToDictionary(e => e.Provider);
+        _executors = new(executors, e => e.Provider, "exécuteur SQL");
     }
 
     public SyntaxLanguage Language => SyntaxLanguage.Sql;
@@ -25,9 +25,7 @@ public sealed class SqlQueryExecutor : IQueryExecutor
     {
         ArgumentNullException.ThrowIfNull(connection);
 
-        if (!_executors.TryGetValue(connection.Provider, out var executor))
-            throw new NotSupportedException($"Aucun exécuteur SQL enregistré pour le moteur {connection.Provider}.");
-
+        var executor = _executors.Resolve(connection.Provider);
         var connectionString = connection.ConnectionString
             ?? throw new InvalidOperationException($"La connexion {connection.Name} n'est pas ouverte.");
 

@@ -1,35 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<!-- ===================== General settings ===================== -->
-	<PropertyGroup>
-		<ImplicitUsings>true</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<IsPackable>false</IsPackable>
-		<IsTestProject>true</IsTestProject>
-		<!-- Core active les fonctionnalites en preversion : les consommateurs doivent opter aussi (CA2252) -->
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
-	</PropertyGroup>
-
-	<!-- ===================== Target platforms & configurations ===================== -->
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
+		<RootNamespace>SqlToolManagerMaui.Tests</RootNamespace>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
 	</PropertyGroup>
-	
-	<!-- ===================== NuGet references ===================== -->
+
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="5.0.0" />
-		<!-- Apporte aussi Microsoft.Extensions.DependencyInjection.Abstractions (ServiceLifetime d'AutoRegister). -->
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-		<PackageReference Include="xunit" Version="2.9.2" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="xunit" />
+		<PackageReference Include="xunit.runner.visualstudio" />
 	</ItemGroup>
+
 	<ItemGroup>
-	  <ProjectReference Include="..\SqlToolManagerMaui.Languages.Linq\SqlToolManagerMaui.Languages.Linq.csproj" />
-	  <ProjectReference Include="..\SqlToolManagerMaui.Languages.Sql\SqlToolManagerMaui.Languages.Sql.csproj" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Languages.Linq\SqlToolManagerMaui.Languages.Linq.csproj" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Languages.Sql\SqlToolManagerMaui.Languages.Sql.csproj" />
 	</ItemGroup>
 
 </Project>

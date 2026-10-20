@@ -19,25 +19,9 @@
                 Value="{DynamicResource Info}" />
     </Style>
 
-    <Style TargetType="inp:PasswordTextField"
-           x:Key="PasswordTextFieldStyle"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource InputFieldStyle}">
-        <Setter Property="TextColor"
-                Value="{DynamicResource TextFillColorPrimary}" />
-        <Setter Property="SelectionHighlightColor"
-                Value="{DynamicResource Info}" />
-        <Setter Property="CursorColor"
-                Value="{DynamicResource Info}" />
-    </Style>
-
     <!-- Default Styles -->
     <Style TargetType="inp:TextField"
            BasedOn="{StaticResource TextFieldStyle}"
-           ApplyToDerivedTypes="True" />
-
-    <Style TargetType="inp:PasswordTextField"
-           BasedOn="{StaticResource PasswordTextFieldStyle}"
            ApplyToDerivedTypes="True" />
 
 </ResourceDictionary>

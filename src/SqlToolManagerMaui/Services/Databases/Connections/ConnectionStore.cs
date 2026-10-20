@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using Newtonsoft.Json;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Helpers.Extensions;
@@ -76,11 +75,7 @@ public sealed class ConnectionStore : IConnectionStore
     }
 
     /// <inheritdoc/>
-    public async Task<bool> Unsubscribe(Action<IReadOnlyList<DatabaseConnectionInfo>> action)
-    {
-        _onChanged -= action;
-        return true;
-    }
+    public void Unsubscribe(Action<IReadOnlyList<DatabaseConnectionInfo>> action) => _onChanged -= action;
 
     /// <inheritdoc/>
     public async Task<bool> OpenConnectionAsync(DatabaseConnectionInfo info, CancellationToken cancellationToken = default)
@@ -195,31 +190,20 @@ public sealed class ConnectionStore : IConnectionStore
         if (_cache is not null)
             return _cache;
 
-        if (!File.Exists(_filePath))
-            return _cache = [];
-
-        string json;
-        try
+        var result = await JsonFile.ReadAsync<List<DatabaseConnectionInfo>>(_filePath, cancellationToken);
+        switch (result.Status)
         {
-            json = await File.ReadAllTextAsync(_filePath, cancellationToken);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            return Unreadable(forWrite, ex, $"Connexions illisibles : {ex.Message}");
-        }
-
-        try
-        {
-            return _cache = JsonConvert.DeserializeObject<List<DatabaseConnectionInfo>>(json) ?? [];
-        }
-        catch (JsonException ex)
-        {
-            var backupPath = CorruptFileHelper.Backup(_filePath);
-            if (backupPath is null)
-                return Unreadable(forWrite, ex, $"{FileName} est corrompu et n'a pas pu être copié : connexions non chargées.");
-
-            WeakReferenceMessenger.Default.LogError(ex, $"{FileName} était corrompu : copie conservée sous {Path.GetFileName(backupPath)}.");
-            return _cache = [];
+            case JsonFileStatus.Missing:
+                return _cache = [];
+            case JsonFileStatus.Loaded:
+                return _cache = result.Value ?? [];
+            case JsonFileStatus.Corrupted when result.BackupPath is not null:
+                WeakReferenceMessenger.Default.LogError(result.Error!, $"{FileName} était corrompu : copie conservée sous {Path.GetFileName(result.BackupPath)}.");
+                return _cache = [];
+            case JsonFileStatus.Corrupted:
+                return Unreadable(forWrite, result.Error!, $"{FileName} est corrompu et n'a pas pu être copié : connexions non chargées.");
+            default:
+                return Unreadable(forWrite, result.Error!, $"Connexions illisibles : {result.Error!.Message}");
         }
     }
 
@@ -235,18 +219,7 @@ public sealed class ConnectionStore : IConnectionStore
 
     private async Task SaveUnsafeAsync(List<DatabaseConnectionInfo> items, CancellationToken cancellationToken)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
-
-        // Ecriture atomique : un crash en cours d'ecriture ne laisse pas un JSON tronque.
-        var tempPath = _filePath + ".tmp";
-        await using (var stream = File.Create(tempPath))
-        {
-            using var writer = new StreamWriter(stream);
-            var json = JsonConvert.SerializeObject(items);
-            await writer.WriteAsync(json);
-        }
-
-        File.Move(tempPath, _filePath, overwrite: true);
+        await JsonFile.WriteAllTextAsync(_filePath, JsonFile.Serialize(items), cancellationToken);
         _cache = items;
     }
 }

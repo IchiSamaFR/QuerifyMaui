@@ -1,12 +1,10 @@
-﻿using CodeEdit.Maui;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
-using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Core.Serialization;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Queries;
@@ -26,7 +24,7 @@ namespace SqlToolManagerMaui.ViewModels.Pages.Documents;
 /// reserialise ; la vue Source est relue au retour.
 /// </summary>
 [AutoRegister]
-public partial class DashboardVM : ObservableObject
+public partial class DashboardVM : DocumentVM<DashboardSession>
 {
     /// <summary>Lignes lues par carte (tableau ou graphique).</summary>
     private const int CARD_MAX_ROWS = 1000;
@@ -49,24 +47,9 @@ public partial class DashboardVM : ObservableObject
         [DashboardMode.Source] = "Source",
     };
 
-    public DatabaseConnectionVM Connection { get; }
-
-    public StatusBarVM Status { get; }
-
-    public UserPreferences Preferences { get; }
-
-    /// <summary>Session affichee, poussee par DashboardView ; null quand aucun dashboard n'est affiche.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectedModeKey))]
-    public partial DashboardSession? Session { get; set; }
-
     /// <summary>Coloration des requetes des cartes dans le concepteur.</summary>
     [ObservableProperty]
     public partial SyntaxConfiguration? SqlSyntaxConfiguration { get; private set; }
-
-    /// <summary>Commandes d'edition du CodeEditor de la vue Source, poussees par le controle (OneWayToSource).</summary>
-    [ObservableProperty]
-    public partial CodeEditorCommands? EditionCommands { get; set; }
 
     public DashboardVM(DatabaseConnectionVM connection,
         StatusBarVM status,
@@ -74,14 +57,11 @@ public partial class DashboardVM : ObservableObject
         ISyntaxConfigurationStore syntaxConfigurations,
         IQueryDataService dashboardData,
         IConnectionStore connectionStore)
+        : base(connection, status, preferences)
     {
-        Connection = connection;
-        Status = status;
-        Preferences = preferences.Preferences;
         _dashboardData = dashboardData;
         _connectionStore = connectionStore;
 
-        Connection.SelectedConnectionChanged += (_, _) => OnConnectionChanged();
         LoadSqlSyntaxConfigurationAsync(syntaxConfigurations).FireAndForget("Coloration SQL du concepteur indisponible.");
     }
 
@@ -101,8 +81,10 @@ public partial class DashboardVM : ObservableObject
     private async Task LoadSqlSyntaxConfigurationAsync(ISyntaxConfigurationStore syntaxConfigurations)
         => SqlSyntaxConfiguration = await syntaxConfigurations.GetAsync(SyntaxLanguage.Sql);
 
-    partial void OnSessionChanged(DashboardSession? oldValue, DashboardSession? newValue)
+    protected override void OnSessionSwitched(DashboardSession? oldValue, DashboardSession? newValue)
     {
+        OnPropertyChanged(nameof(SelectedModeKey));
+
         // Les modifications de l'onglet quitte sont ecrites tout de suite.
         FlushPendingWrites();
 
@@ -145,7 +127,7 @@ public partial class DashboardVM : ObservableObject
     }
 
     /// <summary>Les cartes du dashboard affiche suivent la connexion.</summary>
-    private void OnConnectionChanged()
+    protected override void OnConnectionChanged()
     {
         RefreshCanExecute();
 
@@ -247,338 +229,5 @@ public partial class DashboardVM : ObservableObject
         _writeDelay?.Cancel();
         _writeDelay?.Dispose();
         _writeDelay = null;
-    }
-
-    // ---------- Consultation ----------
-
-    private void RefreshCanExecute()
-    {
-        ApplyParametersCommand.NotifyCanExecuteChanged();
-        CancelLoadingCommand.NotifyCanExecuteChanged();
-    }
-
-    private bool CanApplyParameters() => Connection.IsConnected && Session?.Current is not null;
-
-    private bool CanCancelLoading() => Connection.IsConnected && Session?.IsLoading == true;
-
-    [RelayCommand(CanExecute = nameof(CanApplyParameters))]
-    private Task ApplyParametersAsync()
-    {
-        if (Session is not { Current: { } page } session)
-            return Task.CompletedTask;
-
-        session.SnapshotValues();
-        return LoadCardsAsync(session, page.Cards);
-    }
-
-    /// <summary>Interrompt la lecture des cartes en cours : elles gardent leur dernier resultat.</summary>
-    [RelayCommand(CanExecute = nameof(CanCancelLoading))]
-    private void CancelLoading() => Session?.CancelLoad();
-
-    [RelayCommand]
-    private void Back() => Session?.Back();
-
-    /// <summary>Les etapes du fil d'Ariane gardent leurs resultats : rien n'est relu.</summary>
-    [RelayCommand]
-    private void GoToStep(DashboardPageState? step)
-    {
-        if (step is not null)
-            Session?.GoTo(step);
-    }
-
-    /// <summary>Bouton, ou ligne cliquee : les parametres prennent les valeurs prevues et la page cible s'ouvre.</summary>
-    private void OnNavigationRequested(object? sender, DashboardNavigationRequest request)
-    {
-        // Pas de navigation dans le concepteur : un clic y sert a selectionner.
-        if (sender is not DashboardSession { IsDesigning: false, Definition: { } definition } session
-            || request.Card.Definition.Navigation is not { } navigation)
-        {
-            return;
-        }
-
-        if (definition.FindPage(navigation.Page) is not { } page)
-        {
-            Status.Set($"La page « {navigation.Page} » n'existe pas dans ce dashboard.", isError: true);
-            return;
-        }
-
-        session.SnapshotValues();
-        session.ApplyValues(navigation.Resolve(session.CurrentValues(), request.Card.Result, request.Row));
-        OpenPage(session, page, asRoot: false);
-    }
-
-    private void OpenPage(DashboardSession session, DashboardPageDefinition page, bool asRoot)
-    {
-        var state = session.Open(page, asRoot);
-        LoadCardsAsync(session, state.Cards).FireAndForget("Lecture des cartes du dashboard en échec.");
-    }
-
-    // ---------- Lecture des cartes ----------
-
-    /// <summary>Cartes lues en parallele, chacune affichee des qu'elle arrive ; une nouvelle lecture annule la precedente.</summary>
-    private async Task LoadCardsAsync(DashboardSession session, IEnumerable<DashboardCardState> cards)
-    {
-        var queried = cards.Where(c => c.UsesQuery).ToList();
-        if (queried.Count == 0)
-            return;
-
-        var token = session.BeginLoad();
-        try
-        {
-            await LoadQueriedCardsAsync(session, queried, token);
-        }
-        finally
-        {
-            session.EndLoad();
-        }
-    }
-
-    private async Task LoadQueriedCardsAsync(DashboardSession session, List<DashboardCardState> queried, CancellationToken token)
-    {
-        List<QueryParameter> parameters = [];
-        var isValid = true;
-        foreach (var parameter in session.Parameters)
-        {
-            isValid &= parameter.TryGetQueryParameter(out var value);
-            parameters.Add(value);
-        }
-
-        if (!isValid)
-        {
-            Status.Set("Paramètres invalides : corrigez la saisie puis appliquez.", isError: true);
-            return;
-        }
-
-        DatabaseConnectionInfo connection;
-        try
-        {
-            connection = await OpenConnectionAsync(token);
-        }
-        catch (OperationCanceledException)
-        {
-            return;
-        }
-        catch (InvalidOperationException ex)
-        {
-            foreach (var card in queried)
-                card.Error = ex.Message;
-            Status.Set(ex.Message, isError: true);
-            return;
-        }
-
-        var database = session.Definition?.Database;
-        await Task.WhenAll(queried.Select(card => LoadCardAsync(connection, database, card, parameters, token)));
-    }
-
-    private async Task LoadCardAsync(DatabaseConnectionInfo connection, string? database, DashboardCardState card, IReadOnlyList<QueryParameter> parameters, CancellationToken token)
-    {
-        if (string.IsNullOrWhiteSpace(card.Definition.Query))
-        {
-            card.Result = null;
-            card.Error = card.IsChart || card.IsValue || card.IsGrid ? "Aucune requête : renseignez-la dans le concepteur." : null;
-            return;
-        }
-
-        card.IsLoading = true;
-        card.Error = null;
-        try
-        {
-            card.Result = await _dashboardData.ReadAsync(connection, database, card.Definition.Query, parameters, CARD_MAX_ROWS, token);
-        }
-        catch (OperationCanceledException)
-        {
-            // Remplace par une lecture plus recente, ou onglet ferme.
-        }
-        catch (Exception ex)
-        {
-            card.Result = null;
-            card.Error = ex.Message;
-        }
-        finally
-        {
-            card.IsLoading = false;
-        }
-    }
-
-    private async Task<DatabaseConnectionInfo> OpenConnectionAsync(CancellationToken token)
-    {
-        var connection = Connection.ActiveConnection
-            ?? throw new InvalidOperationException("Choisissez une connexion pour alimenter les cartes.");
-
-        if (!await _connectionStore.OpenConnectionAsync(connection, token))
-            throw new InvalidOperationException($"La chaîne de connexion de {connection.Name} est introuvable : réenregistrez-la depuis la page Connexions.");
-
-        return connection;
-    }
-
-    // ---------- Concepteur : cartes ----------
-
-    [RelayCommand]
-    private void SelectCard(DashboardCardState? card)
-    {
-        if (Session is { IsDesigning: true } session)
-            session.SelectedCard = card;
-    }
-
-    /// <summary>Nouvelle carte de 4 × 2 cases (reduite au bord droit de la grille).</summary>
-    [RelayCommand]
-    private void AddCard(DashboardCell? cell)
-    {
-        if (Session is not { IsDesigning: true, Current: not null } session || cell is null)
-            return;
-
-        session.AddCard(new DashboardCardDefinition
-        {
-            Title = "Nouvelle carte",
-            Column = cell.Column,
-            Row = cell.Row,
-            ColumnSpan = Math.Min(4, session.ColumnCount - cell.Column),
-            RowSpan = 2,
-        });
-    }
-
-    [RelayCommand]
-    private void StartDrag(DashboardCardState? card)
-    {
-        if (Session is { IsDesigning: true } session && card is not null)
-        {
-            session.DraggedCard = card;
-            session.SelectedCard = card;
-        }
-    }
-
-    [RelayCommand]
-    private void DropCard(DashboardCell? cell)
-    {
-        if (Session is not { IsDesigning: true, DraggedCard: { } card } session || cell is null)
-            return;
-
-        session.DraggedCard = null;
-        card.Column = Math.Clamp(cell.Column, 0, session.ColumnCount - card.ColumnSpan);
-        card.Row = cell.Row;
-    }
-
-    [RelayCommand]
-    private void MoveCard(string? direction)
-    {
-        if (Session is not { SelectedCard: { } card } session)
-            return;
-
-        switch (direction)
-        {
-            case "Left":
-                card.Column = Math.Max(0, card.Column - 1);
-                break;
-            case "Right":
-                card.Column = Math.Min(session.ColumnCount - card.ColumnSpan, card.Column + 1);
-                break;
-            case "Up":
-                card.Row = Math.Max(0, card.Row - 1);
-                break;
-            case "Down":
-                card.Row++;
-                break;
-        }
-    }
-
-    [RelayCommand]
-    private void ResizeCard(string? change)
-    {
-        if (Session is not { SelectedCard: { } card } session)
-            return;
-
-        switch (change)
-        {
-            case "Wider":
-                card.ColumnSpan = Math.Min(session.ColumnCount - card.Column, card.ColumnSpan + 1);
-                break;
-            case "Narrower":
-                card.ColumnSpan = Math.Max(1, card.ColumnSpan - 1);
-                break;
-            case "Taller":
-                card.RowSpan++;
-                break;
-            case "Shorter":
-                card.RowSpan = Math.Max(1, card.RowSpan - 1);
-                break;
-        }
-    }
-
-    [RelayCommand]
-    private void DeleteCard(DashboardCardState? card)
-    {
-        if (card is not null)
-            Session?.RemoveCard(card);
-    }
-
-    [RelayCommand]
-    private Task RunCardAsync(DashboardCardState? card)
-        => Session is { } session && card is not null ? LoadCardsAsync(session, [card]) : Task.CompletedTask;
-
-    // ---------- Concepteur : pages et parametres ----------
-
-    [RelayCommand]
-    private void OpenDesignerPage(DashboardPageDefinition? page)
-    {
-        if (Session is { } session && page is not null)
-            OpenPage(session, page, asRoot: true);
-    }
-
-    [RelayCommand]
-    private void AddPage()
-    {
-        if (Session is not { Definition: { } definition } session)
-            return;
-
-        var number = definition.Pages.Count + 1;
-        while (definition.FindPage($"page{number.ToString(CultureInfo.InvariantCulture)}") is not null)
-            number++;
-
-        var page = new DashboardPageDefinition { Id = $"page{number.ToString(CultureInfo.InvariantCulture)}", Title = "Nouvelle page" };
-        session.AddPage(page);
-        OpenPage(session, page, asRoot: true);
-    }
-
-    /// <summary>Supprime la page affichee (la derniere page restante est conservee).</summary>
-    [RelayCommand]
-    private void DeletePage()
-    {
-        if (Session is not { Definition: { } definition, Current: { } current } session)
-            return;
-
-        if (definition.Pages.Count <= 1)
-        {
-            Status.Set("Un dashboard garde au moins une page.", isError: true);
-            return;
-        }
-
-        session.RemovePage(current.Definition);
-        OpenPage(session, definition.FindPage(definition.StartPage) ?? definition.Pages[0], asRoot: true);
-    }
-
-    [RelayCommand]
-    private void AddParameter()
-    {
-        if (Session is not { Definition: { } definition } session)
-            return;
-
-        var number = definition.Parameters.Count + 1;
-        while (definition.Parameters.Any(p => string.Equals(p.Name, $"Param{number.ToString(CultureInfo.InvariantCulture)}", StringComparison.OrdinalIgnoreCase)))
-            number++;
-
-        session.AddParameter(new DashboardParameterDefinition { Name = $"Param{number.ToString(CultureInfo.InvariantCulture)}" });
-    }
-
-    [RelayCommand]
-    private void DeleteParameter(DashboardParameterValue? parameter)
-    {
-        if (parameter is not null)
-            Session?.RemoveParameter(parameter);
-    }
-
-    [RelayCommand]
-    private void ShowSettings()
-    {
-        Preferences.Panels.IsDashboardParamsOpen = !Preferences.Panels.IsDashboardParamsOpen;
     }
 }

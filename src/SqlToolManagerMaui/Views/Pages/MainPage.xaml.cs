@@ -22,16 +22,4 @@ public partial class MainPage : AbstractPage
         connectionExplorerView.SetBinding(ConnectionExplorerView.CloseCommandProperty,
             new Binding(nameof(MainVM.CloseObjectExplorerCommand), source: viewModel));
     }
-
-    protected override void OnBindingContextChanged()
-    {
-        base.OnBindingContextChanged();
-
-        MenuBarItems.Clear();
-        if (ContextViewModel is MainVM vm)
-        {
-            foreach (var item in vm.MainMenuBar.MenuItems)
-                MenuBarItems.Add(item);
-        }
-    }
 }

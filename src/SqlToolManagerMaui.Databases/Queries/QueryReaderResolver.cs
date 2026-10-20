@@ -1,20 +1,17 @@
-﻿using SqlToolManagerMaui.Databases.Enums;
+﻿using SqlToolManagerMaui.Databases.Common;
+using SqlToolManagerMaui.Databases.Enums;
 
 namespace SqlToolManagerMaui.Databases.Queries;
 
 /// <inheritdoc cref="IQueryReaderResolver"/>
 public sealed class QueryReaderResolver : IQueryReaderResolver
 {
-    private readonly Dictionary<DatabaseProvider, IQueryReader> _readers;
+    private readonly KeyedServiceMap<DatabaseProvider, IQueryReader> _readers;
 
     public QueryReaderResolver(IEnumerable<IQueryReader> readers)
     {
-        ArgumentNullException.ThrowIfNull(readers);
-        _readers = readers.ToDictionary(r => r.Provider);
+        _readers = new(readers, r => r.Provider, "lecteur de requêtes");
     }
 
-    public IQueryReader Resolve(DatabaseProvider provider)
-        => _readers.TryGetValue(provider, out var reader)
-            ? reader
-            : throw new NotSupportedException($"Aucun lecteur de requêtes enregistré pour le moteur {provider}.");
+    public IQueryReader Resolve(DatabaseProvider provider) => _readers.Resolve(provider);
 }

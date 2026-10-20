@@ -20,7 +20,7 @@ public partial class BorderlessEntry : Entry
     /// <summary>
     /// Affiche ou masque le caret natif. Contrairement à <see cref="CursorColor"/> (qui ne fait que
     /// le teinter et laisse iOS/Android le dessiner), false le supprime au niveau natif :
-    /// indispensable pour une Entry cachée derrière un rendu custom (PinInput).
+    /// indispensable pour une Entry cachée derrière un rendu custom.
     /// </summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnIsCaretVisibleChanged))]
     public partial bool IsCaretVisible { get; set; } = true;

@@ -12,153 +12,114 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 
 ## Contexte fonctionnel
 
-* **Pages principales** : Accueil (`MainPage`), Requête (`QueryPage`). Les connexions vivent dans l'explorateur d'objets (volet gauche).
-* **Requête** : éditeur de texte multi-onglets façon Notepad, posé sur `CodeEdit.Maui`. Nouveau / Ouvrir / Enregistrer / Enregistrer sous, options d'édition (retour à la ligne, numéros de ligne, indentation), barre d'état (chemin du fichier, Ln/Col).
-* **Explorateur d'objets** (façon SSMS) : arbre Serveur > Bases (+ dossier « Bases de données système ») > Tables / Vues / Procédures stockées > Colonnes (nom + type façon SSMS : « Id (PK, int, not null) »), chargé à l'ouverture de chaque nœud. Ajout / modification / test d'une connexion dans la popup « Se connecter » (CommunityToolkit `Popup`).
+* **Une seule page** (`MainPage`) : explorateur d'objets à gauche, onglets de documents à droite, barre de menus Fichier / Édition / Affichage / Requête. Deux types d'onglets : script (SQL ou LINQ, `CodeEditorView`) et dashboard `.schx` (`DashboardView`).
+* **Éditeur** : multi-onglets façon Notepad, posé sur `CodeEdit.Maui`. Nouveau / Ouvrir / Enregistrer / Enregistrer sous / Fermer, fichiers récents, options d'édition (retour à la ligne, numéros de ligne, indentation), barre d'état. Fermer un onglet modifié demande d'enregistrer ; les onglets ouverts sont rouverts au démarrage (option).
+* **Explorateur d'objets** (façon SSMS) : arbre Serveur > Bases (+ dossier « Bases de données système ») > Tables / Vues / Procédures stockées > Colonnes (« Id (PK, int, not null) »), chargé à l'ouverture de chaque nœud. Ajout / modification / test d'une connexion dans la popup « Se connecter » (CommunityToolkit `Popup`).
 * **Moteur supporté** : SQL Server uniquement (Microsoft.Data.SqlClient). L'architecture prévoit l'ajout d'autres moteurs.
-* **Dashboards (`.schx`)** : onglet à trois vues (Dashboard / Concepteur / Source). Une grille de 12 colonnes × 6 lignes (allongée par les cartes) porte des cartes (tableau, valeur, graphiques barres / lignes / secteurs, texte, bouton) alimentées par des requêtes SQL qui utilisent les paramètres d'entrée du dashboard (`@UserId`…). Un bouton, ou un clic sur une ligne de tableau, ouvre une autre page en transmettant des valeurs (fil d'Ariane, retour). Fichier > Nouveau dashboard.
+* **Dashboards (`.schx`)** : onglet à trois vues (Dashboard / Concepteur / Source). Une grille de 12 colonnes × 6 lignes (allongée par les cartes) porte des cartes (tableau, valeur, graphiques barres / lignes / secteurs, texte, bouton) alimentées par des requêtes SQL qui utilisent les paramètres d'entrée du dashboard (`@UserId`…). Un bouton, ou un clic sur une ligne de tableau, ouvre une autre page en transmettant des valeurs (fil d'Ariane, retour). Fichier > Nouveau tableau de bord.
 * **Exécution des requêtes** : F5 / bouton Exécuter sur la connexion choisie. Exécute la sélection, ou tout le document à défaut. Découpage sur `GO` comme SSMS, résultats par onglet d'éditeur (un onglet par jeu de résultats + Messages), annulation possible.
 
 **Règles à respecter absolument** :
 * Ne jamais générer du code Xamarin.Forms — toujours les équivalents .NET MAUI.
-* Ne jamais mettre la chaîne de connexion complète dans un modèle affichable ou dans le JSON en clair.
+* Ne jamais mettre la chaîne de connexion complète dans le JSON en clair ni dans les journaux.
 * Ne pas casser la logique existante des pages déjà livrées.
 
 ---
 
 ## Architecture
 
-### Couches
+### Couches et dépendances
 
-**Projet principal (`SqlToolManagerMaui`)** :
-* **Views/Pages** : `ContentPage` XAML, UI uniquement, héritent de `AbstractPage`.
-* **Views/Controls** : contrôles XAML réutilisables, groupés par domaine : `Navigation/` (rail), `Editors/` (`CodeEditor`, `Menus/` pour la barre de menus, `Completion/`), `Queries/` (résultats), `Dashboards/`. Un sous-dossier = un sous-namespace, à ajouter dans `Properties/AppXmlns.cs`.
-* **ViewModels** : logique de présentation, héritent de `AbstractVM` (qui étend `ObservableObject`). Les VM de page sont dans `ViewModels/Pages/`.
-* **Services** : logique propre à l'application (disque, SecureStorage, popups, coloration, complétion), groupés par domaine (`Databases/`, `Editors/`). L'accès aux moteurs de base vit dans `Databases`, les contrats communs aux langages dans `Languages.Commons`, leurs implémentations dans `Languages.[Nom]`, les résolveurs dans `Languages`.
-* **Models / Enums** : dans `SqlToolManagerMaui.Core` (plus de dossier `Models` dans le projet principal).
-* **Ioc** : conteneur statique et enregistrement centralisé des dépendances.
-* **Resources/Styles** : tokens (couleurs, tailles, épaisseurs) et styles par contrôle.
+`Helpers` ← `Databases` (indépendante) ← `Core` ← `Languages.Commons` ← `Languages.Sql` / `Languages.Linq` ← `Languages` ← application. `UI` ne référence que `Helpers`. L'application référence `Core`, `Databases`, `Languages` et `UI`.
 
-**Bibliothèque UI (`SqlToolManagerMaui.UI`)** :
-* **Inputs** : contrôles de saisie maison (`ButtonView`, `TextField`, `PickerField`, `IntField`, `PinInput`...), chacun scindé en `X.cs` + `X.bindable.cs`.
-* **Converters** : convertisseurs XAML réutilisables.
-* **Behaviors / Attachments / Extensions** : comportements et helpers transverses.
+**Application (`SqlToolManagerMaui`)** :
+* **Views/Pages** : `MainPage` (hérite de `AbstractPage`), `Connections/` (explorateur, popup de connexion), `Documents/` (`CodeEditorView`, `DashboardView`, `DocumentViewSelector`).
+* **Views/Controls** : contrôles XAML propres à l'application, par domaine : `Editors/` (`CodeEditor`, `Completion/`, coloration), `Queries/` (résultats), `Dashboards/`. Un sous-dossier = un sous-namespace, à ajouter dans `Properties/AppXmlns.cs`.
+* **ViewModels** : `Pages/` (`MainVM` en trois fichiers partiels : base, `Files`, `Workspace`), `Pages/Documents/` (`DocumentVM<TSession>`, `CodeEditorVM`, `DashboardVM`), `Pages/Shared/` (`DatabaseConnectionVM`, `StatusBarVM`), `Pages/Connections/`, `Controls/Menus/MainMenuBarVM`.
+* **Services** (derrière une interface, par domaine) : `Databases/` (`ConnectionStore`, dialogue de connexion), `Dialogs/` (`IDialogService` : questions posées depuis un VM), `Diagnostics/` (`FileLogWriter`), `Editors/` (fichiers, coloration, complétion), `Settings/` (préférences, onglets mémorisés).
+* **Ioc** : locator statique + scan des `[AutoRegister]`. **Platforms/Windows** : code WinUI (`WindowCloseGuard`).
+* **Resources/Styles** : tokens (couleurs, tailles, épaisseurs) et un fichier de styles par contrôle.
 
-**Noyau (`SqlToolManagerMaui.Core`)** : ne dépend pas du projet principal ; référence `Databases` (et `Helpers`).
-* **Models / Enums** : modèles et énumérations de l'application, groupés par domaine (`Dashboards/`, `Databases/` pour l'explorateur et le brouillon de connexion, `Editors/`, `Queries/`).
-* **Serialization** : `DashboardSerializer` (JSON `.schx`, source-gen `DashboardJsonContext`, énumérations en texte).
-* **Services** : contrats applicatifs uniquement (`ICompletionService`).
-* **Ioc** : `AutoRegisterAttribute`.
+**Bibliothèque UI (`SqlToolManagerMaui.UI`)** — générique, sans métier SQL :
+* `ViewModels/` (`AbstractVM`, `AbstractVM_Busy`), `Views/` (`AbstractPage`, `AbstractContentView`, `Controls/` : `Layouts`, `Menus`, `Tabs`, `Trees`, `ViewSelector`).
+* `Inputs/` (contrôles de saisie maison : `ButtonView`, `TextField`, `PickerField`, `EditorField`, chacun scindé en `X.cs` + `X.bindable.cs`), `Converters/`, `Behaviors/`, `MarkupExtensions/`.
+* `Extensions/` : `WeakReferenceMessengerExtensions` (journalisation), `FireAndForgetExtensions`. `Models/Messagings/WeakLog`.
 
-**Bases de données (`SqlToolManagerMaui.Databases`)** : librairie **indépendante** (aucune référence de projet, seulement des paquets) : tout ce qui parle à un moteur, indépendamment du langage et du format des dashboards. Ses services sont enregistrés par `services.AddDatabases()` (`DatabasesServiceCollectionExtensions`), pas par `[AutoRegister]`.
-* **`Models/`, `Enums/`** : `DatabaseConnectionInfo`, `ConnectionTestResult`, entrées de catalogue (`Connections/`), `DatabaseSchemaSnapshot` (`Schemas/`), `QueryResultSet` / `QueryParameter` (`Queries/`), `DatabaseProvider`, `DatabaseObjectKind`, `QueryParameterType`.
-* **`Connections/`** : `IConnectionTester` (un par `DatabaseProvider`) et `ConnectionTesterResolver`.
-* **`Queries/`** : `IQueryReader` (requête paramétrée, un par `DatabaseProvider`) + `QueryReaderResolver`, `IQueryDataService` (lecture sur une connexion ouverte, utilisée par les cartes de dashboard).
-* **`Schemas/`** : `IDatabaseSchemaReader` (un par `DatabaseProvider`), `DatabaseSchemaReaderResolver`, `IDatabaseSchemaCache` / `DatabaseSchemaCache` (catalogues en mémoire pour la complétion et LINQ).
-* **`SqlServer/`** : `SqlServerConnectionTester`, `SqlServerSchemaReader`, `SqlServerDashboardQueryReader`.
+**Noyau (`SqlToolManagerMaui.Core`)** : modèles et énumérations de l'application par domaine (`Dashboards/`, `Databases/`, `Editors/`, `Queries/`, `Settings/`), `Serialization/` (`DashboardSerializer`, System.Text.Json source-gen), `Ioc/AutoRegisterAttribute`. Aucun service.
 
-**Langages** : `Databases` ← `Core` ← `Languages.Commons` ← `Languages.Sql` / `Languages.Linq` ← `Languages` ← projet principal (qui référence aussi `Core` et `Databases`). `Languages` porte aussi `InsertQueryMessage` (explorateur → onglet, `ToSql()` / `ToLinq()`).
-* **`Languages.Commons`** : contrats implémentés par les langages — `IQueryExecutor` (un par `SyntaxLanguage`), `ICompletionContextAnalyzer`, `ICompletionProvider` — plus `QueryExecutionLimits`.
-* **`Languages.[Nom]`** : un projet par langage, qui ne référence que `Languages.Commons`. Les langages ne se référencent pas entre eux.
-* **`Languages`** : seul projet de langage référencé par l'application. Référence tous les langages, expose `IQueryExecutorResolver` (par `SyntaxLanguage`) et `LanguageAssemblies.All` (assemblies à scanner).
-* **`Languages.Sql`** : `Queries/` (`SqlQueryExecutor`, point d'entrée du langage, qui délègue au `ISqlProviderExecutor` du moteur), `SqlServer/` (exécuteur, découpage `GO`) et `Completion/` (`SqlLexer`, analyseur de contexte).
-* **`Languages.Linq`** : générateur de modèle EF, compilateur Roslyn, exécuteur, cache de modèle, complétion C#. Les dépendances EF Core et Roslyn restent confinées ici.
+**Bases de données (`SqlToolManagerMaui.Databases`)** : librairie **indépendante** (aucune référence de projet). Tout ce qui parle à un moteur, indépendamment du langage et des dashboards. Services enregistrés par `services.AddDatabases()`, pas par `[AutoRegister]`.
+* `Models/`, `Enums/` : `DatabaseConnectionInfo`, `ConnectionTestResult`, catalogue, `DatabaseSchemaSnapshot`, `QueryResultSet`, `QueryParameter`, `DatabaseProvider`...
+* `Connections/`, `Queries/`, `Schemas/` : contrats par moteur (`IConnectionTester`, `IQueryReader`, `IDatabaseSchemaReader`) et leurs résolveurs, `IQueryDataService`, `IDatabaseSchemaCache`.
+* `Common/KeyedServiceMap<TKey, TService>` : base de tous les résolveurs (une implémentation par clé, doublon signalé au démarrage).
+* `SqlServer/` : `SqlServerConnectionTester`, `SqlServerSchemaReader`, `SqlServerQueryReader`.
 
-**Autres projets** : `SqlToolManagerMaui.Helpers` (extensions et outils partagés), `SqlToolManagerMaui.Tests` (xUnit, référence `Core` et les projets de langage).
+**Langages** :
+* `Languages.Commons` : `IQueryExecutor` (un par `SyntaxLanguage`), `ICompletionContextAnalyzer`, `ICompletionProvider`, `QueryExecutionLimits`.
+* `Languages.[Nom]` : un projet par langage, ne référence que `Languages.Commons`. `Languages.Sql` : `Queries/` (`SqlQueryExecutor` → `ISqlProviderExecutor` du moteur), `SqlServer/` (exécuteur, `SqlBatchSplitter`), `Completion/`. `Languages.Linq` : générateur de modèle EF, compilateur Roslyn, exécuteur, cache, complétion C# (EF Core et Roslyn restent confinés ici).
+* `Languages` : seul projet de langage référencé par l'application ; `IQueryExecutorResolver`, `LanguageAssemblies.All`, `InsertQueryMessage`.
 
-**Important** : respecter strictement cette stratification. Un contrôle générique (non lié au métier SQL) va dans `SqlToolManagerMaui.UI`, un contrôle spécifique à l'application va dans `Views/Controls/`.
+**Autres** : `Helpers` (extensions, `Tools/` : `JsonFile`, `TextFileEncoding`, `CorruptFileHelper`, `ConnectionStringPasswordHelper`), `Tests` (xUnit, référence les projets de langage, donc `Core`, `Databases` et `Helpers`).
 
 ### Structure du dépôt
 
-Convention **"src layout"** : le code source (solution + projets) est sous `src/`, les fichiers de config du dépôt (`.github/`, `CLAUDE.md`, `.gitignore`) restent à la racine.
-
 ```
 SqlToolManagerMaui/
-├── src/
-│   ├── SqlToolManagerMaui/                     # Projet MAUI principal (Windows)
-│   │   ├── Ioc/
-│   │   │   ├── Ioc.cs                          # Service locator statique
-│   │   │   └── ServiceCollectionExtensions.cs  # AddDatabases() + scan des [AutoRegister] (app + projets de langage)
-│   │   ├── Services/
-│   │   │   ├── Databases/                      # ConnectionStore, dialogue
-│   │   │   ├── Editors/                        # EditorFileService, coloration, fournisseurs de complétion
-│   │   │   └── Queries/                        # QueryExecutorResolver
-│   │   ├── ViewModels/
-│   │   │   ├── AbstractVM.cs                   # Base : navigation, chargement
-│   │   │   ├── AbstractVM_Busy.cs              # Base : gestion des tâches / IsBusy
-│   │   │   ├── ShellVM.cs                      # État du rail de navigation
-│   │   │   └── Pages/                          # MainVM, Documents/ (CodeEditorVM, DashboardVM : singletons), Shared/ (DatabaseConnectionVM, EditorPreferencesVM, StatusBarVM), Connections/ (ConnectionExplorerVM, ConnectionEditorVM)
-│   │   ├── Views/
-│   │   │   ├── Pages/                          # AbstractPage + pages de l'app, Documents/ (CodeEditorView, DashboardView, DocumentTemplateSelector)
-│   │   │   └── Controls/                       # Navigation/, Editors/ (Menus/, Completion/), Queries/, Dashboards/
-│   │   ├── Resources/
-│   │   │   ├── Styles/Tokens/                  # Colors, FontSizes, Thickness
-│   │   │   ├── Styles/Controls/                # Un fichier de styles par contrôle
-│   │   │   └── Raw/SyntaxHighlights/Sql.xshd   # Coloration syntaxique SQL
-│   │   ├── Platforms/                          # Code spécifique plateforme (Windows)
-│   │   ├── Properties/AppXmlns.tt              # Génère les XmlnsDefinition
-│   │   ├── AppShell.xaml                       # Shell + rail de navigation
-│   │   └── MauiProgram.cs                      # Point d'entrée et configuration DI
-│   ├── SqlToolManagerMaui.Core/                # Noyau : modèles, enums, contrats, AutoRegister
-│   │   ├── Models/                             # Databases/, Editors/, Queries/
-│   │   ├── Enums/                              # Databases/, Editors/
-│   │   ├── Services/                           # Contrats applicatifs : Editors/Completion/
-│   │   └── Ioc/                                # AutoRegisterAttribute
-│   ├── SqlToolManagerMaui.Databases/           # Librairie indépendante : Models/, Enums/, Connections/, Queries/, Schemas/, SqlServer/
-│   ├── SqlToolManagerMaui.Languages/           # Agrégateur : résolveur d'exécution + LanguageAssemblies
-│   ├── SqlToolManagerMaui.Languages.Commons/   # Contrats communs aux langages
-│   ├── SqlToolManagerMaui.Languages.Sql/       # Langage SQL
-│   │   ├── Queries/                            # SqlQueryExecutor, ISqlProviderExecutor
-│   │   ├── SqlServer/                          # Exécuteur, découpage GO
-│   │   └── Completion/                         # SqlLexer, SqlCompletionContextAnalyzer
-│   ├── SqlToolManagerMaui.Languages.Linq/      # Langage LINQ (EF Core + Roslyn)
-│   ├── SqlToolManagerMaui.Helpers/             # Extensions et outils partagés
-│   ├── SqlToolManagerMaui.Tests/               # Tests xUnit (Linq, analyseur SQL)
-│   ├── SqlToolManagerMaui.UI/                  # Bibliothèque UI réutilisable
-│   │   ├── Inputs/                             # Contrôles de saisie (+ .bindable.cs)
-│   │   ├── Converters/                         # Convertisseurs XAML
-│   │   ├── Behaviors/ Attachments/ Extensions/
-│   │   └── Properties/AppXmlns.tt
-│   ├── .editorconfig
-│   └── SqlToolManagerMaui.slnx                 # Solution (format slnx)
 ├── .github/
-│   ├── instructions.md                         # CE FICHIER — source centralisée
-│   └── copilot-instructions.md                 # Référence vers ce fichier
-└── CLAUDE.md                                   # Point d'entrée instructions Claude
+│   ├── instructions.md              # CE FICHIER — source centralisée
+│   ├── copilot-instructions.md
+│   └── workflows/build.yml          # CI : build Windows + tests
+├── CLAUDE.md
+└── src/
+    ├── .editorconfig
+    ├── Directory.Build.props        # Réglages communs à tous les projets
+    ├── Directory.Packages.props     # Versions de tous les paquets NuGet
+    ├── SqlToolManagerMaui.slnx
+    ├── SqlToolManagerMaui/          # Application MAUI (Windows)
+    ├── SqlToolManagerMaui.Core/
+    ├── SqlToolManagerMaui.Databases/
+    ├── SqlToolManagerMaui.Helpers/
+    ├── SqlToolManagerMaui.Languages(.Commons|.Sql|.Linq)/
+    ├── SqlToolManagerMaui.Tests/
+    └── SqlToolManagerMaui.UI/
 ```
 
 ---
 
 ## Pattern MVVM
 
-* Tous les ViewModels de page héritent de `AbstractVM` → `ObservableObject` (CommunityToolkit.Mvvm).
-* Utiliser `[ObservableProperty]` sur des **propriétés partielles** (`public partial bool IsX { get; set; }`), pas sur des champs.
-* Utiliser `[RelayCommand]` pour les commandes, `[NotifyPropertyChangedFor]` / `[NotifyCanExecuteChangedFor]` pour les dépendances.
-* Les pages héritent de `AbstractPage`, qui fixe le `BindingContext`, relaie la navigation (`NavigatedTo` / `NavigatedFrom`) et lie `IsEnabled` à `IsNotBusy`.
-* Chaque page expose `public static readonly string PAGE_ROUTE` et surcharge `PageRoute`.
-* Les tâches longues passent par `RunAsBusyAsync` / `StartAsBusy` (`AbstractVM_Busy`) : compteurs de tâches, `LifetimeToken`, exceptions absorbées.
-* Le chargement initial se fait dans `LoadDatasBusyAsync`, appelé uniquement si `IsLoadingDatasRequested`.
+* Les VM de page héritent de `AbstractVM` → `ObservableObject`. Les VM d'onglets héritent de `DocumentVM<TSession>`.
+* `[ObservableProperty]` sur des **propriétés partielles** (`public partial bool IsX { get; set; }`), jamais sur des champs.
+* `[RelayCommand]` pour les commandes, `[NotifyPropertyChangedFor]` / `[NotifyCanExecuteChangedFor]` pour les dépendances.
+* Les pages héritent de `AbstractPage` : `BindingContext`, navigation (`NavigatedTo` / `NavigatedFrom`), `IsEnabled` lié à `IsNotBusy`. Chaque page expose `PAGE_ROUTE`.
+* Tâches longues : `RunAsBusyAsync` / `StartAsBusy` (`AbstractVM_Busy`) — compteurs, `LifetimeToken`, page grisée pendant une tâche bloquante, exception journalisée par `LogError`.
+* Chargement initial dans `LoadDatasBusyAsync`, appelé uniquement si `IsLoadingDatasRequested`.
+
+### Erreurs et journalisation
+
+* **Un seul point d'entrée** : `WeakReferenceMessenger.Default.LogError(exception, message)` (ou `LogInfo`). Pas d'`ILogger`.
+* Abonnés : `StatusBarVM` affiche les erreurs (« Erreur : message ») ; `FileLogWriter` écrit `logs/app-aaaaMMjj.log` dans `AppDataDirectory` (14 jours). Le message est donc rédigé pour l'utilisateur.
+* Une tâche lancée sans `await` passe par `.FireAndForget("message")` : jamais de `_ = XAsync()`.
+* Exceptions non gérées (AppDomain, thread UI WinUI, tâches non observées) : journalisées au démarrage (`MauiProgram`, `Platforms/Windows/App.xaml.cs`).
 
 ---
 
 ## Injection de dépendances
 
-* Services, pages et ViewModels se déclarent eux-mêmes avec `[AutoRegister]` (`Core/Ioc/AutoRegisterAttribute.cs`) : singleton et type concret par défaut, `Lifetime = ServiceLifetime.Transient` et/ou `As = typeof(IMonService)` au besoin. `Ioc/ServiceCollectionExtensions.cs` appelle `AddDatabases()` puis scanne l'assembly de l'application et celles de `LanguageAssemblies.All` (projet `Languages`) ; plusieurs classes `As` la même interface sont toutes enregistrées. `Databases` ne connaît pas `[AutoRegister]` : ses services s'ajoutent dans `AddDatabases()`.
-* Injection **par constructeur** exclusivement.
-* `Ioc.GetRequiredService<T>()` est un dernier recours, réservé au code qui ne peut pas recevoir ses dépendances (code-behind, factories).
-* Pages et ViewModels sont enregistrés en **singleton** (application desktop mono-fenêtre).
+* Services, pages et VM se déclarent avec `[AutoRegister]` (singleton et type concret par défaut ; `Lifetime = ServiceLifetime.Transient` et/ou `As = typeof(IMonService)` au besoin). `Ioc/ServiceCollectionExtensions.cs` appelle `AddDatabases()` puis scanne l'application et `LanguageAssemblies.All` ; plusieurs classes `As` la même interface sont toutes enregistrées (les résolveurs les reçoivent en `IEnumerable`).
+* Injection **par constructeur** exclusivement. `Ioc.GetRequiredService<T>()` en dernier recours (vue créée par un gabarit, code WinUI).
+* Pages et VM en **singleton** (application mono-fenêtre).
 
 ---
 
 ## Bibliothèques clés
 
-* **CommunityToolkit.Mvvm** — Infrastructure MVVM (ObservableObject, RelayCommand).
-* **CommunityToolkit.Maui / .Markup** — Comportements, `FileSaver`, snackbar.
-* **CodeEdit.Maui** — Éditeur de code avec coloration syntaxique (`.UseCodeEditor()`). Exige `Microsoft.Maui.Controls` >= 10.0.101.
-* **AathifMahir.Maui.MauiIcons.Fluent** — Icônes Fluent (`.UseFluentMauiIcons()`).
-* **LiveChartsCore.SkiaSharpView.Maui** (LiveCharts2) — Graphiques des cartes de dashboard (`.UseSkiaSharp().UseLiveCharts()`).
-* **Microsoft.Data.SqlClient** — Accès SQL Server.
-* **Newtonsoft.Json** — Sérialisation du fichier de connexions.
+* **CommunityToolkit.Mvvm** — MVVM, messenger. **CommunityToolkit.Maui / .Markup** — `[BindableProperty]`, popups, `FileSaver`, snackbar.
+* **CodeEdit.Maui** (préversion) — éditeur de code (`.UseCodeEditor()`). Exige `Microsoft.Maui.Controls` >= 10.0.101 et la projection Windows forcée par `WindowsSdkPackageVersion`.
+* **AathifMahir.Maui.MauiIcons.Fluent** — icônes Fluent. **LiveChartsCore.SkiaSharpView.Maui** — graphiques des dashboards.
+* **Microsoft.Data.SqlClient** — SQL Server. **EF Core + Roslyn** — langage LINQ.
+* **Newtonsoft.Json** — fichiers JSON de l'application (`JsonFile`) ; **System.Text.Json** (source-gen) — fichiers `.schx`.
+
+Toutes les versions sont dans `src/Directory.Packages.props` : un `PackageReference` n'indique jamais de `Version`.
 
 ---
 
@@ -166,165 +127,144 @@ SqlToolManagerMaui/
 
 ### Principes généraux
 
-* **Framework cible** : .NET MAUI `net10.0-windows10.0.19041.0` (win-x64).
-* **Langage** : C# (`LangVersion preview`, nullable activé) pour la logique, XAML pour l'UI.
-* **Lisibilité** : code clair et auto-explicatif, préférer le simple au sophistiqué.
-* **Gestion d'erreurs** : exceptions structurées, jamais avalées silencieusement hors des helpers prévus (`RunAsBusyAsync`).
-* **SOLID** et injection par constructeur.
+* **Cible** : `net10.0-windows10.0.19041.0` (win-x64) pour l'application et `UI`, `net10.0` pour le reste. C# 14 (version par défaut du SDK), nullable activé.
+* Réglages communs (nullable, analyse `latest-all`, analyseurs trim/AOT) dans `src/Directory.Build.props` ; un csproj ne garde que ce qui lui est propre.
+* **Lisibilité** : code clair et auto-explicatif, préférer le simple au sophistiqué. **SOLID**, injection par constructeur.
 * **Async/Await** obligatoire pour tout I/O (disque, SecureStorage, base).
-* **Magic numbers** : remplacer par des constantes ou des tokens XAML.
-* **Une classe par fichier**, namespaces **file-scoped** (imposé par `.editorconfig`). Vaut pour tout type (classe, record, interface, enum, struct) : chaque type public ou internal a son propre fichier, nommé comme lui. Seule exception : une classe **privée imbriquée**, utile uniquement au type qui la contient (ex. état interne d'un service).
+* **Magic numbers** : constantes ou tokens XAML.
+* **Un type par fichier**, nommé comme lui, namespaces **file-scoped**. Seule exception : une classe **privée imbriquée**.
+* Fichiers de l'application : `JsonFile` (écriture atomique, fichier corrompu mis de côté). Fichiers de l'utilisateur : `IEditorFileService` (encodage d'origine conservé, écriture atomique).
 
 ### Conventions de nommage
 
-* **Classes & Interfaces** : PascalCase (`QueryVM`, `IConnectionStore`).
-* **Méthodes & Propriétés** : PascalCase, suffixe `Async` pour les méthodes asynchrones.
-* **Champs privés** : `_camelCase`.
-* **Paramètres** : camelCase.
-* **Pages** : suffixe `Page` (`QueryPage`). **ViewModels** : suffixe `VM` (`QueryVM`).
-* **Contrôles** : nom du rôle sans préfixe (`NavigationRail`, `FileTabItem`, `ViewMenuBarItem`).
+* **Classes & interfaces** : PascalCase (`IConnectionStore`). **Méthodes & propriétés** : PascalCase, suffixe `Async`.
+* **Champs privés** : `_camelCase` ; constantes et `static readonly` : PascalCase. **Paramètres** : camelCase.
+* **Pages** : suffixe `Page`. **ViewModels** : suffixe `VM`. **Contrôles** : nom du rôle sans préfixe.
+* Règles reprises dans `src/.editorconfig`.
 
 ### Style de code
 
-* **Accolades** : style Allman.
-* **Indentation** : 4 espaces en C#, alignement des attributs en XAML (un attribut par ligne).
-* **Usings** : en dehors du namespace, inutilisés supprimés.
+* **Accolades** : Allman. **Indentation** : 4 espaces en C#, un attribut par ligne en XAML.
+* **Usings** : hors du namespace, inutilisés supprimés.
 
 ### BindableProperty
 
-Les `BindableProperty` sont générées par l'attribut `[BindableProperty]` de CommunityToolkit.Maui (`using CommunityToolkit.Maui;`, classe `partial`, avertissement `MCTEXP001` neutralisé dans les csproj) : on déclare uniquement la propriété `partial`, le champ `XxxProperty` est généré.
+Générées par l'attribut `[BindableProperty]` de CommunityToolkit.Maui (classe `partial`, `MCTEXP001` neutralisé) : on déclare la propriété `partial`, le champ `XxxProperty` est généré.
 
 ```csharp
 /// <summary>Bascule l'affichage des numeros de ligne.</summary>
 [BindableProperty]
 public partial ICommand? ToggleLineNumbersCommand { get; set; }
 
-/// <summary>Langage de l'onglet actif.</summary>
 [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnLanguageChanged))]
 public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
-
-private static void OnLanguageChanged(BindableObject bindable, object oldValue, object newValue)
-    => ((ViewMenuBarItem)bindable).Refresh();
 ```
 
-* Valeur par défaut = initialiseur de la propriété (absent = `default`).
-* Options via l'attribut : `DefaultBindingMode`, `PropertyChangedMethodName`, `PropertyChangingMethodName`, `CoerceValueMethodName`, `ValidateValueMethodName`, `DefaultValueCreatorMethodName` — toujours avec `nameof(...)` vers une méthode statique à la signature MAUI (pas de lambda).
-* `{ get; private set; }` produit une propriété en lecture seule (`BindablePropertyKey` généré).
-* Propriété `public`, `internal` ou `protected internal` uniquement ; masquage d'une propriété héritée avec `new partial`.
-* La `<summary>` va sur la propriété ; types référence nullables (`ICommand?`).
-* Un `propertyChanged` n'est ajouté qu'en **dernier recours** : préférer un binding XAML.
-* Pour un contrôle riche, sortir les propriétés dans un fichier partiel `X.bindable.cs` (convention de `SqlToolManagerMaui.UI.Inputs` et de `AbstractPage`).
+* Valeur par défaut = initialiseur. Options via l'attribut, toujours avec `nameof(...)` vers une méthode statique (pas de lambda).
+* `{ get; private set; }` = propriété en lecture seule. `new partial` pour masquer une propriété héritée.
+* Un `propertyChanged` n'est qu'un **dernier recours** : préférer un binding XAML.
+* Contrôle riche : propriétés dans un fichier partiel `X.bindable.cs`.
 
 ### Conventions XAML
 
-* **Namespaces implicites** : `MauiAllowImplicitXmlnsDeclaration` est actif, les préfixes `c:` (controls), `m:` (models), `v:` (views), `vm:` (viewmodels), `inp:` (inputs), `conv:`, `icons:` n'ont pas à être déclarés. Ils viennent des `XmlnsDefinition` de `Properties/AppXmlns.cs`, généré par `AppXmlns.tt`.
-* **Le T4 ne tourne pas au build** : après l'ajout d'un dossier de namespace, mettre `AppXmlns.cs` à jour (relancer l'outil personnalisé ou éditer à la main).
-* **Bindings compilés** : `MauiStrictXamlCompilation` est actif. Toujours renseigner `x:DataType` (sur la page, ou en ligne dans le binding : `x:DataType=c:FileTabItem`).
-* **Contrôles en XAML + code-behind** : tout contrôle visuel de `Views/Controls/` (app et `SqlToolManagerMaui.UI`) est un couple `X.xaml` / `X.xaml.cs`, même dérivé de `MenuFlyoutItem`, `MenuFlyoutSubItem` ou `Grid`. La structure fixe, les bindings internes, les triggers et les gestes vont dans le XAML (`x:Name="Root"`, liaisons via `{Binding MaProp, Source={x:Reference Root}, x:DataType=v:MonControle}`) ; le code-behind ne garde que les `[BindableProperty]`, `InitializeComponent()` et ce que le XAML ne peut pas exprimer (contenu dépendant de colonnes connues à l'exécution, accès au natif WinUI). Une partie dynamique se construit en code **dans** un conteneur nommé du XAML (`Header`, `Rows`...), jamais en réaffectant tout le `Content`. Exceptions : les non-vues (`TabBarItem`, contrôleurs) et `SqlToolManagerMaui.UI.Inputs`, dont les classes de base (`InputField`...) sont dérivées (une classe dérivée d'un contrôle XAML ne peut pas avoir son propre XAML).
-* **Apparence portée par un parent** : un sous-élément interne (ex. `TreeViewNode`) expose son propriétaire en propriété (`Owner`), affectée **avant** `InitializeComponent()`, et le XAML s'y lie (`Owner.ItemHoverColor`).
-* **Un contrôle ne connaît pas les ViewModels** : il expose des `BindableProperty` et se lie à lui-même via `{Binding Source={RelativeSource AncestorType={x:Type c:MonControle}}, Path=MaProp, x:DataType=c:MonControle}`. C'est la page hôte qui branche le VM.
-* **Boutons** : utiliser `Button` (texte + icône via `ImageSource="{icons:Fluent Icon=Xxx, IconColor=..., IconSize=20}"`) avec les styles `PrimaryButton`, `SecondaryButton`, `DangerButton` (ou `TextButton` pour un bouton icône sans fond). `inp:ButtonView` reste réservé aux boutons à contenu personnalisé. Pas d'`ImageButton` ni de `Border` + TapGesture.
-* **Icônes** : `{icons:Fluent Icon=Xxx}` sur les contrôles connus de MauiIcons, `{x:Static fluent:FluentIcons.Xxx}` sur une propriété custom.
-* **Styles et couleurs** : passer par les tokens (`Resources/Styles/Tokens/`) et les styles existants, ne pas coder de couleur en dur.
+* **Namespaces implicites** (`MauiAllowImplicitXmlnsDeclaration`) : préfixes `c:`, `v:`, `vm:`, `m:`, `en:`, `inp:`, `conv:`, `beh:`, `mk:`, `mi:` sans déclaration, via `Properties/AppXmlns.cs` et `CoreXmlns.cs` (générés par T4).
+* **Le T4 ne tourne pas au build** : après l'ajout ou la suppression d'un dossier de namespace, mettre `AppXmlns.cs` à jour.
+* **Bindings compilés** (`MauiStrictXamlCompilation`) : toujours un `x:DataType`.
+* **Contrôles en XAML + code-behind** : tout contrôle visuel est un couple `X.xaml` / `X.xaml.cs`. Structure, bindings internes, triggers et gestes dans le XAML ; le code-behind ne garde que les `[BindableProperty]`, `InitializeComponent()` et ce que le XAML ne sait pas faire (colonnes connues à l'exécution, natif WinUI), construit dans un conteneur nommé. Exceptions : non-vues et `UI.Inputs`.
+* **Un contrôle ne connaît pas les ViewModels** : `BindableProperty` + liaison à soi-même (`x:Name="Root"` / `RelativeSource AncestorType`). La page hôte branche le VM.
+* **Menus** : déclarés dans `MainPage.xaml` (`MenuBarItems`), liés à `MainVM` (Fichier) et `MainMenuBarVM` (le reste). Entrée cochable : `v:CheckedMenuFlyoutItem` ; liste : `v:MenuFlyoutSubItemExtended`.
+* **Boutons** : `Button` avec styles `PrimaryButton`, `SecondaryButton`, `DangerButton`, `TextButton` ; `inp:ButtonView` pour un contenu personnalisé.
+* **Icônes** : `{icons:Fluent Icon=Xxx}` / `{mk:FluentFilledImage Icon=Xxx}`.
+* **Styles et couleurs** : tokens (`Resources/Styles/Tokens/`), jamais de couleur en dur.
 
 ### Langue
 
-* **Commentaires en code** : français, succincts — expliquer le *pourquoi*, jamais le *quoi*.
-* **Noms de classes/méthodes** : anglais (convention .NET).
-* **Textes d'interface** : français.
-* **Messages de commit et documentation** : français.
+* Commentaires : français, succincts — le *pourquoi*, jamais le *quoi*.
+* Noms de classes/méthodes : anglais. Textes d'interface, messages de commit, documentation : français.
 
 ---
 
 ## Directives d'implémentation
 
-* Préférer les solutions simples et pragmatiques, éviter la sur-ingénierie.
-* Produire du code prêt pour la production : pas de TODO ni d'implémentation partielle.
-* **Le moins de code-behind possible** : privilégier le déclaratif (bindings, triggers, styles). Un handler d'événement se justifie quand la bibliothèque tierce n'expose pas de binding (cas du `CodeEditor`, qui notifie par événements).
-* Le code spécifique plateforme va dans `Platforms/` avec les gardes `#if WINDOWS`.
-* Les analyseurs trim/AOT sont actifs : éviter la réflexion non annotée.
+* Solutions simples et pragmatiques, pas de sur-ingénierie. Code prêt pour la production : pas de TODO.
+* **Le moins de code-behind possible**. Un handler d'événement se justifie quand la bibliothèque tierce n'expose pas de binding (`CodeEditor`).
+* Code spécifique plateforme : `Platforms/` ou gardes `#if WINDOWS`.
+* Analyseurs trim/AOT actifs : éviter la réflexion non annotée.
 
 ---
 
 ## Prise de décision
 
-Lors de la création d'une feature :
-
-1. **Identifier l'intention** — quelle est la feature exacte ?
-2. **Modèles** — créer ou réutiliser dans `Models/[Domaine]/`.
-3. **Service** — si logique métier ou accès à une ressource, créer dans `Services/[Domaine]/` derrière une interface.
-4. **ViewModel** — créer dans `ViewModels/Pages/`, hériter de `AbstractVM`.
-5. **Page XAML** — créer dans `Views/Pages/`, hériter de `AbstractPage`, exposer `PAGE_ROUTE`.
-6. **Contrôles** — extraire un contrôle dès qu'un bloc XAML pollue la page ou devient réutilisable (`Views/Controls/[Domaine]/`) ; générique et sans métier → `SqlToolManagerMaui.UI`.
-7. **Navigation** — déclarer un `ShellContent` dans `AppShell.xaml` PUIS un `c:NavigationRailItem` dans le rail.
-8. **Enregistrement DI** — marquer Service, Page et ViewModel avec `[AutoRegister]`.
-9. **Namespaces XAML** — si un nouveau dossier est créé, mettre `AppXmlns.cs` à jour.
-10. **Compilation & validation** — `dotnet build` (voir Validation).
+1. **Intention** — quelle est la feature exacte ?
+2. **Modèles** — `Core/Models/[Domaine]/` (ou `Databases/Models/` s'ils parlent au moteur).
+3. **Service** — `Services/[Domaine]/` derrière une interface.
+4. **ViewModel** — `ViewModels/Pages/` (`AbstractVM`) ou `Pages/Documents/` (`DocumentVM<TSession>`).
+5. **Vue** — page dans `Views/Pages/` (`AbstractPage`, `PAGE_ROUTE`, `ShellContent` dans `AppShell.xaml`) ou contrôle dans `Views/Controls/[Domaine]/` ; générique → `SqlToolManagerMaui.UI`.
+6. **DI** — `[AutoRegister]`. **Namespaces XAML** — `AppXmlns.cs`.
+7. **Tests** — logique sans MAUI testable dans `SqlToolManagerMaui.Tests`.
+8. **Compilation & validation**.
 
 ---
 
 ## Points clés spécifiques à ce projet
 
-### Navigation (menu latéral Windows 11)
+### Shell et fenêtre
 
-* Pas de TabBar, pas de header : `AppShell.xaml` utilise `FlyoutBehavior="Locked"` et remplace le flyout par `Views/Controls/Navigation/NavigationRail`.
-* `AppShell.xaml.cs` masque sous Windows le hamburger natif du `NavigationView` WinUI, son item Settings et le bouton retour.
-* `ShellVM` porte `IsPaneOpen` / `PaneWidth` (260 étendu, 48 compact), `CurrentRoute`, `TogglePaneCommand`, `NavigateCommand` (`GoToAsync("//route")`).
+* `AppShell` n'a qu'un `ShellContent` (`MainPage`) et `FlyoutBehavior="Disabled"` : pas de volet de navigation.
+* La barre de menus est rendue par MAUI dans le `MauiToolbar` du Shell : la page doit porter `Shell.NavBarIsVisible="True"` (cf. dotnet/maui#6303).
+* Fermeture de la fenêtre : `WindowCloseGuard` (WinUI `AppWindow.Closing`) appelle `MainVM.CanCloseAsync` (confirmation des onglets modifiés si la restauration des onglets est désactivée), puis `Destroying` mémorise les onglets et écrit les préférences en attente.
 
-### Éditeur (page Requête)
+### Onglets (sessions)
 
-* Un onglet = une `AbstractSession` (`Core/Models/Editors/`) autour d'un `EditorDocument` (texte enregistré / édité, chemin, langage, sélection, IsDirty). Le namespace est `Models.Editors` (et non `Editor`) pour ne pas masquer `Microsoft.Maui.Controls.Editor`.
-* Le `CodeEditor` notifie par **événements** (`ContentChanged`, `SelectionChanged`, `DocumentChanged`), pas par bindings : le code-behind de `QueryPage` les relaie au VM.
-* Ouverture par `FilePicker`, « Enregistrer sous » par `FileSaver` (CommunityToolkit), UTF-8 sans BOM.
-* **Barre de menus** : les actions sont des contrôles `MenuBarItem` dédiés (`Views/Controls/Editors/Menus/*MenuBarItem`), regroupés dans `MainMenuBarView` (liée à `MainMenuBarVM`) et posés sur la page par `AttachTo`. Chaque entrée publie un enum `Weak*MenuBarType` (ou un message `OpenRecentFileMessage` / `SetLanguageMessage`) via `IWeakReferenceService` ; la page active s'y abonne en `MessageScope.WhenAlive` et renvoie l'état affiché (coches, fichiers récents, exécution) par `MenuBarStateMessage`. Les commandes d'édition, propres au `CodeEditor`, sont relayées par `QueryPage`. Sous Windows, MAUI rend le MenuBar dans le `MauiToolbar` du Shell : la page doit porter `Shell.NavBarIsVisible="True"` **et** un `Title` non vide (cf. dotnet/maui#6303).
-* `MenuFlyoutItem` n'a pas d'état « coché » : les bascules changent leur libellé via un `DataTrigger` sur une propriété d'état du contrôle.
+* Un onglet = une `AbstractSession` (`Core/Models/Editors/`) autour d'un `EditorDocument` (texte enregistré / édité, chemin, langage, sélection, `IsDirty`). `CodeEditorSession` garde le résultat de la dernière exécution ; `DashboardSession` la vue, la définition, le fil d'Ariane et la lecture des cartes. `AbstractSession.LifetimeToken` est annulé à la fermeture de l'onglet.
+* `MainVM` porte `Sessions`, `SelectedSession` et les commandes fichier. Fermer un onglet modifié passe par `IDialogService.AskSaveChangesAsync`.
+* `CodeEditorVM` et `DashboardVM` (`DocumentVM<TSession>`) sont des **singletons** partagés par tous les onglets de leur type : la vue leur pousse `Session` (null quand aucun onglet de ce type n'est affiché). Aucun état propre à un onglet dans le VM.
+* **Vues** : `DocumentViewSelector` (un `ViewSelector`, pas un `DataTemplateSelector`) réaffiche une seule instance de `CodeEditorView` / `DashboardView` d'un onglet à l'autre ; la vue transmet la session reçue (`Session="{Binding .}"`) à son VM.
+* `MainMenuBarVM.AttachSession` branche les menus Édition, Requête et Langage sur le VM du type de la session sélectionnée.
+* Le `CodeEditor` notifie par **événements** (`ContentChanged`, `SelectionChanged`, `DocumentChanged`), relayés par son code-behind.
+* Fichiers : ouverture par `FilePicker`, « Enregistrer sous » par `FileSaver`. L'encodage du fichier est détecté (BOM, UTF-8, sinon ANSI Windows-1252) et conservé ; un nouveau fichier est en UTF-8 avec BOM.
 
 ### Exécution des requêtes
 
-* `CodeEditorVM.ExecuteQueryCommand` (async, `IncludeCancelCommand`) : texte = `Selection.SelectedText` s'il n'est pas vide, sinon `Document.EditorText`. Volontairement **hors** `RunAsBusyAsync`, qui désactiverait la page et donc le bouton Annuler.
-* `CodeEditorVM` exécute via `IQueryExecutorResolver.Resolve(Document.Language)` : il ne connaît aucun langage en particulier.
-* **Sessions et VM singletons** : `MainVM` ne porte que `Sessions` (`ObservableCollection<AbstractSession>`), `SelectedSession` et les commandes fichier (Nouveau, Ouvrir, Enregistrer, Fermer). Une session garde tout ce qu'un onglet doit retrouver : `CodeEditorSession` (résultat de la dernière exécution) ou `DashboardSession` (vue, définition, fil d'Ariane, lecture des cartes). `AbstractSession.LifetimeToken` est annulé à la fermeture de l'onglet (`Dispose`) : exécution et lectures de cartes s'arrêtent.
-* `CodeEditorVM` et `DashboardVM` (`ViewModels/Pages/Documents/`, `ObservableObject`) sont des **singletons** partagés par tous les onglets de leur type : ils travaillent sur leur propriété `Session`, null quand aucun onglet de ce type n'est affiché. `MainMenuBarVM.AttachSession` branche les menus Édition, Requête et Langage sur le VM du type de la session sélectionnée.
-* **Vues** : `MainPage` déclare un `DocumentTemplateSelector` (`Views/Pages/Documents/`) passé en `ContentTemplate` de la `TabBar` : `CodeEditorView` pour une `CodeEditorSession`, `DashboardView` pour une `DashboardSession`. Chaque vue lie son contenu (`Body`) à son VM singleton (`Ioc`, la vue étant créée par le DataTemplate) et transmet la session reçue par sa `BindableProperty` `Session` (`Session="{Binding .}"` dans le gabarit). La `TabBar` crée une vue par gabarit, la réutilise d'un onglet à l'autre et remet à null le `BindingContext` des vues masquées (le VM correspondant perd alors sa session). Chaque vue porte son en-tête (exécution, connexion, et pour un dashboard la bascule Dashboard / Concepteur / Source).
-* **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(ISqlProviderExecutor))]` dans `Languages.Sql/[Moteur]/` ; `SqlQueryExecutor` le découvre seul.
-* `SqlServerQueryExecutor` (`Languages.Sql/SqlServer/`) : une connexion par exécution (pas de session conservée entre deux F5), `CommandTimeout = 0`, lots `GO` / `GO n` découpés par `SqlBatchSplitter` (ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script exécuté. Les erreurs SQL sont rendues dans les messages, pas levées.
-* Plafond de `QueryExecutionLimits.MaxRowsPerResultSet` (`Languages.Commons`, 10 000) lignes par jeu, cellules converties en texte côté service (NULL = `null`).
-* Le résultat est rangé sur la `CodeEditorSession` d'origine (`LastResult`, `IsExecuting`) : chaque onglet garde ses résultats.
-* **LINQ** : le script devient le corps d'une méthode générée (`LinqCompiler.BuildQuerySource`), le contexte porte le nom de la base. Le premier `return` termine le script ; `.Dump("titre")` (extension générée dans le même source, façon LINQPad) ajoute un jeu de résultats sans l'arrêter et rend la valeur. La valeur du `return` n'est affichée que si elle n'a pas déjà été dumpée ; des instructions sans `return` n'affichent que leurs Dump.
-* `Views/Controls/Queries/QueryResultGrid` a un squelette XAML ; en-tête et gabarit de ligne sont posés en code (colonnes connues à l'exécution) ; les lignes (`QueryResultRowView`) sont remplies au recyclage, sans binding. Styles dans `Resources/Styles/Controls/QueryResultStyles.xaml`.
+* `CodeEditorVM.ExecuteQueryCommand` (async, `IncludeCancelCommand`) : sélection si non vide, sinon tout le document. Volontairement **hors** `RunAsBusyAsync`, qui griserait la page et donc le bouton Annuler.
+* Exécution via `IQueryExecutorResolver.Resolve(Document.Language)`.
+* **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(ISqlProviderExecutor))]` dans `Languages.Sql/[Moteur]/`.
+* `SqlServerQueryExecutor` : une connexion par exécution, `CommandTimeout = 0`, lots `GO` / `GO n` (`SqlBatchSplitter`, qui ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script, erreurs SQL rendues dans les messages.
+* Plafond de `QueryExecutionLimits.MaxRowsPerResultSet` (10 000) lignes par jeu, cellules converties en texte (NULL = `null`).
+* **LINQ** : le script devient le corps d'une méthode générée (`LinqCompiler.BuildQuerySource`), le contexte porte le nom de la base. Le premier `return` termine le script ; `.Dump("titre")` ajoute un jeu de résultats. Chaque requête est chargée dans un `AssemblyLoadContext` **collectable**, déchargé après l'exécution (`LinqCompiledQuery.Dispose`).
+* `QueryResultGrid` : squelette XAML, en-tête et gabarit de ligne posés en code, lignes remplies au recyclage.
 
 ### Dashboards (`.schx`)
 
-* Un fichier `.schx` ouvre une `DashboardSession` (sinon une `CodeEditorSession`), qui porte le `Mode` (`View`, `Design`, `Source`) ; `DashboardVM` la lit à son premier affichage. Le **JSON reste la source** : le concepteur écrit dans la définition (`DashboardCardState`, `DashboardParameterValue`, `DashboardPageState` écrivent directement dans les objets `*Definition`), la session lève `DefinitionChanged` et `DashboardVM` resérialise dans `EditorText` (`DashboardSession.MarkWritten` évite une relecture). La vue Source est relue au retour (`LoadedText`). F5 / Exécuter applique les paramètres et relit les cartes.
-* **Format** (`Core/Models/Dashboards/DashboardDefinition`) : `connection` (nom d'une connexion enregistrée, jamais la chaîne), `database`, `columns` (12) / `rows` (6, minimum), `parameters` (`name`, `label`, `type` : Text, Integer, Decimal, Date, DateTime, Boolean, Guid, `default`), `startPage`, `pages` (`id`, `title`, `cards`). Carte : `column` / `row` (base 0), `columnSpan` / `rowSpan`, `view` (Grid, Value, BarChart, LineChart, PieChart, Text, Button), `query`, `text`, `labelColumn`, `valueColumns`, `navigation` (`page` + `parameters` : `{parameter, column}` pour une colonne de la ligne cliquée, `{parameter, value}` pour un texte fixe ou `@AutreParam`).
-* **Paramètres** : communs à toutes les pages, envoyés en `SqlParameter` typés (`DashboardParameterDefinition.TryConvert`), jamais concaténés. Chaque étape du fil d'Ariane (`DashboardPageState`) garde ses valeurs et ses résultats : Retour ne relit rien. « Appliquer » (ou Entrée) relit les cartes de la page.
-* **Lecture d'une carte** : premier jeu de résultats ayant des colonnes, 1 000 lignes max, cartes lues en parallèle ; une nouvelle lecture annule la précédente ; changer de connexion relit la page affichée.
-* **Rendu** : `Views/Pages/Documents/DashboardView` (en-tête + vue active) assemble les contrôles de `Views/Controls/Dashboards/` — `DashboardGrid` (paramètres, fil d'Ariane, grille à deux calques : cases du concepteur dessous, cartes dessus ; lignes / colonnes créées en code), `DashboardCardView`, `DashboardChartView` (LiveCharts2 : graphiques déclarés en XAML, séries posées en code), `DashboardDesignerPanel`. `QueryResultGrid.RowTappedCommand` rend les lignes cliquables.
-* **Concepteur** : clic sur une case libre = nouvelle carte 4 × 2 ; clic sur une carte = sélection (pas de navigation) ; glisser une carte sur une case = déplacement ; le panneau édite titre, rendu, requête (« Exécuter la requête »), colonnes, page cible et paramètres transmis (« Param = Colonne », « = @Param », « = 'texte' »), position / taille, pages et paramètres.
-* Ajouter un moteur = aussi une implémentation de `IQueryReader` dans `Databases/[Moteur]/`, enregistrée dans `AddDatabases()`. Les paramètres du dashboard (`DashboardParameterType`) sont convertis en `QueryParameter` par `DashboardParameterValue.TryGetQueryParameter`.
+* Le **JSON reste la source** : le concepteur écrit dans la définition, la session lève `DefinitionChanged` et `DashboardVM` resérialise dans `EditorText` (regroupé sur 250 ms). La vue Source est relue au retour. F5 / Exécuter applique les paramètres et relit les cartes.
+* `DashboardVM` est découpé en `DashboardVM.cs` (bascule des vues), `.Cards.cs` (consultation, lecture des cartes) et `.Designer.cs` (concepteur).
+* **Format** (`Core/Models/Dashboards/DashboardDefinition`) : `connection` (nom d'une connexion enregistrée, jamais la chaîne), `database`, `columns` (12) / `rows` (6 minimum), `parameters` (`name`, `label`, `type` : Text, Integer, Decimal, Date, DateTime, Boolean, Guid, `default`), `startPage`, `pages` (`id`, `title`, `cards`). Carte : `column` / `row` (base 0), `columnSpan` / `rowSpan`, `view` (Grid, Value, BarChart, LineChart, PieChart, Text, Button), `query`, `text`, `labelColumn`, `valueColumns`, `navigation` (`page` + `parameters`).
+* Les listes des modèles `.schx` sont en `{ get; set; } = []` et **jamais** `init` : le générateur System.Text.Json remet à null une propriété `init` absente du JSON.
+* **Paramètres** : envoyés en paramètres typés (`DashboardParameterValue.TryGetQueryParameter`), jamais concaténés. Chaque étape du fil d'Ariane garde ses valeurs et ses résultats.
+* **Lecture d'une carte** : premier jeu ayant des colonnes, 1 000 lignes max, cartes lues en parallèle ; une nouvelle lecture annule la précédente ; changer de connexion relit la page affichée.
+* **Rendu** : `DashboardView` assemble `DashboardGrid`, `DashboardCardView`, `DashboardChartView` (LiveCharts2), `DashboardDesignerPanel`.
+* Ajouter un moteur = aussi une implémentation de `IQueryReader` dans `Databases/[Moteur]/`, enregistrée dans `AddDatabases()`.
 
 ### Connexions
 
-* Stockage mixte : métadonnées dans `connections.json` (AppDataDirectory, écriture atomique via fichier `.tmp`), chaîne de connexion complète chiffrée dans le `SecureStorage` sous la clé `connectionstring:{id}`. `DatabaseConnectionInfo` ne contient **jamais** la chaîne complète.
-* Toutes les écritures passent par un sémaphore, le fichier est réécrit en entier.
-* **Ajouter un moteur** = une implémentation de `IConnectionTester` dans `Databases/[Moteur]/`, enregistrée dans `AddDatabases()` ; `ConnectionTesterResolver` la découvre seule.
-* La popup « Se connecter » (`ConnectionEditorPopup` + `ConnectionEditorVM`, transient) travaille sur un `DatabaseConnectionDraft` (clone) pour qu'« Annuler » ne modifie rien. Elle est ouverte par `IConnectionDialogService.EditAsync` et fermée par le VM via `IPopupService.ClosePopupAsync(shell, Guid?)` (Id enregistré, ou null).
-* Après un ajout / une modification / une suppression, `ConnectionsChangedMessage` est publié (WeakReferenceMessenger) : `QueryConnectionVM` recharge son Picker.
-* **Explorateur** : `ConnectionExplorerVM` garde l'arbre (`Roots`), affiché par le contrôle générique `v:TreeView` de `SqlToolManagerMaui.UI/Views` (MAUI n'en fournit pas) : nœuds imbriqués, `ChildrenPath` / `IsExpandedPath` / `CanExpandPath`, `ExpandingCommand` appelé à chaque ouverture pour le chargement paresseux. Aucun `ExplorerNode` ne porte la chaîne : elle est relue dans le coffre à chaque chargement. Une erreur de chargement devient un nœud « Erreur : ... ».
-* **Catalogue d'un moteur** = une implémentation de `IDatabaseSchemaReader` dans `Databases/[Moteur]/`, enregistrée dans `AddDatabases()` (résolue par `DatabaseSchemaReaderResolver`), sur le modèle des testeurs.
+* Stockage mixte : métadonnées dans `connections.json` (`AppDataDirectory`, `JsonFile`), chaîne complète chiffrée dans le `SecureStorage` (`connectionstring:{id}`). `DatabaseConnectionInfo.ConnectionString` n'est renseignée qu'**en mémoire** (connexion ouverte) et n'est jamais sérialisée.
+* Fichier corrompu : copie `.corrupt-date` puis liste vide. Fichier illisible : rien n'est mis en cache et toute écriture est refusée, pour ne pas écraser les connexions.
+* Abonnement : `IConnectionStore.Subscribe` (appelé tout de suite puis à chaque ajout / modification / suppression) ; `DatabaseConnectionVM` et `ConnectionExplorerVM` s'y abonnent.
+* **Ajouter un moteur** = une implémentation de `IConnectionTester` et de `IDatabaseSchemaReader` dans `Databases/[Moteur]/`, enregistrées dans `AddDatabases()`.
+* La popup « Se connecter » (`ConnectionEditorPopup` + `ConnectionEditorVM`, transient) travaille sur un `DatabaseConnectionDraft` (clone) ; le mot de passe y est masqué (`ConnectionStringPasswordHelper`) et réinjecté tant que le masque n'est pas remplacé.
+* **Explorateur** : `ConnectionExplorerVM` garde l'arbre, affiché par le contrôle générique `v:TreeView` (chargement paresseux par `ExpandingCommand`). Aucun `ExplorerNode` ne porte la chaîne. Suppression confirmée par `IDialogService.ConfirmAsync`.
 
 ### Préférences utilisateur
 
-* `UserPreferences` (`Core/Models/Settings/`) : fichiers récents (10 max, du plus récent au plus ancien, sans doublon) et options d'affichage de l'éditeur (`EditorConfiguration`).
-* Persistées par `IUserPreferencesStore` (`Services/Settings/`) dans `preferences.json` (AppDataDirectory, écriture atomique, sémaphore). `GetAsync` / `UpdateAsync` rendent une copie : modifier le résultat n'enregistre rien.
-* `EditorPreferencesVM` (singleton partagé) charge les préférences (appelé par `MainVM.LoadDatasBusyAsync`), enregistre à chaque changement d'`EditorConfiguration` et ajoute un fichier aux récents à l'ouverture et à l'« Enregistrer sous ». Un récent introuvable est retiré de la liste.
-* Menu Fichier > Fichiers récents : `MenuFlyoutSubItem` sans ItemsSource, reconstruit en code par `FileMenuBarItem` à chaque changement de `RecentFiles`.
+* `UserPreferences` (`Core/Models/Settings/`) : fichiers récents (10 max), restauration des onglets, options de l'éditeur (`Editor`), volets (`Panels`).
+* Persistées par `IUserPreferencesStore` dans `preferences.json` : écriture regroupée (300 ms), jamais une version plus ancienne par-dessus une plus récente, `Flush()` à la fermeture. `PreferencesChanged` est un `event`.
+* Onglets mémorisés : `IWorkspaceStore` (`workspace.json`), écrits à la fermeture, relus par `MainVM.LoadDatasBusyAsync`.
 * Dossier nommé `Settings` (et non `Preferences`) pour ne pas masquer `Microsoft.Maui.Storage.Preferences`.
 
 ### Pièges connus
 
-* `SqlToolManagerMaui.UI` doit être chargé **avant** le premier parsing XAML (forcé dans `MauiProgram`), sinon les `XmlnsDefinition` de ses converters sont introuvables.
-* En MAUI 10, `Page.DisplayAlert` est obsolète : utiliser `DisplayAlertAsync`.
+* Les `XmlnsDefinition` de `SqlToolManagerMaui.UI` ne sont vues que si son assembly est chargé **avant** le premier parsing XAML : si un converter devient introuvable au démarrage, forcer ce chargement dans `MauiProgram` (`typeof(...)` d'un type de UI).
+* En MAUI 10, `DisplayAlert` / `DisplayActionSheet` sont obsolètes : `DisplayAlertAsync` / `DisplayActionSheetAsync`.
 * Les `ResourceDictionary` sans `x:Class` sont analysés à l'exécution : une erreur de clé ne se voit pas à la compilation.
 
 ---
@@ -332,31 +272,30 @@ Lors de la création d'une feature :
 ## Anti-patterns à éviter
 
 * Ne PAS mettre de logique métier ou de navigation dans le code-behind des pages.
-* Ne PAS référencer un ViewModel depuis un contrôle (`x:DataType="vm:..."` dans `Views/Controls/`) : passer par des `BindableProperty`.
-* Ne PAS empiler des dizaines de lignes de XAML dans une page quand un contrôle dédié fait le travail.
-* Ne PAS construire en C# l'arborescence visuelle d'un contrôle (`new Grid { ... }`, `SetBinding` internes) quand un `.xaml` peut la porter.
+* Ne PAS référencer un ViewModel depuis un contrôle : passer par des `BindableProperty`.
+* Ne PAS construire en C# l'arborescence visuelle d'un contrôle (ni des menus) quand un `.xaml` peut la porter.
 * Ne PAS utiliser un `propertyChanged` là où un binding XAML suffit.
 * Ne PAS accéder au conteneur via `Ioc` quand l'injection par constructeur est possible.
-* Ne PAS écrire la chaîne de connexion complète en clair (JSON, logs, modèle affichable).
+* Ne PAS appeler `Shell.Current` / `DisplayAlertAsync` depuis un VM : passer par `IDialogService`.
+* Ne PAS écrire la chaîne de connexion complète en clair (JSON, journaux, modèle affichable).
+* Ne PAS lancer une tâche avec `_ = XAsync()` : `.FireAndForget("message")`.
+* Ne PAS avaler une exception sans `LogError`, ni utiliser `ILogger`.
+* Ne PAS indiquer de `Version` dans un `PackageReference` (`Directory.Packages.props`).
 * Ne PAS ignorer async/await pour les accès disque, SecureStorage ou base.
-* Ne PAS utiliser les API Xamarin.Forms — toujours les équivalents .NET MAUI.
-* Ne PAS contourner `AbstractVM` / `AbstractPage` pour une nouvelle page.
-* Ne PAS déclarer plusieurs types dans un même fichier — sauf une classe privée imbriquée propre au type qui la contient.
+* Ne PAS utiliser les API Xamarin.Forms.
+* Ne PAS déclarer plusieurs types dans un même fichier — sauf une classe privée imbriquée.
 
 ---
 
 ## Validation
 
-### Toujours compiler après les changements
-
-Le projet ne cible que Windows :
-
 ```bash
 dotnet build src/SqlToolManagerMaui.slnx
+dotnet test src/SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj
 ```
 
-`MauiStrictXamlCompilation` transforme les avertissements de binding en erreurs : un `x:DataType` manquant casse le build.
+`MauiStrictXamlCompilation` transforme les avertissements de binding en erreurs : un `x:DataType` manquant casse le build. La CI (`.github/workflows/build.yml`) fait la même chose sur Windows à chaque push et pull request.
 
 ---
 
-**Dernière mise à jour** : 2026-10-10
+**Dernière mise à jour** : 2026-10-20

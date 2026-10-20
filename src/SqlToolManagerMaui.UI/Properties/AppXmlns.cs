@@ -9,13 +9,11 @@
 //     puis <inp:CardBorder/> sans clr-namespace.
 // </auto-generated>
 //------------------------------------------------------------------------------
-[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/attachments", "SqlToolManagerMaui.UI.Attachments")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/behaviors", "SqlToolManagerMaui.UI.Behaviors")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/converters", "SqlToolManagerMaui.UI.Converters")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/inputs", "SqlToolManagerMaui.UI.Inputs")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/inputs", "SqlToolManagerMaui.UI.Inputs.Converters")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/inputs", "SqlToolManagerMaui.UI.Inputs.Core")]
-[assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/inputs", "SqlToolManagerMaui.UI.Inputs.Enums")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/markup", "SqlToolManagerMaui.UI.MarkupExtensions")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/viewmodels", "SqlToolManagerMaui.UI.ViewModels")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.UI.Views")]
@@ -24,7 +22,6 @@
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.UI.Views.Controls.Menus")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.UI.Views.Controls.Tabs")]
 [assembly: XmlnsDefinition("http://sqltoolmanagermaui.app/dotnet/maui/views", "SqlToolManagerMaui.UI.Views.Controls.Trees")]
-[assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/attachments", "att")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/behaviors", "beh")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/converters", "conv")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://sqltoolmanagermaui.app/dotnet/maui/inputs", "inp")]

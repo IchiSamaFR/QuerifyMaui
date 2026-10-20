@@ -14,11 +14,11 @@ public interface IConnectionStore
     /// <summary>Descripteurs enregistres, tries par nom. Les instances sont partagees : un changement est vu par tous.</summary>
     Task<bool> RefreshAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Descripteurs enregistres, tries par nom. Les instances sont partagees : un changement est vu par tous.</summary>
+    /// <summary>Appelle <paramref name="action"/> tout de suite puis a chaque changement, avec les descripteurs tries par nom (instances partagees).</summary>
     Task<bool> Subscribe(Action<IReadOnlyList<DatabaseConnectionInfo>> action, CancellationToken cancellationToken = default);
 
-    /// <summary>Descripteur enregistres, tries par nom. Les instances sont partagees : un changement est vu par tous.</summary>
-    Task<bool> Unsubscribe(Action<IReadOnlyList<DatabaseConnectionInfo>> action);
+    /// <summary>Retire un abonnement pose par <see cref="Subscribe"/>.</summary>
+    void Unsubscribe(Action<IReadOnlyList<DatabaseConnectionInfo>> action);
 
     /// <summary>
     /// Ouvre la connexion : lit la chaine dans le coffre et la place dans

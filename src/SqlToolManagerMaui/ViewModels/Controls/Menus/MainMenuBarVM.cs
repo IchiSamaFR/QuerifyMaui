@@ -1,84 +1,72 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CodeEdit.Maui;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Settings;
-using SqlToolManagerMaui.Services.Contexts;
 using SqlToolManagerMaui.Services.Settings;
-using SqlToolManagerMaui.ViewModels.Pages;
 using SqlToolManagerMaui.ViewModels.Pages.Documents;
 using SqlToolManagerMaui.ViewModels.Pages.Shared;
 using System.ComponentModel;
+using System.Windows.Input;
 
 namespace SqlToolManagerMaui.ViewModels.Controls.Menus;
 
 /// <summary>
-/// Barre de menus de la page principale. Les menus Edition, Requete et Langage suivent
-/// la session selectionnee (<see cref="AttachSession"/>) et le VM qui l'affiche.
+/// Etat de la barre de menus declaree dans MainPage.xaml. Les menus Edition, Requete et Langage
+/// suivent la session selectionnee (<see cref="AttachSession"/>) et le VM qui l'affiche ; les
+/// commandes Fichier sont liees directement a MainVM.
 /// </summary>
 [AutoRegister]
 public partial class MainMenuBarVM : ObservableObject
 {
-    private readonly UserPreferences _preferences;
     private readonly CodeEditorVM _codeEditor;
     private readonly DashboardVM _dashboard;
     private AbstractSession? _session;
 
-    public FileMenuContext FileMenuContext { get; }
-    public EditMenuContext EditMenuContext { get; }
-    public ViewMenuContext ViewMenuContext { get; }
-    public ExecuteMenuContext ExecuteMenuContext { get; }
+    public UserPreferences Preferences { get; }
+
+    public DatabaseConnectionVM Connection { get; }
+
+    /// <summary>Execution de la session affichee (requete ou relecture des cartes).</summary>
+    [ObservableProperty]
+    public partial ICommand? ExecuteCommand { get; private set; }
 
     [ObservableProperty]
-    public partial IList<MenuBarItem> MenuItems { get; set; } = Array.Empty<MenuBarItem>();
+    public partial ICommand? CancelCommand { get; private set; }
 
-    public MainMenuBarVM(FileMenuContext fileMenuContext,
-        EditMenuContext editMenuContext,
-        ViewMenuContext viewMenuContext,
-        ExecuteMenuContext executeMenuContext,
-        IUserPreferencesStore preferences,
+    /// <summary>Null hors d'un onglet de script. Parametre : la valeur de <see cref="SyntaxLanguage"/>.</summary>
+    [ObservableProperty]
+    public partial ICommand? SetLanguageCommand { get; private set; }
+
+    /// <summary>Commandes d'edition du CodeEditor de la vue affichee.</summary>
+    [ObservableProperty]
+    public partial CodeEditorCommands? EditionCommands { get; private set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSqlLanguage))]
+    [NotifyPropertyChangedFor(nameof(IsLinqLanguage))]
+    public partial SyntaxLanguage Language { get; private set; } = SyntaxLanguage.Sql;
+
+    public bool IsSqlLanguage => Language == SyntaxLanguage.Sql;
+
+    public bool IsLinqLanguage => Language == SyntaxLanguage.Linq;
+
+    public MainMenuBarVM(IUserPreferencesStore preferences,
         DatabaseConnectionVM connection,
         CodeEditorVM codeEditor,
         DashboardVM dashboard)
     {
-        FileMenuContext = fileMenuContext;
-        EditMenuContext = editMenuContext;
-        ViewMenuContext = viewMenuContext;
-        ExecuteMenuContext = executeMenuContext;
-        _preferences = preferences.Preferences;
+        Preferences = preferences.Preferences;
+        Connection = connection;
         _codeEditor = codeEditor;
         _dashboard = dashboard;
-
-        MenuItems = new List<MenuBarItem>()
-        {
-            FileMenuContext.CreateMenu(),
-            EditMenuContext.CreateMenu(),
-            ViewMenuContext.CreateMenu(),
-            ExecuteMenuContext.CreateMenu()
-        };
-
-        ExecuteMenuContext.DisconnectCommand = connection.DisconnectCommand;
-        AttachPreferences();
 
         // Les commandes d'edition arrivent du CodeEditor de chaque vue apres sa creation.
         _codeEditor.PropertyChanged += OnEditorVMPropertyChanged;
         _dashboard.PropertyChanged += OnEditorVMPropertyChanged;
-    }
-
-    /// <summary>Commandes fichier de la page ; appele une fois, par MainVM.</summary>
-    public void AttachFileCommands(MainVM main)
-    {
-        var menu = FileMenuContext;
-        menu.NewFileCommand = main.NewCommand;
-        menu.NewDashboardFileCommand = main.NewDashboardCommand;
-        menu.OpenFileCommand = main.OpenCommand;
-        menu.OpenRecentFilesCommand = main.OpenRecentCommand;
-        menu.SaveFileCommand = main.SaveCommand;
-        menu.SaveAsFileCommand = main.SaveAsCommand;
-        menu.CloseFileCommand = main.CloseActiveCommand;
-        menu.ClearFilesCommand = main.ClearRecentFilesCommand;
     }
 
     /// <summary>Branche les menus Edition, Requete et Langage sur la session selectionnee.</summary>
@@ -95,30 +83,30 @@ public partial class MainMenuBarVM : ObservableObject
         switch (session)
         {
             case CodeEditorSession:
-                ExecuteMenuContext.ExecuteCommand = _codeEditor.ExecuteQueryCommand;
-                ExecuteMenuContext.CancelCommand = _codeEditor.ExecuteQueryCancelCommand;
-                ViewMenuContext.SetLanguageCommand = _codeEditor.SetLanguageCommand;
+                ExecuteCommand = _codeEditor.ExecuteQueryCommand;
+                CancelCommand = _codeEditor.ExecuteQueryCancelCommand;
+                SetLanguageCommand = _codeEditor.SetLanguageCommand;
                 break;
             case DashboardSession:
-                ExecuteMenuContext.ExecuteCommand = _dashboard.ApplyParametersCommand;
-                ExecuteMenuContext.CancelCommand = _dashboard.CancelLoadingCommand;
-                ViewMenuContext.SetLanguageCommand = null;
+                ExecuteCommand = _dashboard.ApplyParametersCommand;
+                CancelCommand = _dashboard.CancelLoadingCommand;
+                SetLanguageCommand = null;
                 break;
             default:
-                ExecuteMenuContext.ExecuteCommand = null;
-                ExecuteMenuContext.CancelCommand = null;
-                ViewMenuContext.SetLanguageCommand = null;
+                ExecuteCommand = null;
+                CancelCommand = null;
+                SetLanguageCommand = null;
                 break;
         }
 
-        RefreshEditMenu();
+        RefreshEditionCommands();
         RefreshLanguage();
     }
 
     private void OnEditorVMPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(CodeEditorVM.EditionCommands))
-            RefreshEditMenu();
+            RefreshEditionCommands();
     }
 
     private void OnDocumentPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -127,69 +115,31 @@ public partial class MainMenuBarVM : ObservableObject
             RefreshLanguage();
     }
 
-    private void RefreshEditMenu()
-    {
-        var commands = _session switch
+    private void RefreshEditionCommands()
+        => EditionCommands = _session switch
         {
             CodeEditorSession => _codeEditor.EditionCommands,
             DashboardSession => _dashboard.EditionCommands,
             _ => null,
         };
 
-        var menu = EditMenuContext;
-        menu.UndoCommand = commands?.Undo;
-        menu.RedoCommand = commands?.Redo;
-        menu.CutCommand = commands?.Cut;
-        menu.CopyCommand = commands?.Copy;
-        menu.PasteCommand = commands?.Paste;
-        menu.SelectAllCommand = commands?.SelectAll;
-    }
-
     private void RefreshLanguage()
-        => ViewMenuContext.Language = _session is CodeEditorSession session ? session.Document.Language : SyntaxLanguage.Sql;
-
-    private void AttachPreferences()
-    {
-        FileMenuContext.ToggleRestoreOpenTabsCommand = ToggleRestoreOpenTabsCommand;
-
-        var view = ViewMenuContext;
-        view.ToggleObjectExplorerCommand = ToggleObjectExplorerCommand;
-        view.ToggleLineNumbersCommand = ToggleLineNumbersCommand;
-        view.ToggleWordWrapCommand = ToggleWordWrapCommand;
-        view.ToggleTabIndentationCommand = ToggleTabIndentationCommand;
-
-        RefreshPreferences();
-
-        _preferences.PropertyChanged += (_, _) => RefreshPreferences();
-        _preferences.Editor.PropertyChanged += (_, _) => RefreshPreferences();
-        _preferences.Panels.PropertyChanged += (_, _) => RefreshPreferences();
-    }
-
-    private void RefreshPreferences()
-    {
-        var editor = _preferences.Editor;
-        FileMenuContext.RecentFiles = _preferences.RecentFiles;
-        FileMenuContext.IsRestoreOpenTabsEnabled = _preferences.RestoreOpenTabs;
-        ViewMenuContext.IsObjectExplorerOpen = _preferences.Panels.IsObjectExplorerOpen;
-        ViewMenuContext.AreLineNumbersVisible = editor.IsLineDisplayed;
-        ViewMenuContext.IsWordWrapEnabled = editor.IsWordWrapped;
-        ViewMenuContext.IsTabIndentationEnabled = editor.IsTabIndentation;
-    }
+        => Language = _session is CodeEditorSession session ? session.Document.Language : SyntaxLanguage.Sql;
 
     // ---------- Commandes des preferences ----------
 
     [RelayCommand]
-    private void ToggleRestoreOpenTabs() => _preferences.RestoreOpenTabs = !_preferences.RestoreOpenTabs;
+    private void ToggleRestoreOpenTabs() => Preferences.RestoreOpenTabs = !Preferences.RestoreOpenTabs;
 
     [RelayCommand]
-    private void ToggleObjectExplorer() => _preferences.Panels.IsObjectExplorerOpen = !_preferences.Panels.IsObjectExplorerOpen;
+    private void ToggleObjectExplorer() => Preferences.Panels.IsObjectExplorerOpen = !Preferences.Panels.IsObjectExplorerOpen;
 
     [RelayCommand]
-    private void ToggleLineNumbers() => _preferences.Editor.IsLineDisplayed = !_preferences.Editor.IsLineDisplayed;
+    private void ToggleLineNumbers() => Preferences.Editor.IsLineDisplayed = !Preferences.Editor.IsLineDisplayed;
 
     [RelayCommand]
-    private void ToggleWordWrap() => _preferences.Editor.IsWordWrapped = !_preferences.Editor.IsWordWrapped;
+    private void ToggleWordWrap() => Preferences.Editor.IsWordWrapped = !Preferences.Editor.IsWordWrapped;
 
     [RelayCommand]
-    private void ToggleTabIndentation() => _preferences.Editor.IsTabIndentation = !_preferences.Editor.IsTabIndentation;
+    private void ToggleTabIndentation() => Preferences.Editor.IsTabIndentation = !Preferences.Editor.IsTabIndentation;
 }

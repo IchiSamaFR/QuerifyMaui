@@ -39,7 +39,7 @@ internal static class BorderlessHandlers
                 return;
         });
 
-        // Caret : CursorColor ne fait que teinter. Pour une Entry cachée (PinInput) il faut
+        // Caret : CursorColor ne fait que teinter. Pour une Entry cachée il faut
         // supprimer le caret au niveau natif, sinon iOS/Android continuent de le dessiner.
         EntryHandler.Mapper.AppendToMapping(nameof(BorderlessEntry.IsCaretVisible), (handler, view) =>
         {
@@ -66,18 +66,6 @@ internal static class BorderlessHandlers
         EditorHandler.Mapper.AppendToMapping(nameof(BorderlessEditor.CursorColor), (handler, view) =>
         {
             if (view is not BorderlessEditor editor || editor.CursorColor is null)
-                return;
-        });
-
-        DatePickerHandler.Mapper.AppendToMapping("RaveOn.Borderless", (handler, view) =>
-        {
-            if (view is not BorderlessDatePicker)
-                return;
-        });
-
-        TimePickerHandler.Mapper.AppendToMapping("RaveOn.Borderless", (handler, view) =>
-        {
-            if (view is not BorderlessTimePicker)
                 return;
         });
 

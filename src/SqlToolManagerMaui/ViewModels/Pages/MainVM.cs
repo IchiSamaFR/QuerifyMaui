@@ -67,7 +67,6 @@ public partial class MainVM : AbstractVM
         Preferences = preferences.Preferences;
         MainMenuBar = mainMenuBar;
 
-        MainMenuBar.AttachFileCommands(this);
         WeakReferenceMessenger.Default.Register<MainVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
     }
 

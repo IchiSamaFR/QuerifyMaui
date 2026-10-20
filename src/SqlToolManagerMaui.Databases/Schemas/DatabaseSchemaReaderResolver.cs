@@ -1,20 +1,17 @@
-﻿using SqlToolManagerMaui.Databases.Enums;
+﻿using SqlToolManagerMaui.Databases.Common;
+using SqlToolManagerMaui.Databases.Enums;
 
 namespace SqlToolManagerMaui.Databases.Schemas;
 
 /// <inheritdoc cref="IDatabaseSchemaReaderResolver"/>
 public sealed class DatabaseSchemaReaderResolver : IDatabaseSchemaReaderResolver
 {
-    private readonly Dictionary<DatabaseProvider, IDatabaseSchemaReader> _readers;
+    private readonly KeyedServiceMap<DatabaseProvider, IDatabaseSchemaReader> _readers;
 
     public DatabaseSchemaReaderResolver(IEnumerable<IDatabaseSchemaReader> readers)
     {
-        ArgumentNullException.ThrowIfNull(readers);
-        _readers = readers.ToDictionary(r => r.Provider);
+        _readers = new(readers, r => r.Provider, "lecteur de catalogue");
     }
 
-    public IDatabaseSchemaReader Resolve(DatabaseProvider provider)
-        => _readers.TryGetValue(provider, out var reader)
-            ? reader
-            : throw new NotSupportedException($"Aucun lecteur de catalogue enregistre pour le moteur {provider}.");
+    public IDatabaseSchemaReader Resolve(DatabaseProvider provider) => _readers.Resolve(provider);
 }

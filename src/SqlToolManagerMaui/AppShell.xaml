@@ -5,8 +5,8 @@
        xmlns:c="http://sqltoolmanagermaui.app/dotnet/maui/controls"
        xmlns:v="http://sqltoolmanagermaui.app/dotnet/maui/views"
        xmlns:vm="http://sqltoolmanagermaui.app/dotnet/maui/viewmodels"
-       x:DataType="vm:ShellVM"
        Title="Querify"
+       FlyoutBehavior="Disabled"
        Shell.NavBarIsVisible="False"
        Shell.TabBarIsVisible="False">
 

@@ -87,14 +87,6 @@
     <Color x:Key="InputBorder">#18FFFFFF</Color>
     <Color x:Key="InputDisabled">#0BFFFFFF</Color>
 
-    <!-- ============ Navigation laterale ============ -->
-    <Color x:Key="NavPaneLight">#F3F3F3</Color>
-    <Color x:Key="NavPaneDark">#202020</Color>
-    <Color x:Key="NavItemHoverLight">#0A000000</Color>
-    <Color x:Key="NavItemHoverDark">#0FFFFFFF</Color>
-    <Color x:Key="NavItemSelectedLight">#09000000</Color>
-    <Color x:Key="NavItemSelectedDark">#0FFFFFFF</Color>
-
     <!-- ============ Etats systeme (SystemFillColor*) ============ -->
     <Color x:Key="Success">#6CCB5F</Color>
     <Color x:Key="SuccessBackground">#393D1B</Color>

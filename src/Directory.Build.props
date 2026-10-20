@@ -1,7 +1,22 @@
 <Project>
+	<!-- Reglages communs a tous les projets : chaque csproj ne garde que ce qui lui est propre. -->
 	<PropertyGroup>
 		<!-- Sortie courte : bin\Debug\ (cible Windows uniquement) -->
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
+		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
+		<NoWarn>$(NoWarn);CA2007;CA1515</NoWarn>
+	</PropertyGroup>
+
+	<!-- Analyse complete du code de l'application ; les tests en sont dispenses. -->
+	<PropertyGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests'))">
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 	</PropertyGroup>
 </Project>

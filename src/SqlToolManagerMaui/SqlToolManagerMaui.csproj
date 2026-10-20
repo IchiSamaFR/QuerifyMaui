@@ -1,39 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<!-- ===================== Application metadata ===================== -->
+	<!-- ===================== Application ===================== -->
 	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<RootNamespace>SqlToolManagerMaui</RootNamespace>
 		<ApplicationTitle>SqlToolManagerMaui</ApplicationTitle>
 		<ApplicationId>com.companyname.sqltoolmanagermaui</ApplicationId>
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 		<WindowsPackageType>None</WindowsPackageType>
-	</PropertyGroup>
-
-	<!-- ===================== General settings ===================== -->
-	<PropertyGroup>
-		<OutputType>Exe</OutputType>
-		<RootNamespace>SqlToolManagerMaui</RootNamespace>
-		<UseMaui>true</UseMaui>
-		<ImplicitUsings>true</ImplicitUsings>
-		<SingleProject>true</SingleProject>
-		<Nullable>enable</Nullable>
-		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
-		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
-		<EnableWindowsTargeting>true</EnableWindowsTargeting>
-		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<NoWarn>$(NoWarn);MVVMTK0045;CA2007;CA1515;MCTEXP001</NoWarn>
-	</PropertyGroup>
-
-	<!-- ===================== Target platforms & configurations ===================== -->
-	<PropertyGroup>
-		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
-		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-		<RuntimeIdentifier Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">win-x64</RuntimeIdentifier>
-		<RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">win-x64</RuntimeIdentifiers>
-		<SelfContained Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">false</SelfContained>
 
 		<!--
 		  RichEdit.Maui / CodeEdit.Maui sont compiles avec CsWinRT 2.3.1 (WinRT.Runtime 2.3.1.0),
@@ -44,55 +19,48 @@
 		<WindowsSdkPackageVersion>10.0.19041.87</WindowsSdkPackageVersion>
 	</PropertyGroup>
 
-	<!-- ===================== XAML / MAUI compilation ===================== -->
 	<PropertyGroup>
-		<!-- Force XAML compilation for all configurations -->
-		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
-		<DefineConstants>$(DefineConstants);MauiAllowImplicitXmlnsDeclaration</DefineConstants>
-		<!--<MauiXamlInflator>SourceGen</MauiXamlInflator>-->
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+		<SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+		<SelfContained>false</SelfContained>
+		<UseMaui>true</UseMaui>
+		<SingleProject>true</SingleProject>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<NoWarn>$(NoWarn);MVVMTK0045;MCTEXP001</NoWarn>
+	</PropertyGroup>
 
-		<LangVersion>preview</LangVersion>
-		<AnalysisLevel>latest-all</AnalysisLevel>
+	<!-- ===================== XAML ===================== -->
+	<PropertyGroup>
+		<!-- Bindings compiles partout ; un x:DataType manquant casse le build -->
+		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
 		<MauiStrictXamlCompilation>true</MauiStrictXamlCompilation>
-		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-		<EnableAotAnalyzer>true</EnableAotAnalyzer>
+		<DefineConstants>$(DefineConstants);MauiAllowImplicitXmlnsDeclaration</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#03A9F4" />
-
-		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#03A9F4" BaseSize="128,128" />
-
-		<!-- Images -->
-		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
-
-		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
-
-		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+		<!-- Raw : le prefixe "Resources\Raw" est retire du nom logique -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
-	<!-- ===================== NuGet references ===================== -->
 	<ItemGroup>
-		<PackageReference Include="AathifMahir.Maui.MauiIcons.Fluent" Version="6.0.0" />
-		<PackageReference Include="AathifMahir.Maui.MauiIcons.Fluent.Filled" Version="6.0.0" />
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
-		<PackageReference Include="CommunityToolkit.Maui.Markup" Version="8.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
-		<PackageReference Include="CodeEdit.Maui" Version="0.4.0-preview.2" />
+		<PackageReference Include="AathifMahir.Maui.MauiIcons.Fluent" />
+		<PackageReference Include="AathifMahir.Maui.MauiIcons.Fluent.Filled" />
+		<PackageReference Include="CommunityToolkit.Mvvm" />
+		<PackageReference Include="CommunityToolkit.Maui" />
+		<PackageReference Include="CommunityToolkit.Maui.Markup" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+		<PackageReference Include="CodeEdit.Maui" />
 		<!-- Graphiques des cartes du dashboard (.schx) -->
-		<PackageReference Include="LiveChartsCore.SkiaSharpView.Maui" Version="2.0.5" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.110" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
+		<PackageReference Include="LiveChartsCore.SkiaSharpView.Maui" />
+		<PackageReference Include="Microsoft.Maui.Controls" />
 	</ItemGroup>
-	
-	
+
 	<ItemGroup>
 		<ProjectReference Include="..\SqlToolManagerMaui.Core\SqlToolManagerMaui.Core.csproj" />
 		<ProjectReference Include="..\SqlToolManagerMaui.Databases\SqlToolManagerMaui.Databases.csproj" />
@@ -100,34 +68,31 @@
 		<ProjectReference Include="..\SqlToolManagerMaui.UI\SqlToolManagerMaui.UI.csproj" />
 	</ItemGroup>
 
-	<!-- ===================== Code generation (T4) ===================== -->
+	<!-- ===================== Generation T4 (ne tourne pas au build) ===================== -->
 	<ItemGroup>
 		<None Update="Properties\CoreXmlns.tt">
-		  <LastGenOutput>CoreXmlns.cs</LastGenOutput>
-		  <Generator>TextTemplatingFileGenerator</Generator>
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>CoreXmlns.cs</LastGenOutput>
 		</None>
 		<None Update="Properties\AppXmlns.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>AppXmlns.cs</LastGenOutput>
 		</None>
-	</ItemGroup>
-	<ItemGroup>
 		<Compile Update="Properties\AppXmlns.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 			<DependentUpon>AppXmlns.tt</DependentUpon>
 		</Compile>
 		<Compile Update="Properties\CoreXmlns.cs">
-		  <DesignTime>True</DesignTime>
-		  <AutoGen>True</AutoGen>
-		  <DependentUpon>CoreXmlns.tt</DependentUpon>
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>CoreXmlns.tt</DependentUpon>
 		</Compile>
 		<Compile Update="Views\Pages\MainPage.xaml.cs">
-		  <DependentUpon>MainPage.xaml</DependentUpon>
+			<DependentUpon>MainPage.xaml</DependentUpon>
 		</Compile>
 	</ItemGroup>
 
-	<!-- ===================== Services ===================== -->
 	<ItemGroup>
 		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
 	</ItemGroup>

@@ -10,6 +10,8 @@ using SqlToolManagerMaui.Databases.Schemas;
 using SqlToolManagerMaui.Helpers.Extensions;
 using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Databases;
+using SqlToolManagerMaui.Services.Dialogs;
+using SqlToolManagerMaui.UI.Extensions;
 using SqlToolManagerMaui.UI.ViewModels;
 using System.Collections.ObjectModel;
 
@@ -28,6 +30,7 @@ public partial class ConnectionExplorerVM : AbstractVM
     private readonly IConnectionStore _store;
     private readonly IDatabaseSchemaReaderResolver _schemaReaders;
     private readonly IConnectionDialogService _dialogs;
+    private readonly IDialogService _questions;
 
     /// <summary>Rechargement lance par <see cref="ConnectionsChangedMessage"/>, attendu par l'edition pour reselectionner.</summary>
     private Task _connectionsReload = Task.CompletedTask;
@@ -43,12 +46,13 @@ public partial class ConnectionExplorerVM : AbstractVM
 
     public bool IsConnectionSelected => SelectedNode?.IsConnection == true;
 
-    public ConnectionExplorerVM(IConnectionStore store, IDatabaseSchemaReaderResolver schemaReaders, IConnectionDialogService dialogs)
+    public ConnectionExplorerVM(IConnectionStore store, IDatabaseSchemaReaderResolver schemaReaders, IConnectionDialogService dialogs, IDialogService questions)
     {
         _store = store;
-        _store.Subscribe(ApplyConnections);
+        _store.Subscribe(ApplyConnections).FireAndForget("Liste des connexions non chargée.");
         _schemaReaders = schemaReaders;
         _dialogs = dialogs;
+        _questions = questions;
     }
 
     protected override Task LoadDatasBusyAsync() => ReloadConnectionsAsync();
@@ -157,18 +161,13 @@ public partial class ConnectionExplorerVM : AbstractVM
         if (info is null)
             return;
 
-        var page = Shell.Current?.CurrentPage;
-        if (page is not null)
-        {
-            var confirmed = await page.DisplayAlertAsync(
-                "Supprimer la connexion",
-                $"Supprimer definitivement \"{info.Name}\" ? La chaine de connexion sera effacee du coffre.",
-                "Supprimer",
-                "Annuler");
+        var confirmed = await _questions.ConfirmAsync(
+            "Supprimer la connexion",
+            $"Supprimer définitivement \"{info.Name}\" ? La chaîne de connexion sera effacée du coffre.",
+            "Supprimer");
 
-            if (!confirmed)
-                return;
-        }
+        if (!confirmed)
+            return;
 
         await _store.DeleteAsync(info.Id, LifetimeToken);
 

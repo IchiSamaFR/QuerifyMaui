@@ -1,11 +1,9 @@
-﻿using CodeEdit.Maui;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
-using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
@@ -21,7 +19,7 @@ namespace SqlToolManagerMaui.ViewModels.Pages.Documents;
 /// le resultat est range dans la session d'origine.
 /// </summary>
 [AutoRegister]
-public partial class CodeEditorVM : ObservableObject
+public partial class CodeEditorVM : DocumentVM<CodeEditorSession>
 {
     private readonly ISyntaxConfigurationStore _syntaxConfigurations;
     private readonly IConnectionStore _connectionStore;
@@ -30,25 +28,9 @@ public partial class CodeEditorVM : ObservableObject
     /// <summary>Configurations deja lues : changer d'onglet ne relit aucun .xshd.</summary>
     private readonly Dictionary<SyntaxLanguage, SyntaxConfiguration?> _syntaxByLanguage = [];
 
-    public DatabaseConnectionVM Connection { get; }
-
-    public StatusBarVM Status { get; }
-
-    public UserPreferences Preferences { get; }
-
-    /// <summary>Session affichee, poussee par CodeEditorView ; null quand aucun onglet de script n'est affiche.</summary>
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ExecuteQueryCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SetLanguageCommand))]
-    public partial CodeEditorSession? Session { get; set; }
-
     /// <summary>Coloration, commentaires et autocompletion du langage de la session.</summary>
     [ObservableProperty]
     public partial SyntaxConfiguration? SyntaxConfiguration { get; private set; }
-
-    /// <summary>Commandes d'edition du CodeEditor, poussees par le controle (OneWayToSource).</summary>
-    [ObservableProperty]
-    public partial CodeEditorCommands? EditionCommands { get; set; }
 
     public CodeEditorVM(DatabaseConnectionVM connection,
         StatusBarVM status,
@@ -56,19 +38,21 @@ public partial class CodeEditorVM : ObservableObject
         ISyntaxConfigurationStore syntaxConfigurations,
         IConnectionStore connectionStore,
         IQueryExecutorResolver executors)
+        : base(connection, status, preferences)
     {
-        Connection = connection;
-        Status = status;
-        Preferences = preferences.Preferences;
         _syntaxConfigurations = syntaxConfigurations;
         _connectionStore = connectionStore;
         _executors = executors;
-
-        Connection.SelectedConnectionChanged += (_, _) => ExecuteQueryCommand.NotifyCanExecuteChanged();
     }
 
-    partial void OnSessionChanged(CodeEditorSession? value)
-        => RefreshSyntaxConfigurationAsync().FireAndForget("Coloration syntaxique indisponible pour cet onglet.");
+    protected override void OnSessionSwitched(CodeEditorSession? oldValue, CodeEditorSession? newValue)
+    {
+        ExecuteQueryCommand.NotifyCanExecuteChanged();
+        SetLanguageCommand.NotifyCanExecuteChanged();
+        RefreshSyntaxConfigurationAsync().FireAndForget("Coloration syntaxique indisponible pour cet onglet.");
+    }
+
+    protected override void OnConnectionChanged() => ExecuteQueryCommand.NotifyCanExecuteChanged();
 
     private async Task RefreshSyntaxConfigurationAsync()
     {

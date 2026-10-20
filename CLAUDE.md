@@ -71,6 +71,10 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 - Ne PAS accéder au conteneur via `Ioc` quand l'injection par constructeur est possible
 - Ne PAS écrire la chaîne de connexion complète en clair
 - Ne PAS ignorer async/await pour les accès disque, SecureStorage ou base
+- Ne PAS utiliser `ILogger` ni avaler une exception : `WeakReferenceMessenger.Default.LogError(ex, message)` (barre d'état + journal fichier)
+- Ne PAS lancer une tâche avec `_ = XAsync()` : `.FireAndForget("message")`
+- Ne PAS appeler `Shell.Current` / `DisplayAlertAsync` depuis un VM : `IDialogService`
+- Ne PAS indiquer de `Version` dans un `PackageReference` : tout est dans `src/Directory.Packages.props`
 - Ne PAS utiliser les API Xamarin.Forms — toujours MAUI
 - Ne PAS contourner `AbstractVM` / `AbstractPage` pour une nouvelle page
 - Ne PAS construire en C# l'arborescence visuelle d'un contrôle quand un `.xaml` peut la porter
@@ -95,7 +99,7 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 1. Modèles dans `Core/Models/[Domaine]/`, contrat partagé dans `Core/Services/[Domaine]/`, service dans `Services/[Domaine]/` (ou dans le projet de langage concerné) derrière une interface
 2. ViewModel dans `ViewModels/Pages/` (hérite de `AbstractVM`)
 3. Page XAML dans `Views/Pages/` (hérite de `AbstractPage`, expose `PAGE_ROUTE`)
-4. `ShellContent` dans `AppShell.xaml` PUIS `c:NavigationRailItem` dans le rail
+4. `ShellContent` dans `AppShell.xaml` (aujourd'hui une seule page : pas de volet de navigation)
 5. Marquer service, page et VM avec `[AutoRegister]` (`As = typeof(IService)` pour un service, `Lifetime = ServiceLifetime.Transient` si besoin)
 6. Compiler : `dotnet build src/SqlToolManagerMaui.slnx`
 
@@ -119,5 +123,5 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 
 ---
 
-**Dernière mise à jour** : 2026-10-10
+**Dernière mise à jour** : 2026-10-20
 **Source centralisée** : `.github/instructions.md`

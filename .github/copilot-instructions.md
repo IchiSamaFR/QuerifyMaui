@@ -22,4 +22,4 @@ Voir `.github/instructions.md` pour :
 
 ---
 
-**Dernière mise à jour** : 2026-09-20
+**Dernière mise à jour** : 2026-10-20
