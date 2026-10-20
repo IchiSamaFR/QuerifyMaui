@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Services.Contexts.Menus;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Services.Contexts;

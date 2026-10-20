@@ -3,7 +3,7 @@ using SqlToolManagerMaui.UI.Models.Keyboards;
 using SqlToolManagerMaui.UI.Views.Controls.Menus;
 using System.Windows.Input;
 
-namespace SqlToolManagerMaui.Services.Contexts;
+namespace SqlToolManagerMaui.Services.Contexts.Menus;
 
 public abstract class AbstractMenuContext : ObservableObject
 {
