@@ -40,6 +40,7 @@ public partial class DashboardVM
             return Task.CompletedTask;
 
         session.SnapshotValues();
+        session.CommitParameterValues();
         return LoadCardsAsync(session, page.Cards);
     }
 

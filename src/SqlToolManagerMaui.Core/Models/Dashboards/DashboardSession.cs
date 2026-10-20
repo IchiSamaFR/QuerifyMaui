@@ -186,6 +186,17 @@ public sealed partial class DashboardSession : AbstractSession
         }
     }
 
+    /// <summary>Les valeurs saisies valides deviennent celles du fichier (valeur d'ouverture) ; le fichier est reecrit si l'une a change.</summary>
+    public void CommitParameterValues()
+    {
+        var changed = false;
+        foreach (var parameter in Parameters)
+            changed |= parameter.TryCommitValue();
+
+        if (changed)
+            NotifyDefinitionChanged();
+    }
+
     /// <summary>Les valeurs saisies deviennent celles de l'etape courante (retour depuis une page suivante).</summary>
     public void SnapshotValues()
     {

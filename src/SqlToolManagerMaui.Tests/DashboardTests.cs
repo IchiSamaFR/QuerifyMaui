@@ -164,6 +164,30 @@ public class DashboardTests
     }
 
     [Fact]
+    public void CommittedParameterValuesAreWrittenAsDefaults()
+    {
+        var session = new DashboardSession(new EditorDocument("Dashboard", filePath: null, fileText: string.Empty));
+        var definition = DashboardSerializer.Deserialize(SHOWS_DASHBOARD);
+        session.Load(definition, SHOWS_DASHBOARD, error: null);
+        var changes = 0;
+        session.DefinitionChanged += (_, _) => changes++;
+
+        session.CommitParameterValues();
+        Assert.Equal(0, changes);
+
+        session.Parameters[0].Value = "abc";
+        session.CommitParameterValues();
+        Assert.Equal("1", definition.Parameters[0].Default);
+        Assert.Equal(0, changes);
+
+        session.Parameters[0].Value = "42";
+        session.CommitParameterValues();
+        Assert.Equal("42", definition.Parameters[0].Default);
+        Assert.Equal(1, changes);
+        Assert.Contains("\"default\": \"42\"", DashboardSerializer.Serialize(definition));
+    }
+
+    [Fact]
     public void ButtonRaisesNavigation()
     {
         var session = new DashboardSession(new EditorDocument("Dashboard", filePath: null, fileText: string.Empty));

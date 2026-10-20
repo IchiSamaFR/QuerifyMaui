@@ -62,6 +62,23 @@ public sealed partial class DashboardParameterValue : ObservableObject
         Value = definition.Default ?? string.Empty;
     }
 
+    /// <summary>
+    /// La saisie devient la valeur d'ouverture du fichier. Faux si elle est invalide ou deja enregistree ;
+    /// l'appelant signale alors (ou non) la modification de la definition.
+    /// </summary>
+    public bool TryCommitValue()
+    {
+        if (!Definition.TryConvert(Value, out _, out _))
+            return false;
+
+        var text = string.IsNullOrWhiteSpace(Value) ? null : Value;
+        if (string.Equals(Definition.Default, text, StringComparison.Ordinal))
+            return false;
+
+        Definition.Default = text;
+        return true;
+    }
+
     /// <summary>Valeur typee pour la requete ; faux (et <see cref="Error"/> renseigne) si la saisie est invalide.</summary>
     public bool TryGetQueryParameter(out QueryParameter parameter)
     {
