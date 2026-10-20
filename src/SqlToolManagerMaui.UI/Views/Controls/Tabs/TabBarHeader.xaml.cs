@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui;
+using System.Windows.Input;
 
 namespace SqlToolManagerMaui.UI.Views.Controls.Tabs;
 
@@ -19,8 +20,9 @@ public partial class TabBarHeader : ContentView
     [BindableProperty]
     public partial bool IsClosable { get; set; }
 
+    /// <summary>Execute avec l'element de l'onglet (BindingContext) au clic sur le bouton fermer.</summary>
     [BindableProperty]
-    public partial Action<object> CloseAction { get; set; }
+    public partial ICommand? CloseCommand { get; set; }
 
     public TabBarHeader()
     {
@@ -48,6 +50,7 @@ public partial class TabBarHeader : ContentView
 
     private void ImageButton_Clicked(object sender, EventArgs e)
     {
-        CloseAction?.Invoke(BindingContext);
+        if (CloseCommand?.CanExecute(BindingContext) == true)
+            CloseCommand.Execute(BindingContext);
     }
 }

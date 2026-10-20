@@ -48,6 +48,7 @@
                   SelectedItem="{Binding SelectedSession}"
                   ContentTemplate="{StaticResource DocumentTemplateSelector}"
                   IsClosable="True"
+                  CloseCommand="{Binding CloseCommand}"
                   TitleMemberPath="Document.Title"
                   ToolTipMemberPath="Document.PathLabel">
         </v:TabBar>

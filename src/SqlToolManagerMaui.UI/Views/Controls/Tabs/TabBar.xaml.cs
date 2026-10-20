@@ -51,12 +51,24 @@ public partial class TabBar : ContentView
     [BindableProperty]
     public partial bool IsClosable { get; set; } = true;
 
+    /// <summary>
+    /// Fermeture geree par le consommateur (parametre : l'element de l'onglet), qui retire alors lui-meme l'element.
+    /// Sans commande, la TabBar retire l'element de <see cref="ItemsSource"/> (qui doit etre une <see cref="IList"/>).
+    /// </summary>
+    [BindableProperty]
+    public partial ICommand? CloseCommand { get; set; }
+
     private readonly Dictionary<DataTemplate, View> _templatedContents = new();
 
+    /// <summary>Commande transmise aux en-tetes : aiguille vers <see cref="CloseCommand"/> ou la fermeture interne.</summary>
+    public ICommand CloseTabCommand { get; }
     #endregion
 
     public TabBar()
     {
+        // Avant InitializeComponent : les bindings des en-tetes doivent trouver la commande deja creee.
+        CloseTabCommand = new Command<object>(OnCloseTabRequested);
+
         InitializeComponent();
     }
 
@@ -88,5 +100,46 @@ public partial class TabBar : ContentView
             content.BindingContext = SelectedItem;
 
         return content;
+    }
+
+    private void OnCloseTabRequested(object? tab)
+    {
+        if (tab is null || !IsClosable)
+            return;
+
+        if (CloseCommand is not null)
+        {
+            if (CloseCommand.CanExecute(tab))
+                CloseCommand.Execute(tab);
+            return;
+        }
+
+        CloseTab(tab);
+    }
+
+    private void CloseTab(object? tab)
+    {
+        if (tab is null || !IsClosable)
+            return;
+
+        if (ItemsSource is not IList list)
+            throw new NotSupportedException(
+                $"ItemsSource must be an IList, not {ItemsSource?.GetType().Name ?? "null"}.");
+
+        var index = list.IndexOf(tab);
+        if (index < 0)
+            return;
+
+        var wasSelected = ReferenceEquals(SelectedItem, tab);
+
+        list.Remove(tab);
+
+        // Si l'onglet fermé était sélectionné, sélectionner le voisin (ou rien s'il ne reste aucun onglet).
+        if (wasSelected)
+        {
+            SelectedItem = list.Count == 0
+                ? null!
+                : list[Math.Min(index, list.Count - 1)]!;
+        }
     }
 }

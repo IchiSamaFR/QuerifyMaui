@@ -6,7 +6,7 @@
              x:Name="Root">
     <v:TabBar.ItemTemplate>
         <DataTemplate>
-            <v:TabBarHeader CloseAction="{Binding CloseTabAction, Source={x:Reference Root}}"
+            <v:TabBarHeader CloseCommand="{Binding CloseTabCommand, Source={x:Reference Root}}"
                             TitleMemberPath="{Binding TitleMemberPath, Source={x:Reference Root}}"
                             ToolTipMemberPath="{Binding ToolTipMemberPath, Source={x:Reference Root}}"
                             IsClosable="{Binding IsClosable, Source={x:Reference Root}}" />
