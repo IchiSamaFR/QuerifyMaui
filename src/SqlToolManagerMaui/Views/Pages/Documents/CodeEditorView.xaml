@@ -29,8 +29,7 @@
             <inp:PickerField ItemsSource="{Binding Connection.Connections}"
                              SelectedItem="{Binding Connection.SelectedConnection, Mode=TwoWay}"
                              DisplayMemberPath="Name"
-                             WidthRequest="220"
-                             FontSize="{StaticResource FontSize_Caption}" />
+                             WidthRequest="220" />
         </HorizontalStackLayout>
 
         <Grid Grid.Row="1"

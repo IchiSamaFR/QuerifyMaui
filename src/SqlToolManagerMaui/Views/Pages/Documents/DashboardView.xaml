@@ -32,6 +32,8 @@
                              WidthRequest="220"
                              FontSize="{StaticResource FontSize_Caption}" />
 
+            <v:Separator />
+            
             <inp:PickerField ItemsSource="{x:Static vm:DashboardVM.Modes}"
                              SelectedKey="{Binding SelectedModeKey, Mode=TwoWay}"
                              WidthRequest="140"
