@@ -23,8 +23,10 @@
                   ColumnDefinitions="*,Auto"
                   ColumnSpacing="16">
                 <!-- Sans habillage natif des elements : le visuel de selection revient aux en-tetes -->
-                <inp:BorderlessCollectionView SelectedItem="{Binding SelectedItem, Source={x:Reference Root}}"
+                <inp:BorderlessCollectionView x:Name="TabsList"
+                                              SelectedItem="{Binding SelectedItem, Source={x:Reference Root}}"
                                               ItemsSource="{Binding ItemsSource, Source={x:Reference Root}}"
+                                              CanReorderItems="{Binding CanReorderItems, Source={x:Reference Root}}"
                                               ItemTemplate="{Binding ItemTemplate, Source={x:Reference Root}}"
                                               SelectionMode="Single"
                                               HorizontalScrollBarVisibility="Never">

@@ -17,8 +17,12 @@ public partial class TabBar : ContentView
     public partial IEnumerable ItemsSource { get; set; }
 
     /// <summary>Element de <see cref="ItemsSource"/>, ou le <see cref="TabBarItem"/> en mode <see cref="Items"/>.</summary>
-    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnSelectedItemChanged))]
+    [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnSelectedItemChanged), CoerceValueMethodName = nameof(CoerceSelectedItem))]
     public partial object SelectedItem { get; set; }
+
+    /// <summary>Onglets reordonnables par glisser-deposer (<see cref="ItemsSource"/> doit etre une collection observable).</summary>
+    [BindableProperty]
+    public partial bool CanReorderItems { get; set; }
 
     [BindableProperty]
     public partial string TitleMemberPath { get; set; } = string.Empty;
@@ -71,6 +75,20 @@ public partial class TabBar : ContentView
         CloseTabCommand = new Command<object>(OnCloseTabRequested);
 
         InitializeComponent();
+    }
+
+    /// <summary>
+    /// La liste native perd sa selection quand un onglet est deplace (ou au Ctrl+clic) : tant que l'onglet
+    /// selectionne existe encore, il le reste, et la liste est resynchronisee apres coup.
+    /// </summary>
+    private static object CoerceSelectedItem(BindableObject bindable, object value)
+    {
+        var tabBar = (TabBar)bindable;
+        if (value is not null || tabBar.SelectedItem is not { } current || tabBar.ItemsSource?.Cast<object>().Contains(current) != true)
+            return value!;
+
+        tabBar.Dispatcher.Dispatch(() => tabBar.TabsList.SelectedItem = tabBar.SelectedItem);
+        return current;
     }
 
     private static void OnSelectedItemChanged(BindableObject bindable, object oldValue, object newValue)

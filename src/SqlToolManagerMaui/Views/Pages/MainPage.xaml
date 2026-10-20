@@ -152,6 +152,7 @@
                   SelectedItem="{Binding SelectedSession}"
                   ContentSelector="{StaticResource DocumentViewSelector}"
                   IsClosable="True"
+                  CanReorderItems="True"
                   CloseCommand="{Binding CloseCommand}"
                   TitleMemberPath="Document.Title"
                   ToolTipMemberPath="Document.PathLabel">
