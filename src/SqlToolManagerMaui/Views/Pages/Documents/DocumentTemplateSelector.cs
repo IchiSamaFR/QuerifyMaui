@@ -1,8 +1,8 @@
-﻿using SqlToolManagerMaui.ViewModels.Pages.Documents;
+﻿using SqlToolManagerMaui.Core.Models.Dashboards;
 
 namespace SqlToolManagerMaui.Views.Pages.Documents;
 
-/// <summary>Choisit la vue d'un onglet selon le type de son ViewModel.</summary>
+/// <summary>Choisit la vue d'un onglet selon le type de sa session.</summary>
 public class DocumentTemplateSelector : DataTemplateSelector
 {
     public DataTemplate? CodeEditorTemplate { get; set; }
@@ -10,12 +10,6 @@ public class DocumentTemplateSelector : DataTemplateSelector
     public DataTemplate? DashboardTemplate { get; set; }
 
     protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
-    {
-        if (item is DashboardVM)
-            return DashboardTemplate ?? throw new InvalidOperationException($"Gabarit non renseigne pour {item.GetType().Name}.");
-        if (item is CodeEditorVM)
-            return CodeEditorTemplate ?? throw new InvalidOperationException($"Gabarit non renseigne pour {item.GetType().Name}.");
-        
-        throw new InvalidOperationException($"Gabarit non renseigne pour {item.GetType().Name}.");
-    }
+        => (item is DashboardSession ? DashboardTemplate : CodeEditorTemplate)
+           ?? throw new InvalidOperationException($"Gabarit non renseigne pour {item.GetType().Name}.");
 }

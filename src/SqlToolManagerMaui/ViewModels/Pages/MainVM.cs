@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Queries;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
@@ -13,21 +14,21 @@ using System.Collections.ObjectModel;
 namespace SqlToolManagerMaui.ViewModels.Pages;
 
 /// <summary>
-/// Page principale : les onglets ouverts et le document selectionne. Chaque onglet est un
-/// <see cref="DocumentVM"/> autonome, affiche par la vue que choisit le DataTemplateSelector de la page.
+/// Page principale : les onglets ouverts (une <see cref="AbstractSession"/> chacun) et la session selectionnee.
+/// La vue de la session est choisie par le DataTemplateSelector de la page et lui transmet la session.
 /// </summary>
 [AutoRegister]
 public partial class MainVM : AbstractVM
 {
     private readonly IEditorFileService _files;
     private readonly ISyntaxConfigurationStore _syntaxConfigurations;
-    private readonly DocumentVMFactory _documentFactory;
+    private readonly DashboardVM _dashboard;
     private readonly DatabaseConnectionVM _connection;
     private readonly StatusBarVM _status;
 
     public MainVM(IEditorFileService files,
         ISyntaxConfigurationStore syntaxConfigurations,
-        DocumentVMFactory documentFactory,
+        DashboardVM dashboard,
         DatabaseConnectionVM connection,
         StatusBarVM status,
         EditorPreferencesVM preferences,
@@ -35,7 +36,7 @@ public partial class MainVM : AbstractVM
     {
         _files = files;
         _syntaxConfigurations = syntaxConfigurations;
-        _documentFactory = documentFactory;
+        _dashboard = dashboard;
         _connection = connection;
         _status = status;
         Preferences = preferences;
@@ -46,10 +47,10 @@ public partial class MainVM : AbstractVM
     }
 
     /// <summary>Onglets ouverts, dans l'ordre d'ouverture.</summary>
-    public ObservableCollection<DocumentVM> Documents { get; } = new();
+    public ObservableCollection<AbstractSession> Sessions { get; } = new();
 
     [ObservableProperty]
-    public partial DocumentVM? SelectedDocument { get; set; }
+    public partial AbstractSession? SelectedSession { get; set; }
 
     /// <summary>Volet de l'explorateur d'objets (disposition de la page).</summary>
     public EditorPreferencesVM Preferences { get; }
@@ -61,35 +62,29 @@ public partial class MainVM : AbstractVM
         await Preferences.LoadAsync(LifetimeToken);
         await _connection.RefreshAsync(LifetimeToken);
 
-        if (Documents.Count == 0)
+        if (Sessions.Count == 0)
             New();
     }
 
-    partial void OnSelectedDocumentChanged(DocumentVM? oldValue, DocumentVM? newValue)
-    {
-        if (oldValue is not null)
-            oldValue.IsActive = false;
-
-        if (newValue is not null)
-            newValue.IsActive = true;
-
-        MainMenuBar.AttachDocument(newValue);
-    }
+    partial void OnSelectedSessionChanged(AbstractSession? value) => MainMenuBar.AttachSession(value);
 
     /// <summary>Ajoute l'onglet et le selectionne.</summary>
-    private void Add(DocumentVM document)
+    private void Add(AbstractSession session)
     {
-        Documents.Add(document);
-        SelectedDocument = document;
-        document.OnOpened();
+        Sessions.Add(session);
+        SelectedSession = session;
     }
 
     /// <summary>La requete de l'explorateur part dans l'onglet de script courant, ou dans un nouveau.</summary>
     private void InsertQuery(InsertQueryMessage message)
     {
-        if (SelectedDocument is not CodeEditorVM)
+        if (SelectedSession is not CodeEditorSession)
             New();
 
-        (SelectedDocument as CodeEditorVM)?.InsertQuery(message);
+        if (SelectedSession is not CodeEditorSession session)
+            return;
+
+        _connection.Select(message.Connection.Id);
+        session.Document.InsertBlock(message.Query);
     }
 }

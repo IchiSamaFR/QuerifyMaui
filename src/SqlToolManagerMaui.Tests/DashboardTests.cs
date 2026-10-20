@@ -1,5 +1,6 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Models.Dashboards;
+using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Queries;
 using SqlToolManagerMaui.Databases.Dashboards;
 using Xunit;
@@ -112,7 +113,7 @@ public class DashboardTests
     [Fact]
     public void GridGrowsWithCardsAndDesigner()
     {
-        var session = new DashboardSession();
+        var session = new DashboardSession(new EditorDocument("Dashboard", filePath: null, fileText: string.Empty));
         var definition = DashboardSerializer.Deserialize(SHOWS_DASHBOARD);
         session.Load(definition, SHOWS_DASHBOARD, error: null);
         session.Open(definition.Pages[0], asRoot: true);
@@ -121,7 +122,7 @@ public class DashboardTests
         Assert.Equal(8, session.RowCount);
         Assert.Empty(session.Cells);
 
-        session.IsDesigning = true;
+        session.Mode = DashboardMode.Design;
         Assert.Equal(9, session.RowCount);
         Assert.Equal(9 * 12, session.Cells.Count);
     }
@@ -129,7 +130,7 @@ public class DashboardTests
     [Fact]
     public void DesignerChangesWriteDefinition()
     {
-        var session = new DashboardSession();
+        var session = new DashboardSession(new EditorDocument("Dashboard", filePath: null, fileText: string.Empty));
         var definition = DashboardSerializer.Deserialize(SHOWS_DASHBOARD);
         session.Load(definition, SHOWS_DASHBOARD, error: null);
         var page = session.Open(definition.Pages[0], asRoot: true);
@@ -149,7 +150,7 @@ public class DashboardTests
     [Fact]
     public void BackRestoresParameterValues()
     {
-        var session = new DashboardSession();
+        var session = new DashboardSession(new EditorDocument("Dashboard", filePath: null, fileText: string.Empty));
         var definition = DashboardSerializer.Deserialize(SHOWS_DASHBOARD);
         session.Load(definition, SHOWS_DASHBOARD, error: null);
         var home = session.Open(definition.Pages[0], asRoot: true);
@@ -165,7 +166,7 @@ public class DashboardTests
     [Fact]
     public void ButtonRaisesNavigation()
     {
-        var session = new DashboardSession();
+        var session = new DashboardSession(new EditorDocument("Dashboard", filePath: null, fileText: string.Empty));
         var definition = DashboardSerializer.Deserialize(SHOWS_DASHBOARD);
         session.Load(definition, SHOWS_DASHBOARD, error: null);
         var page = session.Open(definition.Pages[0], asRoot: true);

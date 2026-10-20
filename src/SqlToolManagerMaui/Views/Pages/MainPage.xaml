@@ -5,16 +5,16 @@
                 x:DataType="vm:MainVM"
                 Shell.NavBarIsVisible="True">
     <v:AbstractPage.Resources>
-        <!-- Une vue par type de document ; la TabBar reutilise la meme vue d'un onglet a l'autre -->
+        <!-- Une vue par type de session ; la TabBar reutilise la meme vue d'un onglet a l'autre et la vue transmet la session a son VM -->
         <v:DocumentTemplateSelector x:Key="DocumentTemplateSelector">
             <v:DocumentTemplateSelector.CodeEditorTemplate>
-                <DataTemplate x:DataType="vm:CodeEditorVM">
-                    <v:CodeEditorView />
+                <DataTemplate x:DataType="m:CodeEditorSession">
+                    <v:CodeEditorView Session="{Binding .}" />
                 </DataTemplate>
             </v:DocumentTemplateSelector.CodeEditorTemplate>
             <v:DocumentTemplateSelector.DashboardTemplate>
-                <DataTemplate x:DataType="vm:DashboardVM">
-                    <v:DashboardView />
+                <DataTemplate x:DataType="m:DashboardSession">
+                    <v:DashboardView Session="{Binding .}" />
                 </DataTemplate>
             </v:DocumentTemplateSelector.DashboardTemplate>
         </v:DocumentTemplateSelector>
@@ -42,14 +42,14 @@
         <v:GridSplitter Grid.Column="1"
                         IsVisible="{Binding Preferences.IsObjectExplorerOpen}" />
 
-        <!-- ============ Onglets : le contenu suit le document selectionne ============ -->
+        <!-- ============ Onglets : le contenu suit la session selectionnee ============ -->
         <v:TabBar Grid.Column="2"
-                  ItemsSource="{Binding Documents}"
-                  SelectedItem="{Binding SelectedDocument}"
+                  ItemsSource="{Binding Sessions}"
+                  SelectedItem="{Binding SelectedSession}"
                   CloseCommand="{Binding CloseCommand}"
                   ContentTemplate="{StaticResource DocumentTemplateSelector}">
             <v:TabBar.ItemTemplate>
-                <DataTemplate x:DataType="vm:DocumentVM">
+                <DataTemplate x:DataType="m:AbstractSession">
                     <v:TabBarItem Header="{Binding Document.FileName}"
                                   ToolTip="{Binding Document.PathLabel}"
                                   IsDirty="{Binding Document.IsDirty}" />

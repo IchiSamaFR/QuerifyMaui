@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Core.Models.Dashboards;
+using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Services.Contexts;
 using SqlToolManagerMaui.ViewModels.Pages;
 using SqlToolManagerMaui.ViewModels.Pages.Documents;
@@ -11,13 +13,15 @@ namespace SqlToolManagerMaui.ViewModels.Controls.Menus;
 
 /// <summary>
 /// Barre de menus de la page principale. Les menus Edition, Requete et Langage suivent
-/// l'onglet selectionne (<see cref="AttachDocument"/>).
+/// la session selectionnee (<see cref="AttachSession"/>) et le VM qui l'affiche.
 /// </summary>
 [AutoRegister]
 public partial class MainMenuBarVM : ObservableObject
 {
     private readonly EditorPreferencesVM _preferences;
-    private DocumentVM? _document;
+    private readonly CodeEditorVM _codeEditor;
+    private readonly DashboardVM _dashboard;
+    private AbstractSession? _session;
 
     public FileMenuContext FileMenuContext { get; }
     public EditMenuContext EditMenuContext { get; }
@@ -32,13 +36,17 @@ public partial class MainMenuBarVM : ObservableObject
         ViewMenuContext viewMenuContext,
         ExecuteMenuContext executeMenuContext,
         EditorPreferencesVM preferences,
-        DatabaseConnectionVM connection)
+        DatabaseConnectionVM connection,
+        CodeEditorVM codeEditor,
+        DashboardVM dashboard)
     {
         FileMenuContext = fileMenuContext;
         EditMenuContext = editMenuContext;
         ViewMenuContext = viewMenuContext;
         ExecuteMenuContext = executeMenuContext;
         _preferences = preferences;
+        _codeEditor = codeEditor;
+        _dashboard = dashboard;
 
         MenuItems = new List<MenuBarItem>()
         {
@@ -50,6 +58,10 @@ public partial class MainMenuBarVM : ObservableObject
 
         ExecuteMenuContext.DisconnectCommand = connection.DisconnectCommand;
         AttachPreferences();
+
+        // Les commandes d'edition arrivent du CodeEditor de chaque vue apres sa creation.
+        _codeEditor.PropertyChanged += OnEditorVMPropertyChanged;
+        _dashboard.PropertyChanged += OnEditorVMPropertyChanged;
     }
 
     /// <summary>Commandes fichier de la page ; appele une fois, par MainVM.</summary>
@@ -65,41 +77,61 @@ public partial class MainMenuBarVM : ObservableObject
         menu.CloseFileCommand = main.CloseActiveCommand;
     }
 
-    /// <summary>Branche les menus Edition, Requete et Langage sur l'onglet selectionne.</summary>
-    public void AttachDocument(DocumentVM? document)
+    /// <summary>Branche les menus Edition, Requete et Langage sur la session selectionnee.</summary>
+    public void AttachSession(AbstractSession? session)
     {
-        if (_document is not null)
-            _document.PropertyChanged -= OnDocumentPropertyChanged;
+        if (_session is not null)
+            _session.Document.PropertyChanged -= OnDocumentPropertyChanged;
 
-        _document = document;
+        _session = session;
 
-        if (document is not null)
-            document.PropertyChanged += OnDocumentPropertyChanged;
+        if (session is not null)
+            session.Document.PropertyChanged += OnDocumentPropertyChanged;
 
-        ExecuteMenuContext.ExecuteCommand = document?.ExecuteCommand;
-        ExecuteMenuContext.CancelCommand = document?.CancelCommand;
-        ViewMenuContext.SetLanguageCommand = (document as CodeEditorVM)?.SetLanguageCommand;
+        switch (session)
+        {
+            case CodeEditorSession:
+                ExecuteMenuContext.ExecuteCommand = _codeEditor.ExecuteQueryCommand;
+                ExecuteMenuContext.CancelCommand = _codeEditor.ExecuteQueryCancelCommand;
+                ViewMenuContext.SetLanguageCommand = _codeEditor.SetLanguageCommand;
+                break;
+            case DashboardSession:
+                ExecuteMenuContext.ExecuteCommand = _dashboard.ApplyParametersCommand;
+                ExecuteMenuContext.CancelCommand = _dashboard.CancelLoadingCommand;
+                ViewMenuContext.SetLanguageCommand = null;
+                break;
+            default:
+                ExecuteMenuContext.ExecuteCommand = null;
+                ExecuteMenuContext.CancelCommand = null;
+                ViewMenuContext.SetLanguageCommand = null;
+                break;
+        }
 
         RefreshEditMenu();
         RefreshLanguage();
     }
 
+    private void OnEditorVMPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(CodeEditorVM.EditionCommands))
+            RefreshEditMenu();
+    }
+
     private void OnDocumentPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        switch (e.PropertyName)
-        {
-            case nameof(DocumentVM.EditionCommands):
-                RefreshEditMenu();
-                break;
-            case nameof(CodeEditorVM.Language):
-                RefreshLanguage();
-                break;
-        }
+        if (e.PropertyName == nameof(EditorDocument.Language))
+            RefreshLanguage();
     }
 
     private void RefreshEditMenu()
     {
-        var commands = _document?.EditionCommands;
+        var commands = _session switch
+        {
+            CodeEditorSession => _codeEditor.EditionCommands,
+            DashboardSession => _dashboard.EditionCommands,
+            _ => null,
+        };
+
         var menu = EditMenuContext;
         menu.UndoCommand = commands?.Undo;
         menu.RedoCommand = commands?.Redo;
@@ -110,7 +142,7 @@ public partial class MainMenuBarVM : ObservableObject
     }
 
     private void RefreshLanguage()
-        => ViewMenuContext.Language = (_document as CodeEditorVM)?.Language ?? SyntaxLanguage.Sql;
+        => ViewMenuContext.Language = _session is CodeEditorSession session ? session.Document.Language : SyntaxLanguage.Sql;
 
     private void AttachPreferences()
     {

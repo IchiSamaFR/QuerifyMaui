@@ -1,25 +1,27 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CodeEdit.Maui;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
-using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Databases.Dashboards;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.ViewModels.Pages.Shared;
 using System.Globalization;
-using System.Windows.Input;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Documents;
 
 /// <summary>
-/// Onglet dashboard (.schx). Le JSON du fichier reste la source : le concepteur ecrit dans
-/// la definition puis le texte est reserialise ; la vue Source est relue au retour.
+/// Onglets dashboard (.schx) : un seul VM pour tous, branche par la vue sur la session affichee.
+/// Le JSON du fichier reste la source : le concepteur ecrit dans la definition puis le texte est
+/// reserialise ; la vue Source est relue au retour.
 /// </summary>
-public partial class DashboardVM : DocumentVM
+[AutoRegister]
+public partial class DashboardVM : ObservableObject
 {
     /// <summary>Lignes lues par carte (tableau ou graphique).</summary>
     private const int CARD_MAX_ROWS = 1000;
@@ -30,32 +32,24 @@ public partial class DashboardVM : DocumentVM
     private readonly IDashboardDataService _dashboardData;
     private readonly IConnectionStore _connectionStore;
 
-    private CancellationTokenSource? _cancellation;
+    /// <summary>Sessions dont la definition a change depuis la derniere reecriture du texte.</summary>
+    private readonly HashSet<DashboardSession> _pendingWrites = [];
     private CancellationTokenSource? _writeDelay;
-    private bool _hasPendingWrite;
 
-    /// <summary>Lectures en cours : une nouvelle lecture peut demarrer avant la fin de l'annulation de la precedente.</summary>
-    private int _activeLoads;
-
-    public DashboardVM(EditorDocument document,
-        DashboardMode mode,
-        DatabaseConnectionVM connection,
+    public DashboardVM(DatabaseConnectionVM connection,
         StatusBarVM status,
         EditorPreferencesVM preferences,
         ISyntaxConfigurationStore syntaxConfigurations,
         IDashboardDataService dashboardData,
         IConnectionStore connectionStore)
-        : base(document, connection, status, preferences)
     {
+        Connection = connection;
+        Status = status;
+        Preferences = preferences;
         _dashboardData = dashboardData;
         _connectionStore = connectionStore;
 
-        Session.DefinitionChanged += OnDefinitionChanged;
-        Session.NavigationRequested += OnNavigationRequested;
-
-        Mode = mode;
-        Load();
-
+        Connection.SelectedConnectionChanged += (_, _) => OnConnectionChanged();
         _ = LoadSqlSyntaxConfigurationAsync(syntaxConfigurations);
     }
 
@@ -67,113 +61,132 @@ public partial class DashboardVM : DocumentVM
         [DashboardMode.Source] = "Source",
     };
 
-    public DashboardSession Session { get; } = new();
+    public DatabaseConnectionVM Connection { get; }
+
+    public StatusBarVM Status { get; }
+
+    public EditorPreferencesVM Preferences { get; }
+
+    /// <summary>Session affichee, poussee par DashboardView ; null quand aucun dashboard n'est affiche.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedModeKey))]
+    public partial DashboardSession? Session { get; set; }
 
     /// <summary>Coloration des requetes des cartes dans le concepteur.</summary>
     [ObservableProperty]
     public partial SyntaxConfiguration? SqlSyntaxConfiguration { get; private set; }
 
+    /// <summary>Commandes d'edition du CodeEditor de la vue Source, poussees par le controle (OneWayToSource).</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectedModeKey), nameof(IsSourceMode), nameof(IsGridMode), nameof(IsDesigning))]
-    public partial DashboardMode Mode { get; set; }
+    public partial CodeEditorCommands? EditionCommands { get; set; }
 
-    /// <summary>Cle de la liste deroulante (object) : une valeur nulle ou inconnue est ignoree.</summary>
+    /// <summary>Cle de la liste deroulante des vues (object) : une valeur nulle ou inconnue est ignoree.</summary>
     public object? SelectedModeKey
     {
-        get => Mode;
+        get => Session?.Mode;
         set
         {
             if (value is DashboardMode mode)
-                Mode = mode;
+                SetMode(mode);
             else
                 OnPropertyChanged();
         }
     }
 
-    public bool IsSourceMode => Mode == DashboardMode.Source;
-
-    public bool IsGridMode => Mode != DashboardMode.Source;
-
-    public bool IsDesigning => Mode == DashboardMode.Design;
-
-    /// <summary>Vrai tant qu'une lecture de cartes est en cours (le bouton Arreter n'est actif que pendant).</summary>
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CancelLoadingCommand))]
-    public partial bool IsLoading { get; private set; }
-
-    public override IAsyncRelayCommand ExecuteCommand => ApplyParametersCommand;
-
-    public override ICommand CancelCommand => CancelLoadingCommand;
-
-    public override string DefaultExtension => DashboardSerializer.FILE_EXTENSION;
-
     private async Task LoadSqlSyntaxConfigurationAsync(ISyntaxConfigurationStore syntaxConfigurations)
+        => SqlSyntaxConfiguration = await syntaxConfigurations.GetAsync(SyntaxLanguage.Sql);
+
+    partial void OnSessionChanged(DashboardSession? oldValue, DashboardSession? newValue)
     {
-        try
+        // Les modifications de l'onglet quitte sont ecrites tout de suite.
+        FlushPendingWrites();
+
+        if (oldValue is not null)
         {
-            SqlSyntaxConfiguration = await syntaxConfigurations.GetAsync(SyntaxLanguage.Sql, LifetimeToken);
+            oldValue.DefinitionChanged -= OnDefinitionChanged;
+            oldValue.NavigationRequested -= OnNavigationRequested;
+            oldValue.PropertyChanged -= OnSessionPropertyChanged;
         }
-        catch (OperationCanceledException)
+
+        if (newValue is not null)
         {
+            newValue.DefinitionChanged += OnDefinitionChanged;
+            newValue.NavigationRequested += OnNavigationRequested;
+            newValue.PropertyChanged += OnSessionPropertyChanged;
+
+            // Premier affichage : lecture du fichier et connexion qu'il nomme.
+            if (newValue.LoadedText is null)
+                Open(newValue);
         }
+
+        RefreshCanExecute();
     }
 
-    /// <summary>Propose la connexion nommee par le fichier.</summary>
-    public override void OnOpened()
+    private void OnSessionPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (Session.Definition?.Connection is { } name)
+        if (e.PropertyName is nameof(DashboardSession.Current) or nameof(DashboardSession.IsLoading))
+            RefreshCanExecute();
+    }
+
+    private void Open(DashboardSession session)
+    {
+        Load(session);
+
+        if (session.Definition?.Connection is { } name)
             Connection.SelectByName(name);
 
-        Status.Set(Session.HasError
-            ? $"{Document.FileName} : fichier invalide, corrigez-le dans la vue Source."
-            : $"{Document.FileName} ouvert.", isError: Session.HasError);
+        if (session.HasError)
+            Status.Set($"{session.Document.FileName} : fichier invalide, corrigez-le dans la vue Source.", isError: true);
     }
 
     /// <summary>Les cartes du dashboard affiche suivent la connexion.</summary>
-    protected override void OnConnectionChanged()
+    private void OnConnectionChanged()
     {
         RefreshCanExecute();
 
-        if (IsActive && Session.Current is { } page)
-            _ = LoadCardsAsync(page.Cards);
+        if (Session is { Current: { } page } session)
+            _ = LoadCardsAsync(session, page.Cards);
     }
 
     /// <summary>Relit le fichier s'il a change depuis la derniere lecture ou ecriture, puis ouvre la page de depart.</summary>
-    private void Load()
+    private void Load(DashboardSession session)
     {
-        if (string.Equals(Session.LoadedText, Document.EditorText, StringComparison.Ordinal))
+        var text = session.Document.EditorText;
+        if (string.Equals(session.LoadedText, text, StringComparison.Ordinal))
             return;
 
         DashboardDefinition? definition = null;
         string? error = null;
         try
         {
-            definition = DashboardSerializer.Deserialize(Document.EditorText);
+            definition = DashboardSerializer.Deserialize(text);
         }
         catch (FormatException ex)
         {
             error = ex.Message;
         }
 
-        Session.Load(definition, Document.EditorText, error);
-        Session.IsDesigning = IsDesigning;
+        session.Load(definition, text, error);
 
         if (definition is not null)
-            OpenPage(definition.FindPage(definition.StartPage) ?? definition.Pages[0], asRoot: true);
+            OpenPage(session, definition.FindPage(definition.StartPage) ?? definition.Pages[0], asRoot: true);
     }
 
     // ---------- Bascule Dashboard / Concepteur / Source ----------
 
-    partial void OnModeChanged(DashboardMode value)
+    private void SetMode(DashboardMode mode)
     {
+        if (Session is not { } session || session.Mode == mode)
+            return;
+
         // La vue Source doit montrer le JSON a jour, et Load comparer au dernier texte ecrit.
         FlushPendingWrites();
-
-        Session.IsDesigning = value == DashboardMode.Design;
+        session.Mode = mode;
+        OnPropertyChanged(nameof(SelectedModeKey));
 
         // Retour depuis la vue Source : le JSON a pu etre modifie a la main.
-        if (value != DashboardMode.Source)
-            Load();
+        if (mode != DashboardMode.Source)
+            Load(session);
     }
 
     /// <summary>
@@ -182,7 +195,10 @@ public partial class DashboardVM : DocumentVM
     /// </summary>
     private void OnDefinitionChanged(object? sender, EventArgs e)
     {
-        _hasPendingWrite = true;
+        if (sender is not DashboardSession session)
+            return;
+
+        _pendingWrites.Add(session);
 
         CancelWriteDelay();
         _writeDelay = new CancellationTokenSource();
@@ -203,20 +219,22 @@ public partial class DashboardVM : DocumentVM
         FlushPendingWrites();
     }
 
-    public override void PrepareSave() => FlushPendingWrites();
-
-    /// <summary>Reecrit tout de suite le texte si le concepteur l'a modifie.</summary>
-    private void FlushPendingWrites()
+    /// <summary>Reecrit tout de suite le texte des sessions modifiees ; appele avant un enregistrement ou un changement de vue.</summary>
+    public void FlushPendingWrites()
     {
         CancelWriteDelay();
 
-        if (!_hasPendingWrite || Session.Definition is not { } definition)
-            return;
+        foreach (var session in _pendingWrites)
+        {
+            if (session.Definition is not { } definition)
+                continue;
 
-        _hasPendingWrite = false;
-        var text = DashboardSerializer.Serialize(definition);
-        Session.MarkWritten(text);
-        Document.EditorText = text;
+            var text = DashboardSerializer.Serialize(definition);
+            session.MarkWritten(text);
+            session.Document.EditorText = text;
+        }
+
+        _pendingWrites.Clear();
     }
 
     private void CancelWriteDelay()
@@ -234,41 +252,40 @@ public partial class DashboardVM : DocumentVM
         CancelLoadingCommand.NotifyCanExecuteChanged();
     }
 
-    private bool CanApplyParameters() => Connection.IsConnected && Session.Current is not null;
+    private bool CanApplyParameters() => Connection.IsConnected && Session?.Current is not null;
 
-    private bool CanCancelLoading() => Connection.IsConnected && IsLoading;
+    private bool CanCancelLoading() => Connection.IsConnected && Session?.IsLoading == true;
 
     [RelayCommand(CanExecute = nameof(CanApplyParameters))]
     private Task ApplyParametersAsync()
     {
-        if (Session.Current is not { } page)
+        if (Session is not { Current: { } page } session)
             return Task.CompletedTask;
 
-        Session.SnapshotValues();
-        return LoadCardsAsync(page.Cards);
+        session.SnapshotValues();
+        return LoadCardsAsync(session, page.Cards);
     }
 
     /// <summary>Interrompt la lecture des cartes en cours : elles gardent leur dernier resultat.</summary>
     [RelayCommand(CanExecute = nameof(CanCancelLoading))]
-    private void CancelLoading() => _cancellation?.Cancel();
+    private void CancelLoading() => Session?.CancelLoad();
 
     [RelayCommand]
-    private void Back() => Session.Back();
+    private void Back() => Session?.Back();
 
     /// <summary>Les etapes du fil d'Ariane gardent leurs resultats : rien n'est relu.</summary>
     [RelayCommand]
     private void GoToStep(DashboardPageState? step)
     {
         if (step is not null)
-            Session.GoTo(step);
+            Session?.GoTo(step);
     }
 
     /// <summary>Bouton, ou ligne cliquee : les parametres prennent les valeurs prevues et la page cible s'ouvre.</summary>
     private void OnNavigationRequested(object? sender, DashboardNavigationRequest request)
     {
         // Pas de navigation dans le concepteur : un clic y sert a selectionner.
-        if (Session.IsDesigning
-            || Session.Definition is not { } definition
+        if (sender is not DashboardSession { IsDesigning: false, Definition: { } definition } session
             || request.Card.Definition.Navigation is not { } navigation)
         {
             return;
@@ -280,51 +297,42 @@ public partial class DashboardVM : DocumentVM
             return;
         }
 
-        Session.SnapshotValues();
-        Session.ApplyValues(navigation.Resolve(Session.CurrentValues(), request.Card.Result, request.Row));
-        OpenPage(page, asRoot: false);
+        session.SnapshotValues();
+        session.ApplyValues(navigation.Resolve(session.CurrentValues(), request.Card.Result, request.Row));
+        OpenPage(session, page, asRoot: false);
     }
 
-    private void OpenPage(DashboardPageDefinition page, bool asRoot)
+    private void OpenPage(DashboardSession session, DashboardPageDefinition page, bool asRoot)
     {
-        var state = Session.Open(page, asRoot);
-
-        // Une page est maintenant affichee : Executer peut s'activer.
-        RefreshCanExecute();
-        _ = LoadCardsAsync(state.Cards);
+        var state = session.Open(page, asRoot);
+        _ = LoadCardsAsync(session, state.Cards);
     }
 
     // ---------- Lecture des cartes ----------
 
     /// <summary>Cartes lues en parallele, chacune affichee des qu'elle arrive ; une nouvelle lecture annule la precedente.</summary>
-    private async Task LoadCardsAsync(IEnumerable<DashboardCardState> cards)
+    private async Task LoadCardsAsync(DashboardSession session, IEnumerable<DashboardCardState> cards)
     {
         var queried = cards.Where(c => c.UsesQuery).ToList();
         if (queried.Count == 0)
             return;
 
-        _activeLoads++;
-        IsLoading = true;
+        var token = session.BeginLoad();
         try
         {
-            await LoadQueriedCardsAsync(queried);
+            await LoadQueriedCardsAsync(session, queried, token);
         }
         finally
         {
-            _activeLoads--;
-            IsLoading = _activeLoads > 0;
+            session.EndLoad();
         }
     }
 
-    private async Task LoadQueriedCardsAsync(List<DashboardCardState> queried)
+    private async Task LoadQueriedCardsAsync(DashboardSession session, List<DashboardCardState> queried, CancellationToken token)
     {
-        _cancellation?.Cancel();
-        _cancellation = CancellationTokenSource.CreateLinkedTokenSource(LifetimeToken);
-        var token = _cancellation.Token;
-
         List<DashboardQueryParameter> parameters = [];
         var isValid = true;
-        foreach (var parameter in Session.Parameters)
+        foreach (var parameter in session.Parameters)
         {
             isValid &= parameter.TryGetQueryParameter(out var value);
             parameters.Add(value);
@@ -353,7 +361,7 @@ public partial class DashboardVM : DocumentVM
             return;
         }
 
-        var database = Session.Definition?.Database;
+        var database = session.Definition?.Database;
         await Task.WhenAll(queried.Select(card => LoadCardAsync(connection, database, card, parameters, token)));
     }
 
@@ -374,7 +382,7 @@ public partial class DashboardVM : DocumentVM
         }
         catch (OperationCanceledException)
         {
-            // Remplace par une lecture plus recente.
+            // Remplace par une lecture plus recente, ou onglet ferme.
         }
         catch (Exception ex)
         {
@@ -403,23 +411,23 @@ public partial class DashboardVM : DocumentVM
     [RelayCommand]
     private void SelectCard(DashboardCardState? card)
     {
-        if (IsDesigning)
-            Session.SelectedCard = card;
+        if (Session is { IsDesigning: true } session)
+            session.SelectedCard = card;
     }
 
     /// <summary>Nouvelle carte de 4 × 2 cases (reduite au bord droit de la grille).</summary>
     [RelayCommand]
     private void AddCard(DashboardCell? cell)
     {
-        if (!IsDesigning || Session.Current is null || cell is null)
+        if (Session is not { IsDesigning: true, Current: not null } session || cell is null)
             return;
 
-        Session.AddCard(new DashboardCardDefinition
+        session.AddCard(new DashboardCardDefinition
         {
             Title = "Nouvelle carte",
             Column = cell.Column,
             Row = cell.Row,
-            ColumnSpan = Math.Min(4, Session.ColumnCount - cell.Column),
+            ColumnSpan = Math.Min(4, session.ColumnCount - cell.Column),
             RowSpan = 2,
         });
     }
@@ -427,28 +435,28 @@ public partial class DashboardVM : DocumentVM
     [RelayCommand]
     private void StartDrag(DashboardCardState? card)
     {
-        if (IsDesigning && card is not null)
+        if (Session is { IsDesigning: true } session && card is not null)
         {
-            Session.DraggedCard = card;
-            Session.SelectedCard = card;
+            session.DraggedCard = card;
+            session.SelectedCard = card;
         }
     }
 
     [RelayCommand]
     private void DropCard(DashboardCell? cell)
     {
-        if (!IsDesigning || Session.DraggedCard is not { } card || cell is null)
+        if (Session is not { IsDesigning: true, DraggedCard: { } card } session || cell is null)
             return;
 
-        Session.DraggedCard = null;
-        card.Column = Math.Clamp(cell.Column, 0, Session.ColumnCount - card.ColumnSpan);
+        session.DraggedCard = null;
+        card.Column = Math.Clamp(cell.Column, 0, session.ColumnCount - card.ColumnSpan);
         card.Row = cell.Row;
     }
 
     [RelayCommand]
     private void MoveCard(string? direction)
     {
-        if (Session.SelectedCard is not { } card)
+        if (Session is not { SelectedCard: { } card } session)
             return;
 
         switch (direction)
@@ -457,7 +465,7 @@ public partial class DashboardVM : DocumentVM
                 card.Column = Math.Max(0, card.Column - 1);
                 break;
             case "Right":
-                card.Column = Math.Min(Session.ColumnCount - card.ColumnSpan, card.Column + 1);
+                card.Column = Math.Min(session.ColumnCount - card.ColumnSpan, card.Column + 1);
                 break;
             case "Up":
                 card.Row = Math.Max(0, card.Row - 1);
@@ -471,13 +479,13 @@ public partial class DashboardVM : DocumentVM
     [RelayCommand]
     private void ResizeCard(string? change)
     {
-        if (Session.SelectedCard is not { } card)
+        if (Session is not { SelectedCard: { } card } session)
             return;
 
         switch (change)
         {
             case "Wider":
-                card.ColumnSpan = Math.Min(Session.ColumnCount - card.Column, card.ColumnSpan + 1);
+                card.ColumnSpan = Math.Min(session.ColumnCount - card.Column, card.ColumnSpan + 1);
                 break;
             case "Narrower":
                 card.ColumnSpan = Math.Max(1, card.ColumnSpan - 1);
@@ -495,26 +503,26 @@ public partial class DashboardVM : DocumentVM
     private void DeleteCard(DashboardCardState? card)
     {
         if (card is not null)
-            Session.RemoveCard(card);
+            Session?.RemoveCard(card);
     }
 
     [RelayCommand]
     private Task RunCardAsync(DashboardCardState? card)
-        => card is not null ? LoadCardsAsync([card]) : Task.CompletedTask;
+        => Session is { } session && card is not null ? LoadCardsAsync(session, [card]) : Task.CompletedTask;
 
     // ---------- Concepteur : pages et parametres ----------
 
     [RelayCommand]
     private void OpenDesignerPage(DashboardPageDefinition? page)
     {
-        if (page is not null)
-            OpenPage(page, asRoot: true);
+        if (Session is { } session && page is not null)
+            OpenPage(session, page, asRoot: true);
     }
 
     [RelayCommand]
     private void AddPage()
     {
-        if (Session.Definition is not { } definition)
+        if (Session is not { Definition: { } definition } session)
             return;
 
         var number = definition.Pages.Count + 1;
@@ -522,15 +530,15 @@ public partial class DashboardVM : DocumentVM
             number++;
 
         var page = new DashboardPageDefinition { Id = $"page{number.ToString(CultureInfo.InvariantCulture)}", Title = "Nouvelle page" };
-        Session.AddPage(page);
-        OpenPage(page, asRoot: true);
+        session.AddPage(page);
+        OpenPage(session, page, asRoot: true);
     }
 
     /// <summary>Supprime la page affichee (la derniere page restante est conservee).</summary>
     [RelayCommand]
     private void DeletePage()
     {
-        if (Session is not { Definition: { } definition, Current: { } current })
+        if (Session is not { Definition: { } definition, Current: { } current } session)
             return;
 
         if (definition.Pages.Count <= 1)
@@ -539,38 +547,27 @@ public partial class DashboardVM : DocumentVM
             return;
         }
 
-        Session.RemovePage(current.Definition);
-        OpenPage(definition.FindPage(definition.StartPage) ?? definition.Pages[0], asRoot: true);
+        session.RemovePage(current.Definition);
+        OpenPage(session, definition.FindPage(definition.StartPage) ?? definition.Pages[0], asRoot: true);
     }
 
     [RelayCommand]
     private void AddParameter()
     {
-        if (Session.Definition is not { } definition)
+        if (Session is not { Definition: { } definition } session)
             return;
 
         var number = definition.Parameters.Count + 1;
         while (definition.Parameters.Any(p => string.Equals(p.Name, $"Param{number.ToString(CultureInfo.InvariantCulture)}", StringComparison.OrdinalIgnoreCase)))
             number++;
 
-        Session.AddParameter(new DashboardParameterDefinition { Name = $"Param{number.ToString(CultureInfo.InvariantCulture)}" });
+        session.AddParameter(new DashboardParameterDefinition { Name = $"Param{number.ToString(CultureInfo.InvariantCulture)}" });
     }
 
     [RelayCommand]
     private void DeleteParameter(DashboardParameterValue? parameter)
     {
         if (parameter is not null)
-            Session.RemoveParameter(parameter);
-    }
-
-    public override void Dispose()
-    {
-        Session.DefinitionChanged -= OnDefinitionChanged;
-        Session.NavigationRequested -= OnNavigationRequested;
-        CancelWriteDelay();
-        _cancellation?.Cancel();
-        _cancellation?.Dispose();
-
-        base.Dispose();
+            Session?.RemoveParameter(parameter);
     }
 }

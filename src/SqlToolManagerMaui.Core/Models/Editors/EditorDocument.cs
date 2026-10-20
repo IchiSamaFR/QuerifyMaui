@@ -77,6 +77,24 @@ public sealed partial class EditorDocument : ObservableObject
     /// <summary>Marque le contenu courant comme enregistre.</summary>
     public void MarkSaved() => FileText = EditorText;
 
+    /// <summary>Insere un bloc au curseur (a la place de la selection), sur sa propre ligne, curseur apres le bloc.</summary>
+    public void InsertBlock(string block)
+    {
+        var text = EditorText ?? string.Empty;
+        var newLine = text.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : text.Contains('\r') ? "\r" : Environment.NewLine;
+
+        var start = Math.Clamp(Math.Min(Selection.Anchor, Selection.Active), 0, text.Length);
+        var end = Math.Clamp(Math.Max(Selection.Anchor, Selection.Active), 0, text.Length);
+
+        // Curseur en milieu de ligne : le bloc part sur une nouvelle ligne.
+        var prefix = start > 0 && text[start - 1] is not ('\n' or '\r') ? newLine : string.Empty;
+        var inserted = prefix + block.Replace("\n", newLine, StringComparison.Ordinal) + newLine;
+
+        // Selection d'abord : l'editeur la restaure apres le changement de texte.
+        Selection.Anchor = Selection.Active = start + inserted.Length;
+        EditorText = text[..start] + inserted + text[end..];
+    }
+
     /// <summary>
     /// L'editeur normalise les fins de ligne en LF : on aligne le texte disque dessus,
     /// sinon un fichier CRLF paraitrait modifie des son ouverture.

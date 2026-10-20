@@ -163,24 +163,25 @@ public partial class TabBar : ContentView
 
     private View? GetTemplatedContent()
     {
-        if (ContentTemplate is null || SelectedItem is null)
-            return null;
-
-        var template = ContentTemplate is DataTemplateSelector selector ? selector.SelectTemplate(SelectedItem, this) : ContentTemplate;
-        if (template is null)
-            return null;
+        var template = ContentTemplate is null || SelectedItem is null
+            ? null
+            : ContentTemplate is DataTemplateSelector selector ? selector.SelectTemplate(SelectedItem, this) : ContentTemplate;
 
         // Recreer la vue a chaque changement d'onglet reconstruirait des controles lourds (editeur natif).
-        if (!_templatedContents.TryGetValue(template, out var content))
+        View? content = null;
+        if (template is not null && !_templatedContents.TryGetValue(template, out content) && template.CreateContent() is View created)
         {
-            if (template.CreateContent() is not View created)
-                return null;
-
             content = created;
             _templatedContents[template] = content;
         }
 
-        content.BindingContext = SelectedItem;
+        // Une vue masquee lache son element : ce qu'elle alimente sait qu'elle n'est plus affichee.
+        foreach (var view in _templatedContents.Values.Where(v => !ReferenceEquals(v, content)))
+            view.BindingContext = null;
+
+        if (content is not null)
+            content.BindingContext = SelectedItem;
+
         return content;
     }
 

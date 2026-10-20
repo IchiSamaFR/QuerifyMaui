@@ -5,7 +5,6 @@ using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Databases.Dashboards;
 using SqlToolManagerMaui.Services.Editors;
-using SqlToolManagerMaui.ViewModels.Pages.Documents;
 using System.Globalization;
 
 namespace SqlToolManagerMaui.ViewModels.Pages;
@@ -22,7 +21,7 @@ public partial class MainVM
     private void New()
     {
         _untitledCount++;
-        Add(_documentFactory.CreateCodeEditor(new EditorDocument($"Sans titre {_untitledCount}", filePath: null, fileText: string.Empty)));
+        Add(new CodeEditorSession(new EditorDocument($"Sans titre {_untitledCount}", filePath: null, fileText: string.Empty)));
         _status.Clear();
     }
 
@@ -39,7 +38,8 @@ public partial class MainVM
             EditorText = DashboardSerializer.Serialize(definition),
         };
 
-        Add(_documentFactory.CreateDashboard(document, DashboardMode.Design));
+        Add(new DashboardSession(document) { Mode = DashboardMode.Design });
+        _status.Set($"{document.FileName} ouvert.");
     }
 
     [RelayCommand]
@@ -76,12 +76,12 @@ public partial class MainVM
     {
         await Preferences.AddRecentFileAsync(content.FilePath, token);
 
-        var existing = Documents.FirstOrDefault(d =>
-            string.Equals(d.Document.FilePath, content.FilePath, StringComparison.OrdinalIgnoreCase));
+        var existing = Sessions.FirstOrDefault(s =>
+            string.Equals(s.Document.FilePath, content.FilePath, StringComparison.OrdinalIgnoreCase));
 
         if (existing is not null)
         {
-            SelectedDocument = existing;
+            SelectedSession = existing;
             _status.Set($"{existing.Document.FileName} est deja ouvert.");
             return;
         }
@@ -89,27 +89,30 @@ public partial class MainVM
         var fileName = Path.GetFileName(content.FilePath);
         if (DashboardSerializer.IsDashboardFile(content.FilePath))
         {
-            Add(_documentFactory.CreateDashboard(new EditorDocument(fileName, content.FilePath, content.Text, SyntaxLanguage.None)));
+            _status.Set($"{fileName} ouvert.");
+            Add(new DashboardSession(new EditorDocument(fileName, content.FilePath, content.Text, SyntaxLanguage.None)));
             return;
         }
 
         var language = await _syntaxConfigurations.FindLanguageAsync(content.FilePath, token) ?? SyntaxLanguage.Sql;
-        Add(_documentFactory.CreateCodeEditor(new EditorDocument(fileName, content.FilePath, content.Text, language)));
+        Add(new CodeEditorSession(new EditorDocument(fileName, content.FilePath, content.Text, language)));
+        _status.Set($"{fileName} ouvert.");
     }
 
     [RelayCommand]
-    private Task SaveAsync() => SaveDocumentAsync(SelectedDocument, forceSaveAs: false);
+    private Task SaveAsync() => SaveSessionAsync(SelectedSession, forceSaveAs: false);
 
     [RelayCommand]
-    private Task SaveAsAsync() => SaveDocumentAsync(SelectedDocument, forceSaveAs: true);
+    private Task SaveAsAsync() => SaveSessionAsync(SelectedSession, forceSaveAs: true);
 
-    private Task SaveDocumentAsync(DocumentVM? documentVM, bool forceSaveAs)
+    private Task SaveSessionAsync(AbstractSession? session, bool forceSaveAs)
     {
-        if (documentVM is null)
+        if (session is null)
             return Task.CompletedTask;
 
-        documentVM.PrepareSave();
-        var document = documentVM.Document;
+        // Dernieres modifications du concepteur pas encore reecrites dans le texte.
+        _dashboard.FlushPendingWrites();
+        var document = session.Document;
 
         return RunAsBusyAsync(async token =>
         {
@@ -121,7 +124,7 @@ public partial class MainVM
             }
             else
             {
-                var suggested = document.HasPath ? document.FileName : $"{document.FallbackName}{documentVM.DefaultExtension}";
+                var suggested = document.HasPath ? document.FileName : $"{document.FallbackName}{await DefaultExtensionAsync(session, token)}";
                 var path = await _files.SaveAsAsync(suggested, text, token);
                 if (path is null)
                     return;
@@ -135,29 +138,39 @@ public partial class MainVM
         });
     }
 
+    /// <summary>.schx pour un dashboard, sinon la premiere extension declaree par le .xshd du langage.</summary>
+    private async Task<string> DefaultExtensionAsync(AbstractSession session, CancellationToken token)
+    {
+        if (session is DashboardSession)
+            return DashboardSerializer.FILE_EXTENSION;
+
+        var configuration = await _syntaxConfigurations.GetAsync(session.Document.Language, token);
+        return configuration is { Definition.Extensions: [var extension, ..] } ? extension : ".sql";
+    }
+
     /// <summary>Ferme un onglet ; le dernier est remplace par un document vide.</summary>
     [RelayCommand]
-    private void Close(DocumentVM? document)
+    private void Close(AbstractSession? session)
     {
-        if (document is null)
+        if (session is null)
             return;
 
-        var index = Documents.IndexOf(document);
+        var index = Sessions.IndexOf(session);
         if (index < 0)
             return;
 
-        Documents.Remove(document);
+        Sessions.Remove(session);
 
-        if (SelectedDocument == document)
-            SelectedDocument = Documents.Count == 0 ? null : Documents[Math.Min(index, Documents.Count - 1)];
+        if (SelectedSession == session)
+            SelectedSession = Sessions.Count == 0 ? null : Sessions[Math.Min(index, Sessions.Count - 1)];
 
-        document.Dispose();
+        session.Dispose();
 
-        if (Documents.Count == 0)
+        if (Sessions.Count == 0)
             New();
     }
 
     /// <summary>Ferme l'onglet courant (entree de menu, sans parametre).</summary>
     [RelayCommand]
-    private void CloseActive() => Close(SelectedDocument);
+    private void CloseActive() => Close(SelectedSession);
 }

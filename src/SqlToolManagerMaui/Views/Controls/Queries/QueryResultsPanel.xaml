@@ -35,9 +35,7 @@
 
         <!-- ============ Contenu partagé de l'onglet sélectionné ============ -->
         <v:TabBar.DefaultContent>
-            <Grid RowDefinitions="*,Auto"
-                  Padding="0,8"
-                  Background="{DynamicResource CardBackground}">
+            <Grid RowDefinitions="*,Auto">
                 <c:QueryResultGrid ResultSet="{Binding SelectedTab.ResultSet, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
                                    IsVisible="{Binding SelectedTab.IsResultSet, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}" />
 

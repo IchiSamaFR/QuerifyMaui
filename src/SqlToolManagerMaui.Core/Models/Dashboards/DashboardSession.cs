@@ -1,14 +1,21 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using SqlToolManagerMaui.Core.Enums.Dashboards;
+using SqlToolManagerMaui.Core.Models.Editors;
 using System.Collections.ObjectModel;
 
 namespace SqlToolManagerMaui.Core.Models.Dashboards;
 
 /// <summary>
-/// Etat d'un onglet .schx : definition lue, valeurs des parametres, pile des pages ouvertes (fil d'Ariane)
-/// et, dans le concepteur, la carte selectionnee et les cases libres de la grille.
+/// Etat d'un onglet .schx : vue affichee, definition lue, valeurs des parametres, pile des pages ouvertes
+/// (fil d'Ariane), lecture des cartes et, dans le concepteur, la carte selectionnee et les cases libres de la grille.
 /// </summary>
-public sealed partial class DashboardSession : ObservableObject
+public sealed partial class DashboardSession : AbstractSession
 {
+    public DashboardSession(EditorDocument document)
+        : base(document)
+    {
+    }
+
     /// <summary>Un bouton ou une ligne de tableau demande l'ouverture d'une page.</summary>
     public event EventHandler<DashboardNavigationRequest>? NavigationRequested;
 
@@ -42,8 +49,26 @@ public sealed partial class DashboardSession : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasCurrent), nameof(CanGoBack))]
     public partial DashboardPageState? Current { get; private set; }
 
+    /// <summary>Consultation, concepteur ou JSON.</summary>
     [ObservableProperty]
-    public partial bool IsDesigning { get; set; }
+    [NotifyPropertyChangedFor(nameof(IsDesigning), nameof(IsSourceMode), nameof(IsGridMode))]
+    public partial DashboardMode Mode { get; set; }
+
+    public bool IsDesigning => Mode == DashboardMode.Design;
+
+    public bool IsSourceMode => Mode == DashboardMode.Source;
+
+    public bool IsGridMode => Mode != DashboardMode.Source;
+
+    /// <summary>Vrai tant qu'une lecture de cartes est en cours.</summary>
+    [ObservableProperty]
+    public partial bool IsLoading { get; private set; }
+
+    /// <summary>Lectures en cours : une nouvelle peut demarrer avant la fin de l'annulation de la precedente.</summary>
+    private int _activeLoads;
+
+    /// <summary>Lecture de cartes en cours ; la remplacer annule la precedente.</summary>
+    private CancellationTokenSource? _loadCancellation;
 
     [ObservableProperty]
     public partial DashboardCardState? SelectedCard { get; set; }
@@ -174,12 +199,38 @@ public sealed partial class DashboardSession : ObservableObject
 
     // ---------- Concepteur ----------
 
-    partial void OnIsDesigningChanged(bool value)
+    partial void OnModeChanged(DashboardMode oldValue, DashboardMode newValue)
     {
-        if (!value)
+        if ((oldValue == DashboardMode.Design) == (newValue == DashboardMode.Design))
+            return;
+
+        if (!IsDesigning)
             SelectedCard = null;
         RefreshLayout();
     }
+
+    // ---------- Lecture des cartes ----------
+
+    /// <summary>Demarre une lecture : annule la precedente et rend le jeton de la nouvelle (annule aussi a la fermeture).</summary>
+    public CancellationToken BeginLoad()
+    {
+        // Pas de Dispose : la lecture remplacee peut encore utiliser son jeton.
+        _loadCancellation?.Cancel();
+        _loadCancellation = CancellationTokenSource.CreateLinkedTokenSource(LifetimeToken);
+
+        _activeLoads++;
+        IsLoading = true;
+        return _loadCancellation.Token;
+    }
+
+    public void EndLoad()
+    {
+        _activeLoads = Math.Max(0, _activeLoads - 1);
+        IsLoading = _activeLoads > 0;
+    }
+
+    /// <summary>Interrompt la lecture en cours : les cartes gardent leur dernier resultat.</summary>
+    public void CancelLoad() => _loadCancellation?.Cancel();
 
     partial void OnSelectedCardChanged(DashboardCardState? oldValue, DashboardCardState? newValue)
     {
@@ -324,5 +375,13 @@ public sealed partial class DashboardSession : ObservableObject
     {
         RefreshLayout();
         DefinitionChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+            _loadCancellation?.Cancel();
+
+        base.Dispose(disposing);
     }
 }

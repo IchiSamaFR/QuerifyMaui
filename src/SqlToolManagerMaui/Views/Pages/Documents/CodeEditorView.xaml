@@ -1,9 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="SqlToolManagerMaui.Views.Pages.Documents.CodeEditorView"
-             x:DataType="vm:CodeEditorVM">
-    <Grid RowDefinitions="Auto,*">
+             x:Class="SqlToolManagerMaui.Views.Pages.Documents.CodeEditorView">
+    <!-- BindingContext : CodeEditorVM (singleton), pose par le code-behind ; la vue lui transmet sa session -->
+    <Grid x:Name="Body"
+          x:DataType="vm:CodeEditorVM"
+          RowDefinitions="Auto,*">
 
         <!-- ============ En-tete : execution et connexion ============ -->
         <HorizontalStackLayout Spacing="8">
@@ -36,7 +38,7 @@
               RowSpacing="8">
             <Grid.Triggers>
                 <DataTrigger TargetType="Grid"
-                             Binding="{Binding HasResultsPanel}"
+                             Binding="{Binding Session.HasResultsPanel, FallbackValue=False}"
                              Value="False">
                     <Setter Property="RowSpacing"
                             Value="0" />
@@ -44,40 +46,25 @@
             </Grid.Triggers>
 
             <!-- ============ Editeur ============ -->
-            <c:CodeEditor Text="{Binding Document.EditorText}"
-                          FilePath="{Binding Document.FilePath}"
-                          Selection="{Binding Document.Selection}"
+            <c:CodeEditor Text="{Binding Session.Document.EditorText}"
+                          FilePath="{Binding Session.Document.FilePath}"
+                          Selection="{Binding Session.Document.Selection}"
                           EditorConfiguration="{Binding Preferences.EditorConfiguration}"
                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
                           Connection="{Binding Connection.ActiveConnection}"
                           Commands="{Binding EditionCommands, Mode=OneWayToSource}" />
 
             <v:GridSplitter Grid.Row="1"
-                            IsVisible="{Binding HasResultsPanel}" />
+                            IsVisible="{Binding Session.HasResultsPanel, FallbackValue=False}" />
 
             <!-- ============ Resultats + barre d'etat ============ -->
             <Grid Grid.Row="2"
                   HeightRequest="300"
-                  RowDefinitions="*,Auto"
-                  IsVisible="{Binding HasResultsPanel}">
-                <c:QueryResultsPanel Result="{Binding LastResult}"
-                                     IsExecuting="{Binding IsExecuting}"
+                  IsVisible="{Binding Session.HasResultsPanel, FallbackValue=False}">
+                <c:QueryResultsPanel Result="{Binding Session.LastResult}"
+                                     IsExecuting="{Binding Session.IsExecuting, FallbackValue=False}"
                                      CloseCommand="{Binding CloseResultsCommand}" />
 
-                <Label Grid.Row="1"
-                       Text="{Binding Status.Message}"
-                       Style="{StaticResource LabelTertiaryStyle}"
-                       LineBreakMode="TailTruncation"
-                       VerticalOptions="Center">
-                    <Label.Triggers>
-                        <DataTrigger TargetType="Label"
-                                     Binding="{Binding Status.IsError}"
-                                     Value="True">
-                            <Setter Property="TextColor"
-                                    Value="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
-                        </DataTrigger>
-                    </Label.Triggers>
-                </Label>
             </Grid>
         </Grid>
     </Grid>
