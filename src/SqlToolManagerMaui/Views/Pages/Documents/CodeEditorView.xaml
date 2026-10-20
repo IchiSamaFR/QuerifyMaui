@@ -11,19 +11,19 @@
         <HorizontalStackLayout Spacing="8">
             <ImageButton Style="{StaticResource TextImageButtonStyle}"
                          Command="{Binding ExecuteQueryCommand}"
-                         Source="{mk:FluentImage Icon=Play16, IconSize=16, IconColor={StaticResource Success}}"
+                         Source="{mk:FluentImage Icon=Play16, IconColor={StaticResource Success}}"
                          ToolTipProperties.Text="Exécuter la requête" />
 
             <ImageButton Style="{StaticResource TextImageButtonStyle}"
                          Command="{Binding ExecuteQueryCancelCommand}"
-                         Source="{mk:FluentImage Icon=Stop16, IconSize=16, IconColor={StaticResource Danger}}"
+                         Source="{mk:FluentImage Icon=Stop16, IconColor={StaticResource Danger}}"
                          ToolTipProperties.Text="Arrêter l'exécution de la requête" />
 
             <v:GridSplitter Background="{DynamicResource InputBackground}" />
 
             <ImageButton Style="{StaticResource TextImageButtonStyle}"
                          Command="{Binding Connection.DisconnectCommand}"
-                         Source="{mk:FluentImage Icon=PlugDisconnected20, IconSize=16, IconColor={StaticResource Danger}}"
+                         Source="{mk:FluentImage Icon=PlugDisconnected20, IconColor={StaticResource Danger}}"
                          ToolTipProperties.Text="Déconnecter la connexion" />
 
             <inp:PickerField ItemsSource="{Binding Connection.Connections}"

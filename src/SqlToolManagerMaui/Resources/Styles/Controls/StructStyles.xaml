@@ -16,11 +16,9 @@
                 Value="Transparent" />
 
         <Setter Property="AddImageSource"
-                Value="{mk:FluentFilledImage Icon=Add20Filled,
-                        IconSize=20}" />
+                Value="{mk:FluentFilledImage Icon=Add20Filled}" />
         <Setter Property="MinusImageSource"
-                Value="{mk:FluentFilledImage Icon=Subtract20Filled,
-                        IconSize=20}" />
+                Value="{mk:FluentFilledImage Icon=Subtract20Filled}" />
     </Style>
     
     <!-- Default Styles -->

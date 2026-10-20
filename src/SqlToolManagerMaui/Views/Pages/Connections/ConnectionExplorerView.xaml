@@ -16,7 +16,7 @@
                 <ImageButton Grid.Column="1"
                         Style="{StaticResource TextImageButtonStyle}"
                         Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
-                        Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconSize=16}"
+                        Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}}"
                         ToolTipProperties.Text="Fermer l'explorateur" />
             </Grid>
 
@@ -24,17 +24,17 @@
                   Grid.Row="1">
                 <HorizontalStackLayout Spacing="4">
                     <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Command="{Binding AddConnectionCommand}"
-                                 Source="{mk:FluentFilledImage Icon=PlugConnectedAdd20Filled, IconSize=20}"
-                                 ToolTipProperties.Text="Se connecter..." />
+                                 Command="{Binding CollapseAllCommand}"
+                                 Source="{mk:FluentFilledImage Icon=ArrowCollapseAll20Filled}"
+                                 ToolTipProperties.Text="Reduire tout" />
                     <ImageButton Style="{StaticResource TextImageButtonStyle}"
                                  Command="{Binding RefreshCommand}"
-                                 Source="{mk:FluentFilledImage Icon=ArrowSync20Filled, IconSize=20}"
+                                 Source="{mk:FluentFilledImage Icon=ArrowSync20Filled}"
                                  ToolTipProperties.Text="Actualiser" />
                     <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Command="{Binding CollapseAllCommand}"
-                                 Source="{mk:FluentFilledImage Icon=ArrowCollapseAll20Filled, IconSize=20}"
-                                 ToolTipProperties.Text="Reduire tout" />
+                                 Command="{Binding AddConnectionCommand}"
+                                 Source="{mk:FluentFilledImage Icon=PlugConnectedAdd20Filled, IconColor={StaticResource Secondary}}"
+                                 ToolTipProperties.Text="Se connecter..." />
                 </HorizontalStackLayout>
                 <HorizontalStackLayout Grid.Column="1"
                                        Spacing="4">

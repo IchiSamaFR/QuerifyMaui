@@ -14,7 +14,7 @@ public sealed class FluentFilledImageExtension : IMarkupExtension<ImageSource>
     public FluentFilledIcons Icon { get; set; }
 
     /// <summary>Taille de l'icône (20 par défaut).</summary>
-    public double IconSize { get; set; } = 20d;
+    public double IconSize { get; set; } = 16d;
 
     /// <summary>Couleur de l'icône ; à défaut, noir ou blanc selon le thème courant.</summary>
     public Color? IconColor { get; set; }

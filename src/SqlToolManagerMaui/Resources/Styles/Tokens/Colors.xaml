@@ -98,6 +98,7 @@
     <!-- ============ Etats systeme (SystemFillColor*) ============ -->
     <Color x:Key="Success">#6CCB5F</Color>
     <Color x:Key="SuccessBackground">#393D1B</Color>
+    <Color x:Key="Folder">#DCDCAA</Color>
     <Color x:Key="Warning">#FCE100</Color>
     <Color x:Key="WarningBackground">#433519</Color>
     <!-- Error = valeur theme clair, ErrorDark = SystemFillColorCritical du theme sombre -->

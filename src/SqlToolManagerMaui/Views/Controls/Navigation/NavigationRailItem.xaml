@@ -51,7 +51,6 @@
 
                 <mi:MauiIcon Grid.Column="0"
                              Icon="{Binding Icon, Source={x:Reference Root}}"
-                             IconSize="20"
                              HeightRequest="20"
                              WidthRequest="20"
                              IconColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"

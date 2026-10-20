@@ -35,7 +35,7 @@
                         </Border>
                         <Button Style="{StaticResource SecondaryButtonStyle}"
                                 Text="Exécuter la requête"
-                                ImageSource="{mk:FluentFilledImage Icon=Play16Filled, IconSize=16}"
+                                ImageSource="{mk:FluentFilledImage Icon=Play16Filled}"
                                 Command="{Binding RunCardCommand}"
                                 CommandParameter="{Binding Session.SelectedCard}"
                                 HorizontalOptions="Start" />
@@ -194,7 +194,7 @@
                     <HorizontalStackLayout Spacing="8">
                         <Button Style="{StaticResource SecondaryButtonStyle}"
                                 Text="Nouvelle page"
-                                ImageSource="{mk:FluentFilledImage Icon=Add20Filled, IconSize=16}"
+                                ImageSource="{mk:FluentFilledImage Icon=Add20Filled}"
                                 Command="{Binding AddPageCommand}" />
                         <Button Style="{StaticResource SecondaryButtonStyle}"
                                 Text="Supprimer cette page"
@@ -236,7 +236,7 @@
 
                     <Button Style="{StaticResource SecondaryButtonStyle}"
                             Text="Ajouter un paramètre"
-                            ImageSource="{mk:FluentFilledImage Icon=Add20Filled, IconSize=16}"
+                            ImageSource="{mk:FluentFilledImage Icon=Add20Filled}"
                             Command="{Binding AddParameterCommand}"
                             HorizontalOptions="Start" />
                 </VerticalStackLayout>
