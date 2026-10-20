@@ -58,14 +58,42 @@ public partial class DashboardVM
     }
 
     [RelayCommand]
+    private void DragOverCell(DashboardCell? cell)
+    {
+        if (Session is { IsDesigning: true, IsDraggingCard: true } session)
+            session.DropCell = cell;
+    }
+
+    /// <summary>Le survol d'une case peut commencer avant la sortie de la precedente : on ne vide que la sienne.</summary>
+    [RelayCommand]
+    private void DragLeaveCell(DashboardCell? cell)
+    {
+        if (Session is { } session && session.DropCell == cell)
+            session.DropCell = null;
+    }
+
+    /// <summary>Fin du glisser, depose ou abandonne hors de la grille.</summary>
+    [RelayCommand]
+    private void EndDrag()
+    {
+        if (Session is not { } session)
+            return;
+
+        session.DraggedCard = null;
+        session.DropCell = null;
+    }
+
+    [RelayCommand]
     private void DropCard(DashboardCell? cell)
     {
         if (Session is not { IsDesigning: true, DraggedCard: { } card } session || cell is null)
             return;
 
+        var placement = session.GetDropPlacement(card, cell);
         session.DraggedCard = null;
-        card.Column = Math.Clamp(cell.Column, 0, session.ColumnCount - card.ColumnSpan);
-        card.Row = cell.Row;
+        session.DropCell = null;
+        card.Column = placement.Column;
+        card.Row = placement.Row;
     }
 
     [RelayCommand]

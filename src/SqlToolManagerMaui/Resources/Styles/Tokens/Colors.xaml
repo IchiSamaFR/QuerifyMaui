@@ -16,6 +16,8 @@
     <Color x:Key="InfoText">#4FC3F7</Color>
     <Color x:Key="TextOnInfo">#FFFFFF</Color>
     <Color x:Key="InfoStroke">#14FFFFFF</Color>
+    <!-- Apercu d'un depot (accent a 15 %) -->
+    <Color x:Key="InfoPreviewBackground">#2603A9F4</Color>
 
     <!-- Alias historiques de l'accent (ThemedPickerHandler lit "Primary") -->
     <Color x:Key="Primary">#03A9F4</Color>

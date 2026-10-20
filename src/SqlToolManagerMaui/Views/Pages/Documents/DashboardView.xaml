@@ -82,6 +82,9 @@
                              AddCardCommand="{Binding AddCardCommand}"
                              StartDragCommand="{Binding StartDragCommand}"
                              DropCommand="{Binding DropCardCommand}"
+                             DragOverCommand="{Binding DragOverCellCommand}"
+                             DragLeaveCommand="{Binding DragLeaveCellCommand}"
+                             EndDragCommand="{Binding EndDragCommand}"
                              IsDashboardParamsOpen="{Binding Preferences.Panels.IsDashboardParamsOpen}" />
 
             <c:DashboardDesignerPanel Grid.Column="1"

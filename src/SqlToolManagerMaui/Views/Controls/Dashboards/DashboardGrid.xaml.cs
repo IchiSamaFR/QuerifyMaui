@@ -54,6 +54,18 @@ public partial class DashboardGrid : ContentView
     [BindableProperty]
     public partial ICommand? DropCommand { get; set; }
 
+    /// <summary>Concepteur : la carte glissee survole une case (parametre : <see cref="DashboardCell"/>).</summary>
+    [BindableProperty]
+    public partial ICommand? DragOverCommand { get; set; }
+
+    /// <summary>Concepteur : la carte glissee quitte une case (parametre : <see cref="DashboardCell"/>).</summary>
+    [BindableProperty]
+    public partial ICommand? DragLeaveCommand { get; set; }
+
+    /// <summary>Concepteur : fin du glisser, depose ou non.</summary>
+    [BindableProperty]
+    public partial ICommand? EndDragCommand { get; set; }
+
     public DashboardGrid()
     {
         InitializeComponent();
@@ -63,10 +75,10 @@ public partial class DashboardGrid : ContentView
     private static void OnGridSizeChanged(BindableObject bindable, object oldValue, object newValue)
         => ((DashboardGrid)bindable).ApplyGridSize();
 
-    /// <summary>Les deux calques (cases, cartes) partagent les memes colonnes et lignes.</summary>
+    /// <summary>Les calques (cases, cartes, apercu) partagent les memes colonnes et lignes.</summary>
     private void ApplyGridSize()
     {
-        foreach (var layer in new[] { CellsLayer, CardsLayer })
+        foreach (var layer in new[] { CellsLayer, CardsLayer, PreviewLayer })
         {
             layer.ColumnDefinitions.Clear();
             for (var i = 0; i < Math.Max(1, ColumnCount); i++)

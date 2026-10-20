@@ -120,7 +120,11 @@
                                     <inp:ButtonView.GestureRecognizers>
                                         <DropGestureRecognizer AllowDrop="True"
                                                                DropCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=DropCommand, x:DataType=c:DashboardGrid}"
-                                                               DropCommandParameter="{Binding .}" />
+                                                               DropCommandParameter="{Binding .}"
+                                                               DragOverCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=DragOverCommand, x:DataType=c:DashboardGrid}"
+                                                               DragOverCommandParameter="{Binding .}"
+                                                               DragLeaveCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=DragLeaveCommand, x:DataType=c:DashboardGrid}"
+                                                               DragLeaveCommandParameter="{Binding .}" />
                                     </inp:ButtonView.GestureRecognizers>
                                     <Label Text="+"
                                            Style="{StaticResource LabelTertiaryStyle}" />
@@ -129,10 +133,11 @@
                         </BindableLayout.ItemTemplate>
                     </Grid>
 
-                    <!-- Cartes de la page : le calque laisse passer les clics vers les cases, pas ses enfants -->
+                    <!-- Cartes de la page : le calque laisse passer les clics vers les cases, pas ses enfants ;
+                         pendant un glisser, les cartes aussi, pour que les cases recoivent le survol et le depot -->
                     <Grid x:Name="CardsLayer"
                           InputTransparent="True"
-                          CascadeInputTransparent="False"
+                          CascadeInputTransparent="{Binding Session.IsDraggingCard, FallbackValue=False}"
                           ColumnSpacing="8"
                           RowSpacing="8"
                           BindableLayout.ItemsSource="{Binding Session.Current.Cards}">
@@ -155,16 +160,47 @@
                                                     IsVisible="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=Session.IsDesigning, FallbackValue=False, x:DataType=c:DashboardGrid}"
                                                     Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=SelectCardCommand, x:DataType=c:DashboardGrid}"
                                                     CommandParameter="{Binding .}"
-                                                    ToolTipProperties.Text="Cliquer pour modifier, glisser pour déplacer">
+                                                    ToolTipProperties.Text="Cliquer pour modifier, glisser pour déplacer, tirer un bord pour redimensionner">
                                         <inp:ButtonView.GestureRecognizers>
                                             <DragGestureRecognizer CanDrag="True"
                                                                    DragStartingCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=StartDragCommand, x:DataType=c:DashboardGrid}"
-                                                                   DragStartingCommandParameter="{Binding .}" />
+                                                                   DragStartingCommandParameter="{Binding .}"
+                                                                   DropCompletedCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=EndDragCommand, x:DataType=c:DashboardGrid}" />
                                         </inp:ButtonView.GestureRecognizers>
                                     </inp:ButtonView>
+
+                                    <!-- Concepteur : bords et coins de la carte selectionnee (espacements = ceux du calque) -->
+                                    <v:GridSpanResizer Column="{Binding Column}"
+                                                       Row="{Binding Row}"
+                                                       ColumnSpan="{Binding ColumnSpan}"
+                                                       RowSpan="{Binding RowSpan}"
+                                                       ColumnCount="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=ColumnCount, x:DataType=c:DashboardGrid}"
+                                                       ColumnSpacing="8"
+                                                       RowSpacing="8"
+                                                       IsVisible="{Binding IsSelected}" />
                                 </Grid>
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
+                    </Grid>
+
+                    <!-- Concepteur : emplacement de la carte glissee si elle est deposee sur la case survolee -->
+                    <Grid x:Name="PreviewLayer"
+                          InputTransparent="True"
+                          ColumnSpacing="8"
+                          RowSpacing="8">
+                        <Border BackgroundColor="{DynamicResource InfoPreviewBackground}"
+                                Stroke="{DynamicResource Primary}"
+                                StrokeThickness="2"
+                                StrokeDashArray="4,2"
+                                StrokeShape="RoundRectangle 4"
+                                IsVisible="{Binding Session.HasDropPreview, FallbackValue=False}">
+                            <Border.Behaviors>
+                                <beh:GridPlacementBehavior Column="{Binding Session.DropPreview.Column, FallbackValue=0}"
+                                                           Row="{Binding Session.DropPreview.Row, FallbackValue=0}"
+                                                           ColumnSpan="{Binding Session.DropPreview.ColumnSpan, FallbackValue=1}"
+                                                           RowSpan="{Binding Session.DropPreview.RowSpan, FallbackValue=1}" />
+                            </Border.Behaviors>
+                        </Border>
                     </Grid>
 
                     <!-- Page sans carte -->

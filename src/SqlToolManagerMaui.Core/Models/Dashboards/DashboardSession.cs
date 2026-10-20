@@ -78,7 +78,14 @@ public sealed partial class DashboardSession : AbstractSession
     public partial int RowCount { get; private set; } = DashboardDefinition.DEFAULT_ROWS;
 
     /// <summary>Carte en cours de glisser-deposer dans le concepteur.</summary>
-    public DashboardCardState? DraggedCard { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDraggingCard), nameof(DropPreview), nameof(HasDropPreview))]
+    public partial DashboardCardState? DraggedCard { get; set; }
+
+    /// <summary>Case survolee par la carte glissee : origine de son apercu.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DropPreview), nameof(HasDropPreview))]
+    public partial DashboardCell? DropCell { get; set; }
 
     /// <summary>Texte du fichier lu ou ecrit en dernier : un autre texte demande une nouvelle lecture.</summary>
     public string? LoadedText { get; private set; }
@@ -92,6 +99,14 @@ public sealed partial class DashboardSession : AbstractSession
     public bool CanGoBack => Steps.Count > 1;
 
     public bool HasParameters => Parameters.Count > 0;
+
+    public bool IsDraggingCard => DraggedCard is not null;
+
+    /// <summary>Emplacement que prendrait la carte glissee si elle etait deposee sur la case survolee.</summary>
+    public DashboardCardPlacement? DropPreview
+        => DraggedCard is { } card && DropCell is { } cell ? GetDropPlacement(card, cell) : null;
+
+    public bool HasDropPreview => DropPreview is not null;
 
     public int ColumnCount => Math.Max(1, Definition?.Columns ?? DashboardDefinition.DEFAULT_COLUMNS);
 
@@ -321,6 +336,16 @@ public sealed partial class DashboardSession : AbstractSession
         Definition.Parameters.Remove(parameter.Definition);
         OnPropertyChanged(nameof(HasParameters));
         NotifyDefinitionChanged();
+    }
+
+    /// <summary>Depot de <paramref name="card"/> sur <paramref name="cell"/> : son coin haut-gauche, reduit au bord droit.</summary>
+    public DashboardCardPlacement GetDropPlacement(DashboardCardState card, DashboardCell cell)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        ArgumentNullException.ThrowIfNull(cell);
+
+        var column = Math.Clamp(cell.Column, 0, Math.Max(0, ColumnCount - card.ColumnSpan));
+        return new DashboardCardPlacement(column, Math.Max(0, cell.Row), card.ColumnSpan, card.RowSpan);
     }
 
     /// <summary>Recalcule le nombre de lignes et, dans le concepteur, les cases de la grille.</summary>

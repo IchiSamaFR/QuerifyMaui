@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml.Input;
+using SqlToolManagerMaui.UI.Extensions;
 using WinUIElement = Microsoft.UI.Xaml.UIElement;
 
 namespace SqlToolManagerMaui.UI.Views.Controls.Layouts;
@@ -134,12 +135,7 @@ public partial class GridSplitter : ContentView
     }
 
     private static void SetResizeCursor(WinUIElement view, bool horizontal)
-    {
-        // ProtectedCursor est protege dans WinUI : on passe par la reflexion.
-        typeof(WinUIElement)
-            .GetProperty("ProtectedCursor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
-            .SetValue(view, InputSystemCursor.Create(horizontal ? InputSystemCursorShape.SizeNorthSouth : InputSystemCursorShape.SizeWestEast));
-    }
+        => view.SetCursor(horizontal ? InputSystemCursorShape.SizeNorthSouth : InputSystemCursorShape.SizeWestEast);
 
     private List<VisualElement> GetRowChildren(Grid grid)
     {

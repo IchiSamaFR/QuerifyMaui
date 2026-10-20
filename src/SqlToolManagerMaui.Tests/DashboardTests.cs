@@ -128,6 +128,26 @@ public class DashboardTests
     }
 
     [Fact]
+    public void DropPreviewFollowsHoveredCell()
+    {
+        var session = new DashboardSession(new EditorDocument("Dashboard", filePath: null, fileText: string.Empty));
+        var definition = DashboardSerializer.Deserialize(SHOWS_DASHBOARD);
+        session.Load(definition, SHOWS_DASHBOARD, error: null);
+        var page = session.Open(definition.Pages[0], asRoot: true);
+        session.Mode = DashboardMode.Design;
+
+        session.DropCell = new DashboardCell(10, 3);
+        Assert.Null(session.DropPreview);
+
+        // Carte de 8 colonnes : reduite au bord droit de la grille de 12.
+        session.DraggedCard = page.Cards[0];
+        Assert.Equal(new DashboardCardPlacement(4, 3, 8, 4), session.DropPreview);
+
+        session.DraggedCard = null;
+        Assert.False(session.HasDropPreview);
+    }
+
+    [Fact]
     public void DesignerChangesWriteDefinition()
     {
         var session = new DashboardSession(new EditorDocument("Dashboard", filePath: null, fileText: string.Empty));
