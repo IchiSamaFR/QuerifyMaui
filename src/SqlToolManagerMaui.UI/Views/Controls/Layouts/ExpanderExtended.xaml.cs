@@ -2,7 +2,7 @@
 using CommunityToolkit.Maui.Views;
 using Microsoft.Maui.Controls.Shapes;
 
-namespace SqlToolManagerMaui.UI.Views.Controls;
+namespace SqlToolManagerMaui.UI.Views.Controls.Layouts;
 
 public partial class ExpanderExtended : Expander
 {

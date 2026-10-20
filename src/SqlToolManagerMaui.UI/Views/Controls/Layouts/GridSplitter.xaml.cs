@@ -3,7 +3,7 @@ using Microsoft.UI.Input;
 using Microsoft.UI.Xaml.Input;
 using WinUIElement = Microsoft.UI.Xaml.UIElement;
 
-namespace SqlToolManagerMaui.UI.Views.Controls;
+namespace SqlToolManagerMaui.UI.Views.Controls.Layouts;
 
 /// <summary>
 /// Splitter a placer dans une colonne ou une ligne d'une Grid (horizontal si Width > Height, sinon vertical).

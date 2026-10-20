@@ -1,6 +1,6 @@
 ﻿using Microsoft.Maui.Layouts;
 
-namespace SqlToolManagerMaui.UI.Views.Controls;
+namespace SqlToolManagerMaui.UI.Views.Controls.Layouts;
 
 /// <summary>
 /// Dispose ses enfants de gauche a droite et passe a la ligne quand la largeur est atteinte,

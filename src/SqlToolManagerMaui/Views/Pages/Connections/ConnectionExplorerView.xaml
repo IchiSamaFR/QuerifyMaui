@@ -27,6 +27,7 @@
                                  Command="{Binding CollapseAllCommand}"
                                  Source="{mk:FluentFilledImage Icon=ArrowCollapseAll20Filled}"
                                  ToolTipProperties.Text="Reduire tout" />
+                    <v:Separator Orientation="Vertical"/>
                     <ImageButton Style="{StaticResource TextImageButtonStyle}"
                                  Command="{Binding RefreshCommand}"
                                  Source="{mk:FluentFilledImage Icon=ArrowSync20Filled}"
