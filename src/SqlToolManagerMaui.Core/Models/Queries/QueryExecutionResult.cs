@@ -1,4 +1,6 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Queries;
+﻿using SqlToolManagerMaui.Databases.Models.Queries;
+
+namespace SqlToolManagerMaui.Core.Models.Queries;
 
 /// <summary>Bilan complet d'une execution : jeux de resultats, messages et duree.</summary>
 public sealed class QueryExecutionResult

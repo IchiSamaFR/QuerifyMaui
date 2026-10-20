@@ -1,7 +1,8 @@
 ﻿using Microsoft.Data.SqlClient;
-using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Databases.Enums;
+using SqlToolManagerMaui.Databases.Models.Queries;
 using SqlToolManagerMaui.Languages.Commons.Queries;
 using SqlToolManagerMaui.Languages.Sql.Queries;
 using System.Diagnostics;

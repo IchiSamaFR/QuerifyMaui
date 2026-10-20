@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<!-- ===================== General settings ===================== -->
 	<PropertyGroup>
@@ -23,7 +23,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\SqlToolManagerMaui.Databases\SqlToolManagerMaui.Databases.csproj" />
+		<ProjectReference Include="..\SqlToolManagerMaui.Core\SqlToolManagerMaui.Core.csproj" />
 	</ItemGroup>
 
 </Project>

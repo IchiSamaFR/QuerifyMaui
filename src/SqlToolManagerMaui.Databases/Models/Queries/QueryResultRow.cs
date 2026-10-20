@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Queries;
+﻿namespace SqlToolManagerMaui.Databases.Models.Queries;
 
 /// <summary>
 /// Ligne d'un jeu de resultats, deja convertie en texte affichable.

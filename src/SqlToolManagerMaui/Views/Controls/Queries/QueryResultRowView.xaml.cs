@@ -1,4 +1,4 @@
-﻿using SqlToolManagerMaui.Core.Models.Queries;
+﻿using SqlToolManagerMaui.Databases.Models.Queries;
 using System.Globalization;
 
 namespace SqlToolManagerMaui.Views.Controls.Queries;

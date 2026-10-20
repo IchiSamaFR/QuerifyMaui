@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace SqlToolManagerMaui.Databases.Dashboards;
+namespace SqlToolManagerMaui.Core.Serialization;
 
 /// <summary>Serialisation generee a la compilation : les analyseurs trim/AOT refusent la reflexion.</summary>
 [JsonSourceGenerationOptions(

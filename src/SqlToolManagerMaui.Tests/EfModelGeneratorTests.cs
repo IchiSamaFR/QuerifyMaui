@@ -2,8 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using SqlToolManagerMaui.Core.Enums.Databases.Connections;
-using SqlToolManagerMaui.Core.Models.Databases.Schemas;
+using SqlToolManagerMaui.Databases.Enums;
+using SqlToolManagerMaui.Databases.Models.Schemas;
 using SqlToolManagerMaui.Languages.Linq;
 using System.Reflection;
 using Xunit;

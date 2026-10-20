@@ -1,6 +1,6 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Databases.Models.Connections;
 
 namespace SqlToolManagerMaui.Languages.Commons.Queries;
 

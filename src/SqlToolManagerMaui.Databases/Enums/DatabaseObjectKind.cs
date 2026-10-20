@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Enums.Databases.Connections;
+﻿namespace SqlToolManagerMaui.Databases.Enums;
 
 /// <summary>Famille d'objets listee sous une base dans l'explorateur.</summary>
 public enum DatabaseObjectKind

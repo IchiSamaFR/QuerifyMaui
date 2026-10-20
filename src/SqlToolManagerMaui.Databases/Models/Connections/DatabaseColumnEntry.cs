@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Databases.Connections;
+﻿namespace SqlToolManagerMaui.Databases.Models.Connections;
 
 /// <summary>Colonne d'une table ou d'une vue.</summary>
 /// <param name="Name">Nom de la colonne.</param>

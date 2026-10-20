@@ -2,8 +2,8 @@
 using RichEdit.Maui;
 using SqlToolManagerMaui.Core.Enums.Editors.Completion;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
+using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Services.Editors.Completion;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 

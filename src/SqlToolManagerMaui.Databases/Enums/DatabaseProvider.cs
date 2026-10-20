@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Enums.Databases.Connections;
+﻿namespace SqlToolManagerMaui.Databases.Enums;
 
 /// <summary>
 /// Moteur de base de donnees cible d'une connexion.

@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Databases.Schemas;
+﻿namespace SqlToolManagerMaui.Databases.Models.Schemas;
 
 /// <summary>Catalogue complet d'une base, charge en une passe pour l'autocompletion.</summary>
 public sealed class DatabaseSchemaSnapshot

@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.Core.Enums.Databases.Connections;
+﻿
+using SqlToolManagerMaui.Databases.Enums;
 
 namespace SqlToolManagerMaui.Databases.Schemas;
 

@@ -2,13 +2,13 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using SqlToolManagerMaui.Core.Enums.Databases;
-using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
-using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Databases.Enums;
+using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Schemas;
 using SqlToolManagerMaui.Helpers.Extensions;
+using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.UI.ViewModels;
 using System.Collections.ObjectModel;
@@ -240,12 +240,9 @@ public partial class ConnectionExplorerVM : AbstractVM
         if (table is not { Kind: ExplorerNodeKind.Table, Database: { } database, Schema: { } schema, ObjectName: { } name })
             return;
 
-        // Nom complet avec la base : la requete reste valable quelle que soit la base par defaut.
-        var query = $"SELECT TOP ({count}) *\nFROM {Quote(database)}.{Quote(schema)}.{Quote(name)};";
-        WeakReferenceMessenger.Default.Send(new InsertQueryMessage(table.Connection, query));
+        // La requete est ecrite par MainVM, dans le langage de l'onglet qui l'accueille.
+        WeakReferenceMessenger.Default.Send(new InsertQueryMessage(table.Connection, database, schema, name, count));
     }
-
-    private static string Quote(string identifier) => $"[{identifier.Replace("]", "]]")}]";
 
     private async Task LoadAsync(ExplorerNode node)
     {

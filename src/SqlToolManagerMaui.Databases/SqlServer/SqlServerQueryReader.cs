@@ -1,18 +1,14 @@
 ﻿using Microsoft.Data.SqlClient;
-using SqlToolManagerMaui.Core.Enums.Dashboards;
-using SqlToolManagerMaui.Core.Enums.Databases.Connections;
-using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Dashboards;
-using SqlToolManagerMaui.Core.Models.Queries;
-using SqlToolManagerMaui.Databases.Dashboards;
+using SqlToolManagerMaui.Databases.Enums;
+using SqlToolManagerMaui.Databases.Models.Queries;
+using SqlToolManagerMaui.Databases.Queries;
 using System.Data;
 using System.Globalization;
 
 namespace SqlToolManagerMaui.Databases.SqlServer;
 
-/// <summary>Cartes du dashboard sur SQL Server : la requete est envoyee telle quelle, les parametres en SqlParameter types.</summary>
-[AutoRegister(As = typeof(IDashboardQueryReader))]
-public sealed class SqlServerDashboardQueryReader : IDashboardQueryReader
+/// <summary>Requete parametree sur SQL Server : envoyee telle quelle, les parametres en SqlParameter types.</summary>
+public sealed class SqlServerQueryReader : IQueryReader
 {
     private const int ConnectTimeoutSeconds = 8;
     private const int CommandTimeoutSeconds = 120;
@@ -24,7 +20,7 @@ public sealed class SqlServerDashboardQueryReader : IDashboardQueryReader
 
     public DatabaseProvider Provider => DatabaseProvider.SqlServer;
 
-    public async Task<QueryResultSet> ReadAsync(string connectionString, string? database, string query, IReadOnlyList<DashboardQueryParameter> parameters, int maxRows, CancellationToken cancellationToken = default)
+    public async Task<QueryResultSet> ReadAsync(string connectionString, string? database, string query, IReadOnlyList<QueryParameter> parameters, int maxRows, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(query);
         ArgumentNullException.ThrowIfNull(parameters);
@@ -53,7 +49,7 @@ public sealed class SqlServerDashboardQueryReader : IDashboardQueryReader
             var sent = parameters.Count == 0
                 ? "aucun"
                 : string.Join(", ", command.Parameters.Cast<SqlParameter>().Select(p => p.ParameterName));
-            throw new InvalidOperationException($"{ex.Message} Paramètres du dashboard envoyés : {sent}.", ex);
+            throw new InvalidOperationException($"{ex.Message} Paramètres envoyés : {sent}.", ex);
         }
 
         await using var _ = reader;
@@ -92,16 +88,16 @@ public sealed class SqlServerDashboardQueryReader : IDashboardQueryReader
         return new QueryResultSet(1, columns, rows, isTruncated);
     }
 
-    private static SqlParameter CreateParameter(DashboardQueryParameter parameter)
+    private static SqlParameter CreateParameter(QueryParameter parameter)
     {
         var (type, size) = parameter.Type switch
         {
-            DashboardParameterType.Integer => (SqlDbType.BigInt, 0),
-            DashboardParameterType.Decimal => (SqlDbType.Decimal, 0),
-            DashboardParameterType.Date => (SqlDbType.Date, 0),
-            DashboardParameterType.DateTime => (SqlDbType.DateTime2, 0),
-            DashboardParameterType.Boolean => (SqlDbType.Bit, 0),
-            DashboardParameterType.Guid => (SqlDbType.UniqueIdentifier, 0),
+            QueryParameterType.Integer => (SqlDbType.BigInt, 0),
+            QueryParameterType.Decimal => (SqlDbType.Decimal, 0),
+            QueryParameterType.Date => (SqlDbType.Date, 0),
+            QueryParameterType.DateTime => (SqlDbType.DateTime2, 0),
+            QueryParameterType.Boolean => (SqlDbType.Bit, 0),
+            QueryParameterType.Guid => (SqlDbType.UniqueIdentifier, 0),
             _ => (SqlDbType.NVarChar, -1),
         };
 

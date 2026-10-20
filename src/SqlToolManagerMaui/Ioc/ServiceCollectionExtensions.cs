@@ -1,5 +1,5 @@
-using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Databases.Schemas;
+﻿using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Databases;
 using SqlToolManagerMaui.Languages;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -14,7 +14,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         return services
-            .AddAutoRegisteredServices([typeof(ServiceCollectionExtensions).Assembly, typeof(DatabaseSchemaCache).Assembly, .. LanguageAssemblies.All]);
+            .AddDatabases()
+            .AddAutoRegisteredServices([typeof(ServiceCollectionExtensions).Assembly, .. LanguageAssemblies.All]);
     }
 
     /// <summary>

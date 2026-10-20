@@ -1,4 +1,6 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Queries;
+﻿using SqlToolManagerMaui.Databases.Models.Queries;
+
+namespace SqlToolManagerMaui.Core.Models.Queries;
 
 /// <summary>
 /// Onglet du panneau de resultats : soit un jeu de resultats, soit la liste des messages.

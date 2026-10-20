@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
+using SqlToolManagerMaui.Databases.Enums;
+using SqlToolManagerMaui.Databases.Models.Queries;
 using System.Runtime.CompilerServices;
 
 namespace SqlToolManagerMaui.Core.Models.Dashboards;
@@ -61,13 +63,24 @@ public sealed partial class DashboardParameterValue : ObservableObject
     }
 
     /// <summary>Valeur typee pour la requete ; faux (et <see cref="Error"/> renseigne) si la saisie est invalide.</summary>
-    public bool TryGetQueryParameter(out DashboardQueryParameter parameter)
+    public bool TryGetQueryParameter(out QueryParameter parameter)
     {
         var isValid = Definition.TryConvert(Value, out var value, out var error);
         Error = error;
-        parameter = new DashboardQueryParameter(Definition.Name, Definition.Type, value);
+        parameter = new QueryParameter(Definition.Name, ToQueryType(Definition.Type), value);
         return isValid;
     }
+
+    private static QueryParameterType ToQueryType(DashboardParameterType type) => type switch
+    {
+        DashboardParameterType.Integer => QueryParameterType.Integer,
+        DashboardParameterType.Decimal => QueryParameterType.Decimal,
+        DashboardParameterType.Date => QueryParameterType.Date,
+        DashboardParameterType.DateTime => QueryParameterType.DateTime,
+        DashboardParameterType.Boolean => QueryParameterType.Boolean,
+        DashboardParameterType.Guid => QueryParameterType.Guid,
+        _ => QueryParameterType.Text,
+    };
 
     private void Update<T>(T current, T value, Action<T> apply, [CallerMemberName] string? propertyName = null)
     {

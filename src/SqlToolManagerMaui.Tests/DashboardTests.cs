@@ -1,8 +1,8 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors;
-using SqlToolManagerMaui.Core.Models.Queries;
-using SqlToolManagerMaui.Databases.Dashboards;
+using SqlToolManagerMaui.Core.Serialization;
+using SqlToolManagerMaui.Databases.Models.Queries;
 using Xunit;
 
 namespace SqlToolManagerMaui.Tests;

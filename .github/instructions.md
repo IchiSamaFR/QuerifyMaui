@@ -44,18 +44,20 @@ SqlToolManagerMaui est une application **desktop Windows** .NET MAUI permettant 
 * **Converters** : convertisseurs XAML réutilisables.
 * **Behaviors / Attachments / Extensions** : comportements et helpers transverses.
 
-**Noyau (`SqlToolManagerMaui.Core`)** : ne dépend pas du projet principal.
-* **Models / Enums** : modèles et énumérations, groupés par domaine (`Dashboards/`, `Databases/`, `Editors/`, `Queries/`).
+**Noyau (`SqlToolManagerMaui.Core`)** : ne dépend pas du projet principal ; référence `Databases` (et `Helpers`).
+* **Models / Enums** : modèles et énumérations de l'application, groupés par domaine (`Dashboards/`, `Databases/` pour l'explorateur et le brouillon de connexion, `Editors/`, `Queries/`).
+* **Serialization** : `DashboardSerializer` (JSON `.schx`, source-gen `DashboardJsonContext`, énumérations en texte).
 * **Services** : contrats applicatifs uniquement (`ICompletionService`).
 * **Ioc** : `AutoRegisterAttribute`.
 
-**Bases de données (`SqlToolManagerMaui.Databases`)** : tout ce qui parle à un moteur, indépendamment du langage. Référence `Core` uniquement.
+**Bases de données (`SqlToolManagerMaui.Databases`)** : librairie **indépendante** (aucune référence de projet, seulement des paquets) : tout ce qui parle à un moteur, indépendamment du langage et du format des dashboards. Ses services sont enregistrés par `services.AddDatabases()` (`DatabasesServiceCollectionExtensions`), pas par `[AutoRegister]`.
+* **`Models/`, `Enums/`** : `DatabaseConnectionInfo`, `ConnectionTestResult`, entrées de catalogue (`Connections/`), `DatabaseSchemaSnapshot` (`Schemas/`), `QueryResultSet` / `QueryParameter` (`Queries/`), `DatabaseProvider`, `DatabaseObjectKind`, `QueryParameterType`.
 * **`Connections/`** : `IConnectionTester` (un par `DatabaseProvider`) et `ConnectionTesterResolver`.
-* **`Dashboards/`** : `DashboardSerializer` (JSON `.schx`, source-gen, énumérations en texte), `IDashboardQueryReader` (un par `DatabaseProvider`) + résolveur, `IDashboardDataService`.
+* **`Queries/`** : `IQueryReader` (requête paramétrée, un par `DatabaseProvider`) + `QueryReaderResolver`, `IQueryDataService` (lecture sur une connexion ouverte, utilisée par les cartes de dashboard).
 * **`Schemas/`** : `IDatabaseSchemaReader` (un par `DatabaseProvider`), `DatabaseSchemaReaderResolver`, `IDatabaseSchemaCache` / `DatabaseSchemaCache` (catalogues en mémoire pour la complétion et LINQ).
 * **`SqlServer/`** : `SqlServerConnectionTester`, `SqlServerSchemaReader`, `SqlServerDashboardQueryReader`.
 
-**Langages** : `Core` ← `Databases` ← `Languages.Commons` ← `Languages.Sql` / `Languages.Linq` ← `Languages` ← projet principal (qui référence aussi `Databases`).
+**Langages** : `Databases` ← `Core` ← `Languages.Commons` ← `Languages.Sql` / `Languages.Linq` ← `Languages` ← projet principal (qui référence aussi `Core` et `Databases`). `Languages` porte aussi `InsertQueryMessage` (explorateur → onglet, `ToSql()` / `ToLinq()`).
 * **`Languages.Commons`** : contrats implémentés par les langages — `IQueryExecutor` (un par `SyntaxLanguage`), `ICompletionContextAnalyzer`, `ICompletionProvider` — plus `QueryExecutionLimits`.
 * **`Languages.[Nom]`** : un projet par langage, qui ne référence que `Languages.Commons`. Les langages ne se référencent pas entre eux.
 * **`Languages`** : seul projet de langage référencé par l'application. Référence tous les langages, expose `IQueryExecutorResolver` (par `SyntaxLanguage`) et `LanguageAssemblies.All` (assemblies à scanner).
@@ -76,7 +78,7 @@ SqlToolManagerMaui/
 │   ├── SqlToolManagerMaui/                     # Projet MAUI principal (Windows)
 │   │   ├── Ioc/
 │   │   │   ├── Ioc.cs                          # Service locator statique
-│   │   │   └── ServiceCollectionExtensions.cs  # Scan des [AutoRegister] (app + projets de langage)
+│   │   │   └── ServiceCollectionExtensions.cs  # AddDatabases() + scan des [AutoRegister] (app + projets de langage)
 │   │   ├── Services/
 │   │   │   ├── Databases/                      # ConnectionStore, dialogue
 │   │   │   ├── Editors/                        # EditorFileService, coloration, fournisseurs de complétion
@@ -102,7 +104,7 @@ SqlToolManagerMaui/
 │   │   ├── Enums/                              # Databases/, Editors/
 │   │   ├── Services/                           # Contrats applicatifs : Editors/Completion/
 │   │   └── Ioc/                                # AutoRegisterAttribute
-│   ├── SqlToolManagerMaui.Databases/           # Moteurs : Connections/, Schemas/, SqlServer/
+│   ├── SqlToolManagerMaui.Databases/           # Librairie indépendante : Models/, Enums/, Connections/, Queries/, Schemas/, SqlServer/
 │   ├── SqlToolManagerMaui.Languages/           # Agrégateur : résolveur d'exécution + LanguageAssemblies
 │   ├── SqlToolManagerMaui.Languages.Commons/   # Contrats communs aux langages
 │   ├── SqlToolManagerMaui.Languages.Sql/       # Langage SQL
@@ -141,7 +143,7 @@ SqlToolManagerMaui/
 
 ## Injection de dépendances
 
-* Services, pages et ViewModels se déclarent eux-mêmes avec `[AutoRegister]` (`Core/Ioc/AutoRegisterAttribute.cs`) : singleton et type concret par défaut, `Lifetime = ServiceLifetime.Transient` et/ou `As = typeof(IMonService)` au besoin. `Ioc/ServiceCollectionExtensions.cs` scanne l'assembly de l'application, celle de `Databases` et celles de `LanguageAssemblies.All` (projet `Languages`) ; plusieurs classes `As` la même interface sont toutes enregistrées.
+* Services, pages et ViewModels se déclarent eux-mêmes avec `[AutoRegister]` (`Core/Ioc/AutoRegisterAttribute.cs`) : singleton et type concret par défaut, `Lifetime = ServiceLifetime.Transient` et/ou `As = typeof(IMonService)` au besoin. `Ioc/ServiceCollectionExtensions.cs` appelle `AddDatabases()` puis scanne l'assembly de l'application et celles de `LanguageAssemblies.All` (projet `Languages`) ; plusieurs classes `As` la même interface sont toutes enregistrées. `Databases` ne connaît pas `[AutoRegister]` : ses services s'ajoutent dans `AddDatabases()`.
 * Injection **par constructeur** exclusivement.
 * `Ioc.GetRequiredService<T>()` est un dernier recours, réservé au code qui ne peut pas recevoir ses dépendances (code-behind, factories).
 * Pages et ViewModels sont enregistrés en **singleton** (application desktop mono-fenêtre).
@@ -299,17 +301,17 @@ Lors de la création d'une feature :
 * **Lecture d'une carte** : premier jeu de résultats ayant des colonnes, 1 000 lignes max, cartes lues en parallèle ; une nouvelle lecture annule la précédente ; changer de connexion relit la page affichée.
 * **Rendu** : `Views/Pages/Documents/DashboardView` (en-tête + vue active) assemble les contrôles de `Views/Controls/Dashboards/` — `DashboardGrid` (paramètres, fil d'Ariane, grille à deux calques : cases du concepteur dessous, cartes dessus ; lignes / colonnes créées en code), `DashboardCardView`, `DashboardChartView` (LiveCharts2 : graphiques déclarés en XAML, séries posées en code), `DashboardDesignerPanel`. `QueryResultGrid.RowTappedCommand` rend les lignes cliquables.
 * **Concepteur** : clic sur une case libre = nouvelle carte 4 × 2 ; clic sur une carte = sélection (pas de navigation) ; glisser une carte sur une case = déplacement ; le panneau édite titre, rendu, requête (« Exécuter la requête »), colonnes, page cible et paramètres transmis (« Param = Colonne », « = @Param », « = 'texte' »), position / taille, pages et paramètres.
-* Ajouter un moteur = aussi une classe `[AutoRegister(As = typeof(IDashboardQueryReader))]` dans `Databases/[Moteur]/`.
+* Ajouter un moteur = aussi une implémentation de `IQueryReader` dans `Databases/[Moteur]/`, enregistrée dans `AddDatabases()`. Les paramètres du dashboard (`DashboardParameterType`) sont convertis en `QueryParameter` par `DashboardParameterValue.TryGetQueryParameter`.
 
 ### Connexions
 
 * Stockage mixte : métadonnées dans `connections.json` (AppDataDirectory, écriture atomique via fichier `.tmp`), chaîne de connexion complète chiffrée dans le `SecureStorage` sous la clé `connectionstring:{id}`. `DatabaseConnectionInfo` ne contient **jamais** la chaîne complète.
 * Toutes les écritures passent par un sémaphore, le fichier est réécrit en entier.
-* **Ajouter un moteur** = une classe `[AutoRegister(As = typeof(IConnectionTester))]` dans `Databases/[Moteur]/` ; `ConnectionTesterResolver` le découvre seul.
+* **Ajouter un moteur** = une implémentation de `IConnectionTester` dans `Databases/[Moteur]/`, enregistrée dans `AddDatabases()` ; `ConnectionTesterResolver` la découvre seule.
 * La popup « Se connecter » (`ConnectionEditorPopup` + `ConnectionEditorVM`, transient) travaille sur un `DatabaseConnectionDraft` (clone) pour qu'« Annuler » ne modifie rien. Elle est ouverte par `IConnectionDialogService.EditAsync` et fermée par le VM via `IPopupService.ClosePopupAsync(shell, Guid?)` (Id enregistré, ou null).
 * Après un ajout / une modification / une suppression, `ConnectionsChangedMessage` est publié (WeakReferenceMessenger) : `QueryConnectionVM` recharge son Picker.
 * **Explorateur** : `ConnectionExplorerVM` garde l'arbre (`Roots`), affiché par le contrôle générique `v:TreeView` de `SqlToolManagerMaui.UI/Views` (MAUI n'en fournit pas) : nœuds imbriqués, `ChildrenPath` / `IsExpandedPath` / `CanExpandPath`, `ExpandingCommand` appelé à chaque ouverture pour le chargement paresseux. Aucun `ExplorerNode` ne porte la chaîne : elle est relue dans le coffre à chaque chargement. Une erreur de chargement devient un nœud « Erreur : ... ».
-* **Catalogue d'un moteur** = une classe `[AutoRegister(As = typeof(IDatabaseSchemaReader))]` dans `Databases/[Moteur]/` (résolu par `DatabaseSchemaReaderResolver`), sur le modèle des testeurs.
+* **Catalogue d'un moteur** = une implémentation de `IDatabaseSchemaReader` dans `Databases/[Moteur]/`, enregistrée dans `AddDatabases()` (résolue par `DatabaseSchemaReaderResolver`), sur le modèle des testeurs.
 
 ### Préférences utilisateur
 

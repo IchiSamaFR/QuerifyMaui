@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Maui;
-using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Databases.Models.Queries;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Views.Controls.Queries;

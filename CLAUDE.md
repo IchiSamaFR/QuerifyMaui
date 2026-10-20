@@ -29,7 +29,7 @@ Cette source unique est partagée entre Claude et Copilot. Consulte ce fichier p
 
 Respecter **absolument** :
 1. L'architecture MVVM — les ViewModels héritent de `AbstractVM`, les pages de `AbstractPage`
-2. La stratification des couches — Views, ViewModels, Services (app), `SqlToolManagerMaui.Core` (modèles, enums, contrats applicatifs), `SqlToolManagerMaui.Databases` (moteurs de base : connexion, catalogue, résolveurs), `SqlToolManagerMaui.Languages.Commons` (contrats communs aux langages), `SqlToolManagerMaui.Languages.[Nom]` (une implémentation par langage), `SqlToolManagerMaui.Languages` (agrège les langages et fournit les résolveurs) et `SqlToolManagerMaui.UI` pour le générique
+2. La stratification des couches — Views, ViewModels, Services (app), `SqlToolManagerMaui.Core` (modèles, enums, contrats applicatifs), `SqlToolManagerMaui.Databases` (librairie indépendante, sans référence de projet : moteurs de base, connexion, catalogue, requêtes paramétrées, et leurs modèles ; `Core` la référence), `SqlToolManagerMaui.Languages.Commons` (contrats communs aux langages), `SqlToolManagerMaui.Languages.[Nom]` (une implémentation par langage), `SqlToolManagerMaui.Languages` (agrège les langages et fournit les résolveurs) et `SqlToolManagerMaui.UI` pour le générique
 3. L'injection de dépendances — déclaration par `[AutoRegister]` sur la classe (scan dans `Ioc/ServiceCollectionExtensions.cs`), injection par constructeur
 4. Les anti-patterns à éviter — pas de logique dans le code-behind, pas de ViewModel connu d'un contrôle, pas d'API Xamarin.Forms
 
@@ -106,9 +106,9 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 5. Si un nouveau dossier de namespace est créé, mettre `Properties/AppXmlns.cs` à jour (le T4 ne tourne pas au build)
 
 ### Ajouter un moteur SQL
-1. Dans `Databases/[Moteur]/` : classes `[AutoRegister(As = typeof(IConnectionTester))]`, `[AutoRegister(As = typeof(IDatabaseSchemaReader))]` et `[AutoRegister(As = typeof(IDashboardQueryReader))]` (les résolveurs les découvrent seuls)
+1. Dans `Databases/[Moteur]/` : implémentations de `IConnectionTester`, `IDatabaseSchemaReader` et `IQueryReader`, enregistrées dans `DatabasesServiceCollectionExtensions.AddDatabases()` (pas d'`[AutoRegister]` dans cette librairie ; les résolveurs les découvrent seuls)
 2. Dans `Languages.Sql/[Moteur]/` : classe `[AutoRegister(As = typeof(ISqlProviderExecutor))]` (`SqlQueryExecutor` la découvre seul)
-3. Ajouter la valeur à `DatabaseProvider` (`Core/Enums`)
+3. Ajouter la valeur à `DatabaseProvider` (`Databases/Enums`)
 
 ### Ajouter un langage
 1. Créer `SqlToolManagerMaui.Languages.[Nom]` (référence `Languages.Commons` uniquement, jamais un autre langage)

@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.Core.Models.Queries;
+﻿
+using SqlToolManagerMaui.Databases.Models.Queries;
 
 namespace SqlToolManagerMaui.Core.Models.Dashboards;
 

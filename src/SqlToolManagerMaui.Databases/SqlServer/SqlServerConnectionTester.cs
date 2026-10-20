@@ -1,8 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
-using SqlToolManagerMaui.Core.Enums.Databases.Connections;
-using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Databases.Connections;
+using SqlToolManagerMaui.Databases.Enums;
+using SqlToolManagerMaui.Databases.Models.Connections;
 using System.Diagnostics;
 
 namespace SqlToolManagerMaui.Databases.SqlServer;
@@ -12,7 +11,6 @@ namespace SqlToolManagerMaui.Databases.SqlServer;
 /// l'analyse, puis ouvre la connexion avec un timeout court afin que le bouton
 /// "Tester" ne bloque pas l'UI pendant 30 secondes.
 /// </summary>
-[AutoRegister(As = typeof(IConnectionTester))]
 public sealed class SqlServerConnectionTester : IConnectionTester
 {
     private const int TestConnectTimeoutSeconds = 8;

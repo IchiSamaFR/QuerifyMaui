@@ -1,10 +1,10 @@
-﻿using SqlToolManagerMaui.Core.Enums.Databases.Connections;
-using SqlToolManagerMaui.Core.Enums.Editors.Completion;
+﻿using SqlToolManagerMaui.Core.Enums.Editors.Completion;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
-using SqlToolManagerMaui.Core.Models.Databases.Schemas;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
+using SqlToolManagerMaui.Databases.Enums;
+using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Databases.Models.Schemas;
 using SqlToolManagerMaui.Databases.Schemas;
 using SqlToolManagerMaui.Languages.Commons.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;

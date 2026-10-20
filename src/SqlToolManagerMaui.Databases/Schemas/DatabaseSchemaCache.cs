@@ -1,12 +1,10 @@
-﻿using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
-using SqlToolManagerMaui.Core.Models.Databases.Schemas;
+﻿using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Databases.Models.Schemas;
 using System.Collections.Concurrent;
 
 namespace SqlToolManagerMaui.Databases.Schemas;
 
 /// <inheritdoc cref="IDatabaseSchemaCache"/>
-[AutoRegister(As = typeof(IDatabaseSchemaCache))]
 public sealed class DatabaseSchemaCache : IDatabaseSchemaCache
 {
     private readonly IDatabaseSchemaReaderResolver _readers;

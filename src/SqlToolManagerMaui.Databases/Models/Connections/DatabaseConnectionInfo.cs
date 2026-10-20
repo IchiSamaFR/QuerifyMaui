@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
-using SqlToolManagerMaui.Core.Enums.Databases.Connections;
+using SqlToolManagerMaui.Databases.Enums;
 
-namespace SqlToolManagerMaui.Core.Models.Databases.Connections;
+namespace SqlToolManagerMaui.Databases.Models.Connections;
 
 /// <summary>
 /// Descripteur d'une connexion enregistree.

@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Queries;
+﻿namespace SqlToolManagerMaui.Databases.Models.Queries;
 
 /// <summary>Un jeu de resultats (un SELECT) renvoye par l'execution.</summary>
 public sealed class QueryResultSet

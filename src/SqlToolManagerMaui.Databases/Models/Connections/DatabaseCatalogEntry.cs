@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Databases.Connections;
+﻿namespace SqlToolManagerMaui.Databases.Models.Connections;
 
 /// <summary>Base de donnees d'un serveur.</summary>
 /// <param name="Name">Nom de la base.</param>

@@ -1,6 +1,6 @@
-﻿using SqlToolManagerMaui.Core.Enums.Databases.Connections;
-using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Databases.Schemas;
+﻿using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Databases.Enums;
+using SqlToolManagerMaui.Databases.Models.Schemas;
 using System.Globalization;
 using System.Text;
 

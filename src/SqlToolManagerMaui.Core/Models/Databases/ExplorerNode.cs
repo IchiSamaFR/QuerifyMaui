@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using SqlToolManagerMaui.Core.Enums.Databases;
-using SqlToolManagerMaui.Core.Enums.Databases.Connections;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Databases.Enums;
+using SqlToolManagerMaui.Databases.Models.Connections;
 using System.Collections.ObjectModel;
 
 namespace SqlToolManagerMaui.Core.Models.Databases;

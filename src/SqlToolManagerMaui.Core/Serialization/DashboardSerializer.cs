@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Text.Json;
 
-namespace SqlToolManagerMaui.Databases.Dashboards;
+namespace SqlToolManagerMaui.Core.Serialization;
 
 /// <summary>Lecture / ecriture du JSON d'un fichier .schx.</summary>
 public static class DashboardSerializer

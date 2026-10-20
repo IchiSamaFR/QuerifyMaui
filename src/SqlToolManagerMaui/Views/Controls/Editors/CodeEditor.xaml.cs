@@ -1,9 +1,9 @@
 ﻿using CodeEdit.Maui;
 using CommunityToolkit.Maui;
 using RichEdit.Maui;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Services.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.UI.Extensions;

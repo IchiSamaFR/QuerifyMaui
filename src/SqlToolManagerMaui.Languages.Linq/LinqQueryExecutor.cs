@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Databases.Models.Queries;
 using SqlToolManagerMaui.Languages.Commons.Queries;
 using System.Collections;
 using System.Data.Common;

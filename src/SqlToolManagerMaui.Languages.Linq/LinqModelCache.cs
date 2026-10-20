@@ -1,6 +1,6 @@
 ﻿using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
-using SqlToolManagerMaui.Core.Models.Databases.Schemas;
+using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Databases.Models.Schemas;
 using SqlToolManagerMaui.Databases.Schemas;
 using System.Runtime.CompilerServices;
 

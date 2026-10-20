@@ -2,7 +2,7 @@
 using CommunityToolkit.Maui.Extensions;
 using Microsoft.Maui.Controls.Shapes;
 using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
+using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.ViewModels.Pages.Connections;
 using SqlToolManagerMaui.Views.Pages.Connections;
 

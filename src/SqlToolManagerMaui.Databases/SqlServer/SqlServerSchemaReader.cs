@@ -1,14 +1,12 @@
 ﻿using Microsoft.Data.SqlClient;
-using SqlToolManagerMaui.Core.Enums.Databases.Connections;
-using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
-using SqlToolManagerMaui.Core.Models.Databases.Schemas;
+using SqlToolManagerMaui.Databases.Enums;
+using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Databases.Models.Schemas;
 using SqlToolManagerMaui.Databases.Schemas;
 
 namespace SqlToolManagerMaui.Databases.SqlServer;
 
 /// <summary>Catalogue SQL Server lu dans les vues systeme (sys.databases, sys.objects).</summary>
-[AutoRegister(As = typeof(IDatabaseSchemaReader))]
 public sealed class SqlServerSchemaReader : IDatabaseSchemaReader
 {
     private const int ConnectTimeoutSeconds = 8;

@@ -1,10 +1,8 @@
-﻿using SqlToolManagerMaui.Core.Enums.Databases.Connections;
-using SqlToolManagerMaui.Core.Ioc;
+﻿using SqlToolManagerMaui.Databases.Enums;
 
 namespace SqlToolManagerMaui.Databases.Connections;
 
 /// <inheritdoc cref="IConnectionTesterResolver"/>
-[AutoRegister(As = typeof(IConnectionTesterResolver))]
 public sealed class ConnectionTesterResolver : IConnectionTesterResolver
 {
     private readonly Dictionary<DatabaseProvider, IConnectionTester> _testers;

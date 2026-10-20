@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
-using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Databases.Models.Queries;
 using System.Runtime.CompilerServices;
 
 namespace SqlToolManagerMaui.Core.Models.Dashboards;

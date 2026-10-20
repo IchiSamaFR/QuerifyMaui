@@ -1,4 +1,4 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Databases.Schemas;
+﻿namespace SqlToolManagerMaui.Databases.Models.Schemas;
 
 /// <param name="DataType">Type deja formate pour l'affichage (ex. "nvarchar(50)").</param>
 /// <param name="SqlType">Type systeme de base, alias resolus (ex. "nvarchar") : sert au mapping .NET.</param>

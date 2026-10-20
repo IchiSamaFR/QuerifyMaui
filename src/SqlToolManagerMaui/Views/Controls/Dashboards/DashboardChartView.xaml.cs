@@ -6,7 +6,7 @@ using LiveChartsCore.SkiaSharpView.Maui;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
-using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Databases.Models.Queries;
 using System.Globalization;
 
 namespace SqlToolManagerMaui.Views.Controls.Dashboards;

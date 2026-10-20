@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Maui;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Models.Dashboards;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+using SqlToolManagerMaui.Databases.Models.Connections;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.Views.Controls.Dashboards;

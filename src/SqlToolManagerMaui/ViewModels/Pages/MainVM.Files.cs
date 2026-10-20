@@ -3,7 +3,7 @@ using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors;
-using SqlToolManagerMaui.Databases.Dashboards;
+using SqlToolManagerMaui.Core.Serialization;
 using SqlToolManagerMaui.Services.Editors;
 using System.Globalization;
 

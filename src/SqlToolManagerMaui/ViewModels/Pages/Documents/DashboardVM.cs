@@ -5,9 +5,11 @@ using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Dashboards;
-using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
-using SqlToolManagerMaui.Databases.Dashboards;
+using SqlToolManagerMaui.Core.Serialization;
+using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Databases.Models.Queries;
+using SqlToolManagerMaui.Databases.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.ViewModels.Pages.Shared;
@@ -29,7 +31,7 @@ public partial class DashboardVM : ObservableObject
     /// <summary>Delai de regroupement des modifications du concepteur avant reecriture du fichier.</summary>
     private static readonly TimeSpan WriteDelay = TimeSpan.FromMilliseconds(250);
 
-    private readonly IDashboardDataService _dashboardData;
+    private readonly IQueryDataService _dashboardData;
     private readonly IConnectionStore _connectionStore;
 
     /// <summary>Sessions dont la definition a change depuis la derniere reecriture du texte.</summary>
@@ -40,7 +42,7 @@ public partial class DashboardVM : ObservableObject
         StatusBarVM status,
         EditorPreferencesVM preferences,
         ISyntaxConfigurationStore syntaxConfigurations,
-        IDashboardDataService dashboardData,
+        IQueryDataService dashboardData,
         IConnectionStore connectionStore)
     {
         Connection = connection;
@@ -330,7 +332,7 @@ public partial class DashboardVM : ObservableObject
 
     private async Task LoadQueriedCardsAsync(DashboardSession session, List<DashboardCardState> queried, CancellationToken token)
     {
-        List<DashboardQueryParameter> parameters = [];
+        List<QueryParameter> parameters = [];
         var isValid = true;
         foreach (var parameter in session.Parameters)
         {
@@ -365,7 +367,7 @@ public partial class DashboardVM : ObservableObject
         await Task.WhenAll(queried.Select(card => LoadCardAsync(connection, database, card, parameters, token)));
     }
 
-    private async Task LoadCardAsync(DatabaseConnectionInfo connection, string? database, DashboardCardState card, IReadOnlyList<DashboardQueryParameter> parameters, CancellationToken token)
+    private async Task LoadCardAsync(DatabaseConnectionInfo connection, string? database, DashboardCardState card, IReadOnlyList<QueryParameter> parameters, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(card.Definition.Query))
         {

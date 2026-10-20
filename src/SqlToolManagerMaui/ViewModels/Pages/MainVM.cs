@@ -1,8 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors;
-using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.UI.ViewModels;
@@ -75,7 +76,7 @@ public partial class MainVM : AbstractVM
         SelectedSession = session;
     }
 
-    /// <summary>La requete de l'explorateur part dans l'onglet de script courant, ou dans un nouveau.</summary>
+    /// <summary>La requete de l'explorateur part dans l'onglet de script courant (dans son langage), ou dans un nouveau.</summary>
     private void InsertQuery(InsertQueryMessage message)
     {
         if (SelectedSession is not CodeEditorSession)
@@ -85,6 +86,7 @@ public partial class MainVM : AbstractVM
             return;
 
         _connection.Select(message.Connection.Id);
-        session.Document.InsertBlock(message.Query);
+        var document = session.Document;
+        document.InsertBlock(document.Language == SyntaxLanguage.Linq ? message.ToLinq() : message.ToSql());
     }
 }

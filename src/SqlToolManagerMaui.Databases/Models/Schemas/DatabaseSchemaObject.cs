@@ -1,6 +1,6 @@
-﻿using SqlToolManagerMaui.Core.Enums.Databases.Connections;
+﻿using SqlToolManagerMaui.Databases.Enums;
 
-namespace SqlToolManagerMaui.Core.Models.Databases.Schemas;
+namespace SqlToolManagerMaui.Databases.Models.Schemas;
 
 /// <summary>Table, vue ou procedure, avec ses colonnes (vides pour une procedure).</summary>
 public sealed record DatabaseSchemaObject(

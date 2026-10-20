@@ -1,10 +1,11 @@
 ﻿using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SqlToolManagerMaui.Core.Enums.Databases.Connections;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Databases.Connections;
+using SqlToolManagerMaui.Databases.Enums;
+using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.UI.ViewModels;
 
