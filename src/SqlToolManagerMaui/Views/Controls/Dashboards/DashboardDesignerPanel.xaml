@@ -175,44 +175,6 @@
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </v:ExpanderExtended>
-
-            <!-- ============ Parametres d'entree ============ -->
-            <v:ExpanderExtended Title="Paramètres d'entrée"
-                                Padding="{DynamicResource CardContentPadding}">
-                <VerticalStackLayout Spacing="8"
-                                     Margin="0,8,0,0">
-                    <VerticalStackLayout Spacing="8"
-                                         BindableLayout.ItemsSource="{Binding Session.Parameters}">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="m:DashboardParameterValue">
-                                <Grid ColumnDefinitions="*,*,Auto"
-                                      RowDefinitions="Auto,Auto"
-                                      ColumnSpacing="6"
-                                      RowSpacing="4">
-                                    <inp:TextField Title="Nom"
-                                                   Text="{Binding Name, Mode=TwoWay}" />
-                                    <inp:PickerField Grid.Column="1"
-                                                     Title="Type"
-                                                     ItemsSource="{x:Static c:DashboardDesignerPanel.ParameterTypes}"
-                                                     SelectedItem="{Binding Type, Mode=TwoWay}" />
-                                    <Button Grid.Column="2"
-                                            Style="{StaticResource SimpleTextIconButtonStyle}"
-                                            ImageSource="{mk:FluentFilledImage Icon=Dismiss16Filled, IconSize=12}"
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardDesignerPanel}}, Path=DeleteParameterCommand, x:DataType=c:DashboardDesignerPanel}"
-                                            CommandParameter="{Binding .}"
-                                            ToolTipProperties.Text="Supprimer le paramètre" />
-                                </Grid>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </VerticalStackLayout>
-
-                    <Button Style="{StaticResource SecondaryButtonStyle}"
-                            Text="Ajouter un paramètre"
-                            ImageSource="{mk:FluentFilledImage Icon=Add20Filled}"
-                            Command="{Binding AddParameterCommand}"
-                            HorizontalOptions="Start" />
-                </VerticalStackLayout>
-            </v:ExpanderExtended>
         </VerticalStackLayout>
     </ScrollView>
 </ContentView>

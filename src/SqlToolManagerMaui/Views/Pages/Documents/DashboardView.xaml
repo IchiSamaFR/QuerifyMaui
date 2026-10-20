@@ -85,6 +85,9 @@
                              DragOverCommand="{Binding DragOverCellCommand}"
                              DragLeaveCommand="{Binding DragLeaveCellCommand}"
                              EndDragCommand="{Binding EndDragCommand}"
+                             AddParameterCommand="{Binding AddParameterCommand}"
+                             EditParameterCommand="{Binding EditParameterCommand}"
+                             DeleteParameterCommand="{Binding DeleteParameterCommand}"
                              IsDashboardParamsOpen="{Binding Preferences.Panels.IsDashboardParamsOpen}" />
 
             <c:DashboardDesignerPanel Grid.Column="1"
@@ -98,8 +101,6 @@
                                       OpenPageCommand="{Binding OpenDesignerPageCommand}"
                                       AddPageCommand="{Binding AddPageCommand}"
                                       DeletePageCommand="{Binding DeletePageCommand}"
-                                      AddParameterCommand="{Binding AddParameterCommand}"
-                                      DeleteParameterCommand="{Binding DeleteParameterCommand}"
                                       IsVisible="{Binding Session.IsDesigning, FallbackValue=False}" />
         </Grid>
     </Grid>

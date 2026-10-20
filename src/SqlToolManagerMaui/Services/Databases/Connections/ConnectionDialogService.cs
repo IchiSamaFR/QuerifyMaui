@@ -1,8 +1,7 @@
-﻿using CommunityToolkit.Maui;
-using CommunityToolkit.Maui.Extensions;
-using Microsoft.Maui.Controls.Shapes;
+﻿using CommunityToolkit.Maui.Extensions;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Services.Dialogs;
 using SqlToolManagerMaui.ViewModels.Pages.Connections;
 using SqlToolManagerMaui.Views.Pages.Connections;
 
@@ -30,25 +29,7 @@ public sealed class ConnectionDialogService : IConnectionDialogService
         await viewModel.InitializeAsync(connection, cancellationToken);
 
         var popup = new ConnectionEditorPopup(viewModel);
-        var result = await page.ShowPopupAsync<Guid?>(popup, CreateOptions(), cancellationToken);
+        var result = await page.ShowPopupAsync<Guid?>(popup, FluentPopupOptions.Create(), cancellationToken);
         return result.Result;
     }
-
-    // Habillage des surfaces flottantes WPF UI : coins 8 px, trait SurfaceStroke, voile SmokeFill.
-    private static PopupOptions CreateOptions() => new()
-    {
-        CanBeDismissedByTappingOutsideOfPopup = false,
-        PageOverlayColor = Resource("SmokeFill", Color.FromArgb("#4D000000")),
-        Shape = new RoundRectangle
-        {
-            CornerRadius = 8,
-            Stroke = Resource("SurfaceStrokeColorDefault", Color.FromArgb("#66757575")),
-            StrokeThickness = 1,
-        },
-    };
-
-    private static Color Resource(string key, Color fallback)
-        => Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color
-            ? color
-            : fallback;
 }

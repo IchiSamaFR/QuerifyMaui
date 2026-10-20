@@ -153,16 +153,27 @@ public partial class DashboardVM
     }
 
     [RelayCommand]
-    private void AddParameter()
+    private async Task AddParameterAsync()
     {
-        if (Session is not { Definition: { } definition } session)
+        if (Session is not { IsDesigning: true, Definition: not null } session)
             return;
 
-        var number = definition.Parameters.Count + 1;
-        while (definition.Parameters.Any(p => string.Equals(p.Name, $"Param{number.ToString(CultureInfo.InvariantCulture)}", StringComparison.OrdinalIgnoreCase)))
-            number++;
+        if (await _parameterDialogs.EditAsync(null, GetParameterNames(session, except: null)) is { } parameter)
+            session.AddParameter(parameter);
+    }
 
-        session.AddParameter(new DashboardParameterDefinition { Name = $"Param{number.ToString(CultureInfo.InvariantCulture)}" });
+    [RelayCommand]
+    private async Task EditParameterAsync(DashboardParameterValue? parameter)
+    {
+        if (Session is not { IsDesigning: true } session || parameter is null)
+            return;
+
+        if (await _parameterDialogs.EditAsync(parameter.Definition, GetParameterNames(session, except: parameter)) is not { } edited)
+            return;
+
+        parameter.Name = edited.Name;
+        parameter.Label = edited.Label ?? string.Empty;
+        parameter.Type = edited.Type;
     }
 
     [RelayCommand]
@@ -171,6 +182,9 @@ public partial class DashboardVM
         if (parameter is not null)
             Session?.RemoveParameter(parameter);
     }
+
+    private static List<string> GetParameterNames(DashboardSession session, DashboardParameterValue? except)
+        => session.Parameters.Where(p => p != except).Select(p => p.Name).ToList();
 
     [RelayCommand]
     private void ShowSettings()

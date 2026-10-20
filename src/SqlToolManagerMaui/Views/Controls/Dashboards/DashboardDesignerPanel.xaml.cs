@@ -10,15 +10,13 @@ using System.Windows.Input;
 namespace SqlToolManagerMaui.Views.Controls.Dashboards;
 
 /// <summary>
-/// Panneau du concepteur : proprietes de la carte selectionnee, page editee et parametres du dashboard.
+/// Panneau du concepteur : proprietes de la carte selectionnee et page editee.
 /// Les champs ecrivent directement dans la definition, que l'hote reecrit dans le fichier.
 /// </summary>
 public partial class DashboardDesignerPanel : ContentView
 {
     /// <summary>Rendus proposes pour une carte.</summary>
     public static DashboardCardKind[] CardKinds { get; } = Enum.GetValues<DashboardCardKind>();
-
-    public static DashboardParameterType[] ParameterTypes { get; } = Enum.GetValues<DashboardParameterType>();
 
     [BindableProperty]
     public partial DashboardSession? Session { get; set; }
@@ -51,13 +49,6 @@ public partial class DashboardDesignerPanel : ContentView
 
     [BindableProperty]
     public partial ICommand? DeletePageCommand { get; set; }
-
-    [BindableProperty]
-    public partial ICommand? AddParameterCommand { get; set; }
-
-    /// <summary>Supprime un parametre (parametre : <see cref="DashboardParameterValue"/>).</summary>
-    [BindableProperty]
-    public partial ICommand? DeleteParameterCommand { get; set; }
 
     public DashboardDesignerPanel()
     {

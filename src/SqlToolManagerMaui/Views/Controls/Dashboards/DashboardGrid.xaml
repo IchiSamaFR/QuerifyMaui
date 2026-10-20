@@ -1,7 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="SqlToolManagerMaui.Views.Controls.Dashboards.DashboardGrid">
+             x:Class="SqlToolManagerMaui.Views.Controls.Dashboards.DashboardGrid"
+             x:Name="Root">
 
     <Border>
         <!-- Les enfants se lient au controle lui-meme (et non au ViewModel de la page) -->
@@ -27,10 +28,19 @@
                     IsVisible="False"
                     Style="{StaticResource CardStyle}">
                 <Border.Triggers>
+                    <!-- Dans le concepteur, la barre reste affichee sans parametre pour en declarer un -->
                     <MultiTrigger TargetType="Border">
                         <MultiTrigger.Conditions>
-                            <BindingCondition Binding="{Binding Session.HasParameters, FallbackValue=False}"
-                                              Value="True" />
+                            <BindingCondition Value="True">
+                                <BindingCondition.Binding>
+                                    <MultiBinding Converter="{StaticResource IsOneTrueConverter}">
+                                        <Binding Path="Session.HasParameters"
+                                                 FallbackValue="False" />
+                                        <Binding Path="Session.IsDesigning"
+                                                 FallbackValue="False" />
+                                    </MultiBinding>
+                                </BindingCondition.Binding>
+                            </BindingCondition>
                             <BindingCondition Binding="{Binding IsDashboardParamsOpen, FallbackValue=False}"
                                               Value="True" />
                         </MultiTrigger.Conditions>
@@ -38,27 +48,62 @@
                                 Value="True" />
                     </MultiTrigger>
                 </Border.Triggers>
-                <!-- Validation : Entree dans un champ, ou le bouton Executer de l'en-tete -->
+                <!-- Validation : Entree dans un champ, ou le bouton Executer de l'en-tete.
+                     Liste imbriquee : le bouton « Nouveau parametre » suit le dernier parametre -->
                 <v:WrapLayout HorizontalSpacing="12"
-                              HorizontalOptions="Start"
-                              BindableLayout.ItemsSource="{Binding Session.Parameters}">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="m:DashboardParameterValue">
-                            <VerticalStackLayout Spacing="2">
-                                <HorizontalStackLayout Spacing="4">
-                                    <Label Text="{Binding DisplayName}" />
-                                    <inp:TextField Text="{Binding Value, Mode=TwoWay}"
-                                                   Placeholder="{Binding Hint}"
-                                                   ReturnCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=ApplyParametersCommand, x:DataType=c:DashboardGrid}"
-                                                   WidthRequest="120" />
-                                </HorizontalStackLayout>
-                                <Label Text="{Binding Error}"
-                                       IsVisible="{Binding HasError}"
-                                       Style="{StaticResource LabelErrorStyle}"
-                                       FontSize="{StaticResource FontSize_Caption}" />
-                            </VerticalStackLayout>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
+                              VerticalSpacing="8"
+                              HorizontalOptions="Start">
+                    <v:WrapLayout HorizontalSpacing="12"
+                                  VerticalSpacing="8"
+                                  IsVisible="{Binding Session.HasParameters, FallbackValue=False}"
+                                  BindableLayout.ItemsSource="{Binding Session.Parameters}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="m:DashboardParameterValue">
+                                <VerticalStackLayout Spacing="2">
+                                    <Grid ColumnDefinitions="Auto,Auto"
+                                          ColumnSpacing="4"
+                                          HeightRequest="{DynamicResource InputHeight}"
+                                          MinimumHeightRequest="-1">
+                                        <Label Text="{Binding DisplayName}"
+                                               VerticalOptions="Center" />
+                                        <inp:TextField Grid.Column="1"
+                                                       Text="{Binding Value, Mode=TwoWay}"
+                                                       Placeholder="{Binding Hint}"
+                                                       ReturnCommand="{Binding ApplyParametersCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
+                                                       WidthRequest="120" />
+                                        <v:MenuButton Grid.Column="1"
+                                                      ImageSource="{mk:FluentFilledImage Icon=MoreHorizontal16Filled}"
+                                                      IsVisible="{Binding Session.IsDesigning, Source={x:Reference Root}, FallbackValue=False, x:DataType=c:DashboardGrid}"
+                                                      VerticalOptions="Center"
+                                                      HorizontalOptions="End"
+                                                      Margin="0,4,4,0"
+                                                      ToolTipProperties.Text="Options du paramètre">
+                                            <FlyoutBase.ContextFlyout>
+                                                <MenuFlyout>
+                                                    <MenuFlyoutItem Text="Modifier"
+                                                                    Command="{Binding EditParameterCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
+                                                                    CommandParameter="{Binding .}" />
+                                                    <MenuFlyoutItem Text="Supprimer"
+                                                                    Command="{Binding DeleteParameterCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
+                                                                    CommandParameter="{Binding .}" />
+                                                </MenuFlyout>
+                                            </FlyoutBase.ContextFlyout>
+                                        </v:MenuButton>
+                                    </Grid>
+                                    <Label Text="{Binding Error}"
+                                           IsVisible="{Binding HasError}"
+                                           Style="{StaticResource LabelErrorStyle}"
+                                           FontSize="{StaticResource FontSize_Caption}" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </v:WrapLayout>
+
+                    <Button Style="{StaticResource PrimaryButtonStyle}"
+                            Text="Ajouter"
+                            ImageSource="{mk:FluentFilledImage Icon=Add20Filled, IconSize=14}"
+                            Command="{Binding AddParameterCommand}"
+                            IsVisible="{Binding Session.IsDesigning, FallbackValue=False}" />
                 </v:WrapLayout>
             </Border>
 

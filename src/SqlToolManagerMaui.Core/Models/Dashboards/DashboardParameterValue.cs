@@ -40,6 +40,13 @@ public sealed partial class DashboardParameterValue : ObservableObject
         set => Update(Definition.Type, value, v => Definition.Type = v);
     }
 
+    /// <summary>Libelle declare ; vide = le nom.</summary>
+    public string Label
+    {
+        get => Definition.Label ?? string.Empty;
+        set => Update(Definition.Label, string.IsNullOrWhiteSpace(value) ? null : value.Trim(), v => Definition.Label = v);
+    }
+
     /// <summary>Libelle du champ de saisie.</summary>
     public string DisplayName => string.IsNullOrWhiteSpace(Definition.Label) ? Definition.Name : Definition.Label;
 

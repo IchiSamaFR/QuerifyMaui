@@ -6,7 +6,7 @@ namespace SqlToolManagerMaui.Views.Controls.Dashboards;
 
 /// <summary>
 /// Dashboard d'un onglet .schx : parametres, fil d'Ariane et grille de cartes. Dans le concepteur,
-/// les cases libres permettent d'ajouter une carte ou d'y deposer la carte glissee.
+/// les parametres se declarent dans leur barre et les cases libres recoivent les cartes ajoutees ou glissees.
 /// </summary>
 public partial class DashboardGrid : ContentView
 {
@@ -65,6 +65,18 @@ public partial class DashboardGrid : ContentView
     /// <summary>Concepteur : fin du glisser, depose ou non.</summary>
     [BindableProperty]
     public partial ICommand? EndDragCommand { get; set; }
+
+    /// <summary>Concepteur : declare un nouveau parametre.</summary>
+    [BindableProperty]
+    public partial ICommand? AddParameterCommand { get; set; }
+
+    /// <summary>Concepteur : modifie un parametre (parametre : <see cref="DashboardParameterValue"/>).</summary>
+    [BindableProperty]
+    public partial ICommand? EditParameterCommand { get; set; }
+
+    /// <summary>Concepteur : supprime un parametre (parametre : <see cref="DashboardParameterValue"/>).</summary>
+    [BindableProperty]
+    public partial ICommand? DeleteParameterCommand { get; set; }
 
     public DashboardGrid()
     {

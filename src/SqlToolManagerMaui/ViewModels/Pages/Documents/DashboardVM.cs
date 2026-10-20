@@ -9,6 +9,7 @@ using SqlToolManagerMaui.Core.Serialization;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Queries;
 using SqlToolManagerMaui.Databases.Queries;
+using SqlToolManagerMaui.Services.Dashboards;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.Services.Settings;
@@ -34,6 +35,7 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
 
     private readonly IQueryDataService _dashboardData;
     private readonly IConnectionStore _connectionStore;
+    private readonly IDashboardParameterDialogService _parameterDialogs;
 
     /// <summary>Sessions dont la definition a change depuis la derniere reecriture du texte.</summary>
     private readonly HashSet<DashboardSession> _pendingWrites = [];
@@ -56,11 +58,13 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
         IUserPreferencesStore preferences,
         ISyntaxConfigurationStore syntaxConfigurations,
         IQueryDataService dashboardData,
-        IConnectionStore connectionStore)
+        IConnectionStore connectionStore,
+        IDashboardParameterDialogService parameterDialogs)
         : base(connection, status, preferences)
     {
         _dashboardData = dashboardData;
         _connectionStore = connectionStore;
+        _parameterDialogs = parameterDialogs;
 
         LoadSqlSyntaxConfigurationAsync(syntaxConfigurations).FireAndForget("Coloration SQL du concepteur indisponible.");
     }
