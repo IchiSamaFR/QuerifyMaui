@@ -6,7 +6,7 @@ using SqlToolManagerMaui.Views.Pages.Connections;
 
 namespace SqlToolManagerMaui.Views.Pages;
 
-/// <summary>Page principale : explorateur d'objets et onglets, dont la vue est choisie par DocumentTemplateSelector.</summary>
+/// <summary>Page principale : explorateur d'objets et onglets, dont la vue est choisie par DocumentViewSelector.</summary>
 [AutoRegister]
 public partial class MainPage : AbstractPage
 {

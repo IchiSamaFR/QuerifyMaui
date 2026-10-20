@@ -16,7 +16,7 @@ namespace SqlToolManagerMaui.ViewModels.Pages;
 
 /// <summary>
 /// Page principale : les onglets ouverts (une <see cref="AbstractSession"/> chacun) et la session selectionnee.
-/// La vue de la session est choisie par le DataTemplateSelector de la page et lui transmet la session.
+/// La vue de la session est choisie par le DocumentViewSelector de la page et lui transmet la session.
 /// </summary>
 [AutoRegister]
 public partial class MainVM : AbstractVM

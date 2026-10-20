@@ -164,14 +164,15 @@
                 </VerticalStackLayout>
             </v:ExpanderExtended>
 
-            <BoxView Style="{StaticResource DividerStyle}" />
+            <v:Separator Orientation="Horizontal" />
 
             <!-- ============ Pages ============ -->
             <v:ExpanderExtended Title="Pages">
                 <VerticalStackLayout Spacing="8"
                                      Margin="0,8,0,0">
                     <inp:TextField Title="Titre de la page affichée"
-                                   Text="{Binding Session.Current.Title, Mode=TwoWay, FallbackValue=''}" />
+                                   Text="{Binding Session.Current.Title, Mode=TwoWay, FallbackValue=''}" 
+                                   Padding="20,0,0,0"/>
 
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Session.Pages}">
                         <BindableLayout.ItemTemplate>
@@ -203,7 +204,7 @@
                 </VerticalStackLayout>
             </v:ExpanderExtended>
 
-            <BoxView Style="{StaticResource DividerStyle}" />
+            <v:Separator Orientation="Horizontal" />
 
             <!-- ============ Parametres d'entree ============ -->
             <v:ExpanderExtended Title="Paramètres d'entrée">

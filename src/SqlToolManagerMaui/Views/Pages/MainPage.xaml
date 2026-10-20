@@ -5,19 +5,17 @@
                 x:DataType="vm:MainVM"
                 Shell.NavBarIsVisible="True">
     <v:AbstractPage.Resources>
-        <!-- Une vue par type de session ; la TabBar reutilise la meme vue d'un onglet a l'autre et la vue transmet la session a son VM -->
-        <v:DocumentTemplateSelector x:Key="DocumentTemplateSelector">
-            <v:DocumentTemplateSelector.CodeEditorTemplate>
-                <DataTemplate x:DataType="m:CodeEditorSession">
-                    <v:CodeEditorView Session="{Binding .}" />
-                </DataTemplate>
-            </v:DocumentTemplateSelector.CodeEditorTemplate>
-            <v:DocumentTemplateSelector.DashboardTemplate>
-                <DataTemplate x:DataType="m:DashboardSession">
-                    <v:DashboardView Session="{Binding .}" />
-                </DataTemplate>
-            </v:DocumentTemplateSelector.DashboardTemplate>
-        </v:DocumentTemplateSelector>
+        <!-- Une vue par type de session, instanciee avec la page ; la TabBar la reaffiche d'un onglet a l'autre et la vue transmet la session a son VM -->
+        <v:DocumentViewSelector x:Key="DocumentViewSelector">
+            <v:DocumentViewSelector.CodeEditorView>
+                <v:CodeEditorView x:DataType="m:CodeEditorSession"
+                                  Session="{Binding .}" />
+            </v:DocumentViewSelector.CodeEditorView>
+            <v:DocumentViewSelector.DashboardView>
+                <v:DashboardView x:DataType="m:DashboardSession"
+                                 Session="{Binding .}" />
+            </v:DocumentViewSelector.DashboardView>
+        </v:DocumentViewSelector>
     </v:AbstractPage.Resources>
 
     <Grid ColumnDefinitions="340,Auto,*"
@@ -46,7 +44,7 @@
         <v:TabBar Grid.Column="2"
                   ItemsSource="{Binding Sessions}"
                   SelectedItem="{Binding SelectedSession}"
-                  ContentTemplate="{StaticResource DocumentTemplateSelector}"
+                  ContentSelector="{StaticResource DocumentViewSelector}"
                   IsClosable="True"
                   CloseCommand="{Binding CloseCommand}"
                   TitleMemberPath="Document.Title"

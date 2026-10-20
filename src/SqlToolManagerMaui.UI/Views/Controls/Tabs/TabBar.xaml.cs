@@ -9,7 +9,7 @@ namespace SqlToolManagerMaui.UI.Views.Controls.Tabs;
 /// <summary>
 /// Controle a onglets facon WPF / Windows 11 : barre d'onglets en haut, contenu de l'onglet selectionne en dessous.
 /// Onglets declares en enfants (<see cref="Items"/>) ou generes depuis <see cref="ItemsSource"/> via <see cref="ItemTemplate"/>.
-/// Contenu affiche : <see cref="TabBarItem.Content"/>, sinon <see cref="ContentTemplate"/>, sinon <see cref="DefaultContent"/>.
+/// Contenu affiche : <see cref="TabBarItem.Content"/>, sinon <see cref="ContentSelector"/>, sinon <see cref="DefaultContent"/>.
 /// </summary>
 public partial class TabBar : ContentView
 {
@@ -32,11 +32,11 @@ public partial class TabBar : ContentView
     public partial DataTemplate ItemTemplate { get; set; }
 
     /// <summary>
-    /// Contenu genere pour l'element selectionne (BindingContext = <see cref="SelectedItem"/>). Accepte un
-    /// <see cref="DataTemplateSelector"/> ; une vue est creee une fois par gabarit puis reutilisee d'un onglet a l'autre.
+    /// Choisit la vue de l'element selectionne (BindingContext = <see cref="SelectedItem"/>) ; les vues appartiennent
+    /// au selecteur et sont reutilisees d'un onglet a l'autre.
     /// </summary>
-    [BindableProperty]
-    public partial DataTemplate ContentTemplate { get; set; }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnSelectedItemChanged))]
+    public partial ViewSelector? ContentSelector { get; set; }
 
     [BindableProperty]
     public partial View TrailingContent { get; set; }
@@ -58,7 +58,8 @@ public partial class TabBar : ContentView
     [BindableProperty]
     public partial ICommand? CloseCommand { get; set; }
 
-    private readonly Dictionary<DataTemplate, View> _templatedContents = new();
+    /// <summary>Vues deja affichees par le selecteur, pour leur retirer l'element une fois masquees.</summary>
+    private readonly HashSet<View> _selectedContents = new();
 
     /// <summary>Commande transmise aux en-tetes : aiguille vers <see cref="CloseCommand"/> ou la fermeture interne.</summary>
     public ICommand CloseTabCommand { get; }
@@ -75,25 +76,17 @@ public partial class TabBar : ContentView
     private static void OnSelectedItemChanged(BindableObject bindable, object oldValue, object newValue)
     {
         var tabBar = (TabBar)bindable;
-        tabBar.SelectedContent = tabBar.GetTemplatedContent() ?? tabBar.DefaultContent;
+        tabBar.SelectedContent = tabBar.GetSelectedContent() ?? tabBar.DefaultContent;
     }
 
-    private View? GetTemplatedContent()
+    private View? GetSelectedContent()
     {
-        var template = ContentTemplate is null || SelectedItem is null
-            ? null
-            : ContentTemplate is DataTemplateSelector selector ? selector.SelectTemplate(SelectedItem, this) : ContentTemplate;
-
-        // Recreer la vue a chaque changement d'onglet reconstruirait des controles lourds (editeur natif).
-        View? content = null;
-        if (template is not null && !_templatedContents.TryGetValue(template, out content) && template.CreateContent() is View created)
-        {
-            content = created;
-            _templatedContents[template] = content;
-        }
+        var content = SelectedItem is null ? null : ContentSelector?.SelectView(SelectedItem, this);
+        if (content is not null)
+            _selectedContents.Add(content);
 
         // Une vue masquee lache son element : ce qu'elle alimente sait qu'elle n'est plus affichee.
-        foreach (var view in _templatedContents.Values.Where(v => !ReferenceEquals(v, content)))
+        foreach (var view in _selectedContents.Where(v => !ReferenceEquals(v, content)))
             view.BindingContext = null;
 
         if (content is not null)

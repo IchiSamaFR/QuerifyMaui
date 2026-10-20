@@ -2,6 +2,8 @@
 <toolkit:Expander xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                   xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+                  xmlns:v="clr-namespace:SqlToolManagerMaui.UI.Views.Controls.Layouts"
+                  xmlns:mk="http://sqltoolmanagermaui.app/dotnet/maui/markup"
                   x:Class="SqlToolManagerMaui.UI.Views.Controls.Layouts.ExpanderExtended"
                   x:Name="expander"
                   Background="{StaticResource CardBackground}"
@@ -10,22 +12,23 @@
     <toolkit:Expander.Header>
         <Grid ColumnDefinitions="*,Auto">
             <Label Text="{Binding Title, Source={x:Reference expander}, x:DataType=v:ExpanderExtended}"
-                   Style="{StaticResource LabelSubHeaderStyle}"
+                   Style="{StaticResource LabelThirdHeaderStyle}"
                    VerticalOptions="Center" />
 
-            <!-- Le trigger est porte par l'icone : un Setter sur l'Expander chercherait Icon sur l'Expander -->
-            <mi:MauiIcon Grid.Column="1"
-                         Icon="{mk:FluentFilledImage Icon=ChevronDown24Filled}"
-                         IconSize="24">
-                <mi:MauiIcon.Triggers>
-                    <DataTrigger TargetType="mi:MauiIcon"
+            <!-- Le trigger est porte par l'icone : un Setter sur l'Expander chercherait Source sur l'Expander -->
+            <Image Grid.Column="1"
+                   Source="{mk:FluentFilledImage Icon=ChevronDown24Filled, IconSize=20}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="End">
+                <Image.Triggers>
+                    <DataTrigger TargetType="Image"
                                  Binding="{Binding IsExpanded, Source={x:Reference expander}, x:DataType=v:ExpanderExtended}"
                                  Value="True">
-                        <Setter Property="Icon"
-                                Value="{mk:FluentFilledImage Icon=ChevronUp24Filled}" />
+                        <Setter Property="Source"
+                                Value="{mk:FluentFilledImage Icon=ChevronUp24Filled, IconSize=20}" />
                     </DataTrigger>
-                </mi:MauiIcon.Triggers>
-            </mi:MauiIcon>
+                </Image.Triggers>
+            </Image>
         </Grid>
     </toolkit:Expander.Header>
 </toolkit:Expander>

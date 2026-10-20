@@ -129,14 +129,6 @@
     </Style>
 
     <!-- ============ Divers ============ -->
-    <Style TargetType="BoxView"
-           x:Key="DividerStyle">
-        <Setter Property="HeightRequest"
-                Value="1" />
-        <Setter Property="Color"
-                Value="{DynamicResource DividerStrokeColorDefault}" />
-    </Style>
-
     <!-- Carte WPF UI : CardBackgroundFillColorDefault + CardStrokeColorDefault -->
     <Style TargetType="Border"
            x:Key="CardStyle">

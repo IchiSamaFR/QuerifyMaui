@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SqlToolManagerMaui.UI.Views.Controls.Layouts.Separator"
              x:Name="Root"
+             Orientation="Vertical"
              Background="{DynamicResource InputBackground}">
 
     <BoxView x:Name="Line"

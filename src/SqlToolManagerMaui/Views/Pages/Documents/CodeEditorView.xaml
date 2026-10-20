@@ -19,7 +19,7 @@
                          Source="{mk:FluentImage Icon=Stop16, IconColor={StaticResource Danger}}"
                          ToolTipProperties.Text="Arrêter l'exécution de la requête" />
 
-            <v:Separator Orientation="Vertical" />
+            <v:Separator />
 
             <ImageButton Style="{StaticResource TextImageButtonStyle}"
                          Command="{Binding Connection.DisconnectCommand}"
