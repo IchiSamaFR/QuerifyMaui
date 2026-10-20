@@ -1,9 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors;
+using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Services.Contexts;
+using SqlToolManagerMaui.Services.Settings;
 using SqlToolManagerMaui.ViewModels.Pages;
 using SqlToolManagerMaui.ViewModels.Pages.Documents;
 using SqlToolManagerMaui.ViewModels.Pages.Shared;
@@ -18,7 +21,7 @@ namespace SqlToolManagerMaui.ViewModels.Controls.Menus;
 [AutoRegister]
 public partial class MainMenuBarVM : ObservableObject
 {
-    private readonly EditorPreferencesVM _preferences;
+    private readonly UserPreferences _preferences;
     private readonly CodeEditorVM _codeEditor;
     private readonly DashboardVM _dashboard;
     private AbstractSession? _session;
@@ -35,7 +38,7 @@ public partial class MainMenuBarVM : ObservableObject
         EditMenuContext editMenuContext,
         ViewMenuContext viewMenuContext,
         ExecuteMenuContext executeMenuContext,
-        EditorPreferencesVM preferences,
+        IUserPreferencesStore preferences,
         DatabaseConnectionVM connection,
         CodeEditorVM codeEditor,
         DashboardVM dashboard)
@@ -44,7 +47,7 @@ public partial class MainMenuBarVM : ObservableObject
         EditMenuContext = editMenuContext;
         ViewMenuContext = viewMenuContext;
         ExecuteMenuContext = executeMenuContext;
-        _preferences = preferences;
+        _preferences = preferences.Preferences;
         _codeEditor = codeEditor;
         _dashboard = dashboard;
 
@@ -75,6 +78,7 @@ public partial class MainMenuBarVM : ObservableObject
         menu.SaveFileCommand = main.SaveCommand;
         menu.SaveAsFileCommand = main.SaveAsCommand;
         menu.CloseFileCommand = main.CloseActiveCommand;
+        menu.ClearFilesCommand = main.ClearRecentFilesCommand;
     }
 
     /// <summary>Branche les menus Edition, Requete et Langage sur la session selectionnee.</summary>
@@ -146,30 +150,46 @@ public partial class MainMenuBarVM : ObservableObject
 
     private void AttachPreferences()
     {
-        FileMenuContext.ClearFilesCommand = _preferences.ClearRecentFilesCommand;
-        FileMenuContext.ToggleRestoreOpenTabsCommand = _preferences.ToggleRestoreOpenTabsCommand;
+        FileMenuContext.ToggleRestoreOpenTabsCommand = ToggleRestoreOpenTabsCommand;
 
         var view = ViewMenuContext;
-        view.ToggleObjectExplorerCommand = _preferences.ToggleObjectExplorerCommand;
-        view.ToggleLineNumbersCommand = _preferences.ToggleLineNumbersCommand;
-        view.ToggleWordWrapCommand = _preferences.ToggleWordWrapCommand;
-        view.ToggleTabIndentationCommand = _preferences.ToggleUseTabsCommand;
+        view.ToggleObjectExplorerCommand = ToggleObjectExplorerCommand;
+        view.ToggleLineNumbersCommand = ToggleLineNumbersCommand;
+        view.ToggleWordWrapCommand = ToggleWordWrapCommand;
+        view.ToggleTabIndentationCommand = ToggleTabIndentationCommand;
 
         RefreshPreferences();
 
-        // RecentFiles est remplacee (pas modifiee) a chaque mise a jour des preferences.
         _preferences.PropertyChanged += (_, _) => RefreshPreferences();
-        _preferences.EditorConfiguration.PropertyChanged += (_, _) => RefreshPreferences();
+        _preferences.Editor.PropertyChanged += (_, _) => RefreshPreferences();
+        _preferences.Panels.PropertyChanged += (_, _) => RefreshPreferences();
     }
 
     private void RefreshPreferences()
     {
-        var configuration = _preferences.EditorConfiguration;
+        var editor = _preferences.Editor;
         FileMenuContext.RecentFiles = _preferences.RecentFiles;
         FileMenuContext.IsRestoreOpenTabsEnabled = _preferences.RestoreOpenTabs;
-        ViewMenuContext.IsObjectExplorerOpen = _preferences.IsObjectExplorerOpen;
-        ViewMenuContext.AreLineNumbersVisible = configuration.IsLineDisplayed;
-        ViewMenuContext.IsWordWrapEnabled = configuration.IsWordWrapped;
-        ViewMenuContext.IsTabIndentationEnabled = configuration.IsTabIndentation;
+        ViewMenuContext.IsObjectExplorerOpen = _preferences.Panels.IsObjectExplorerOpen;
+        ViewMenuContext.AreLineNumbersVisible = editor.IsLineDisplayed;
+        ViewMenuContext.IsWordWrapEnabled = editor.IsWordWrapped;
+        ViewMenuContext.IsTabIndentationEnabled = editor.IsTabIndentation;
     }
+
+    // ---------- Commandes des preferences ----------
+
+    [RelayCommand]
+    private void ToggleRestoreOpenTabs() => _preferences.RestoreOpenTabs = !_preferences.RestoreOpenTabs;
+
+    [RelayCommand]
+    private void ToggleObjectExplorer() => _preferences.Panels.IsObjectExplorerOpen = !_preferences.Panels.IsObjectExplorerOpen;
+
+    [RelayCommand]
+    private void ToggleLineNumbers() => _preferences.Editor.IsLineDisplayed = !_preferences.Editor.IsLineDisplayed;
+
+    [RelayCommand]
+    private void ToggleWordWrap() => _preferences.Editor.IsWordWrapped = !_preferences.Editor.IsWordWrapped;
+
+    [RelayCommand]
+    private void ToggleTabIndentation() => _preferences.Editor.IsTabIndentation = !_preferences.Editor.IsTabIndentation;
 }

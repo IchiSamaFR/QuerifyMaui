@@ -6,12 +6,14 @@ using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Core.Serialization;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Queries;
 using SqlToolManagerMaui.Databases.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using SqlToolManagerMaui.Services.Settings;
 using SqlToolManagerMaui.ViewModels.Pages.Shared;
 using System.Globalization;
 
@@ -38,23 +40,6 @@ public partial class DashboardVM : ObservableObject
     private readonly HashSet<DashboardSession> _pendingWrites = [];
     private CancellationTokenSource? _writeDelay;
 
-    public DashboardVM(DatabaseConnectionVM connection,
-        StatusBarVM status,
-        EditorPreferencesVM preferences,
-        ISyntaxConfigurationStore syntaxConfigurations,
-        IQueryDataService dashboardData,
-        IConnectionStore connectionStore)
-    {
-        Connection = connection;
-        Status = status;
-        Preferences = preferences;
-        _dashboardData = dashboardData;
-        _connectionStore = connectionStore;
-
-        Connection.SelectedConnectionChanged += (_, _) => OnConnectionChanged();
-        _ = LoadSqlSyntaxConfigurationAsync(syntaxConfigurations);
-    }
-
     /// <summary>Choix de la liste deroulante des vues : la cle est la vue, la valeur son libelle.</summary>
     public static Dictionary<DashboardMode, string> Modes { get; } = new()
     {
@@ -67,7 +52,7 @@ public partial class DashboardVM : ObservableObject
 
     public StatusBarVM Status { get; }
 
-    public EditorPreferencesVM Preferences { get; }
+    public UserPreferences Preferences { get; }
 
     /// <summary>Session affichee, poussee par DashboardView ; null quand aucun dashboard n'est affiche.</summary>
     [ObservableProperty]
@@ -81,6 +66,23 @@ public partial class DashboardVM : ObservableObject
     /// <summary>Commandes d'edition du CodeEditor de la vue Source, poussees par le controle (OneWayToSource).</summary>
     [ObservableProperty]
     public partial CodeEditorCommands? EditionCommands { get; set; }
+
+    public DashboardVM(DatabaseConnectionVM connection,
+        StatusBarVM status,
+        IUserPreferencesStore preferences,
+        ISyntaxConfigurationStore syntaxConfigurations,
+        IQueryDataService dashboardData,
+        IConnectionStore connectionStore)
+    {
+        Connection = connection;
+        Status = status;
+        Preferences = preferences.Preferences;
+        _dashboardData = dashboardData;
+        _connectionStore = connectionStore;
+
+        Connection.SelectedConnectionChanged += (_, _) => OnConnectionChanged();
+        _ = LoadSqlSyntaxConfigurationAsync(syntaxConfigurations);
+    }
 
     /// <summary>Cle de la liste deroulante des vues (object) : une valeur nulle ou inconnue est ignoree.</summary>
     public object? SelectedModeKey
@@ -576,6 +578,6 @@ public partial class DashboardVM : ObservableObject
     [RelayCommand]
     private void ShowSettings()
     {
-        Preferences.IsDashboardParamsOpen = !Preferences.IsDashboardParamsOpen;
+        Preferences.Panels.IsDashboardParamsOpen = !Preferences.Panels.IsDashboardParamsOpen;
     }
 }

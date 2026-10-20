@@ -24,7 +24,7 @@
         <Grid.Triggers>
             <!-- Explorateur ferme : colonne et separateur disparaissent -->
             <DataTrigger TargetType="Grid"
-                         Binding="{Binding Preferences.IsObjectExplorerOpen}"
+                         Binding="{Binding Preferences.Panels.IsObjectExplorerOpen}"
                          Value="False">
                 <Setter Property="ColumnDefinitions"
                         Value="0,0,*" />
@@ -35,10 +35,10 @@
 
         <!-- ============ Colonne gauche : liste des connexions ============ -->
         <ContentPresenter x:Name="ConnectionExplorerHost"
-                          IsVisible="{Binding Preferences.IsObjectExplorerOpen}" />
+                          IsVisible="{Binding Preferences.Panels.IsObjectExplorerOpen}" />
 
         <v:GridSplitter Grid.Column="1"
-                        IsVisible="{Binding Preferences.IsObjectExplorerOpen}" />
+                        IsVisible="{Binding Preferences.Panels.IsObjectExplorerOpen}" />
         
         <!-- ============ Onglets : le contenu suit la session selectionnee ============ -->
         <v:TabBar Grid.Column="2"

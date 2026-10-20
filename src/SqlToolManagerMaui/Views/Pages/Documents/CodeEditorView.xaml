@@ -49,7 +49,7 @@
             <c:CodeEditor Text="{Binding Session.Document.EditorText}"
                           FilePath="{Binding Session.Document.FilePath}"
                           Selection="{Binding Session.Document.Selection}"
-                          EditorConfiguration="{Binding Preferences.EditorConfiguration}"
+                          EditorPreferences="{Binding Preferences.Editor}"
                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
                           Connection="{Binding Connection.ActiveConnection}"
                           Commands="{Binding EditionCommands, Mode=OneWayToSource}" />

@@ -5,9 +5,11 @@ using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
+using SqlToolManagerMaui.Services.Settings;
 using SqlToolManagerMaui.ViewModels.Pages.Shared;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Documents;
@@ -27,28 +29,11 @@ public partial class CodeEditorVM : ObservableObject
     /// <summary>Configurations deja lues : changer d'onglet ne relit aucun .xshd.</summary>
     private readonly Dictionary<SyntaxLanguage, SyntaxConfiguration?> _syntaxByLanguage = [];
 
-    public CodeEditorVM(DatabaseConnectionVM connection,
-        StatusBarVM status,
-        EditorPreferencesVM preferences,
-        ISyntaxConfigurationStore syntaxConfigurations,
-        IConnectionStore connectionStore,
-        IQueryExecutorResolver executors)
-    {
-        Connection = connection;
-        Status = status;
-        Preferences = preferences;
-        _syntaxConfigurations = syntaxConfigurations;
-        _connectionStore = connectionStore;
-        _executors = executors;
-
-        Connection.SelectedConnectionChanged += (_, _) => ExecuteQueryCommand.NotifyCanExecuteChanged();
-    }
-
     public DatabaseConnectionVM Connection { get; }
 
     public StatusBarVM Status { get; }
 
-    public EditorPreferencesVM Preferences { get; }
+    public UserPreferences Preferences { get; }
 
     /// <summary>Session affichee, poussee par CodeEditorView ; null quand aucun onglet de script n'est affiche.</summary>
     [ObservableProperty]
@@ -63,6 +48,23 @@ public partial class CodeEditorVM : ObservableObject
     /// <summary>Commandes d'edition du CodeEditor, poussees par le controle (OneWayToSource).</summary>
     [ObservableProperty]
     public partial CodeEditorCommands? EditionCommands { get; set; }
+
+    public CodeEditorVM(DatabaseConnectionVM connection,
+        StatusBarVM status,
+        IUserPreferencesStore preferences,
+        ISyntaxConfigurationStore syntaxConfigurations,
+        IConnectionStore connectionStore,
+        IQueryExecutorResolver executors)
+    {
+        Connection = connection;
+        Status = status;
+        Preferences = preferences.Preferences;
+        _syntaxConfigurations = syntaxConfigurations;
+        _connectionStore = connectionStore;
+        _executors = executors;
+
+        Connection.SelectedConnectionChanged += (_, _) => ExecuteQueryCommand.NotifyCanExecuteChanged();
+    }
 
     partial void OnSessionChanged(CodeEditorSession? value) => _ = RefreshSyntaxConfigurationAsync();
 

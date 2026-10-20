@@ -1,16 +1,13 @@
-﻿using SqlToolManagerMaui.Core.Enums.Settings;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SqlToolManagerMaui.Core.Models.Settings;
 
-/// <summary>Etat ouvert / ferme des volets, conserve d'une session a l'autre.</summary>
-public sealed class PanelPreferences
+/// <summary>Etat ouvert / ferme des volets.</summary>
+public partial class PanelPreferences : ObservableObject
 {
-    /// <summary>Seuls les volets deja bascules y figurent ; les autres restent ouverts.</summary>
-    public Dictionary<PanelKind, bool> Visibility { get; set; } = [];
+    [ObservableProperty]
+    public partial bool IsObjectExplorerOpen { get; set; } = true;
 
-    public bool IsOpen(PanelKind panel) => !Visibility.TryGetValue(panel, out var isOpen) || isOpen;
-
-    public void SetOpen(PanelKind panel, bool isOpen) => Visibility[panel] = isOpen;
-
-    public PanelPreferences Clone() => new() { Visibility = new(Visibility) };
+    [ObservableProperty]
+    public partial bool IsDashboardParamsOpen { get; set; } = true;
 }

@@ -3,6 +3,7 @@ using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using System.Windows.Input;
 
@@ -28,7 +29,7 @@ public partial class DashboardDesignerPanel : ContentView
 
     /// <summary>Options d'affichage partagees avec l'editeur principal.</summary>
     [BindableProperty]
-    public partial EditorConfiguration? EditorConfiguration { get; set; }
+    public partial EditorPreferences? EditorPreferences { get; set; }
 
     /// <summary>Connexion active : alimente l'autocompletion des tables et colonnes.</summary>
     [BindableProperty]

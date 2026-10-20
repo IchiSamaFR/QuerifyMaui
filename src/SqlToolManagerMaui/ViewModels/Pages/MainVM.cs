@@ -1,8 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors;
+using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Editors;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
@@ -28,6 +30,7 @@ public partial class MainVM : AbstractVM
     private readonly DatabaseConnectionVM _connection;
     private readonly StatusBarVM _status;
     private readonly IWorkspaceStore _workspace;
+    private readonly IUserPreferencesStore _preferencesStore;
 
     /// <summary>Onglets ouverts, dans l'ordre d'ouverture.</summary>
     [ObservableProperty]
@@ -37,7 +40,7 @@ public partial class MainVM : AbstractVM
     public partial AbstractSession SelectedSession { get; set; }
 
     /// <summary>Volet de l'explorateur d'objets (disposition de la page).</summary>
-    public EditorPreferencesVM Preferences { get; }
+    public UserPreferences Preferences { get; }
 
     public MainMenuBarVM MainMenuBar { get; }
 
@@ -46,7 +49,7 @@ public partial class MainVM : AbstractVM
         DashboardVM dashboard,
         DatabaseConnectionVM connection,
         StatusBarVM status,
-        EditorPreferencesVM preferences,
+        IUserPreferencesStore preferences,
         MainMenuBarVM mainMenuBar,
         IWorkspaceStore workspace)
     {
@@ -56,22 +59,27 @@ public partial class MainVM : AbstractVM
         _connection = connection;
         _status = status;
         _workspace = workspace;
-        Preferences = preferences;
+        _preferencesStore = preferences;
+        Preferences = preferences.Preferences;
         MainMenuBar = mainMenuBar;
 
         MainMenuBar.AttachFileCommands(this);
+        preferences.SaveFailed += (_, ex) => _status.Set($"Préférences non enregistrées : {ex.Message}", isError: true);
         WeakReferenceMessenger.Default.Register<MainVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
     }
 
     protected override async Task LoadDatasBusyAsync()
     {
-        await Preferences.LoadAsync(LifetimeToken);
+        await _preferencesStore.LoadAsync(LifetimeToken);
         await RestoreWorkspaceAsync(LifetimeToken);
         await _connection.RefreshAsync(LifetimeToken);
 
         if (Sessions.Count == 0)
             New();
     }
+
+    [RelayCommand]
+    private void CloseObjectExplorer() => Preferences.Panels.IsObjectExplorerOpen = false;
 
     partial void OnSelectedSessionChanged(AbstractSession? value) => MainMenuBar.AttachSession(value);
 

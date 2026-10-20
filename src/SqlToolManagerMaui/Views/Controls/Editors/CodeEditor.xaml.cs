@@ -3,6 +3,7 @@ using CommunityToolkit.Maui;
 using RichEdit.Maui;
 using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
+using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Services.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
@@ -36,8 +37,8 @@ public partial class CodeEditor : ContentView
     public partial string FilePath { get; set; } = string.Empty;
 
     /// <summary>Options d'affichage (numeros de ligne, retour a la ligne, indentation).</summary>
-    [BindableProperty(PropertyChangedMethodName = nameof(OnEditorConfigurationPropertyChanged))]
-    public partial EditorConfiguration? EditorConfiguration { get; set; }
+    [BindableProperty(PropertyChangedMethodName = nameof(OnEditorPreferencesPropertyChanged))]
+    public partial EditorPreferences? EditorPreferences { get; set; }
 
     /// <summary>Langage colore : prefixe de commentaire et regles de coloration.</summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnSyntaxConfigurationPropertyChanged))]
@@ -312,19 +313,19 @@ public partial class CodeEditor : ContentView
 
     // ---------- Options d'affichage ----------
 
-    private static void OnEditorConfigurationPropertyChanged(BindableObject bindable, object oldValue, object newValue)
-        => ((CodeEditor)bindable).OnEditorConfigurationChanged(oldValue as EditorConfiguration, newValue as EditorConfiguration);
+    private static void OnEditorPreferencesPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((CodeEditor)bindable).OnEditorPreferencesChanged(oldValue as EditorPreferences, newValue as EditorPreferences);
 
-    private void OnEditorConfigurationChanged(EditorConfiguration? oldConfiguration, EditorConfiguration? newConfiguration)
+    private void OnEditorPreferencesChanged(EditorPreferences? oldConfiguration, EditorPreferences? newConfiguration)
     {
         if (oldConfiguration is not null)
-            oldConfiguration.PropertyChanged -= OnEditorConfigurationPropertyChanged;
+            oldConfiguration.PropertyChanged -= OnEditorPreferencesPropertyChanged;
 
         if (newConfiguration is not null)
-            newConfiguration.PropertyChanged += OnEditorConfigurationPropertyChanged;
+            newConfiguration.PropertyChanged += OnEditorPreferencesPropertyChanged;
     }
 
-    private void OnEditorConfigurationPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnEditorPreferencesPropertyChanged(object? sender, PropertyChangedEventArgs e)
         => RefreshLayout();
 
     /// <summary>

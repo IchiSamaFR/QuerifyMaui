@@ -31,7 +31,7 @@
                                 HeightRequest="220">
                             <c:CodeEditor Text="{Binding Session.SelectedCard.Query, Mode=TwoWay, FallbackValue=''}"
                                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
-                                          EditorConfiguration="{Binding EditorConfiguration}"
+                                          EditorPreferences="{Binding EditorPreferences}"
                                           Connection="{Binding Connection}" />
                         </Border>
                         <Button Style="{StaticResource SecondaryButtonStyle}"

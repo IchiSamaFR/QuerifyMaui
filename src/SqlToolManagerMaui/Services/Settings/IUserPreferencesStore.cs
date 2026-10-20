@@ -5,9 +5,12 @@ namespace SqlToolManagerMaui.Services.Settings;
 /// <summary>Persistance des preferences utilisateur (preferences.json dans AppDataDirectory).</summary>
 public interface IUserPreferencesStore
 {
-    /// <summary>Copie des preferences courantes : la modifier n'enregistre rien.</summary>
-    Task<UserPreferences> GetAsync(CancellationToken cancellationToken = default);
+    /// <summary>Instance unique partagee par les VM ; enregistree a chaque modification une fois chargee.</summary>
+    UserPreferences Preferences { get; }
 
-    /// <summary>Applique la modification puis enregistre ; retourne une copie du resultat.</summary>
-    Task<UserPreferences> UpdateAsync(Action<UserPreferences> update, CancellationToken cancellationToken = default);
+    /// <summary>Echec d'un enregistrement automatique.</summary>
+    event EventHandler<Exception>? SaveFailed;
+
+    /// <summary>Remplit <see cref="Preferences"/> depuis le fichier ; sans effet apres le premier appel.</summary>
+    Task LoadAsync(CancellationToken cancellationToken = default);
 }

@@ -45,7 +45,7 @@
                          ToolTipProperties.Text="Afficher les paramètres">
                 <ImageButton.Triggers>
                     <DataTrigger TargetType="ImageButton"
-                                 Binding="{Binding Preferences.IsDashboardParamsOpen}"
+                                 Binding="{Binding Preferences.Panels.IsDashboardParamsOpen}"
                                  Value="True">
                         <Setter Property="Background"
                                 Value="{DynamicResource ButtonBackground}" />
@@ -63,7 +63,7 @@
                       Text="{Binding Session.Document.EditorText}"
                       FilePath="{Binding Session.Document.FilePath}"
                       Selection="{Binding Session.Document.Selection}"
-                      EditorConfiguration="{Binding Preferences.EditorConfiguration}"
+                      EditorPreferences="{Binding Preferences.Editor}"
                       Commands="{Binding EditionCommands, Mode=OneWayToSource}"
                       IsVisible="{Binding Session.IsSourceMode, FallbackValue=False}" />
 
@@ -82,13 +82,13 @@
                              AddCardCommand="{Binding AddCardCommand}"
                              StartDragCommand="{Binding StartDragCommand}"
                              DropCommand="{Binding DropCardCommand}"
-                             IsDashboardParamsOpen="{Binding Preferences.IsDashboardParamsOpen}" />
+                             IsDashboardParamsOpen="{Binding Preferences.Panels.IsDashboardParamsOpen}" />
 
             <c:DashboardDesignerPanel Grid.Column="1"
                                       WidthRequest="360"
                                       Session="{Binding Session}"
                                       SyntaxConfiguration="{Binding SqlSyntaxConfiguration}"
-                                      EditorConfiguration="{Binding Preferences.EditorConfiguration}"
+                                      EditorPreferences="{Binding Preferences.Editor}"
                                       Connection="{Binding Connection.ActiveConnection}"
                                       RunCardCommand="{Binding RunCardCommand}"
                                       DeleteCardCommand="{Binding DeleteCardCommand}"

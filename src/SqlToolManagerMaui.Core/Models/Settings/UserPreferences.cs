@@ -1,42 +1,37 @@
-﻿using SqlToolManagerMaui.Core.Models.Editors;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using SqlToolManagerMaui.Core.Models.Editors;
+using System.ComponentModel;
 
 namespace SqlToolManagerMaui.Core.Models.Settings;
 
 /// <summary>Preferences de l'utilisateur, conservees d'une session a l'autre.</summary>
-public sealed class UserPreferences
+public partial class UserPreferences : ObservableObject
 {
-    public const int MaxRecentFiles = 10;
 
-    /// <summary>Chemins des derniers fichiers ouverts ou enregistres, du plus recent au plus ancien.</summary>
-    public List<string> RecentFiles { get; set; } = [];
-
-    /// <summary>Options d'affichage de l'editeur.</summary>
-    public EditorConfiguration Editor { get; set; } = EditorConfiguration.CreateDefault();
-
-    /// <summary>Volets ouverts ou fermes.</summary>
-    public PanelPreferences Panels { get; set; } = new();
+    /// <summary>Du plus recent au plus ancien ; remplacee (jamais modifiee) pour notifier les vues.</summary>
+    [ObservableProperty]
+    public partial List<string> RecentFiles { get; set; } = [];
 
     /// <summary>Rouvrir au demarrage les onglets laisses ouverts a la fermeture (modifications non enregistrees comprises).</summary>
-    public bool RestoreOpenTabs { get; set; } = true;
+    [ObservableProperty]
+    public partial bool RestoreOpenTabs { get; set; } = true;
 
-    /// <summary>Place le fichier en tete de liste (sans doublon) et tronque au-dela de <see cref="MaxRecentFiles"/>.</summary>
-    public void AddRecentFile(string filePath)
+    // Lecture seule : instances stables pour les bindings ; Json.NET les remplit en place.
+    public EditorPreferences Editor { get; } = new();
+
+    public PanelPreferences Panels { get; } = new();
+
+    public Action PreferencesChanged { get; set; }
+
+    public UserPreferences()
     {
-        RemoveRecentFile(filePath);
-        RecentFiles.Insert(0, filePath);
-
-        if (RecentFiles.Count > MaxRecentFiles)
-            RecentFiles.RemoveRange(MaxRecentFiles, RecentFiles.Count - MaxRecentFiles);
+        PropertyChanged += OnPropertyChangedHandlers;
+        Editor.PropertyChanged += OnPropertyChangedHandlers;
+        Panels.PropertyChanged += OnPropertyChangedHandlers;
     }
 
-    public bool RemoveRecentFile(string filePath)
-        => RecentFiles.RemoveAll(p => string.Equals(p, filePath, StringComparison.OrdinalIgnoreCase)) > 0;
-
-    public UserPreferences Clone() => new()
+    private void OnPropertyChangedHandlers(object sender, PropertyChangedEventArgs e)
     {
-        RecentFiles = [.. RecentFiles],
-        Editor = Editor.Clone(),
-        Panels = Panels.Clone(),
-        RestoreOpenTabs = RestoreOpenTabs,
-    };
+        PreferencesChanged?.Invoke();
+    }
 }

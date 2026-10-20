@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Settings;
+using SqlToolManagerMaui.Helpers.Extensions;
+using System.ComponentModel;
 
 namespace SqlToolManagerMaui.Services.Settings;
 
@@ -13,68 +15,71 @@ public sealed class UserPreferencesStore : IUserPreferencesStore
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly string _filePath = Path.Combine(FileSystem.AppDataDirectory, FileName);
 
-    private UserPreferences? _cache;
+    private bool _isLoaded;
 
     /// <inheritdoc/>
-    public async Task<UserPreferences> GetAsync(CancellationToken cancellationToken = default)
-    {
-        await _gate.WaitAsync(cancellationToken);
-        try
-        {
-            return (await LoadUnsafeAsync()).Clone();
-        }
-        finally
-        {
-            _gate.Release();
-        }
-    }
+    public UserPreferences Preferences { get; } = new();
 
     /// <inheritdoc/>
-    public async Task<UserPreferences> UpdateAsync(Action<UserPreferences> update, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(update);
+    public event EventHandler<Exception>? SaveFailed;
 
-        await _gate.WaitAsync(cancellationToken);
-        try
+    /// <inheritdoc/>
+    public async Task LoadAsync(CancellationToken cancellationToken = default)
+    {
+        if (_isLoaded)
+            return;
+
+        // Fusion plutot que remplacement : les vues restent liees aux memes instances.
+        if (await ReadAsync(cancellationToken) is { } stored)
         {
-            var preferences = await LoadUnsafeAsync();
-            update(preferences);
-            await SaveUnsafeAsync(preferences);
-            return preferences.Clone();
+            Preferences.MergeFrom(stored);
+            Preferences.Editor.MergeFrom(stored.Editor);
+            Preferences.Panels.MergeFrom(stored.Panels);
         }
-        finally
-        {
-            _gate.Release();
-        }
+
+        // Abonnement apres la fusion : le chargement ne doit pas reecrire le fichier.
+        Preferences.PreferencesChanged += OnPreferencesChanged;
+        _isLoaded = true;
     }
 
-    private async Task<UserPreferences> LoadUnsafeAsync()
+    private async Task<UserPreferences?> ReadAsync(CancellationToken cancellationToken)
     {
-        if (_cache is not null)
-            return _cache;
-
         if (!File.Exists(_filePath))
-            return _cache = new();
+            return null;
 
         try
         {
-            var json = await File.ReadAllTextAsync(_filePath);
-            return _cache = JsonConvert.DeserializeObject<UserPreferences>(json) ?? new();
+            return JsonConvert.DeserializeObject<UserPreferences>(await File.ReadAllTextAsync(_filePath, cancellationToken));
         }
         catch (Exception ex) when (ex is JsonException or IOException)
         {
             // Fichier corrompu ou verrouille : les valeurs par defaut valent mieux qu'un demarrage bloque.
-            return _cache = new();
+            return null;
         }
     }
 
-    private async Task SaveUnsafeAsync(UserPreferences preferences)
+    private async void OnPreferencesChanged()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
+        // Copie avant l'attente : les modifications suivantes ne doivent pas se meler a cette ecriture.
+        var json = JsonConvert.SerializeObject(Preferences, Formatting.Indented);
 
-        // Ecriture atomique : un crash en cours d'ecriture ne laisse pas un JSON tronque.
-        var tempPath = _filePath + ".tmp";
-        await File.WriteAllTextAsync(tempPath, JsonConvert.SerializeObject(preferences, Formatting.Indented));
-        File.Move(tempPath, _filePath, overwrite: true);
+        await _gate.WaitAsync();
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
+
+            // Ecriture atomique : un crash en cours d'ecriture ne laisse pas un JSON tronque.
+            var tempPath = _filePath + ".tmp";
+            await File.WriteAllTextAsync(tempPath, json);
+            File.Move(tempPath, _filePath, overwrite: true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            SaveFailed?.Invoke(this, ex);
+        }
+        finally
+        {
+            _gate.Release();
+        }
     }
 }

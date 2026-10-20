@@ -1,7 +1,6 @@
 ﻿using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.UI.Views;
 using SqlToolManagerMaui.ViewModels.Pages;
-using SqlToolManagerMaui.ViewModels.Pages.Shared;
 using SqlToolManagerMaui.Views.Pages.Connections;
 
 namespace SqlToolManagerMaui.Views.Pages;
@@ -21,7 +20,7 @@ public partial class MainPage : AbstractPage
 
         // La vue de l'explorateur porte son propre BindingContext : la commande est liee a la source explicite.
         connectionExplorerView.SetBinding(ConnectionExplorerView.CloseCommandProperty,
-            new Binding(nameof(EditorPreferencesVM.CloseObjectExplorerCommand), source: viewModel.Preferences));
+            new Binding(nameof(MainVM.CloseObjectExplorerCommand), source: viewModel));
     }
 
     protected override void OnBindingContextChanged()

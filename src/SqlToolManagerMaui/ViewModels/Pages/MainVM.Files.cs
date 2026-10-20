@@ -12,6 +12,8 @@ namespace SqlToolManagerMaui.ViewModels.Pages;
 /// <summary>Partie "fichiers" : creation, ouverture, enregistrement et fermeture des onglets.</summary>
 public partial class MainVM
 {
+    private const int MaxRecentFiles = 10;
+
     /// <summary>Compteurs des documents "Sans titre" et "Dashboard" ouverts depuis le demarrage.</summary>
     private int _untitledCount;
     private int _untitledDashboardCount;
@@ -62,7 +64,7 @@ public partial class MainVM
             var content = await _files.ReadAsync(filePath, token);
             if (content is null)
             {
-                await Preferences.RemoveRecentFileAsync(filePath, token);
+                RemoveRecentFile(filePath);
                 _status.Set($"{Path.GetFileName(filePath)} est introuvable : retiré des fichiers récents.", isError: true);
                 return;
             }
@@ -74,7 +76,7 @@ public partial class MainVM
     /// <summary>Ouvre le contenu dans un nouvel onglet, ou reactive celui qui l'affiche deja.</summary>
     private async Task OpenContentAsync(EditorFileContent content, CancellationToken token)
     {
-        await Preferences.AddRecentFileAsync(content.FilePath, token);
+        AddRecentFile(content.FilePath);
 
         var existing = Sessions.FirstOrDefault(s =>
             string.Equals(s.Document.FilePath, content.FilePath, StringComparison.OrdinalIgnoreCase));
@@ -130,7 +132,7 @@ public partial class MainVM
                     return;
 
                 document.FilePath = path;
-                await Preferences.AddRecentFileAsync(path, token);
+                AddRecentFile(path);
             }
 
             document.MarkSaved();
@@ -173,4 +175,22 @@ public partial class MainVM
     /// <summary>Ferme l'onglet courant (entree de menu, sans parametre).</summary>
     [RelayCommand]
     private void CloseActive() => Close(SelectedSession);
+
+    // ---------- Fichiers recents ----------
+
+    [RelayCommand]
+    private void ClearRecentFiles() => Preferences.RecentFiles = [];
+
+    /// <summary>Place le fichier en tete de liste (sans doublon) et tronque au-dela de <see cref="MaxRecentFiles"/>.</summary>
+    private void AddRecentFile(string filePath)
+        => Preferences.RecentFiles = [filePath, .. Preferences.RecentFiles.Where(p => !IsSamePath(p, filePath)).Take(MaxRecentFiles - 1)];
+
+    private void RemoveRecentFile(string filePath)
+    {
+        if (Preferences.RecentFiles.Any(p => IsSamePath(p, filePath)))
+            Preferences.RecentFiles = [.. Preferences.RecentFiles.Where(p => !IsSamePath(p, filePath))];
+    }
+
+    private static bool IsSamePath(string left, string right)
+        => string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
 }
