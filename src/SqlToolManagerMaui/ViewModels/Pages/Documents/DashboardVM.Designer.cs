@@ -97,52 +97,6 @@ public partial class DashboardVM
     }
 
     [RelayCommand]
-    private void MoveCard(string? direction)
-    {
-        if (Session is not { SelectedCard: { } card } session)
-            return;
-
-        switch (direction)
-        {
-            case "Left":
-                card.Column = Math.Max(0, card.Column - 1);
-                break;
-            case "Right":
-                card.Column = Math.Min(session.ColumnCount - card.ColumnSpan, card.Column + 1);
-                break;
-            case "Up":
-                card.Row = Math.Max(0, card.Row - 1);
-                break;
-            case "Down":
-                card.Row++;
-                break;
-        }
-    }
-
-    [RelayCommand]
-    private void ResizeCard(string? change)
-    {
-        if (Session is not { SelectedCard: { } card } session)
-            return;
-
-        switch (change)
-        {
-            case "Wider":
-                card.ColumnSpan = Math.Min(session.ColumnCount - card.Column, card.ColumnSpan + 1);
-                break;
-            case "Narrower":
-                card.ColumnSpan = Math.Max(1, card.ColumnSpan - 1);
-                break;
-            case "Taller":
-                card.RowSpan++;
-                break;
-            case "Shorter":
-                card.RowSpan = Math.Max(1, card.RowSpan - 1);
-                break;
-        }
-    }
-
-    [RelayCommand]
     private void DeleteCard(DashboardCardState? card)
     {
         if (card is not null)
@@ -179,10 +133,14 @@ public partial class DashboardVM
 
     /// <summary>Supprime la page affichee (la derniere page restante est conservee).</summary>
     [RelayCommand]
-    private void DeletePage()
+    private void DeletePage(DashboardPageDefinition page)
     {
+        if (page == null)
+            return;
+
         if (Session is not { Definition: { } definition, Current: { } current } session)
             return;
+
 
         if (definition.Pages.Count <= 1)
         {
@@ -190,7 +148,7 @@ public partial class DashboardVM
             return;
         }
 
-        session.RemovePage(current.Definition);
+        session.RemovePage(page);
         OpenPage(session, definition.FindPage(definition.StartPage) ?? definition.Pages[0], asRoot: true);
     }
 

@@ -48,6 +48,12 @@
                                     Value="{DynamicResource PointerOverOpacity}" />
                         </VisualState.Setters>
                     </VisualState>
+                    <VisualState x:Name="Selected">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity"
+                                    Value="{DynamicResource PressedOpacity}" />
+                        </VisualState.Setters>
+                    </VisualState>
                     <VisualState x:Name="Pressed">
                         <VisualState.Setters>
                             <Setter Property="Opacity"

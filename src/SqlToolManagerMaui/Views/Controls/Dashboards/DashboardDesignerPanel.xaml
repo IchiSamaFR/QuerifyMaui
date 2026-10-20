@@ -6,7 +6,7 @@
     <!-- Les enfants se lient au controle lui-meme (et non au ViewModel de la page) -->
     <ScrollView BindingContext="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardDesignerPanel}}, x:DataType=c:DashboardDesignerPanel}"
                 x:DataType="c:DashboardDesignerPanel"
-                Padding="0,8,8,8">
+                Padding="0,8,8,32">
         <VerticalStackLayout Spacing="8">
 
             <!-- ============ Carte selectionnee ============ -->
@@ -72,7 +72,8 @@
                     <!-- Navigation : bouton, ou clic sur une ligne du tableau -->
                     <inp:PickerField Title="Page ouverte au clic (bouton, ligne du tableau)"
                                      ItemsSource="{Binding Session.PageIds}"
-                                     SelectedItem="{Binding Session.SelectedCard.NavigationPage, Mode=TwoWay}" />
+                                     SelectedItem="{Binding Session.SelectedCard.NavigationPage, Mode=TwoWay}"
+                                     IsVisible="{Binding Session.SelectedCard.IsButton}" />
 
                     <VerticalStackLayout Spacing="4"
                                          IsVisible="{Binding Session.SelectedCard.HasNavigation, FallbackValue=False}">
@@ -103,60 +104,6 @@
                         </Label.Text>
                     </Label>
 
-                    <Grid ColumnDefinitions="*,*,*,*"
-                          RowDefinitions="Auto,Auto"
-                          ColumnSpacing="4"
-                          RowSpacing="4">
-                        <Button Grid.Column="0"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Text="←"
-                                Command="{Binding MoveCardCommand}"
-                                CommandParameter="Left"
-                                ToolTipProperties.Text="Déplacer à gauche" />
-                        <Button Grid.Column="1"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Text="→"
-                                Command="{Binding MoveCardCommand}"
-                                CommandParameter="Right"
-                                ToolTipProperties.Text="Déplacer à droite" />
-                        <Button Grid.Column="2"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Text="↑"
-                                Command="{Binding MoveCardCommand}"
-                                CommandParameter="Up"
-                                ToolTipProperties.Text="Monter" />
-                        <Button Grid.Column="3"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Text="↓"
-                                Command="{Binding MoveCardCommand}"
-                                CommandParameter="Down"
-                                ToolTipProperties.Text="Descendre" />
-                        <Button Grid.Row="1"
-                                Grid.Column="0"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Text="Larg. −"
-                                Command="{Binding ResizeCardCommand}"
-                                CommandParameter="Narrower" />
-                        <Button Grid.Row="1"
-                                Grid.Column="1"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Text="Larg. +"
-                                Command="{Binding ResizeCardCommand}"
-                                CommandParameter="Wider" />
-                        <Button Grid.Row="1"
-                                Grid.Column="2"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Text="Haut. −"
-                                Command="{Binding ResizeCardCommand}"
-                                CommandParameter="Shorter" />
-                        <Button Grid.Row="1"
-                                Grid.Column="3"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Text="Haut. +"
-                                Command="{Binding ResizeCardCommand}"
-                                CommandParameter="Taller" />
-                    </Grid>
-
                     <Button Style="{StaticResource DangerButtonStyle}"
                             Text="Supprimer la carte"
                             Command="{Binding DeleteCardCommand}"
@@ -176,17 +123,46 @@
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Session.Pages}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="m:DashboardPageDefinition">
-                                <Button Style="{StaticResource TextButtonStyle}"
-                                        HorizontalOptions="Start"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardDesignerPanel}}, Path=OpenPageCommand, x:DataType=c:DashboardDesignerPanel}"
-                                        CommandParameter="{Binding .}">
-                                    <Button.Text>
-                                        <MultiBinding StringFormat="{}{0}  ({1})">
-                                            <Binding Path="Title" />
-                                            <Binding Path="Id" />
-                                        </MultiBinding>
-                                    </Button.Text>
-                                </Button>
+                                <Grid ColumnDefinitions="Auto,*"
+                                      Padding="{DynamicResource ButtonPadding}">
+                                    <Button Padding="0,8,8,0"
+                                            ToolTipProperties.Text="Supprimer cette page"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardDesignerPanel}}, Path=DeletePageCommand, x:DataType=c:DashboardDesignerPanel}"
+                                            CommandParameter="{Binding .}">
+                                        <Button.Style>
+                                            <Style TargetType="Button"
+                                                   BasedOn="{StaticResource TextButtonStyle}">
+                                                <Setter Property="VisualStateManager.VisualStateGroups">
+                                                    <VisualStateGroupList>
+                                                        <VisualStateGroup x:Name="CommonStates">
+                                                            <VisualState x:Name="Normal">
+                                                                <VisualState.Setters>
+                                                                    <Setter Property="ImageSource"
+                                                                            Value="{mk:FluentFilledImage Icon=Subtract16Filled}}" />
+                                                                </VisualState.Setters>
+                                                            </VisualState>
+                                                            <VisualState x:Name="PointerOver">
+                                                                <VisualState.Setters>
+                                                                    <Setter Property="ImageSource"
+                                                                            Value="{mk:FluentFilledImage Icon=Subtract16Filled, IconColor={StaticResource Danger}}" />
+                                                                </VisualState.Setters>
+                                                            </VisualState>
+                                                        </VisualStateGroup>
+                                                    </VisualStateGroupList>
+                                                </Setter>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <Label Grid.Column="1"
+                                           x:Name="PageLabel">
+                                        <Label.Text>
+                                            <MultiBinding StringFormat="{}{0}  ({1})">
+                                                <Binding Path="Title" />
+                                                <Binding Path="Id" />
+                                            </MultiBinding>
+                                        </Label.Text>
+                                    </Label>
+                                </Grid>
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>
@@ -196,9 +172,6 @@
                                 Text="Nouvelle page"
                                 ImageSource="{mk:FluentFilledImage Icon=Add20Filled}"
                                 Command="{Binding AddPageCommand}" />
-                        <Button Style="{StaticResource SecondaryButtonStyle}"
-                                Text="Supprimer cette page"
-                                Command="{Binding DeletePageCommand}" />
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </v:ExpanderExtended>

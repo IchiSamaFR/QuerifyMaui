@@ -95,8 +95,6 @@
                                       Connection="{Binding Connection.ActiveConnection}"
                                       RunCardCommand="{Binding RunCardCommand}"
                                       DeleteCardCommand="{Binding DeleteCardCommand}"
-                                      MoveCardCommand="{Binding MoveCardCommand}"
-                                      ResizeCardCommand="{Binding ResizeCardCommand}"
                                       OpenPageCommand="{Binding OpenDesignerPageCommand}"
                                       AddPageCommand="{Binding AddPageCommand}"
                                       DeletePageCommand="{Binding DeletePageCommand}"

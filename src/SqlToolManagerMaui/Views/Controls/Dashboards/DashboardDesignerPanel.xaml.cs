@@ -42,14 +42,6 @@ public partial class DashboardDesignerPanel : ContentView
     [BindableProperty]
     public partial ICommand? DeleteCardCommand { get; set; }
 
-    /// <summary>Deplace la carte selectionnee (parametre : Left, Right, Up, Down).</summary>
-    [BindableProperty]
-    public partial ICommand? MoveCardCommand { get; set; }
-
-    /// <summary>Redimensionne la carte selectionnee (parametre : Wider, Narrower, Taller, Shorter).</summary>
-    [BindableProperty]
-    public partial ICommand? ResizeCardCommand { get; set; }
-
     /// <summary>Ouvre une page dans le concepteur (parametre : <see cref="DashboardPageDefinition"/>).</summary>
     [BindableProperty]
     public partial ICommand? OpenPageCommand { get; set; }
