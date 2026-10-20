@@ -19,12 +19,12 @@
         ( "SqlToolManagerMaui.UI.Inputs", "inputs", "inp" ),
 		( "SqlToolManagerMaui.UI.ViewModels", "viewmodels", "vm" ),
 		( "SqlToolManagerMaui.UI.Views", "views", "v" ),
+		( "SqlToolManagerMaui.UI.MarkupExtensions", "markup", "mk" ),
 	};
 
 	var basePrefixMap = new Dictionary<string, string>(StringComparer.Ordinal)
 	{
-		{ "mi", "clr-namespace:MauiIcons.Core;assembly=MauiIcons.Core" },
-		{ "icons", "http://www.aathifmahir.com/dotnet/2022/maui/icons" },
+		{ "mi", "http://www.aathifmahir.com/dotnet/2022/maui/icons" },
 	};
 
 	// Récupère tous les namespaces déclarés dans les fichiers .cs du projet

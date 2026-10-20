@@ -21,7 +21,7 @@
 
                 <ImageButton Style="{StaticResource TextImageButtonStyle}"
                              Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
-                             Source="{icons:FluentFilled Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}, IconSize=12}"
+                             Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}, IconSize=12}"
                              ToolTipProperties.Text="Fermer les résultats" />
             </HorizontalStackLayout>
         </v:TabBar.TrailingContent>

@@ -7,9 +7,7 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource InputFieldStyle}">
         <Setter Property="Icon"
-                Value="{mi:MauiIcon Icon={x:Static icons:FluentFilledIcons.CalendarRtl20Filled},
-                        IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
+                Value="{mk:FluentFilledImage Icon=CalendarRtl20Filled}" />
     </Style>
 
     <Style TargetType="inp:TimePickerField"
@@ -17,9 +15,7 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource InputFieldStyle}">
         <Setter Property="Icon"
-                Value="{mi:MauiIcon Icon={x:Static icons:FluentFilledIcons.Clock20Filled},
-                        IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
+                Value="{mk:FluentFilledImage Icon=Clock20Filled}" />
     </Style>
 
     <Style TargetType="inp:DateTimePickerField"
@@ -27,13 +23,9 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource InputFieldStyle}">
         <Setter Property="Icon"
-                Value="{mi:MauiIcon Icon={x:Static icons:FluentFilledIcons.CalendarRtl20Filled},
-                        IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
+                Value="{mk:FluentFilledImage Icon=CalendarRtl20Filled}" />
         <Setter Property="SecondIcon"
-                Value="{mi:MauiIcon Icon={x:Static icons:FluentFilledIcons.Clock20Filled},
-                        IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
+                Value="{mk:FluentFilledImage Icon=Clock20Filled}" />
     </Style>
 
     <!-- Default Styles -->

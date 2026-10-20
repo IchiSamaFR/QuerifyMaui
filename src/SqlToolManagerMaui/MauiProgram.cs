@@ -2,6 +2,7 @@
 using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Markup;
 using LiveChartsCore.SkiaSharpView.Maui;
+using MauiIcons.Core;
 using MauiIcons.Fluent;
 using MauiIcons.Fluent.Filled;
 using Microsoft.Extensions.Logging;
@@ -21,6 +22,7 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             })
+            .UseMauiIconsCore()
             .UseFluentMauiIcons()
             .UseFluentFilledMauiIcons()
             .UseCodeEditor()

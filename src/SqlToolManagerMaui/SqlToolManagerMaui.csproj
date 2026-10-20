@@ -89,6 +89,7 @@
 		<!-- Graphiques des cartes du dashboard (.schx) -->
 		<PackageReference Include="LiveChartsCore.SkiaSharpView.Maui" Version="2.0.5" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.110" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
 	</ItemGroup>
 	
 	
@@ -129,16 +130,5 @@
 	<!-- ===================== Services ===================== -->
 	<ItemGroup>
 		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-	</ItemGroup>
-	<ItemGroup>
-	  <MauiXaml Update="Resources\Styles\Controls\ExpanderStyles.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\Pages\Connections\ConnectionExplorerView.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	</ItemGroup>
-	<ItemGroup>
-	  <PackageReference Update="Microsoft.Maui.Controls" Version="10.0.101" />
 	</ItemGroup>
 </Project>

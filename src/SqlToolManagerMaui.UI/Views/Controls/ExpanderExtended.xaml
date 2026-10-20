@@ -15,14 +15,14 @@
 
             <!-- Le trigger est porte par l'icone : un Setter sur l'Expander chercherait Icon sur l'Expander -->
             <mi:MauiIcon Grid.Column="1"
-                         Icon="{x:Static icons:FluentFilledIcons.ChevronDown24Filled}"
+                         Icon="{mk:FluentFilledImage Icon=ChevronDown24Filled}"
                          IconSize="24">
                 <mi:MauiIcon.Triggers>
                     <DataTrigger TargetType="mi:MauiIcon"
                                  Binding="{Binding IsExpanded, Source={x:Reference expander}, x:DataType=v:ExpanderExtended}"
                                  Value="True">
                         <Setter Property="Icon"
-                                Value="{x:Static icons:FluentFilledIcons.ChevronUp24Filled}" />
+                                Value="{mk:FluentFilledImage Icon=ChevronUp24Filled}" />
                     </DataTrigger>
                 </mi:MauiIcon.Triggers>
             </mi:MauiIcon>

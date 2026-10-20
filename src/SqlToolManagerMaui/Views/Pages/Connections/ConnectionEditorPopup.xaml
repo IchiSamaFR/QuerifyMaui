@@ -48,7 +48,7 @@
                     Style="{StaticResource SecondaryButtonStyle}"
                     Command="{Binding TestCommand}"
                     Text="Tester"
-                    ImageSource="{icons:FluentFilled Icon=PlugConnected20Filled, IconSize=16}" />
+                    ImageSource="{mk:FluentFilledImage Icon=PlugConnected20Filled, IconSize=16}" />
 
             <ActivityIndicator Grid.Column="1"
                                IsRunning="{Binding IsBusy}"
@@ -66,7 +66,7 @@
                     Style="{StaticResource PrimaryButtonStyle}"
                     Command="{Binding SaveCommand}"
                     Text="Enregistrer"
-                    ImageSource="{icons:FluentFilled Icon=Save20Filled, IconSize=16}" />
+                    ImageSource="{mk:FluentFilledImage Icon=Save20Filled, IconSize=16}" />
         </Grid>
     </VerticalStackLayout>
 </toolkit:Popup>

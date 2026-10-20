@@ -3,10 +3,15 @@
 	<!-- ===================== General settings ===================== -->
 	<PropertyGroup>
 		<UseMaui>true</UseMaui>
-		<ImplicitUsings>enable</ImplicitUsings>
+		<ImplicitUsings>true</ImplicitUsings>
+		<SingleProject>true</SingleProject>
 		<Nullable>enable</Nullable>
+		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
 		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<NoWarn>$(NoWarn);MVVMTK0045;CA2007;CA1515;MCTEXP001</NoWarn>
 	</PropertyGroup>
 
@@ -25,9 +30,16 @@
 		<!-- Force XAML compilation for all configurations -->
 		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
 		<DefineConstants>$(DefineConstants);MauiAllowImplicitXmlnsDeclaration</DefineConstants>
+		<!--<MauiXamlInflator>SourceGen</MauiXamlInflator>-->
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+
+		<LangVersion>preview</LangVersion>
+		<AnalysisLevel>latest-all</AnalysisLevel>
 		<MauiStrictXamlCompilation>true</MauiStrictXamlCompilation>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 	</PropertyGroup>
+	
 	<!-- Tout le XAML est du MAUI : on le retire des pages WinUI (sinon erreurs WMC0001) -->
 	<ItemGroup>
 	  <Page Remove="**\*.xaml" />

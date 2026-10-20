@@ -35,7 +35,7 @@
                         </Border>
                         <Button Style="{StaticResource SecondaryButtonStyle}"
                                 Text="Exécuter la requête"
-                                ImageSource="{icons:FluentFilled Icon=Play16Filled, IconSize=16}"
+                                ImageSource="{mk:FluentFilledImage Icon=Play16Filled, IconSize=16}"
                                 Command="{Binding RunCardCommand}"
                                 CommandParameter="{Binding Session.SelectedCard}"
                                 HorizontalOptions="Start" />
@@ -194,7 +194,7 @@
                     <HorizontalStackLayout Spacing="8">
                         <Button Style="{StaticResource SecondaryButtonStyle}"
                                 Text="Nouvelle page"
-                                ImageSource="{icons:FluentFilled Icon=Add20Filled, IconSize=16}"
+                                ImageSource="{mk:FluentFilledImage Icon=Add20Filled, IconSize=16}"
                                 Command="{Binding AddPageCommand}" />
                         <Button Style="{StaticResource SecondaryButtonStyle}"
                                 Text="Supprimer cette page"
@@ -225,7 +225,7 @@
                                                      SelectedItem="{Binding Type, Mode=TwoWay}" />
                                     <Button Grid.Column="2"
                                             Style="{StaticResource SimpleTextIconButtonStyle}"
-                                            ImageSource="{icons:FluentFilled Icon=Dismiss16Filled, IconSize=12}"
+                                            ImageSource="{mk:FluentFilledImage Icon=Dismiss16Filled, IconSize=12}"
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardDesignerPanel}}, Path=DeleteParameterCommand, x:DataType=c:DashboardDesignerPanel}"
                                             CommandParameter="{Binding .}"
                                             ToolTipProperties.Text="Supprimer le paramètre" />
@@ -236,7 +236,7 @@
 
                     <Button Style="{StaticResource SecondaryButtonStyle}"
                             Text="Ajouter un paramètre"
-                            ImageSource="{icons:FluentFilled Icon=Add20Filled, IconSize=16}"
+                            ImageSource="{mk:FluentFilledImage Icon=Add20Filled, IconSize=16}"
                             Command="{Binding AddParameterCommand}"
                             HorizontalOptions="Start" />
                 </VerticalStackLayout>

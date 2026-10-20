@@ -16,13 +16,11 @@
                 Value="Transparent" />
 
         <Setter Property="AddImageSource"
-                Value="{mi:MauiIcon Icon={x:Static icons:FluentFilledIcons.Add20Filled},
-                        IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
+                Value="{mk:FluentFilledImage Icon=Add20Filled,
+                        IconSize=20}" />
         <Setter Property="MinusImageSource"
-                Value="{mi:MauiIcon Icon={x:Static icons:FluentFilledIcons.Subtract20Filled},
-                        IconSize=20,
-                        IconColor={AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LabelSecondary}}}" />
+                Value="{mk:FluentFilledImage Icon=Subtract20Filled,
+                        IconSize=20}" />
     </Style>
     
     <!-- Default Styles -->

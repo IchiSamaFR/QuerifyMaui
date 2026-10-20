@@ -16,7 +16,7 @@
                 <ImageButton Grid.Column="1"
                         Style="{StaticResource TextImageButtonStyle}"
                         Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
-                        Source="{icons:FluentFilled Icon=Dismiss16Filled, IconSize=16}"
+                        Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconSize=16}"
                         ToolTipProperties.Text="Fermer l'explorateur" />
             </Grid>
 
@@ -25,15 +25,15 @@
                 <HorizontalStackLayout Spacing="4">
                     <ImageButton Style="{StaticResource TextImageButtonStyle}"
                                  Command="{Binding AddConnectionCommand}"
-                                 Source="{icons:FluentFilled Icon=PlugConnectedAdd20Filled, IconSize=20}"
+                                 Source="{mk:FluentFilledImage Icon=PlugConnectedAdd20Filled, IconSize=20}"
                                  ToolTipProperties.Text="Se connecter..." />
                     <ImageButton Style="{StaticResource TextImageButtonStyle}"
                                  Command="{Binding RefreshCommand}"
-                                 Source="{icons:FluentFilled Icon=ArrowSync20Filled, IconSize=20}"
+                                 Source="{mk:FluentFilledImage Icon=ArrowSync20Filled, IconSize=20}"
                                  ToolTipProperties.Text="Actualiser" />
                     <ImageButton Style="{StaticResource TextImageButtonStyle}"
                                  Command="{Binding CollapseAllCommand}"
-                                 Source="{icons:FluentFilled Icon=ArrowCollapseAll20Filled, IconSize=20}"
+                                 Source="{mk:FluentFilledImage Icon=ArrowCollapseAll20Filled, IconSize=20}"
                                  ToolTipProperties.Text="Reduire tout" />
                 </HorizontalStackLayout>
                 <HorizontalStackLayout Grid.Column="1"

@@ -1,5 +1,7 @@
-﻿using MauiIcons.Fluent.Filled;
+﻿using MauiIcons.Fluent;
+using MauiIcons.Fluent.Filled;
 using SqlToolManagerMaui.Core.Enums.Editors.Completion;
+using SqlToolManagerMaui.UI.Tools;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Globalization;
@@ -15,16 +17,12 @@ namespace SqlToolManagerMaui.Converters;
 public sealed class CompletionItemIconConverter : IValueConverter
 {
     /// <summary>Alias sous lequel MauiIcons enregistre la police Fluent Filled.</summary>
-    public const string FontFamily = nameof(FluentFilledIcons);
-
-    private static readonly ConcurrentDictionary<FluentFilledIcons, string> Glyphs = new();
-
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is not CompletionItemKind kind)
             return null;
 
-        return Glyph(kind switch
+        return GlyphIconHelper.Glyph(kind switch
         {
             CompletionItemKind.Column => FluentFilledIcons.Column20Filled,
             CompletionItemKind.Table => FluentFilledIcons.Table16Filled,
@@ -47,9 +45,4 @@ public sealed class CompletionItemIconConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 
-    /// <summary>MauiIcons porte le caractere de chaque icone dans un [Description] sur la valeur d'enum.</summary>
-    private static string Glyph(FluentFilledIcons icon)
-        => Glyphs.GetOrAdd(icon, static i =>
-            typeof(FluentFilledIcons).GetField(i.ToString(), BindingFlags.Public | BindingFlags.Static)?
-                .GetCustomAttribute<DescriptionAttribute>()?.Description ?? string.Empty);
 }
