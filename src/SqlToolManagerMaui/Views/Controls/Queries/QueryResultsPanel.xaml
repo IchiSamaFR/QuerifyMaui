@@ -4,15 +4,8 @@
              x:Class="SqlToolManagerMaui.Views.Controls.Queries.QueryResultsPanel"
              x:Name="root">
     <v:TabBar ItemsSource="{Binding Tabs, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
-              SelectedItem="{Binding SelectedTab, Source={x:Reference root}, Mode=TwoWay, x:DataType=c:QueryResultsPanel}">
-
-        <!-- ============ Onglets : un TabBarItem par QueryResultsTab ============ -->
-        <v:TabBar.ItemTemplate>
-            <DataTemplate x:DataType="m:QueryResultsTab">
-                <v:TabBarItem Header="{Binding Title}"
-                              CanClose="False" />
-            </DataTemplate>
-        </v:TabBar.ItemTemplate>
+              SelectedItem="{Binding SelectedTab, Source={x:Reference root}, Mode=TwoWay, x:DataType=c:QueryResultsPanel}"
+              TitleMemberPath="Title">
 
         <!-- ============ Resume + duree + fermeture ============ -->
         <v:TabBar.TrailingContent>

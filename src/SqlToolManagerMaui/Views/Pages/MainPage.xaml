@@ -41,20 +41,15 @@
 
         <v:GridSplitter Grid.Column="1"
                         IsVisible="{Binding Preferences.IsObjectExplorerOpen}" />
-
+        
         <!-- ============ Onglets : le contenu suit la session selectionnee ============ -->
         <v:TabBar Grid.Column="2"
                   ItemsSource="{Binding Sessions}"
                   SelectedItem="{Binding SelectedSession}"
-                  CloseCommand="{Binding CloseCommand}"
-                  ContentTemplate="{StaticResource DocumentTemplateSelector}">
-            <v:TabBar.ItemTemplate>
-                <DataTemplate x:DataType="m:AbstractSession">
-                    <v:TabBarItem Header="{Binding Document.FileName}"
-                                  ToolTip="{Binding Document.PathLabel}"
-                                  IsDirty="{Binding Document.IsDirty}" />
-                </DataTemplate>
-            </v:TabBar.ItemTemplate>
+                  ContentTemplate="{StaticResource DocumentTemplateSelector}"
+                  IsClosable="True"
+                  TitleMemberPath="Document.Title"
+                  ToolTipMemberPath="Document.PathLabel">
         </v:TabBar>
     </Grid>
 </v:AbstractPage>

@@ -27,6 +27,18 @@ public partial class MainVM : AbstractVM
     private readonly DatabaseConnectionVM _connection;
     private readonly StatusBarVM _status;
 
+    /// <summary>Onglets ouverts, dans l'ordre d'ouverture.</summary>
+    [ObservableProperty]
+    public partial ObservableCollection<AbstractSession> Sessions { get; set; } = new();
+
+    [ObservableProperty]
+    public partial AbstractSession SelectedSession { get; set; }
+
+    /// <summary>Volet de l'explorateur d'objets (disposition de la page).</summary>
+    public EditorPreferencesVM Preferences { get; }
+
+    public MainMenuBarVM MainMenuBar { get; }
+
     public MainVM(IEditorFileService files,
         ISyntaxConfigurationStore syntaxConfigurations,
         DashboardVM dashboard,
@@ -46,17 +58,6 @@ public partial class MainVM : AbstractVM
         MainMenuBar.AttachFileCommands(this);
         WeakReferenceMessenger.Default.Register<MainVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
     }
-
-    /// <summary>Onglets ouverts, dans l'ordre d'ouverture.</summary>
-    public ObservableCollection<AbstractSession> Sessions { get; } = new();
-
-    [ObservableProperty]
-    public partial AbstractSession? SelectedSession { get; set; }
-
-    /// <summary>Volet de l'explorateur d'objets (disposition de la page).</summary>
-    public EditorPreferencesVM Preferences { get; }
-
-    public MainMenuBarVM MainMenuBar { get; }
 
     protected override async Task LoadDatasBusyAsync()
     {

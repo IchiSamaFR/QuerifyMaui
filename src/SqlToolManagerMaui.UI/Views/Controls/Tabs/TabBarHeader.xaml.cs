@@ -1,71 +1,53 @@
 ﻿using CommunityToolkit.Maui;
-using System.ComponentModel;
 
 namespace SqlToolManagerMaui.UI.Views.Controls.Tabs;
 
-/// <summary>En-tete d'un <see cref="TabBarItem"/> (son BindingContext), genere par la <see cref="TabBar"/>.</summary>
 public partial class TabBarHeader : ContentView
 {
     [BindableProperty]
-    public partial bool IsPointerOver { get; private set; }
+    public partial string? Title { get; set; }
 
     [BindableProperty]
-    public partial bool ShowDirtyDot { get; private set; }
+    public partial string? ToolTip { get; set; }
+
+    [BindableProperty(PropertyChangedMethodName = nameof(OnTitleMemberPathChanged))]
+    public partial string? TitleMemberPath { get; set; }
+
+    [BindableProperty(PropertyChangedMethodName = nameof(OnToolTipMemberPathChanged))]
+    public partial string? ToolTipMemberPath { get; set; }
 
     [BindableProperty]
-    public partial bool ShowCloseButton { get; private set; }
+    public partial bool IsClosable { get; set; }
 
-    public event EventHandler? Selected;
-
-    public event EventHandler? CloseRequested;
-
-    private TabBarItem? _tab;
+    [BindableProperty]
+    public partial Action<object> CloseAction { get; set; }
 
     public TabBarHeader()
     {
         InitializeComponent();
     }
 
-    protected override void OnBindingContextChanged()
+    private static void OnTitleMemberPathChanged(BindableObject bindable, object? oldValue, object? newValue)
+        => ((TabBarHeader)bindable).ApplyPath(TitleProperty, newValue as string);
+
+    private static void OnToolTipMemberPathChanged(BindableObject bindable, object? oldValue, object? newValue)
+        => ((TabBarHeader)bindable).ApplyPath(ToolTipProperty, newValue as string);
+
+    private void ApplyPath(BindableProperty property, string? path)
     {
-        base.OnBindingContextChanged();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            RemoveBinding(property);
+            return;
+        }
 
-        if (_tab is not null)
-            _tab.PropertyChanged -= OnTabPropertyChanged;
-
-        _tab = BindingContext as TabBarItem;
-        if (_tab is not null)
-            _tab.PropertyChanged += OnTabPropertyChanged;
-
-        Refresh();
+        // Pas de Source : le binding suit le BindingContext du header (l'element de ItemsSource),
+        // y compris quand il arrive apres le path ou change au recyclage des cellules.
+        SetBinding(property, new Binding(path, BindingMode.OneWay));
     }
 
-    private void OnTabPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void ImageButton_Clicked(object sender, EventArgs e)
     {
-        if (e.PropertyName is nameof(TabBarItem.IsDirty) or nameof(TabBarItem.IsSelected) or nameof(TabBarItem.CanClose))
-            Refresh();
-    }
-
-    private void OnPointerEntered(object? sender, PointerEventArgs e)
-    {
-        IsPointerOver = true;
-        Refresh();
-    }
-
-    private void OnPointerExited(object? sender, PointerEventArgs e)
-    {
-        IsPointerOver = false;
-        Refresh();
-    }
-
-    private void OnTapped(object? sender, TappedEventArgs e) => Selected?.Invoke(this, EventArgs.Empty);
-
-    private void OnCloseClicked(object? sender, EventArgs e) => CloseRequested?.Invoke(this, EventArgs.Empty);
-
-    // Pastille "modifie" hors survol ; bouton fermer au survol et sur l'onglet actif.
-    private void Refresh()
-    {
-        ShowDirtyDot = _tab?.IsDirty == true && !IsPointerOver;
-        ShowCloseButton = _tab?.CanClose == true && !ShowDirtyDot && (IsPointerOver || _tab.IsSelected);
+        CloseAction?.Invoke(BindingContext);
     }
 }
