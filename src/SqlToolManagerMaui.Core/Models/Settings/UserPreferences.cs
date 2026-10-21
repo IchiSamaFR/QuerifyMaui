@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using SqlToolManagerMaui.Core.Models.Editors;
 using System.ComponentModel;
 
 namespace SqlToolManagerMaui.Core.Models.Settings;

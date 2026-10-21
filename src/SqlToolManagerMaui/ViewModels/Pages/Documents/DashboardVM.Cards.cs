@@ -1,20 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using SqlToolManagerMaui.Core.Enums.Dashboards;
-using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
-using SqlToolManagerMaui.Core.Ioc;
+﻿using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Models.Dashboards;
-using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
-using SqlToolManagerMaui.Core.Serialization;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Queries;
-using SqlToolManagerMaui.Databases.Queries;
-using SqlToolManagerMaui.Services.Databases;
-using SqlToolManagerMaui.Services.Editors.Highlighting;
-using SqlToolManagerMaui.Services.Settings;
 using SqlToolManagerMaui.UI.Extensions;
-using SqlToolManagerMaui.ViewModels.Pages.Shared;
-using System.Globalization;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Documents;
 

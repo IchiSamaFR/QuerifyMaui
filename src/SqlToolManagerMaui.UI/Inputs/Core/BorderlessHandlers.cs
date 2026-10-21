@@ -150,7 +150,7 @@ internal static class BorderlessHandlers
         {
             style.BasedOn = defaultStyle;
         }
-        style.Setters.Add(new Microsoft.UI.Xaml.Setter(Microsoft.UI.Xaml.Controls.Control.PaddingProperty,new Microsoft.UI.Xaml.Thickness(0)));
+        style.Setters.Add(new Microsoft.UI.Xaml.Setter(Microsoft.UI.Xaml.Controls.Control.PaddingProperty, new Microsoft.UI.Xaml.Thickness(0)));
         style.Setters.Add(new Microsoft.UI.Xaml.Setter(Microsoft.UI.Xaml.FrameworkElement.MinHeightProperty, 0d));
         list.ItemContainerStyle = style;
     }

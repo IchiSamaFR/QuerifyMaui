@@ -1,7 +1,5 @@
 ﻿using CommunityToolkit.Maui;
 using System.Collections;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.UI.Views.Controls.Tabs;

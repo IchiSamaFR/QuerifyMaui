@@ -1,11 +1,7 @@
-﻿using MauiIcons.Fluent;
-using MauiIcons.Fluent.Filled;
+﻿using MauiIcons.Fluent.Filled;
 using SqlToolManagerMaui.Core.Enums.Editors.Completion;
 using SqlToolManagerMaui.UI.Tools;
-using System.Collections.Concurrent;
-using System.ComponentModel;
 using System.Globalization;
-using System.Reflection;
 
 namespace SqlToolManagerMaui.Converters;
 
