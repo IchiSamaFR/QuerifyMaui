@@ -2,6 +2,7 @@
 using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace SqlToolManagerMaui.Core.Models.Dashboards;
 
@@ -123,11 +124,13 @@ public sealed partial class DashboardSession : AbstractSession
         LoadedText = text;
 
         Parameters.Clear();
+        foreach (var page in Pages)
+            page.PropertyChanged -= OnPageDefinitionChanged;
         Pages.Clear();
         foreach (var parameter in definition?.Parameters ?? [])
             Parameters.Add(Wire(new DashboardParameterValue(parameter)));
         foreach (var page in definition?.Pages ?? [])
-            Pages.Add(page);
+            Pages.Add(Wire(page));
         RefreshPageIds();
 
         OnPropertyChanged(nameof(HasParameters));
@@ -147,7 +150,6 @@ public sealed partial class DashboardSession : AbstractSession
     public DashboardPageState Open(DashboardPageDefinition page, bool asRoot)
     {
         var state = new DashboardPageState(page, CurrentValues());
-        state.DefinitionChanged += OnPageDefinitionChanged;
         foreach (var card in state.Cards)
             Wire(card);
 
@@ -298,7 +300,7 @@ public sealed partial class DashboardSession : AbstractSession
             return;
 
         Definition.Pages.Add(page);
-        Pages.Add(page);
+        Pages.Add(Wire(page));
         RefreshPageIds();
         NotifyDefinitionChanged();
     }
@@ -309,6 +311,7 @@ public sealed partial class DashboardSession : AbstractSession
             return;
 
         Pages.Remove(page);
+        page.PropertyChanged -= OnPageDefinitionChanged;
         RefreshPageIds();
         if (string.Equals(Definition.StartPage, page.Id, StringComparison.OrdinalIgnoreCase))
             Definition.StartPage = Definition.Pages[0].Id;
@@ -393,6 +396,12 @@ public sealed partial class DashboardSession : AbstractSession
         return card;
     }
 
+    private DashboardPageDefinition Wire(DashboardPageDefinition page)
+    {
+        page.PropertyChanged += OnPageDefinitionChanged;
+        return page;
+    }
+
     private DashboardParameterValue Wire(DashboardParameterValue parameter)
     {
         parameter.DefinitionChanged += OnParameterDefinitionChanged;
@@ -403,7 +412,13 @@ public sealed partial class DashboardSession : AbstractSession
 
     private void OnParameterDefinitionChanged(object? sender, EventArgs e) => NotifyDefinitionChanged();
 
-    private void OnPageDefinitionChanged(object? sender, EventArgs e) => NotifyDefinitionChanged();
+    /// <summary>Page renommee : son titre suit dans le fil d'Ariane.</summary>
+    private void OnPageDefinitionChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        foreach (var step in Steps.Where(s => ReferenceEquals(s.Definition, sender)))
+            step.NotifyTitleChanged();
+        NotifyDefinitionChanged();
+    }
 
     private void OnCardNavigationRequested(object? sender, DashboardNavigationRequest e) => NavigationRequested?.Invoke(this, e);
 

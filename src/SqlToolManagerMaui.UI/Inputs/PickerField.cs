@@ -29,8 +29,7 @@ public partial class PickerField : InputField
     {
         Margin = new Thickness(0, 0),
         BackgroundColor = Colors.Transparent,
-        VerticalOptions = LayoutOptions.Fill,
-        VerticalTextAlignment = TextAlignment.Center,
+        VerticalOptions = LayoutOptions.Center,
         HorizontalOptions = LayoutOptions.Fill,
     };
 
@@ -50,10 +49,10 @@ public partial class PickerField : InputField
         PickerView.ItemDisplayBinding = new Binding(nameof(PickerEntry.Label));
         PickerView.SelectedIndexChanged += OnPickerSelectedIndexChanged;
 
-        PickerView.SetBinding(Picker.MarginProperty, new Binding(nameof(MarginProperty), source: this));
+        PickerView.SetBinding(Picker.MarginProperty, new Binding(nameof(ContentPadding), source: this));
         PickerView.SetBinding(Picker.TextColorProperty, new Binding(nameof(TextColor), source: this));
-        PickerView.SetBinding(Picker.TitleProperty, new Binding(nameof(Placeholder), source: this));
-        PickerView.SetBinding(Picker.TitleColorProperty, new Binding(nameof(PlaceholderColor), source: this));
+        PickerView.SetBinding(Picker.TitleProperty, new Binding(nameof(Title), source: this));
+        PickerView.SetBinding(Picker.TitleColorProperty, new Binding(nameof(TitleColor), source: this));
         PickerView.SetBinding(Picker.HorizontalTextAlignmentProperty, new Binding(nameof(HorizontalTextAlignment), source: this));
 
         PickerView.SetBinding(Picker.FontSizeProperty, new Binding(nameof(FontSize), source: this));

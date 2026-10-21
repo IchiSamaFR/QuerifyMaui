@@ -13,9 +13,6 @@ public sealed partial class DashboardPageState : ObservableObject
 
     public ObservableCollection<DashboardCardState> Cards { get; } = [];
 
-    /// <summary>Le concepteur a renomme la page.</summary>
-    public event EventHandler? DefinitionChanged;
-
     public DashboardPageState(DashboardPageDefinition definition, IReadOnlyDictionary<string, string?> parameterValues)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -27,19 +24,10 @@ public sealed partial class DashboardPageState : ObservableObject
             Cards.Add(new DashboardCardState(card));
     }
 
-    public string Title
-    {
-        get => Definition.Title;
-        set
-        {
-            if (string.Equals(Definition.Title, value, StringComparison.Ordinal))
-                return;
+    public string Title => Definition.Title;
 
-            Definition.Title = value ?? string.Empty;
-            OnPropertyChanged();
-            DefinitionChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
+    /// <summary>La page a ete renommee (depuis son onglet du concepteur).</summary>
+    public void NotifyTitleChanged() => OnPropertyChanged(nameof(Title));
 
     /// <summary>Premiere ligne libre sous la derniere carte.</summary>
     public int BottomRow => Cards.Count == 0 ? 0 : Cards.Max(c => c.Row + c.RowSpan);

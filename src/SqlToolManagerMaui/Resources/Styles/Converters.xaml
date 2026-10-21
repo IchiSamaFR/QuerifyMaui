@@ -16,6 +16,7 @@
     <conv:IsEqualConverter x:Key="IsEqualConverter" />
     <conv:IsNotEqualConverter x:Key="IsNotEqualConverter" />
     <conv:IsNotEqualMultiConverter x:Key="IsNotEqualMultiConverter" />
+    <conv:IsSameMultiConverter x:Key="IsSameMultiConverter" />
     <conv:IsNullObjectConverter x:Key="IsNullObjectConverter" />
     <conv:IsTargetPlatformConverter x:Key="IsTargetPlatformConverter" />
     <conv:CountConverter x:Key="CountConverter" />

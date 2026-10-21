@@ -62,6 +62,9 @@ public abstract partial class InputField
     [BindableProperty(PropertyChangedMethodName = nameof(OnIconPropertyChanged))]
     public partial ImageSource? Icon { get; set; }
 
+    [BindableProperty]
+    public partial double IconSizeRequest { get; set; } = -1d;
+
     /// <summary>
     /// Hauteur du champ (la zone bordée), PAS du contrôle entier :
     /// le titre flottant et le message de validation s'ajoutent autour.

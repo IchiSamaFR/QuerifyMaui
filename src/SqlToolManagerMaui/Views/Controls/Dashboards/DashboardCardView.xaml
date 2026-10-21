@@ -7,6 +7,8 @@
     <Border BindingContext="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardCardView}}, x:DataType=c:DashboardCardView}"
             x:DataType="c:DashboardCardView"
             Style="{StaticResource CardStyle}"
+            StrokeThickness="2"
+            Stroke="Transparent"
             Padding="12,8">
         <Border.Triggers>
             <DataTrigger TargetType="Border"
@@ -16,6 +18,8 @@
                         Value="{DynamicResource Primary}" />
                 <Setter Property="StrokeThickness"
                         Value="2" />
+                <Setter Property="Padding"
+                        Value="12,24,12,24" />
             </DataTrigger>
         </Border.Triggers>
 
@@ -26,7 +30,7 @@
             <Grid ColumnDefinitions="*,Auto"
                   ColumnSpacing="8">
                 <Label Text="{Binding Card.Title, FallbackValue=''}"
-                       IsVisible="{Binding Card.HasTitle, FallbackValue=False}"
+                       IsVisible="{Binding Card.IsSelected, FallbackValue=False, Converter={StaticResource BooleanInvertConverter}}"
                        Style="{StaticResource LabelThirdHeaderStyle}"
                        LineBreakMode="TailTruncation" />
                 <ActivityIndicator Grid.Column="1"
@@ -52,23 +56,41 @@
                        VerticalOptions="Center" />
 
                 <Label Text="{Binding Card.Text, FallbackValue=''}"
-                       IsVisible="{Binding Card.IsText, FallbackValue=False}"
                        Style="{StaticResource LabelNormalStyle}"
-                       LineBreakMode="WordWrap" />
+                       LineBreakMode="WordWrap">
+                    <Label.IsVisible>
+                        <MultiBinding Converter="{StaticResource IsAllTrueConverter}">
+                            <Binding Path="Card.IsText"
+                                     FallbackValue="False" />
+                            <Binding Path="Card.IsSelected"
+                                     Converter="{StaticResource BooleanInvertConverter}"
+                                     FallbackValue="True" />
+                        </MultiBinding>
+                    </Label.IsVisible>
+                </Label>
 
                 <Button Text="{Binding Card.ButtonText, FallbackValue=''}"
                         Command="{Binding Card.PressCommand, FallbackValue={x:Null}}"
-                        IsVisible="{Binding Card.IsButton, FallbackValue=False}"
-                        Style="{StaticResource PrimaryButtonStyle}"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
+                        Style="{StaticResource PrimaryButtonStyle}">
+                    <Button.IsVisible>
+                        <MultiBinding Converter="{StaticResource IsAllTrueConverter}">
+                            <Binding Path="Card.IsButton"
+                                     FallbackValue="False" />
+                            <Binding Path="Card.IsSelected"
+                                     Converter="{StaticResource BooleanInvertConverter}"
+                                     FallbackValue="True" />
+                        </MultiBinding>
+                    </Button.IsVisible>
+                </Button>
 
                 <Label Text="{Binding Card.Error, FallbackValue=''}"
                        IsVisible="{Binding Card.HasError, FallbackValue=False}"
                        Style="{StaticResource LabelErrorStyle}"
-                       BackgroundColor="{DynamicResource CardBackground}"
+                       BackgroundColor="Transparent"
                        LineBreakMode="WordWrap"
-                       VerticalOptions="Start" />
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center" />
+
             </Grid>
         </Grid>
     </Border>

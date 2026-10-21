@@ -112,7 +112,8 @@ public partial class DashboardVM
     [RelayCommand]
     private void OpenDesignerPage(DashboardPageDefinition? page)
     {
-        if (Session is { } session && page is not null)
+        // Clic sur l'onglet deja ouvert : pas de relecture des cartes.
+        if (Session is { } session && page is not null && session.Current?.Definition != page)
             OpenPage(session, page, asRoot: true);
     }
 
@@ -131,16 +132,12 @@ public partial class DashboardVM
         OpenPage(session, page, asRoot: true);
     }
 
-    /// <summary>Supprime la page affichee (la derniere page restante est conservee).</summary>
+    /// <summary>Supprime une page apres confirmation (la derniere page restante est conservee).</summary>
     [RelayCommand]
-    private void DeletePage(DashboardPageDefinition page)
+    private async Task DeletePageAsync(DashboardPageDefinition? page)
     {
-        if (page == null)
+        if (page is null || Session is not { Definition: { } definition } session)
             return;
-
-        if (Session is not { Definition: { } definition, Current: { } current } session)
-            return;
-
 
         if (definition.Pages.Count <= 1)
         {
@@ -148,8 +145,14 @@ public partial class DashboardVM
             return;
         }
 
+        var name = string.IsNullOrWhiteSpace(page.Title) ? page.Id : page.Title;
+        if (!await _dialogs.ConfirmAsync("Supprimer la page", $"Supprimer la page « {name} » et ses cartes ?", "Supprimer"))
+            return;
+
+        var wasCurrent = session.Current?.Definition == page;
         session.RemovePage(page);
-        OpenPage(session, definition.FindPage(definition.StartPage) ?? definition.Pages[0], asRoot: true);
+        if (wasCurrent)
+            OpenPage(session, definition.FindPage(definition.StartPage) ?? definition.Pages[0], asRoot: true);
     }
 
     [RelayCommand]

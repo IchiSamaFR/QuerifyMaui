@@ -60,7 +60,7 @@
            x:Key="LabelErrorStyle"
            BasedOn="{StaticResource LabelStyle}">
         <Setter Property="TextColor"
-                Value="{DynamicResource ErrorDark}" />
+                Value="{DynamicResource Danger}" />
     </Style>
 
     <Style TargetType="Label"

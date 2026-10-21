@@ -8,6 +8,10 @@ public partial class PickerField
     // ── Bindable Properties ───────────────────────────────────────────────────
 
     /// <summary>Source des éléments : un <see cref="IDictionary"/> (clé/valeur) ou une liste simple.</summary>
+    [BindableProperty]
+    public partial Thickness ContentPadding { get; set; }
+
+    /// <summary>Source des éléments : un <see cref="IDictionary"/> (clé/valeur) ou une liste simple.</summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnItemsSourcePropertyChanged))]
     public partial IEnumerable? ItemsSource { get; set; }
 
@@ -26,9 +30,6 @@ public partial class PickerField
     /// <summary>Clé sélectionnée (clé du dictionnaire, <c>null</c> pour une liste).</summary>
     [BindableProperty(DefaultBindingMode = BindingMode.TwoWay, PropertyChangedMethodName = nameof(OnSelectedKeyPropertyChanged))]
     public partial object? SelectedKey { get; set; }
-
-    [BindableProperty]
-    public partial string Placeholder { get; set; } = string.Empty;
 
     [BindableProperty]
     public partial Color PlaceholderColor { get; set; } = (Color)Picker.TitleColorProperty.DefaultValue;

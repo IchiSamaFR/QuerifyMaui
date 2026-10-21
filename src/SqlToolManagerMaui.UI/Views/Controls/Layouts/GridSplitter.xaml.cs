@@ -7,8 +7,8 @@ using WinUIElement = Microsoft.UI.Xaml.UIElement;
 namespace SqlToolManagerMaui.UI.Views.Controls.Layouts;
 
 /// <summary>
-/// Splitter a placer dans une colonne ou une ligne d'une Grid (horizontal si Width > Height, sinon vertical).
-/// Vertical : redimensionne la colonne a sa gauche. Horizontal : redimensionne les vues de la ligne en dessous.
+/// Splitter a placer dans une ligne ou une colonne Auto d'une Grid (horizontal si Width > Height, sinon vertical).
+/// Redimensionne la voisine non proportionnelle (celle d'avant en priorite) ; si les deux voisines sont en *, repartit leurs poids.
 /// </summary>
 public partial class GridSplitter : ContentView
 {
@@ -18,9 +18,13 @@ public partial class GridSplitter : ContentView
 
     private bool _isDragging;
     private bool _horizontal;
+    private bool _targetIsBefore;
+    private int _target;
+    private int? _opposite;
+    private GridLength _targetLength, _oppositeLength;
     private double _startPointer;
-    private double _startPosition;
-    private double _startSize;
+    private double _startTarget;
+    private double? _startOpposite;
 
     private bool IsHorizontal => Width > Height;
 
@@ -78,44 +82,79 @@ public partial class GridSplitter : ContentView
 
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        if (_nativeView is null || Parent is not Grid grid)
+        if (_nativeView is null || Parent is not Grid grid || !TryStart(grid))
             return;
 
-        _horizontal = IsHorizontal;
-        var size = _horizontal ? GetRowChildrenHeight(grid) : GetTargetColumn(grid) is { } column ? GetCurrentWidth(grid, column) : null;
-        if (size is null)
-            return;
-
-        _startSize = size.Value;
         _startPointer = GetPointer(grid, e);
-        _startPosition = _horizontal ? Y : X;
         _isDragging = _nativeView.CapturePointer(e.Pointer);
         e.Handled = true;
     }
 
+    private bool TryStart(Grid grid)
+    {
+        _horizontal = IsHorizontal;
+        var index = _horizontal ? Grid.GetRow(this) : Grid.GetColumn(this);
+        var count = GetDefinitionCount(grid);
+        int? before = index > 0 && index - 1 < count ? index - 1 : null;
+        int? after = index + 1 < count ? index + 1 : null;
+
+        var target = before is { } b && !GetLength(grid, b).IsStar ? before
+                   : after is { } a && !GetLength(grid, a).IsStar ? after
+                   : before ?? after;
+        if (target is null || GetActualSize(grid, target.Value) is not { } startTarget)
+            return false;
+
+        _target = target.Value;
+        _targetIsBefore = target == before;
+        _opposite = _targetIsBefore ? after : before;
+        _targetLength = GetLength(grid, _target);
+        _oppositeLength = _opposite is { } o ? GetLength(grid, o) : GridLength.Auto;
+        _startTarget = startTarget;
+        _startOpposite = _opposite is { } op ? GetActualSize(grid, op) : null;
+
+        // Cible en * : seule une repartition avec une voisine en * mesurable est possible.
+        return !_targetLength.IsStar
+            || (_oppositeLength.IsStar && _startOpposite is { } so && _startTarget + so > 0);
+    }
+
     private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (!_isDragging || Parent is not Grid grid)
+        if (!_isDragging || Parent is not Grid grid || _target >= GetDefinitionCount(grid))
             return;
 
         // Position relative a la Grid parente (et non au splitter qui bouge) : pas d'effet de rebond.
         var delta = GetPointer(grid, e) - _startPointer;
+        if (!_targetIsBefore)
+            delta = -delta;
 
-        if (_horizontal)
+        var max = _startOpposite is { } opposite ? _startTarget + opposite - MinimumSize : double.PositiveInfinity;
+        var size = Math.Clamp(_startTarget + delta, MinimumSize, Math.Max(MinimumSize, max));
+
+        if (_targetLength.IsStar)
         {
-            // Zone du bas : tirer vers le haut l'agrandit.
-            var max = _startSize + _startPosition - MinimumSize;
-            var height = Math.Clamp(_startSize - delta, MinimumSize, Math.Max(MinimumSize, max));
-            foreach (var child in GetRowChildren(grid))
-                child.HeightRequest = height;
+            // Somme des poids conservee : les autres definitions en * ne bougent pas.
+            var total = _startTarget + _startOpposite!.Value;
+            var unit = (_targetLength.Value + _oppositeLength.Value) / total;
+            SetLength(grid, _target, new GridLength(size * unit, GridUnitType.Star));
+            SetLength(grid, _opposite!.Value, new GridLength((total - size) * unit, GridUnitType.Star));
         }
-        else if (GetTargetColumn(grid) is { } column)
+        else if (_targetLength.IsAbsolute)
         {
-            var max = grid.Width - Width - grid.ColumnSpacing * 2 - MinimumSize;
-            column.Width = new GridLength(Math.Clamp(_startSize + delta, MinimumSize, Math.Max(MinimumSize, max)));
-            grid.InvalidateMeasure();
+            SetLength(grid, _target, new GridLength(size));
+        }
+        else
+        {
+            // Auto : la taille vient du contenu, une definition fixe resterait figee une fois le contenu masque.
+            foreach (var child in GetChildren(grid, _target))
+            {
+                if (_horizontal)
+                    child.HeightRequest = size;
+                else
+                    child.WidthRequest = size;
+            }
         }
 
+        grid.InvalidateMeasure();
         e.Handled = true;
     }
 
@@ -137,33 +176,35 @@ public partial class GridSplitter : ContentView
     private static void SetResizeCursor(WinUIElement view, bool horizontal)
         => view.SetCursor(horizontal ? InputSystemCursorShape.SizeNorthSouth : InputSystemCursorShape.SizeWestEast);
 
-    private List<VisualElement> GetRowChildren(Grid grid)
+    private int GetDefinitionCount(Grid grid)
+        => _horizontal ? grid.RowDefinitions.Count : grid.ColumnDefinitions.Count;
+
+    private GridLength GetLength(Grid grid, int index)
+        => _horizontal ? grid.RowDefinitions[index].Height : grid.ColumnDefinitions[index].Width;
+
+    private void SetLength(Grid grid, int index, GridLength length)
     {
-        var row = Grid.GetRow(this) + 1;
-        return grid.Children.OfType<VisualElement>().Where(c => Grid.GetRow((BindableObject)c) == row && Grid.GetRowSpan((BindableObject)c) == 1).ToList();
+        if (_horizontal)
+            grid.RowDefinitions[index].Height = length;
+        else
+            grid.ColumnDefinitions[index].Width = length;
     }
 
-    private double? GetRowChildrenHeight(Grid grid)
+    // MAUI n'expose pas la taille reelle d'une definition : on la lit sur son contenu.
+    private double? GetActualSize(Grid grid, int index)
     {
-        var children = GetRowChildren(grid);
-        return children.Count > 0 ? children.Max(c => c.Height) : null;
+        var length = GetLength(grid, index);
+        if (length.IsAbsolute)
+            return length.Value;
+
+        var children = GetChildren(grid, index);
+        return children.Count > 0 ? children.Max(c => _horizontal ? c.Height : c.Width) : null;
     }
 
-    private ColumnDefinition? GetTargetColumn(Grid grid)
-    {
-        var index = Grid.GetColumn(this) - 1;
-        return index >= 0 && index < grid.ColumnDefinitions.Count ? grid.ColumnDefinitions[index] : null;
-    }
-
-    private double GetCurrentWidth(Grid grid, ColumnDefinition column)
-    {
-        if (column.Width.IsAbsolute)
-            return column.Width.Value;
-
-        // Colonne Auto/* : largeur reelle = position du splitter - colonnes precedentes.
-        var index = grid.ColumnDefinitions.IndexOf(column);
-        var before = grid.ColumnDefinitions.Take(index)
-                         .Sum(c => c.Width.IsAbsolute ? c.Width.Value + grid.ColumnSpacing : 0);
-        return X - grid.ColumnSpacing - before;
-    }
+    private List<VisualElement> GetChildren(Grid grid, int index)
+        => grid.Children.OfType<VisualElement>()
+               .Where(c => c != this && c.IsVisible && (_horizontal
+                   ? Grid.GetRow(c) == index && Grid.GetRowSpan(c) == 1
+                   : Grid.GetColumn(c) == index && Grid.GetColumnSpan(c) == 1))
+               .ToList();
 }

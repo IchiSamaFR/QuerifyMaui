@@ -160,7 +160,7 @@ public sealed partial class DashboardCardState : ObservableObject
 
     public bool HasNavigation => Definition.Navigation is not null;
 
-    public string ButtonText => Definition.Text ?? Definition.Title ?? Definition.Navigation?.Page ?? "Ouvrir";
+    public string ButtonText => Definition.Text ?? "Ouvrir";
 
     /// <summary>Carte Valeur : premiere ligne, premiere colonne de valeurs (ou premiere colonne).</summary>
     public string ValueText
@@ -195,6 +195,15 @@ public sealed partial class DashboardCardState : ObservableObject
     /// <summary>Carte selectionnee dans le concepteur.</summary>
     [ObservableProperty]
     public partial bool IsSelected { get; set; }
+
+    [RelayCommand]
+    private void SetCardKind(DashboardCardKind kind)
+    {
+        if (Definition.View != kind)
+            Definition.View = kind;
+        Changed();
+    }
+
 
     // ---------- Navigation ----------
 

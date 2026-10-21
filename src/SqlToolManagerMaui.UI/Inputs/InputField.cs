@@ -338,6 +338,9 @@ public abstract partial class InputField : Grid, IValidatable
         {
             if (imageIcon.IsValueCreated)
                 startIconsContainer.Remove(imageIcon.Value);
+
+            imageIcon.Value.SetBinding(Label.HeightProperty, new Binding(nameof(IconSizeRequest), source: this));
+            imageIcon.Value.SetBinding(Label.WidthProperty, new Binding(nameof(IconSizeRequest), source: this));
             return;
         }
 

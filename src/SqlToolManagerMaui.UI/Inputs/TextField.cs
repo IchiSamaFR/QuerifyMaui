@@ -19,7 +19,7 @@ public partial class TextField : InputField
     {
         Margin = new Thickness(0),
         BackgroundColor = Colors.Transparent,
-        VerticalOptions = LayoutOptions.Fill,
+        VerticalOptions = LayoutOptions.Center,
         HorizontalOptions = LayoutOptions.Fill,
         VerticalTextAlignment = TextAlignment.Center,
     };
