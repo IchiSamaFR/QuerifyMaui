@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Queries;
-using SqlToolManagerMaui.Databases.Enums;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Queries;
 using SqlToolManagerMaui.Languages.Commons.Queries;
@@ -131,7 +130,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             connectionString = new SqlConnectionStringBuilder(connectionString) { InitialCatalog = database }.ConnectionString;
 
         var model = await _models.GetModelAsync(connection, string.IsNullOrWhiteSpace(database) ? null : database, cancellationToken);
-        var variables = parameters.Select(ToLinqParameter).ToArray();
+        var variables = parameters.Select(LinqParameter.From).ToArray();
 
         using var compiled = await Task.Run(() => _compiler.CompileQuery(model, query, variables), cancellationToken);
         if (!compiled.Success)
@@ -146,24 +145,6 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             ? outputs[^1].ResultSet
             : throw new InvalidOperationException("Aucun résultat : terminez la requête par une expression, un return ou .Dump().");
     }
-
-    /// <summary>
-    /// Parametre du dashboard en variable C# nullable (NULL autorise). Un entier tient en int quand il le peut :
-    /// compare a une colonne int, un long forcerait un CAST cote SQL.
-    /// </summary>
-    private static LinqParameter ToLinqParameter(QueryParameter parameter) => parameter.Type switch
-    {
-        QueryParameterType.Integer when parameter.Value is long value and >= int.MinValue and <= int.MaxValue
-            => new LinqParameter(parameter.Name, typeof(int?), (int)value),
-        QueryParameterType.Integer when parameter.Value is long
-            => new LinqParameter(parameter.Name, typeof(long?), parameter.Value),
-        QueryParameterType.Integer => new LinqParameter(parameter.Name, typeof(int?), null),
-        QueryParameterType.Decimal => new LinqParameter(parameter.Name, typeof(decimal?), parameter.Value),
-        QueryParameterType.Date or QueryParameterType.DateTime => new LinqParameter(parameter.Name, typeof(DateTime?), parameter.Value),
-        QueryParameterType.Boolean => new LinqParameter(parameter.Name, typeof(bool?), parameter.Value),
-        QueryParameterType.Guid => new LinqParameter(parameter.Name, typeof(Guid?), parameter.Value),
-        _ => new LinqParameter(parameter.Name, typeof(string), parameter.Value?.ToString()),
-    };
 
     // ---------- Execution ----------
 

@@ -20,6 +20,17 @@ public class LinqCompletionEngineTests
     }
 
     [Fact]
+    public async Task Parameters_ListedAsVariables()
+    {
+        const string query = "RaveOnDb.AspNetUsers.Where(u => u.AccessFailedCount > |)";
+        var caret = query.IndexOf('|', StringComparison.Ordinal);
+
+        var items = await Engine.GetCompletionsAsync(Model.Value, query.Remove(caret, 1), caret, [new LinqParameter("MaxFailures", typeof(int?), null)]);
+
+        Assert.Contains(items, i => i.InsertText == "MaxFailures" && i.Kind == "Local");
+    }
+
+    [Fact]
     public async Task Lambda_ListsColumns()
     {
         var items = await CompleteAsync("RaveOnDb.AspNetUsers.Where(u => u.|)");

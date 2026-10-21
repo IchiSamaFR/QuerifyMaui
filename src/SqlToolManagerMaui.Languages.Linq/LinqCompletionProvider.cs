@@ -37,7 +37,7 @@ public sealed class LinqCompletionProvider : ICompletionProvider
         if (connection is { IsConnected: true })
             model = await _models.GetModelAsync(connection, database: null, cancellationToken);
 
-        await _engine.GetCompletionsAsync(model, string.Empty, 0, cancellationToken);
+        await _engine.GetCompletionsAsync(model, string.Empty, 0, cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default)
@@ -52,7 +52,7 @@ public sealed class LinqCompletionProvider : ICompletionProvider
         {
             try
             {
-                model = await _models.GetModelAsync(connection, database: null, cancellationToken);
+                model = await _models.GetModelAsync(connection, string.IsNullOrWhiteSpace(request.Database) ? null : request.Database, cancellationToken);
             }
             catch (Exception ex) when (ex is DbException or InvalidOperationException or TimeoutException or LinqCompilationException)
             {
@@ -60,7 +60,13 @@ public sealed class LinqCompletionProvider : ICompletionProvider
             }
         }
 
-        var candidates = await _engine.GetCompletionsAsync(model, request.Text, request.CaretOffset, cancellationToken);
+        // Nom invalide en C# : ignore ici, l'execution le signalera.
+        var parameters = request.Parameters
+            .Where(p => Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsValidIdentifier(p.Name))
+            .Select(LinqParameter.From)
+            .ToArray();
+
+        var candidates = await _engine.GetCompletionsAsync(model, request.Text, request.CaretOffset, parameters, cancellationToken);
 
         return candidates.Select(c => new CompletionItem
         {

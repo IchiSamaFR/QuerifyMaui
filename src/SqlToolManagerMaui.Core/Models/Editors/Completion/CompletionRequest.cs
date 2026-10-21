@@ -1,6 +1,7 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Editors.Completion;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Databases.Models.Queries;
 
 namespace SqlToolManagerMaui.Core.Models.Editors.Completion;
 
@@ -20,6 +21,12 @@ public sealed class CompletionRequest
 
     /// <summary>Connexion de l'onglet ; sans connexion ouverte, pas de suggestion du schema.</summary>
     public DatabaseConnectionInfo? Connection { get; init; }
+
+    /// <summary>Base interrogee par le texte ; null = base de la connexion.</summary>
+    public string? Database { get; init; }
+
+    /// <summary>Parametres fournis a l'execution (dashboard) : connus de la completion avant d'etre ecrits.</summary>
+    public IReadOnlyList<QueryParameter> Parameters { get; init; } = [];
 
     public string Prefix => Text[WordStart..CaretOffset];
 

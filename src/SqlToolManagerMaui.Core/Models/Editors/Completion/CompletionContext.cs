@@ -20,7 +20,7 @@ public sealed class CompletionContext
     /// <summary>Tables du lot courant, la plus proche du curseur en premier.</summary>
     public IReadOnlyList<SqlTableReference> Tables { get; init; } = [];
 
-    /// <summary>Base du dernier USE avant le curseur ; null = base de la connexion.</summary>
+    /// <summary>Base du dernier USE avant le curseur, a defaut celle de la demande ; null = base de la connexion.</summary>
     public string? Database { get; init; }
 
     /// <summary>Table designee par un alias ou un nom simple (u.| ou Users.|).</summary>

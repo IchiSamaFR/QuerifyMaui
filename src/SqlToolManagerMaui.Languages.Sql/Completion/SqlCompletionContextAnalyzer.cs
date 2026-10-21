@@ -95,7 +95,8 @@ public sealed partial class SqlCompletionContextAnalyzer : ICompletionContextAna
             Qualifier = qualifier,
             MemberParentKind = parentKind,
             Tables = ParseTables(text, tokens).OrderBy(t => Math.Abs(t.Offset - caret)).ToArray(),
-            Database = FindDatabase(text, all, caret)
+            // Un USE du texte l'emporte sur la base imposee par l'appelant (dashboard).
+            Database = FindDatabase(text, all, caret) ?? (string.IsNullOrWhiteSpace(request.Database) ? null : request.Database)
         };
     }
 

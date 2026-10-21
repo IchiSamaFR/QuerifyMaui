@@ -472,7 +472,9 @@
                             <c:CodeEditor Text="{Binding Session.SelectedCard.Query, Mode=TwoWay, FallbackValue=''}"
                                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
                                           EditorPreferences="{Binding EditorPreferences}"
-                                          Connection="{Binding Connection}">
+                                          Connection="{Binding Connection}"
+                                          Database="{Binding Session.Definition.Database, FallbackValue={x:Null}}"
+                                          QueryParameters="{Binding Session.ParameterDeclarations, FallbackValue={x:Null}}">
                                 <c:CodeEditor.Triggers>
                                     <DataTrigger TargetType="c:CodeEditor"
                                                  Binding="{Binding Session.SelectedCard.IsLinq, FallbackValue=False}"

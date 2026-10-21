@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors;
+using SqlToolManagerMaui.Databases.Models.Queries;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
@@ -101,6 +102,9 @@ public sealed partial class DashboardSession : AbstractSession
 
     public bool HasParameters => Parameters.Count > 0;
 
+    /// <summary>Parametres declares (nom et type), pour l'autocompletion des requetes.</summary>
+    public IReadOnlyList<QueryParameter> ParameterDeclarations => Parameters.Select(p => p.Declaration).ToArray();
+
     public bool IsDraggingCard => DraggedCard is not null;
 
     /// <summary>Emplacement que prendrait la carte glissee si elle etait deposee sur la case survolee.</summary>
@@ -134,6 +138,7 @@ public sealed partial class DashboardSession : AbstractSession
         RefreshPageIds();
 
         OnPropertyChanged(nameof(HasParameters));
+        OnPropertyChanged(nameof(ParameterDeclarations));
         RefreshLayout();
     }
 
@@ -327,6 +332,7 @@ public sealed partial class DashboardSession : AbstractSession
         Definition.Parameters.Add(parameter);
         Parameters.Add(Wire(new DashboardParameterValue(parameter)));
         OnPropertyChanged(nameof(HasParameters));
+        OnPropertyChanged(nameof(ParameterDeclarations));
         NotifyDefinitionChanged();
     }
 
@@ -338,6 +344,7 @@ public sealed partial class DashboardSession : AbstractSession
 
         Definition.Parameters.Remove(parameter.Definition);
         OnPropertyChanged(nameof(HasParameters));
+        OnPropertyChanged(nameof(ParameterDeclarations));
         NotifyDefinitionChanged();
     }
 
@@ -410,7 +417,11 @@ public sealed partial class DashboardSession : AbstractSession
 
     private void OnCardDefinitionChanged(object? sender, EventArgs e) => NotifyDefinitionChanged();
 
-    private void OnParameterDefinitionChanged(object? sender, EventArgs e) => NotifyDefinitionChanged();
+    private void OnParameterDefinitionChanged(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(ParameterDeclarations));
+        NotifyDefinitionChanged();
+    }
 
     /// <summary>Page renommee : son titre suit dans le fil d'Ariane.</summary>
     private void OnPageDefinitionChanged(object? sender, PropertyChangedEventArgs e)

@@ -22,7 +22,8 @@ public sealed record LinqCompletionCandidate(string Label, string InsertText, st
 public interface ILinqCompletionEngine
 {
     /// <param name="model">DbContext compile de la connexion, ou null : completion C# seule.</param>
-    Task<IReadOnlyList<LinqCompletionCandidate>> GetCompletionsAsync(LinqModelAssembly? model, string query, int caretOffset, CancellationToken cancellationToken = default);
+    /// <param name="parameters">Variables declarees avant la requete (parametres du dashboard).</param>
+    Task<IReadOnlyList<LinqCompletionCandidate>> GetCompletionsAsync(LinqModelAssembly? model, string query, int caretOffset, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default);
 }
 
 /// <inheritdoc cref="ILinqCompletionEngine"/>
@@ -58,12 +59,12 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
         _documentWithoutModel = new Lazy<DocumentId>(() => AddDocument(null));
     }
 
-    public async Task<IReadOnlyList<LinqCompletionCandidate>> GetCompletionsAsync(LinqModelAssembly? model, string query, int caretOffset, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<LinqCompletionCandidate>> GetCompletionsAsync(LinqModelAssembly? model, string query, int caretOffset, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
         var documentId = model is null ? _documentWithoutModel.Value : _documents.GetValue(model, m => new Lazy<DocumentId>(() => AddDocument(m))).Value;
-        var (source, queryStart) = LinqCompiler.BuildQuerySource(model?.Model, query);
+        var (source, queryStart) = LinqCompiler.BuildQuerySource(model?.Model, query, parameters);
 
         // WithText cree une version de la solution : le workspace partage n'est jamais modifie.
         var document = _workspace.CurrentSolution.GetDocument(documentId)!.WithText(SourceText.From(source));

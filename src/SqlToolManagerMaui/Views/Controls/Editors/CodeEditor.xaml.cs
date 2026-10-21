@@ -5,6 +5,7 @@ using SqlToolManagerMaui.Core.Models.Editors;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Databases.Models.Queries;
 using SqlToolManagerMaui.Services.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.UI.Extensions;
@@ -55,6 +56,14 @@ public partial class CodeEditor : ContentView
     /// <summary>Connexion dont le schema alimente l'autocompletion ; null = mots-cles seulement.</summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnConnectionPropertyChanged))]
     public partial DatabaseConnectionInfo? Connection { get; set; }
+
+    /// <summary>Base interrogee par le texte (null = celle de la connexion) : son schema alimente l'autocompletion.</summary>
+    [BindableProperty]
+    public partial string? Database { get; set; }
+
+    /// <summary>Parametres fournis a l'execution (dashboard) : proposes par l'autocompletion avant d'etre ecrits.</summary>
+    [BindableProperty]
+    public partial IReadOnlyList<QueryParameter>? QueryParameters { get; set; }
 
     /// <summary>
     /// Commandes d'edition de l'editeur natif (annuler, copier, coller...), exposees telles
@@ -302,7 +311,8 @@ public partial class CodeEditor : ContentView
         if (_completion is not null || SyntaxConfiguration is null)
             return;
 
-        _completion = new CompletionController(Native, CompletionList, this, Ioc.GetRequiredService<ICompletionService>(), SyntaxConfiguration.Language, () => Connection);
+        _completion = new CompletionController(Native, CompletionList, this, Ioc.GetRequiredService<ICompletionService>(), SyntaxConfiguration.Language,
+            () => Connection, () => Database, () => QueryParameters);
     }
 
     private void StopCompletion()

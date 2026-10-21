@@ -87,6 +87,9 @@ public sealed partial class DashboardParameterValue : ObservableObject
     }
 
     /// <summary>Valeur typee pour la requete ; faux (et <see cref="Error"/> renseigne) si la saisie est invalide.</summary>
+    /// <summary>Nom et type sans valeur : ce que l'autocompletion doit connaitre.</summary>
+    public QueryParameter Declaration => new(Definition.Name, ToQueryType(Definition.Type), null);
+
     public bool TryGetQueryParameter(out QueryParameter parameter)
     {
         var isValid = Definition.TryConvert(Value, out var value, out var error);

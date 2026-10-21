@@ -4,6 +4,7 @@ using SqlToolManagerMaui.Core.Enums.Editors.Completion;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Databases.Models.Queries;
 using SqlToolManagerMaui.Services.Editors.Completion;
 using SqlToolManagerMaui.UI.Extensions;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
@@ -30,6 +31,8 @@ public sealed class CompletionController : IDisposable
     private readonly ICompletionService _service;
     private readonly SyntaxLanguage _language;
     private readonly Func<DatabaseConnectionInfo?> _connection;
+    private readonly Func<string?> _database;
+    private readonly Func<IReadOnlyList<QueryParameter>?> _parameters;
     private readonly RichTextLayout _layout;
     private readonly RichEditor? _focusTarget;
 
@@ -42,7 +45,10 @@ public sealed class CompletionController : IDisposable
 
     /// <param name="host">Conteneur commun a l'editeur et au popup : repere des coordonnees du popup.</param>
     /// <param name="connection">Lue a chaque ouverture : l'onglet peut changer de connexion entre deux.</param>
-    public CompletionController(NativeCodeEditor editor, CompletionPopup popup, View host, ICompletionService service, SyntaxLanguage language, Func<DatabaseConnectionInfo?> connection)
+    /// <param name="database">Base interrogee (null = celle de la connexion), lue a chaque ouverture.</param>
+    /// <param name="parameters">Parametres fournis a l'execution (dashboard), lus a chaque ouverture.</param>
+    public CompletionController(NativeCodeEditor editor, CompletionPopup popup, View host, ICompletionService service, SyntaxLanguage language,
+        Func<DatabaseConnectionInfo?> connection, Func<string?> database, Func<IReadOnlyList<QueryParameter>?> parameters)
     {
         _editor = editor;
         _popup = popup;
@@ -50,6 +56,8 @@ public sealed class CompletionController : IDisposable
         _service = service;
         _language = language;
         _connection = connection;
+        _database = database;
+        _parameters = parameters;
         _layout = editor.TextLayout.CreateRelativeTo(host);
 
         // Le focus est porte par le RichEditor interne, pas par le conteneur CodeEdit.
@@ -293,7 +301,9 @@ public sealed class CompletionController : IDisposable
             CaretOffset = caret,
             WordStart = wordStart,
             Trigger = trigger,
-            Connection = _connection()
+            Connection = _connection(),
+            Database = _database(),
+            Parameters = _parameters() ?? [],
         };
 
         IReadOnlyList<CompletionItem> candidates;
