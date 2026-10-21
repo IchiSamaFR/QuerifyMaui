@@ -24,10 +24,10 @@ public sealed class LinqModelCache : ILinqModelCache
         _compiler = compiler;
     }
 
-    public async Task<LinqModelAssembly> GetModelAsync(DatabaseConnectionInfo connection, CancellationToken cancellationToken = default)
+    public async Task<LinqModelAssembly> GetModelAsync(DatabaseConnectionInfo connection, string? database, CancellationToken cancellationToken = default)
     {
-        // Base par defaut de la connexion : c'est elle qui donne son nom au contexte.
-        var snapshot = await _schemas.GetSchemaAsync(connection, null, cancellationToken);
+        // La base lue donne son nom au contexte.
+        var snapshot = await _schemas.GetSchemaAsync(connection, database, cancellationToken);
 
         var task = _models.GetValue(snapshot, Compile);
         if (task.IsFaulted)

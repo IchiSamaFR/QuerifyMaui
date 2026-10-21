@@ -4,6 +4,8 @@ using SqlToolManagerMaui.Core.Models.Queries;
 using SqlToolManagerMaui.Databases.Common;
 using SqlToolManagerMaui.Databases.Enums;
 using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Databases.Models.Queries;
+using SqlToolManagerMaui.Databases.Queries;
 using SqlToolManagerMaui.Languages.Commons.Queries;
 
 namespace SqlToolManagerMaui.Languages.Sql.Queries;
@@ -13,10 +15,12 @@ namespace SqlToolManagerMaui.Languages.Sql.Queries;
 public sealed class SqlQueryExecutor : IQueryExecutor
 {
     private readonly KeyedServiceMap<DatabaseProvider, ISqlProviderExecutor> _executors;
+    private readonly IQueryDataService _data;
 
-    public SqlQueryExecutor(IEnumerable<ISqlProviderExecutor> executors)
+    public SqlQueryExecutor(IEnumerable<ISqlProviderExecutor> executors, IQueryDataService data)
     {
         _executors = new(executors, e => e.Provider, "exécuteur SQL");
+        _data = data;
     }
 
     public SyntaxLanguage Language => SyntaxLanguage.Sql;
@@ -31,4 +35,7 @@ public sealed class SqlQueryExecutor : IQueryExecutor
 
         return executor.ExecuteAsync(connectionString, script, cancellationToken);
     }
+
+    public Task<QueryResultSet> ReadAsync(DatabaseConnectionInfo connection, string? database, string query, IReadOnlyList<QueryParameter> parameters, int maxRows, CancellationToken cancellationToken = default)
+        => _data.ReadAsync(connection, database, query, parameters, maxRows, cancellationToken);
 }

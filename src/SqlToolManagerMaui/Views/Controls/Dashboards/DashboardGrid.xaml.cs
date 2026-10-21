@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
+using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Dashboards;
 using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Settings;
@@ -18,11 +19,22 @@ public partial class DashboardGrid : ContentView
     /// <summary>Rendus proposes pour une carte.</summary>
     public static DashboardCardKind[] CardKinds { get; } = Enum.GetValues<DashboardCardKind>();
 
+    /// <summary>Langages proposes pour la requete d'une carte : la cle est le langage, la valeur son libelle.</summary>
+    public static Dictionary<SyntaxLanguage, string> QueryLanguages { get; } = new()
+    {
+        [SyntaxLanguage.Sql] = "SQL",
+        [SyntaxLanguage.Linq] = "LINQ (EF)",
+    };
+
     [BindableProperty]
     public partial DashboardSession? Session { get; set; }
 
     [BindableProperty]
     public partial SyntaxConfiguration? SyntaxConfiguration { get; set; }
+
+    /// <summary>Coloration et autocompletion des cartes LINQ (EF).</summary>
+    [BindableProperty]
+    public partial SyntaxConfiguration? LinqSyntaxConfiguration { get; set; }
 
     [BindableProperty]
     public partial EditorPreferences? EditorPreferences { get; set; }

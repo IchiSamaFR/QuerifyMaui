@@ -160,8 +160,40 @@ public partial class MainVM
         if (session is null || !Sessions.Contains(session))
             return;
 
+        // Remove() selectionne deja l'onglet voisin de gauche si l'onglet ferme etait actif.
         if (await ConfirmDiscardAsync(session))
             Remove(session);
+    }
+
+    /// <summary>
+    /// Onglet a activer apres la fermeture de celui situe a <paramref name="closedIndex"/> :
+    /// le plus proche a gauche, sinon (premier onglet) le nouveau premier. Appeler apres le retrait.
+    /// </summary>
+    private AbstractSession? GetNeighborSession(int closedIndex)
+    {
+        if (Sessions.Count == 0)
+            return null;
+
+        return Sessions[Math.Clamp(closedIndex - 1, 0, Sessions.Count - 1)];
+    }
+
+    private void Remove(AbstractSession session)
+    {
+        var index = Sessions.IndexOf(session);
+        if (index < 0)
+            return;
+
+        var wasSelected = SelectedSession == session;
+
+        Sessions.Remove(session);
+
+        if (wasSelected)
+            SelectedSession = GetNeighborSession(index);
+
+        session.Dispose();
+
+        if (Sessions.Count == 0)
+            New();
     }
 
     /// <summary>Vrai si l'onglet peut etre ferme : non modifie, enregistre, ou modifications abandonnees.</summary>
@@ -181,23 +213,6 @@ public partial class MainVM
             SaveChangesChoice.Discard => true,
             _ => false,
         };
-    }
-
-    private void Remove(AbstractSession session)
-    {
-        var index = Sessions.IndexOf(session);
-        if (index < 0)
-            return;
-
-        Sessions.Remove(session);
-
-        if (SelectedSession == session)
-            SelectedSession = Sessions.Count == 0 ? null : Sessions[Math.Min(index, Sessions.Count - 1)];
-
-        session.Dispose();
-
-        if (Sessions.Count == 0)
-            New();
     }
 
     /// <summary>Ferme l'onglet courant (entree de menu, sans parametre).</summary>

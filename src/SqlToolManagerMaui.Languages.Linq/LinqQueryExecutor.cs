@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Queries;
+using SqlToolManagerMaui.Databases.Enums;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Queries;
 using SqlToolManagerMaui.Languages.Commons.Queries;
@@ -52,7 +54,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
         try
         {
-            var model = await _models.GetModelAsync(connection, cancellationToken);
+            var model = await _models.GetModelAsync(connection, database: null, cancellationToken);
             messages.Add(new QueryMessage($"Contexte {model.Model.ContextVariableName} ({model.Model.ContextClassName}) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
 
             // Dispose : decharge l'assembly de la requete une fois les resultats convertis.
@@ -66,7 +68,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             {
                 // WaitAsync : l'annulation rend la main tout de suite. Le code de l'utilisateur, lui, ne peut pas
                 // etre interrompu dans le processus (boucle infinie...) : il se termine en arriere-plan.
-                var outputs = await Task.Run(() => Run(model, compiled, connection.ConnectionString!, cancellationToken), CancellationToken.None)
+                var outputs = await Task.Run(() => Run(model, compiled, connection.ConnectionString!, MaxRows, cancellationToken), CancellationToken.None)
                     .WaitAsync(cancellationToken);
 
                 foreach (var output in outputs)
@@ -117,11 +119,57 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         return new QueryExecutionResult(resultSets, messages, stopwatch.Elapsed, hasErrors, wasCancelled);
     }
 
+    public async Task<QueryResultSet> ReadAsync(DatabaseConnectionInfo connection, string? database, string query, IReadOnlyList<QueryParameter> parameters, int maxRows, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(parameters);
+
+        var connectionString = connection.ConnectionString
+            ?? throw new InvalidOperationException($"La connexion {connection.Name} n'est pas ouverte.");
+        if (!string.IsNullOrWhiteSpace(database))
+            connectionString = new SqlConnectionStringBuilder(connectionString) { InitialCatalog = database }.ConnectionString;
+
+        var model = await _models.GetModelAsync(connection, string.IsNullOrWhiteSpace(database) ? null : database, cancellationToken);
+        var variables = parameters.Select(ToLinqParameter).ToArray();
+
+        using var compiled = await Task.Run(() => _compiler.CompileQuery(model, query, variables), cancellationToken);
+        if (!compiled.Success)
+            throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5)));
+
+        // Meme reserve que ExecuteAsync : le code de l'utilisateur ne peut pas etre interrompu, seulement abandonne.
+        var outputs = await Task.Run(() => Run(model, compiled, connectionString, Math.Max(1, maxRows), cancellationToken), CancellationToken.None)
+            .WaitAsync(cancellationToken);
+
+        // Une carte n'affiche qu'un jeu : la valeur rendue, a defaut le dernier Dump().
+        return outputs.Count > 0
+            ? outputs[^1].ResultSet
+            : throw new InvalidOperationException("Aucun résultat : terminez la requête par une expression, un return ou .Dump().");
+    }
+
+    /// <summary>
+    /// Parametre du dashboard en variable C# nullable (NULL autorise). Un entier tient en int quand il le peut :
+    /// compare a une colonne int, un long forcerait un CAST cote SQL.
+    /// </summary>
+    private static LinqParameter ToLinqParameter(QueryParameter parameter) => parameter.Type switch
+    {
+        QueryParameterType.Integer when parameter.Value is long value and >= int.MinValue and <= int.MaxValue
+            => new LinqParameter(parameter.Name, typeof(int?), (int)value),
+        QueryParameterType.Integer when parameter.Value is long
+            => new LinqParameter(parameter.Name, typeof(long?), parameter.Value),
+        QueryParameterType.Integer => new LinqParameter(parameter.Name, typeof(int?), null),
+        QueryParameterType.Decimal => new LinqParameter(parameter.Name, typeof(decimal?), parameter.Value),
+        QueryParameterType.Date or QueryParameterType.DateTime => new LinqParameter(parameter.Name, typeof(DateTime?), parameter.Value),
+        QueryParameterType.Boolean => new LinqParameter(parameter.Name, typeof(bool?), parameter.Value),
+        QueryParameterType.Guid => new LinqParameter(parameter.Name, typeof(Guid?), parameter.Value),
+        _ => new LinqParameter(parameter.Name, typeof(string), parameter.Value?.ToString()),
+    };
+
     // ---------- Execution ----------
 
     private sealed record Output(QueryResultSet ResultSet, string? Sql);
 
-    private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, CancellationToken cancellationToken)
+    private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, CancellationToken cancellationToken)
     {
         using var context = _compiler.CreateContext(model, connectionString);
 
@@ -132,18 +180,18 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         var value = compiled.Execute!(context, (dumped, title) =>
         {
             lastDumped = dumped;
-            outputs.Add(Capture(dumped, outputs.Count + 1, title, cancellationToken));
+            outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken));
         });
 
         // return x.Dump() : la valeur est deja affichee, pas de second onglet identique.
         var isAlreadyDumped = outputs.Count > 0 && Equals(value, lastDumped);
         if (compiled.ReturnsValue && !isAlreadyDumped)
-            outputs.Add(Capture(value, outputs.Count + 1, title: null, cancellationToken));
+            outputs.Add(Capture(value, outputs.Count + 1, title: null, maxRows, cancellationToken));
 
         return outputs;
     }
 
-    private static Output Capture(object? value, int index, string? title, CancellationToken cancellationToken)
+    private static Output Capture(object? value, int index, string? title, int maxRows, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -153,10 +201,10 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             sql = TryGetSql(queryable);
 
             // Plafond applique cote serveur (TOP), une ligne de plus pour savoir s'il a ete atteint.
-            value = QueryableTake.MakeGenericMethod(queryable.ElementType).Invoke(null, [queryable, MaxRows + 1]);
+            value = QueryableTake.MakeGenericMethod(queryable.ElementType).Invoke(null, [queryable, maxRows + 1]);
         }
 
-        return new Output(ToResultSet(value, index, title, cancellationToken), sql);
+        return new Output(ToResultSet(value, index, title, maxRows, cancellationToken), sql);
     }
 
     private static string? TryGetSql(IQueryable queryable)
@@ -174,7 +222,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
     // ---------- Conversion en grille ----------
 
-    private static QueryResultSet ToResultSet(object? value, int index, string? title, CancellationToken cancellationToken)
+    private static QueryResultSet ToResultSet(object? value, int index, string? title, int maxRows, CancellationToken cancellationToken)
     {
         // Une valeur seule (Count(), First()...) s'affiche comme une ligne d'une colonne.
         if (value is null or string || value is not IEnumerable items || IsScalar(value.GetType()))
@@ -187,7 +235,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (rows.Count == MaxRows)
+            if (rows.Count == maxRows)
             {
                 isTruncated = true;
                 break;

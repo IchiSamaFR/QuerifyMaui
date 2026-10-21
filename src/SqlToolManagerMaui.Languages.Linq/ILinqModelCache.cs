@@ -4,10 +4,11 @@ using SqlToolManagerMaui.Databases.Models.Connections;
 namespace SqlToolManagerMaui.Languages.Linq;
 
 /// <summary>
-/// DbContext compile de la base par defaut d'une connexion, partage par l'execution et
-/// l'autocompletion : la premiere des deux paie la generation, l'autre la retrouve.
+/// DbContext compile d'une base de la connexion, partage par l'execution et l'autocompletion :
+/// la premiere des deux paie la generation, l'autre la retrouve.
 /// </summary>
 public interface ILinqModelCache
 {
-    Task<LinqModelAssembly> GetModelAsync(DatabaseConnectionInfo connection, CancellationToken cancellationToken = default);
+    /// <summary>Modele de <paramref name="database"/> ; null = base par defaut de la connexion.</summary>
+    Task<LinqModelAssembly> GetModelAsync(DatabaseConnectionInfo connection, string? database, CancellationToken cancellationToken = default);
 }

@@ -35,7 +35,7 @@ public sealed class LinqCompletionProvider : ICompletionProvider
 
         LinqModelAssembly? model = null;
         if (connection is { IsConnected: true })
-            model = await _models.GetModelAsync(connection, cancellationToken);
+            model = await _models.GetModelAsync(connection, database: null, cancellationToken);
 
         await _engine.GetCompletionsAsync(model, string.Empty, 0, cancellationToken);
     }
@@ -52,7 +52,7 @@ public sealed class LinqCompletionProvider : ICompletionProvider
         {
             try
             {
-                model = await _models.GetModelAsync(connection, cancellationToken);
+                model = await _models.GetModelAsync(connection, database: null, cancellationToken);
             }
             catch (Exception ex) when (ex is DbException or InvalidOperationException or TimeoutException or LinqCompilationException)
             {

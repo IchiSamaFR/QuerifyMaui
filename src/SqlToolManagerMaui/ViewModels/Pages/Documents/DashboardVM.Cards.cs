@@ -156,7 +156,8 @@ public partial class DashboardVM
         card.Error = null;
         try
         {
-            card.Result = await _dashboardData.ReadAsync(connection, database, card.Definition.Query, parameters, CARD_MAX_ROWS, token);
+            card.Result = await _executors.Resolve(card.Language)
+                .ReadAsync(connection, database, card.Definition.Query, parameters, CARD_MAX_ROWS, token);
         }
         catch (OperationCanceledException)
         {

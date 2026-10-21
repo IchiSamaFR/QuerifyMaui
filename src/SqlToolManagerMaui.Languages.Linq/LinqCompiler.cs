@@ -60,12 +60,13 @@ public sealed class LinqCompiler : ILinqCompiler
         };
     }
 
-    public LinqCompiledQuery CompileQuery(LinqModelAssembly model, string query)
+    public LinqCompiledQuery CompileQuery(LinqModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null)
     {
         ArgumentNullException.ThrowIfNull(model);
         ArgumentNullException.ThrowIfNull(query);
 
-        var (source, _) = BuildQuerySource(model.Model, query);
+        parameters ??= [];
+        var (source, _) = BuildQuerySource(model.Model, query, parameters);
         var image = Emit($"LinqQuery_{Guid.NewGuid():N}", source, [.. PlatformReferences, model.Reference], out var errors);
         if (image is null)
             return new LinqCompiledQuery { Errors = errors };
@@ -73,10 +74,12 @@ public sealed class LinqCompiler : ILinqCompiler
         var loadContext = new QueryLoadContext(model.Assembly);
         var assembly = loadContext.LoadFromStream(new MemoryStream(image));
         var method = assembly.GetType($"{QueryNamespace}.{QueryClass}", throwOnError: true)!.GetMethod(QueryMethod)!;
+        var run = method.CreateDelegate<Func<DbContext, Action<object?, string?>?, object?[], object?>>();
+        var values = parameters.Select(p => p.Value).ToArray();
 
         return new LinqCompiledQuery
         {
-            Execute = method.CreateDelegate<Func<DbContext, Action<object?, string?>?, object?>>(),
+            Execute = (context, dump) => run(context, dump, values),
             ReturnsValue = ReturnsValue(query),
             LoadContext = loadContext,
         };
@@ -102,7 +105,7 @@ public sealed class LinqCompiler : ILinqCompiler
     /// Sans modele (pas de connexion), le source reste valide pour l'autocompletion C#.
     /// </summary>
     /// <returns>Le source et la position du texte de la requete dans ce source.</returns>
-    internal static (string Source, int QueryStart) BuildQuerySource(EfGeneratedModel? model, string query)
+    internal static (string Source, int QueryStart) BuildQuerySource(EfGeneratedModel? model, string query, IReadOnlyList<LinqParameter>? parameters = null)
     {
         var code = new StringBuilder();
         code.AppendLine("using System;");
@@ -129,11 +132,21 @@ public sealed class LinqCompiler : ILinqCompiler
         code.AppendLine();
         code.AppendLine($"public static class {QueryClass}");
         code.AppendLine("{");
-        code.AppendLine($"    public static object {QueryMethod}(DbContext __context, Action<object, string> __dump)");
+        code.AppendLine($"    public static object {QueryMethod}(DbContext __context, Action<object, string> __dump, object[] __args)");
         code.AppendLine("    {");
         code.AppendLine($"        {DumpClass}.__sink = __dump;");
         if (model is not null)
             code.AppendLine($"        var {model.ContextVariableName} = ({model.ContextClassName})__context;");
+
+        // Prefixe @ : un nom de parametre peut etre un mot cle C#, et la requete peut ecrire @Nom comme en SQL.
+        for (var i = 0; i < (parameters?.Count ?? 0); i++)
+        {
+            var parameter = parameters![i];
+            if (!SyntaxFacts.IsValidIdentifier(parameter.Name))
+                throw new ArgumentException($"« {parameter.Name} » n'est pas un nom de variable C# valide.", nameof(parameters));
+
+            code.AppendLine($"        var @{parameter.Name} = ({TypeName(parameter.Type)})__args[{i}];");
+        }
 
         var isStatementBlock = IsStatementBlock(query);
         if (!isStatementBlock)
@@ -175,6 +188,24 @@ public sealed class LinqCompiler : ILinqCompiler
     /// <summary>Une expression rend toujours une valeur ; des instructions, seulement si elles contiennent un return.</summary>
     internal static bool ReturnsValue(string query)
         => !IsStatementBlock(query) || SyntaxFactory.ParseTokens(query).Any(t => t.IsKind(SyntaxKind.ReturnKeyword));
+
+    /// <summary>Nom C# compilable d'un type de parametre (int?, string, global::System.Guid?...).</summary>
+    private static string TypeName(Type type)
+    {
+        if (Nullable.GetUnderlyingType(type) is { } underlying)
+            return TypeName(underlying) + "?";
+
+        return Type.GetTypeCode(type) switch
+        {
+            TypeCode.String => "string",
+            TypeCode.Int32 => "int",
+            TypeCode.Int64 => "long",
+            TypeCode.Decimal => "decimal",
+            TypeCode.Double => "double",
+            TypeCode.Boolean => "bool",
+            _ => "global::" + (type.FullName ?? type.Name).Replace('+', '.'),
+        };
+    }
 
     private static byte[]? Emit(string assemblyName, string source, IEnumerable<MetadataReference> references, out IReadOnlyList<LinqDiagnostic> errors)
     {

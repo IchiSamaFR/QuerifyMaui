@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
+using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Databases.Models.Queries;
 using System.Runtime.CompilerServices;
 
@@ -69,6 +70,13 @@ public sealed partial class DashboardCardState : ObservableObject
     {
         get => Definition.View;
         set => Update(Definition.View, value, v => Definition.View = v);
+    }
+
+    /// <summary>SQL ou LINQ (EF) ; SQL n'est pas ecrit dans le fichier.</summary>
+    public SyntaxLanguage Language
+    {
+        get => Definition.Language ?? SyntaxLanguage.Sql;
+        set => Update(Definition.Language, value == SyntaxLanguage.Linq ? value : (SyntaxLanguage?)null, v => Definition.Language = v);
     }
 
     public string Query
@@ -158,6 +166,8 @@ public sealed partial class DashboardCardState : ObservableObject
     /// <summary>Carte alimentee par une requete (ni texte, ni bouton).</summary>
     public bool UsesQuery => Definition.View is not (DashboardCardKind.Text or DashboardCardKind.Button);
 
+    public bool IsLinq => Language == SyntaxLanguage.Linq;
+
     public bool HasNavigation => Definition.Navigation is not null;
 
     public string ButtonText => Definition.Text ?? "Ouvrir";
@@ -243,7 +253,7 @@ public sealed partial class DashboardCardState : ObservableObject
     private static readonly string[] DerivedProperties =
     [
         nameof(HasTitle), nameof(IsGrid), nameof(IsChart), nameof(IsValue), nameof(IsText), nameof(IsButton),
-        nameof(UsesQuery), nameof(HasNavigation), nameof(ButtonText), nameof(ValueText),
+        nameof(UsesQuery), nameof(IsLinq), nameof(HasNavigation), nameof(ButtonText), nameof(ValueText),
         nameof(ValueColumnsText), nameof(NavigationPage), nameof(LabelColumn),
     ];
 }

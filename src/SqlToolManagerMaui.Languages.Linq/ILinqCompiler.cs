@@ -14,8 +14,11 @@ public interface ILinqCompiler
     /// <summary>Compile et charge le modele genere ; leve <see cref="LinqCompilationException"/> en cas d'echec.</summary>
     LinqModelAssembly CompileModel(EfGeneratedModel model);
 
-    /// <summary>Compile une expression LINQ ; les erreurs sont rapportees, pas levees.</summary>
-    LinqCompiledQuery CompileQuery(LinqModelAssembly model, string query);
+    /// <summary>
+    /// Compile une expression LINQ ; les erreurs sont rapportees, pas levees. Les <paramref name="parameters"/>
+    /// sont declares en variables avant la requete, leurs valeurs fixees pour l'execution.
+    /// </summary>
+    LinqCompiledQuery CompileQuery(LinqModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null);
 
     /// <summary>Contexte EF du modele sur une chaine de connexion SQL Server.</summary>
     DbContext CreateContext(LinqModelAssembly model, string connectionString);

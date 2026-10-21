@@ -417,6 +417,12 @@
                                     CommandParameter="{Binding Session.SelectedCard}"
                                     HorizontalOptions="Start" />
 
+                            <!-- LINQ : les parametres du dashboard sont des variables C# (UserId ou @UserId) -->
+                            <inp:PickerField ItemsSource="{x:Static c:DashboardGrid.QueryLanguages}"
+                                             SelectedKey="{Binding Session.SelectedCard.Language, Mode=TwoWay, FallbackValue={x:Null}}"
+                                             WidthRequest="120"
+                                             ToolTipProperties.Text="Langage de la requête" />
+
                             <inp:TextField Icon="{mk:FluentFilledImage Icon=Subtitles20Filled, IconSize=16}"
                                            VerticalTextAlignment="Center"
                                            Placeholder="Colonne des libellés (vide = la première)"
@@ -466,7 +472,16 @@
                             <c:CodeEditor Text="{Binding Session.SelectedCard.Query, Mode=TwoWay, FallbackValue=''}"
                                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
                                           EditorPreferences="{Binding EditorPreferences}"
-                                          Connection="{Binding Connection}" />
+                                          Connection="{Binding Connection}">
+                                <c:CodeEditor.Triggers>
+                                    <DataTrigger TargetType="c:CodeEditor"
+                                                 Binding="{Binding Session.SelectedCard.IsLinq, FallbackValue=False}"
+                                                 Value="True">
+                                        <Setter Property="SyntaxConfiguration"
+                                                Value="{Binding LinqSyntaxConfiguration}" />
+                                    </DataTrigger>
+                                </c:CodeEditor.Triggers>
+                            </c:CodeEditor>
                         </Grid>
 
                         <!-- Texte libre : sans configuration de syntaxe, ni coloration ni autocompletion -->

@@ -8,7 +8,7 @@ using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Serialization;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Queries;
-using SqlToolManagerMaui.Databases.Queries;
+using SqlToolManagerMaui.Languages.Queries;
 using SqlToolManagerMaui.Services.Dashboards;
 using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.Services.Dialogs;
@@ -34,7 +34,7 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
     /// <summary>Delai de regroupement des modifications du concepteur avant reecriture du fichier.</summary>
     private static readonly TimeSpan WriteDelay = TimeSpan.FromMilliseconds(250);
 
-    private readonly IQueryDataService _dashboardData;
+    private readonly IQueryExecutorResolver _executors;
     private readonly IConnectionStore _connectionStore;
     private readonly IDashboardParameterDialogService _parameterDialogs;
     private readonly IDialogService _dialogs;
@@ -55,22 +55,26 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
     [ObservableProperty]
     public partial SyntaxConfiguration? SqlSyntaxConfiguration { get; private set; }
 
+    /// <summary>Coloration et autocompletion des cartes LINQ (EF).</summary>
+    [ObservableProperty]
+    public partial SyntaxConfiguration? LinqSyntaxConfiguration { get; private set; }
+
     public DashboardVM(DatabaseConnectionVM connection,
         StatusBarVM status,
         IUserPreferencesStore preferences,
         ISyntaxConfigurationStore syntaxConfigurations,
-        IQueryDataService dashboardData,
+        IQueryExecutorResolver executors,
         IConnectionStore connectionStore,
         IDashboardParameterDialogService parameterDialogs,
         IDialogService dialogs)
         : base(connection, status, preferences)
     {
-        _dashboardData = dashboardData;
+        _executors = executors;
         _connectionStore = connectionStore;
         _parameterDialogs = parameterDialogs;
         _dialogs = dialogs;
 
-        LoadSqlSyntaxConfigurationAsync(syntaxConfigurations).FireAndForget("Coloration SQL du concepteur indisponible.");
+        LoadSyntaxConfigurationsAsync(syntaxConfigurations).FireAndForget("Coloration des requêtes du concepteur indisponible.");
     }
 
     /// <summary>Cle de la liste deroulante des vues (object) : une valeur nulle ou inconnue est ignoree.</summary>
@@ -86,8 +90,11 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
         }
     }
 
-    private async Task LoadSqlSyntaxConfigurationAsync(ISyntaxConfigurationStore syntaxConfigurations)
-        => SqlSyntaxConfiguration = await syntaxConfigurations.GetAsync(SyntaxLanguage.Sql);
+    private async Task LoadSyntaxConfigurationsAsync(ISyntaxConfigurationStore syntaxConfigurations)
+    {
+        SqlSyntaxConfiguration = await syntaxConfigurations.GetAsync(SyntaxLanguage.Sql);
+        LinqSyntaxConfiguration = await syntaxConfigurations.GetAsync(SyntaxLanguage.Linq);
+    }
 
     protected override void OnSessionSwitched(DashboardSession? oldValue, DashboardSession? newValue)
     {

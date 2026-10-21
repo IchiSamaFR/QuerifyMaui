@@ -1,4 +1,5 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Dashboards;
+using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 
 namespace SqlToolManagerMaui.Core.Models.Dashboards;
 
@@ -19,7 +20,10 @@ public sealed class DashboardCardDefinition
 
     public DashboardCardKind View { get; set; } = DashboardCardKind.Grid;
 
-    /// <summary>Requete SQL ; les parametres du dashboard s'y utilisent en @Nom.</summary>
+    /// <summary>Langage de <see cref="Query"/> ; null = SQL (absent du fichier).</summary>
+    public SyntaxLanguage? Language { get; set; }
+
+    /// <summary>Requete SQL ou LINQ (EF) ; les parametres du dashboard s'y utilisent en @Nom.</summary>
     public string? Query { get; set; }
 
     /// <summary>Texte d'une carte Texte, ou libelle d'un bouton.</summary>

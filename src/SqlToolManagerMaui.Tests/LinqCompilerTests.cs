@@ -59,6 +59,31 @@ public class LinqCompilerTests
     }
 
     [Fact]
+    public void Parameters_DeclaredAsTypedVariables()
+    {
+        // Nom seul ou @Nom (identifiant verbatim) : meme variable, comme un parametre SQL.
+        using var compiled = Compiler.CompileQuery(Model.Value, "UserId + @UserId", [new LinqParameter("UserId", typeof(int?), 21)]);
+        Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
+
+        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        Assert.Equal(42, compiled.Run!(context));
+    }
+
+    [Fact]
+    public void Parameters_SentAsSqlParameters()
+    {
+        using var compiled = Compiler.CompileQuery(Model.Value, "RaveOnDb.AspNetUsers.Where(u => u.Email == @Email)",
+            [new LinqParameter("Email", typeof(string), "a@b.fr")]);
+        Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
+
+        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        var sql = Assert.IsAssignableFrom<IQueryable>(compiled.Run!(context)).ToQueryString();
+
+        // ToQueryString declare la valeur en tete, mais le WHERE compare bien a un parametre.
+        Assert.Contains("= @", sql, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Statements_ReturnVariable()
     {
         var sql = Translate("""

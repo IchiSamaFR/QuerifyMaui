@@ -1,6 +1,7 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Queries;
 using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Databases.Models.Queries;
 
 namespace SqlToolManagerMaui.Languages.Commons.Queries;
 
@@ -16,4 +17,10 @@ public interface IQueryExecutor
     /// langage ne levent pas d'exception : elles sont rapportees dans <see cref="QueryExecutionResult.Messages"/>.
     /// </summary>
     Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lit un seul jeu de resultats avec des parametres types (cartes du dashboard) ; <paramref name="database"/>
+    /// null = base de la connexion. Contrairement a <see cref="ExecuteAsync"/>, une erreur leve une exception.
+    /// </summary>
+    Task<QueryResultSet> ReadAsync(DatabaseConnectionInfo connection, string? database, string query, IReadOnlyList<QueryParameter> parameters, int maxRows, CancellationToken cancellationToken = default);
 }
