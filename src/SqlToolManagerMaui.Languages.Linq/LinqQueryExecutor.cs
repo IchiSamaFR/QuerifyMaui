@@ -234,6 +234,9 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
     private static QueryResultSet Build(Type elementType, IReadOnlyList<object?> items, bool isTruncated, int index, string? title)
     {
+        if (items.Any(i => i is not null) && items.All(i => i is null || AsPairs(i) is not null))
+            return BuildFromDictionaries(items, isTruncated, index, title);
+
         if (IsScalar(elementType))
         {
             var column = new QueryResultColumn("Valeur", FriendlyName(elementType));
@@ -250,6 +253,34 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
         return new QueryResultSet(index, columns, rows, isTruncated, title);
     }
+
+    // Colonnes dynamiques : union ordonnee des cles de toutes les lignes (une cle absente = cellule vide).
+    private static QueryResultSet BuildFromDictionaries(IReadOnlyList<object?> items, bool isTruncated, int index, string? title)
+    {
+        var data = items.Select(i => (i is null ? Enumerable.Empty<KeyValuePair<string, object?>>() : AsPairs(i)!).ToList()).ToList();
+
+        var names = data.SelectMany(d => d.Select(p => p.Key)).Distinct().ToList();
+        var columns = names
+            .Select(n => new QueryResultColumn(n, FriendlyName(data.SelectMany(d => d).FirstOrDefault(p => p.Key == n && p.Value is not null).Value?.GetType() ?? typeof(object))))
+            .ToArray();
+
+        var rows = data
+            .Select((d, i) =>
+            {
+                var values = d.GroupBy(p => p.Key).ToDictionary(g => g.Key, g => g.Last().Value);
+                return new QueryResultRow(i + 1, names.Select(n => values.TryGetValue(n, out var v) ? Format(v) : null).ToArray());
+            })
+            .ToArray();
+
+        return new QueryResultSet(index, columns, rows, isTruncated, title);
+    }
+
+    private static IEnumerable<KeyValuePair<string, object?>>? AsPairs(object item) => item switch
+    {
+        IDictionary<string, object?> d => d,
+        IDictionary d => d.Cast<DictionaryEntry>().Select(e => new KeyValuePair<string, object?>(Convert.ToString(e.Key, CultureInfo.InvariantCulture) ?? string.Empty, e.Value)),
+        _ => null,
+    };
 
     private static Type ElementTypeOf(Type? type) => type ?? typeof(object);
 
@@ -275,7 +306,9 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
         if (type.IsGenericType)
         {
-            var name = type.Name[..type.Name.IndexOf('`', StringComparison.Ordinal)];
+            // Un type imbrique dans un generique (Dictionary<,>.KeyCollection) n'a pas de backtick.
+            var tick = type.Name.IndexOf('`', StringComparison.Ordinal);
+            var name = tick >= 0 ? type.Name[..tick] : type.Name;
             return $"{name}<{string.Join(", ", type.GetGenericArguments().Select(FriendlyName))}>";
         }
 
