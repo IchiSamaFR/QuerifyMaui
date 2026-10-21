@@ -120,11 +120,9 @@ public class DashboardTests
 
         // La seconde carte descend jusqu'a la ligne 8.
         Assert.Equal(8, session.RowCount);
-        Assert.Empty(session.Cells);
 
         session.Mode = DashboardMode.Design;
         Assert.Equal(9, session.RowCount);
-        Assert.Equal(9 * 12, session.Cells.Count);
     }
 
     [Fact]

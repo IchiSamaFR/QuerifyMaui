@@ -35,9 +35,6 @@ public sealed partial class DashboardSession : AbstractSession
     /// <summary>Identifiants des pages, precedes d'un vide (« aucune ») : cible d'un bouton dans le concepteur.</summary>
     public ObservableCollection<string> PageIds { get; } = [];
 
-    /// <summary>Cases de la grille, affichees par le concepteur.</summary>
-    public ObservableCollection<DashboardCell> Cells { get; } = [];
-
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasDefinition), nameof(ColumnCount))]
     public partial DashboardDefinition? Definition { get; private set; }
@@ -358,26 +355,14 @@ public sealed partial class DashboardSession : AbstractSession
         return new DashboardCardPlacement(column, Math.Max(0, cell.Row), card.ColumnSpan, card.RowSpan);
     }
 
-    /// <summary>Recalcule le nombre de lignes et, dans le concepteur, les cases de la grille.</summary>
+    /// <summary>Recalcule le nombre de lignes ; le concepteur en ajoute une, libre, pour y poser une carte.</summary>
     public void RefreshLayout()
     {
         var rows = Math.Max(Definition?.Rows ?? DashboardDefinition.DEFAULT_ROWS, Current?.BottomRow ?? 0);
         if (IsDesigning)
             rows++;
 
-        if (RowCount != rows || (IsDesigning && Cells.Count != rows * ColumnCount) || (!IsDesigning && Cells.Count > 0))
-        {
-            RowCount = rows;
-            Cells.Clear();
-            if (IsDesigning)
-            {
-                for (var row = 0; row < rows; row++)
-                {
-                    for (var column = 0; column < ColumnCount; column++)
-                        Cells.Add(new DashboardCell(column, row));
-                }
-            }
-        }
+        RowCount = rows;
     }
 
     /// <summary>Mise a jour sans vider la liste : un Picker lie perdrait sa selection (et la reecrirait a null).</summary>

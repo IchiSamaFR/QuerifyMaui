@@ -130,9 +130,23 @@ public partial class DashboardGrid : ContentView
     [BindableProperty]
     public partial ICommand? DeleteParameterCommand { get; set; }
 
+    private readonly DashboardCellsDrawable _cells = new()
+    {
+        StrokeColor = ResourceColor("DividerStrokeColorDefault", Colors.Gray),
+        HoverColor = ResourceColor("SubtleHoverOverlay", Colors.Transparent),
+        GlyphColor = ResourceColor("TextFillColorTertiary", Colors.Gray),
+    };
+
+    /// <summary>Case visee par la carte glissee, pour ne relayer que les changements de case.</summary>
+    private DashboardCell? _dragCell;
+
+    /// <summary>Position du pointeur dans la carte au debut du glisser : l'apercu suit le coin de la carte, pas la souris.</summary>
+    private Point _grabOffset;
+
     public DashboardGrid()
     {
         InitializeComponent();
+        CellsCanvas.Drawable = _cells;
         ApplyGridSize();
     }
 
@@ -208,7 +222,15 @@ public partial class DashboardGrid : ContentView
     /// <summary>Les calques (cases, cartes, apercu) partagent les memes colonnes et lignes.</summary>
     private void ApplyGridSize()
     {
-        foreach (var layer in new[] { CellsLayer, CardsLayer, PreviewLayer })
+        _cells.ColumnCount = Math.Max(1, ColumnCount);
+        _cells.RowCount = Math.Max(1, RowCount);
+        _cells.RowHeight = RowHeight;
+        _cells.ColumnSpacing = CardsLayer.ColumnSpacing;
+        _cells.RowSpacing = CardsLayer.RowSpacing;
+        _cells.HoveredCell = null;
+        CellsCanvas.Invalidate();
+
+        foreach (var layer in new[] { CardsLayer, PreviewLayer })
         {
             layer.ColumnDefinitions.Clear();
             for (var i = 0; i < Math.Max(1, ColumnCount); i++)
@@ -219,6 +241,100 @@ public partial class DashboardGrid : ContentView
                 layer.RowDefinitions.Add(new RowDefinition(RowHeight));
         }
     }
+
+    // ---------- Cases libres du concepteur (canevas) ----------
+
+    private void OnCellsTapped(object? sender, TappedEventArgs e)
+    {
+        if (CellAt(e.GetPosition(CellsCanvas)) is { } cell)
+            Execute(AddCardCommand, cell);
+    }
+
+    private void OnCellsPointerMoved(object? sender, PointerEventArgs e) => SetHoveredCell(CellAt(e.GetPosition(CellsCanvas)));
+
+    private void OnCellsPointerExited(object? sender, PointerEventArgs e) => SetHoveredCell(null);
+
+    private void SetHoveredCell(DashboardCell? cell)
+    {
+        if (_cells.HoveredCell == cell)
+            return;
+
+        _cells.HoveredCell = cell;
+        CellsCanvas.Invalidate();
+    }
+
+    // Mesure dans le repere du canevas (comme le survol) : le coin de la carte vient de sa case, pas de sa vue.
+    private void OnCardDragStarting(object? sender, DragStartingEventArgs e)
+    {
+        _grabOffset = Point.Zero;
+        if ((sender as BindableObject)?.BindingContext is not DashboardCardState card || e.GetPosition(CellsCanvas) is not { } pointer)
+            return;
+
+        var origin = _cells.GetCellOrigin(card.Column, card.Row, CellsCanvas.Width);
+        _grabOffset = new Point(pointer.X - origin.X, pointer.Y - origin.Y);
+    }
+
+    private void OnCellsDragOver(object? sender, DragEventArgs e)
+    {
+        var cell = DropCellAt(e.GetPosition(CellsCanvas));
+        if (cell == _dragCell)
+            return;
+
+        LeaveDragCell();
+        _dragCell = cell;
+        if (cell is not null)
+            Execute(DragOverCommand, cell);
+    }
+
+    // DragLeave remonte aussi quand le pointeur passe d'un enfant a l'autre (case -> carte) : seule une vraie sortie compte.
+    private void OnCellsDragLeave(object? sender, DragEventArgs e)
+    {
+        if (e.GetPosition(DropArea) is { } point && DropArea.Bounds.Size is var size
+            && point.X >= 0 && point.Y >= 0 && point.X < size.Width && point.Y < size.Height)
+            return;
+
+        LeaveDragCell();
+    }
+
+    private void OnCellsDrop(object? sender, DropEventArgs e)
+    {
+        var cell = DropCellAt(e.GetPosition(CellsCanvas)) ?? _dragCell;
+        _dragCell = null;
+        if (cell is not null)
+            Execute(DropCommand, cell);
+    }
+
+    /// <summary>Case du coin haut-gauche de la carte glissee, arrondie a la plus proche.</summary>
+    private DashboardCell? DropCellAt(Point? position)
+    {
+        if (position is not { } point || Session is not { DraggedCard: not null })
+            return null;
+
+        return _cells.SnapCell(new Point(point.X - _grabOffset.X, point.Y - _grabOffset.Y), CellsCanvas.Width);
+    }
+
+    private void LeaveDragCell()
+    {
+        if (_dragCell is not { } cell)
+            return;
+
+        _dragCell = null;
+        Execute(DragLeaveCommand, cell);
+    }
+
+    private DashboardCell? CellAt(Point? position)
+        => position is { } point ? _cells.HitTest(point, CellsCanvas.Width) : null;
+
+    private static void Execute(ICommand? command, object parameter)
+    {
+        if (command?.CanExecute(parameter) == true)
+            command.Execute(parameter);
+    }
+
+    private static Color ResourceColor(string key, Color fallback)
+        => Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color
+            ? color
+            : fallback;
 
     private void OnFlowchartButtonClicked(object? sender, EventArgs e)
     {

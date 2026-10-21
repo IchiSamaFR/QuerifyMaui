@@ -204,41 +204,27 @@
                                     Value="3" />
                         </DataTrigger>
                     </ScrollView.Triggers>
-                    <Grid Padding="0,0,12,12">
+                    <!-- Zone de depot sur tout le calque : les evenements de glisser remontent aussi depuis les cartes survolees -->
+                    <Grid x:Name="DropArea"
+                          Padding="0,0,12,12">
+                        <Grid.GestureRecognizers>
+                            <DropGestureRecognizer AllowDrop="{Binding Session.IsDesigning, FallbackValue=False}"
+                                                   DragOver="OnCellsDragOver"
+                                                   DragLeave="OnCellsDragLeave"
+                                                   Drop="OnCellsDrop" />
+                        </Grid.GestureRecognizers>
 
-                        <!-- Concepteur : cases libres (ajout au clic, depot d'une carte glissee) -->
-                        <Grid x:Name="CellsLayer"
-                              ColumnSpacing="8"
-                              RowSpacing="8"
-                              BindableLayout.ItemsSource="{Binding Session.Cells}">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="m:DashboardCell">
-                                    <inp:ButtonView Grid.Column="{Binding Column}"
-                                                    Grid.Row="{Binding Row}"
-                                                    Style="{StaticResource TextButtonViewStyle}"
-                                                    HeightRequest="-1"
-                                                    HorizontalOptions="Fill"
-                                                    VerticalOptions="Fill"
-                                                    BorderColor="{DynamicResource DividerStrokeColorDefault}"
-                                                    BorderThickness="1"
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=AddCardCommand, x:DataType=c:DashboardGrid}"
-                                                    CommandParameter="{Binding .}"
-                                                    ToolTipProperties.Text="Ajouter une carte ici">
-                                        <inp:ButtonView.GestureRecognizers>
-                                            <DropGestureRecognizer AllowDrop="True"
-                                                                   DropCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=DropCommand, x:DataType=c:DashboardGrid}"
-                                                                   DropCommandParameter="{Binding .}"
-                                                                   DragOverCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=DragOverCommand, x:DataType=c:DashboardGrid}"
-                                                                   DragOverCommandParameter="{Binding .}"
-                                                                   DragLeaveCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=DragLeaveCommand, x:DataType=c:DashboardGrid}"
-                                                                   DragLeaveCommandParameter="{Binding .}" />
-                                        </inp:ButtonView.GestureRecognizers>
-                                        <Label Text="+"
-                                               Style="{StaticResource LabelTertiaryStyle}" />
-                                    </inp:ButtonView>
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
-                        </Grid>
+                        <!-- Concepteur : cases libres (ajout au double clic, depot d'une carte glissee), dessinees sur un seul canevas -->
+                        <GraphicsView x:Name="CellsCanvas"
+                                      IsVisible="{Binding Session.IsDesigning, FallbackValue=False}"
+                                      ToolTipProperties.Text="Double-cliquer sur une case pour y ajouter une carte">
+                            <GraphicsView.GestureRecognizers>
+                                <TapGestureRecognizer NumberOfTapsRequired="2"
+                                                      Tapped="OnCellsTapped" />
+                                <PointerGestureRecognizer PointerMoved="OnCellsPointerMoved"
+                                                          PointerExited="OnCellsPointerExited" />
+                            </GraphicsView.GestureRecognizers>
+                        </GraphicsView>
 
                         <!-- Cartes de la page : le calque laisse passer les clics vers les cases, pas ses enfants -->
                         <Grid x:Name="CardsLayer"
@@ -269,6 +255,7 @@
                                                         ToolTipProperties.Text="Cliquer pour modifier, glisser pour déplacer, tirer un bord pour redimensionner">
                                             <inp:ButtonView.GestureRecognizers>
                                                 <DragGestureRecognizer CanDrag="True"
+                                                                       DragStarting="OnCardDragStarting"
                                                                        DragStartingCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=StartDragCommand, x:DataType=c:DashboardGrid}"
                                                                        DragStartingCommandParameter="{Binding .}"
                                                                        DropCompletedCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=EndDragCommand, x:DataType=c:DashboardGrid}" />
@@ -290,6 +277,15 @@
                                               IsVisible="{Binding IsSelected}"
                                               InputTransparent="True"
                                               CascadeInputTransparent="False">
+                                            <!-- Masquee pendant le glisser : ses champs de texte captent le survol -->
+                                            <Grid.Triggers>
+                                                <DataTrigger TargetType="Grid"
+                                                             Binding="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=Session.IsDraggingCard, FallbackValue=False, x:DataType=c:DashboardGrid}"
+                                                             Value="True">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                            </Grid.Triggers>
 
                                             <inp:TextField Grid.Row="1"
                                                            VerticalOptions="Center"
@@ -388,7 +384,7 @@
                         </Grid>
 
                         <!-- Page sans carte -->
-                        <Label Text="Page vide : en mode Concepteur, cliquez sur une case pour ajouter une carte."
+                        <Label Text="Page vide : en mode Concepteur, double-cliquez sur une case pour ajouter une carte."
                                InputTransparent="True"
                                Style="{StaticResource LabelSecondaryStyle}"
                                HorizontalOptions="Center"

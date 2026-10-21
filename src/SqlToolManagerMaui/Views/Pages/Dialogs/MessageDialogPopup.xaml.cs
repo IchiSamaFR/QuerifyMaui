@@ -8,7 +8,15 @@ public partial class MessageDialogPopup : Popup
 {
     public MessageDialogPopup(MessageDialogVM viewModel)
     {
-        BindingContext = viewModel;
         InitializeComponent();
+        BindingContext = viewModel;
+
+        Opened += OnPopupOpened;
+    }
+
+    private void OnPopupOpened(object? sender, EventArgs e)
+    {
+        Opened -= OnPopupOpened;
+        Dispatcher.Dispatch(() => PrimaryButton.Focus());
     }
 }

@@ -42,8 +42,8 @@ public partial class DashboardVM
             Title = "Nouvelle carte",
             Column = cell.Column,
             Row = cell.Row,
-            ColumnSpan = Math.Min(4, session.ColumnCount - cell.Column),
-            RowSpan = 2,
+            ColumnSpan = 1,
+            RowSpan = 1,
         });
     }
 

@@ -26,8 +26,10 @@
         <!-- Bandeau de boutons plus sombre, separe du contenu comme le ContentDialog de WPF UI -->
         <Grid Grid.Row="1"
               RowDefinitions="Auto">
-            <HorizontalStackLayout Spacing="6">
-                <Button Style="{StaticResource PrimaryButtonStyle}"
+            <HorizontalStackLayout Spacing="6"
+                                   HorizontalOptions="End">
+                <Button x:Name="PrimaryButton"
+                        Style="{StaticResource PrimaryButtonStyle}"
                         Command="{Binding PrimaryCommand}"
                         Text="{Binding PrimaryButtonText}"
                         MinimumWidthRequest="120" />
