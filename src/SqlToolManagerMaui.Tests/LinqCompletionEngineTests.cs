@@ -6,7 +6,7 @@ namespace SqlToolManagerMaui.Tests;
 /// <summary>Le caractere | marque le curseur ; Roslyn complete dans le contexte genere.</summary>
 public class LinqCompletionEngineTests
 {
-    private static readonly LinqCompletionEngine Engine = new();
+    private static readonly LinqCompletionEngine Engine = new(new LinqWorkspace());
 
     private static readonly Lazy<LinqModelAssembly> Model = new(() => new LinqCompiler().CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
 

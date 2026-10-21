@@ -179,11 +179,14 @@ public sealed class EfModelGenerator : IEfModelGenerator
     private static void WriteEntity(StringBuilder code, EntityModel entity)
     {
         code.AppendLine(CultureInfo.InvariantCulture, $"/// <summary>{Escape(entity.Source.Schema)}.{Escape(entity.Source.Name)}</summary>");
+        // [Description] : lu par l'infobulle de l'editeur LINQ (la doc XML ne survit pas a la compilation en memoire).
+        code.AppendLine(CultureInfo.InvariantCulture, $"[global::System.ComponentModel.Description({Literal(DescribeSource(entity.Source))})]");
         code.AppendLine(CultureInfo.InvariantCulture, $"public sealed class {entity.ClassName}");
         code.AppendLine("{");
 
         foreach (var property in entity.Properties)
         {
+            code.AppendLine(CultureInfo.InvariantCulture, $"    [global::System.ComponentModel.Description({Literal(DescribeColumn(entity.Source, property.Source))})]");
             // Une chaine non nulle part a null! : EF la renseigne a la lecture.
             var initializer = property.ClrType is "string" or "byte[]" ? " = null!;" : string.Empty;
             code.AppendLine(CultureInfo.InvariantCulture, $"    public {property.ClrType} {property.Name} {{ get; set; }}{initializer}");
@@ -263,6 +266,17 @@ public sealed class EfModelGenerator : IEfModelGenerator
             candidate = $"{name.TrimStart('@')}{index}";
 
         return candidate;
+    }
+
+    /// <summary>Ex. "Table dbo.Student".</summary>
+    private static string DescribeSource(DatabaseSchemaObject source)
+        => $"{(source.Kind == DatabaseObjectKind.View ? "Vue" : "Table")} {source.Schema}.{source.Name}";
+
+    /// <summary>Ex. "Colonne dbo.Student.Name · nvarchar(50) · not null · clé primaire".</summary>
+    private static string DescribeColumn(DatabaseSchemaObject source, DatabaseSchemaColumn column)
+    {
+        var description = $"Colonne {source.Schema}.{source.Name}.{column.Name} · {column.DataType} · {(column.IsNullable ? "null" : "not null")}";
+        return column.IsPrimaryKey ? description + " · clé primaire" : description;
     }
 
     private static string Literal(string value)

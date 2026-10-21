@@ -1,12 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Text;
-using SqlToolManagerMaui.Core.Ioc;
+﻿using SqlToolManagerMaui.Core.Ioc;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
 namespace SqlToolManagerMaui.Languages.Linq;
@@ -28,18 +21,8 @@ public interface ILinqCompletionEngine
 
 /// <inheritdoc cref="ILinqCompletionEngine"/>
 [AutoRegister(As = typeof(ILinqCompletionEngine))]
-[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "App non publiee en trimmed : composition MEF de Roslyn assumee.")]
 public sealed class LinqCompletionEngine : ILinqCompletionEngine
 {
-    /// <summary>
-    /// Services Roslyn (completion comprise) : la composition MEF coute une a deux secondes,
-    /// elle est faite une fois pour l'application.
-    /// </summary>
-    private static readonly Lazy<MefHostServices> Host = new(() => MefHostServices.Create(
-        MefHostServices.DefaultAssemblies
-            .Concat([typeof(RoslynCompletion.CompletionService).Assembly, Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features")])
-            .Distinct()));
-
     /// <summary>Tags Roslyn retenus pour la nature, du plus precis au plus general.</summary>
     private static readonly string[] KindTags =
     [
@@ -47,32 +30,25 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
         "Class", "Structure", "Interface", "Enum", "EnumMember", "Delegate", "Namespace", "Keyword", "Snippet"
     ];
 
-    /// <summary>Un projet Roslyn par modele : references et contexte genere ne changent pas d'une frappe a l'autre.</summary>
-    private readonly ConditionalWeakTable<LinqModelAssembly, Lazy<DocumentId>> _documents = new();
-    private readonly Lazy<DocumentId> _documentWithoutModel;
-    private readonly AdhocWorkspace _workspace;
-    private readonly Lock _gate = new();
+    private readonly ILinqWorkspace _workspace;
 
-    public LinqCompletionEngine()
+    public LinqCompletionEngine(ILinqWorkspace workspace)
     {
-        _workspace = new AdhocWorkspace(Host.Value);
-        _documentWithoutModel = new Lazy<DocumentId>(() => AddDocument(null));
+        _workspace = workspace;
     }
 
     public async Task<IReadOnlyList<LinqCompletionCandidate>> GetCompletionsAsync(LinqModelAssembly? model, string query, int caretOffset, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var documentId = model is null ? _documentWithoutModel.Value : _documents.GetValue(model, m => new Lazy<DocumentId>(() => AddDocument(m))).Value;
-        var (source, queryStart) = LinqCompiler.BuildQuerySource(model?.Model, query, parameters);
-
-        // WithText cree une version de la solution : le workspace partage n'est jamais modifie.
-        var document = _workspace.CurrentSolution.GetDocument(documentId)!.WithText(SourceText.From(source));
+        var linq = _workspace.GetDocument(model, query, parameters);
+        var document = linq.Document;
         if (RoslynCompletion.CompletionService.GetService(document) is not { } service)
             return [];
 
-        var position = queryStart + Math.Clamp(caretOffset, 0, query.Length);
+        var position = linq.QueryStart + Math.Clamp(caretOffset, 0, query.Length);
         var list = await service.GetCompletionsAsync(document, position, cancellationToken: cancellationToken);
+        var source = (await document.GetTextAsync(cancellationToken)).ToString();
 
         // Roslyn propose tout ce qui est visible (System.Security, System.IO, snippets...) :
         // on ne garde que ce qui sert a ecrire une requete EF.
@@ -86,29 +62,6 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
                 KindOf(item.Tags),
                 string.IsNullOrEmpty(item.InlineDescription) ? null : item.InlineDescription))
             .ToArray();
-    }
-
-    private DocumentId AddDocument(LinqModelAssembly? model)
-    {
-        lock (_gate)
-        {
-            var name = model?.Model.ContextVariableName ?? "SansConnexion";
-            IReadOnlyList<MetadataReference> references = model is null ? LinqCompiler.PlatformReferences : [.. LinqCompiler.PlatformReferences, model.Reference];
-
-            var project = ProjectInfo.Create(
-                ProjectId.CreateNewId(),
-                VersionStamp.Create(),
-                $"Linq_{name}",
-                $"Linq_{name}",
-                LanguageNames.CSharp,
-                compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                parseOptions: new CSharpParseOptions(LanguageVersion.Latest),
-                metadataReferences: references);
-
-            var projectId = _workspace.AddProject(project).Id;
-            var (source, _) = LinqCompiler.BuildQuerySource(model?.Model, string.Empty);
-            return _workspace.AddDocument(projectId, "requete.cs", SourceText.From(source)).Id;
-        }
     }
 
     /// <summary>

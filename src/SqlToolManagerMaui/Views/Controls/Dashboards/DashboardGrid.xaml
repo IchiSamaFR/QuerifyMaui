@@ -506,6 +506,7 @@
                             <Grid Grid.Row="1"
                                   IsClippedToBounds="True">
                                 <c:CodeEditor Text="{Binding Session.SelectedCard.NavigationParametersText, Mode=TwoWay, FallbackValue=''}"
+                                              IsDiagnosticsEnabled="False"
                                               SyntaxConfiguration="{Binding SyntaxConfiguration}"
                                               EditorPreferences="{Binding EditorPreferences}"
                                               Connection="{Binding Connection}" />

@@ -4,7 +4,6 @@ using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Languages.Commons.Editors.Completion;
-using System.Data.Common;
 
 namespace SqlToolManagerMaui.Languages.Linq;
 
@@ -47,24 +46,8 @@ public sealed class LinqCompletionProvider : ICompletionProvider
         if (request.Language != SyntaxLanguage.Linq)
             return [];
 
-        LinqModelAssembly? model = null;
-        if (request.Connection is { IsConnected: true } connection)
-        {
-            try
-            {
-                model = await _models.GetModelAsync(connection, string.IsNullOrWhiteSpace(request.Database) ? null : request.Database, cancellationToken);
-            }
-            catch (Exception ex) when (ex is DbException or InvalidOperationException or TimeoutException or LinqCompilationException)
-            {
-                // Base injoignable ou modele invalide : on garde la completion C# sans le contexte.
-            }
-        }
-
-        // Nom invalide en C# : ignore ici, l'execution le signalera.
-        var parameters = request.Parameters
-            .Where(p => Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsValidIdentifier(p.Name))
-            .Select(LinqParameter.From)
-            .ToArray();
+        var model = await LinqRequestResolver.TryGetModelAsync(_models, request.Connection, request.Database, cancellationToken);
+        var parameters = LinqRequestResolver.ToParameters(request.Parameters);
 
         var candidates = await _engine.GetCompletionsAsync(model, request.Text, request.CaretOffset, parameters, cancellationToken);
 

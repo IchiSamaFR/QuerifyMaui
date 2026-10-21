@@ -53,6 +53,11 @@
             </Label>
         </HorizontalStackLayout>
 
+        <!-- Infobulle et signature avant la liste d'autocompletion : elle reste au premier plan -->
+        <c:CodeTooltipPopup x:Name="Tooltip" />
+
+        <c:SignatureHelpPopup x:Name="SignatureHelp" />
+
         <c:CompletionPopup x:Name="CompletionList" />
     </Grid>
 

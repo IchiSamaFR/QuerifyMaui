@@ -100,6 +100,26 @@ public sealed partial class SqlCompletionContextAnalyzer : ICompletionContextAna
         };
     }
 
+    /// <summary>
+    /// Tables et base du lot contenant <paramref name="offset"/>, sans deviner ce qui est attendu :
+    /// l'infobulle en a besoin sur un nom deja ecrit, la ou <see cref="Analyze"/> ne propose rien.
+    /// </summary>
+    public static CompletionContext AnalyzeScope(string text, int offset, string? database)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+
+        var all = SqlLexer.Tokenize(text);
+        var (batchStart, batchEnd) = FindBatch(text, all, offset);
+        var tokens = all.Where(t => !t.IsComment && t.Start >= batchStart && t.End <= batchEnd).ToArray();
+
+        return new CompletionContext
+        {
+            Kind = CompletionContextKind.General,
+            Tables = ParseTables(text, tokens).OrderBy(t => Math.Abs(t.Offset - offset)).ToArray(),
+            Database = FindDatabase(text, all, offset) ?? (string.IsNullOrWhiteSpace(database) ? null : database)
+        };
+    }
+
     // ---------- Position du curseur ----------
 
     private static bool IsCaretInside(SqlToken token, int caret)
@@ -470,7 +490,7 @@ public sealed partial class SqlCompletionContextAnalyzer : ICompletionContextAna
     private static string? NullIfEmpty(string value) => value.Length == 0 ? null : value;
 
     /// <summary>[Ma Table] -> Ma Table, "x""y" -> x"y.</summary>
-    private static string Unquote(string name)
+    internal static string Unquote(string name)
     {
         if (name.Length >= 2 && name[0] == '[')
             return name[1..(name[^1] == ']' ? ^1 : ^0)].Replace("]]", "]", StringComparison.Ordinal);

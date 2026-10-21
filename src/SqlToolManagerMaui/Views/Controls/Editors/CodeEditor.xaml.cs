@@ -6,9 +6,11 @@ using SqlToolManagerMaui.Core.Models.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Models.Settings;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Queries;
+using SqlToolManagerMaui.Services.Editors.Analysis;
 using SqlToolManagerMaui.Services.Editors.Completion;
 using SqlToolManagerMaui.Services.Editors.Highlighting;
 using SqlToolManagerMaui.UI.Extensions;
+using SqlToolManagerMaui.Views.Controls.Editors.Analysis;
 using SqlToolManagerMaui.Views.Controls.Editors.Completion;
 using System.ComponentModel;
 using System.Windows.Input;
@@ -58,12 +60,16 @@ public partial class CodeEditor : ContentView
     public partial DatabaseConnectionInfo? Connection { get; set; }
 
     /// <summary>Base interrogee par le texte (null = celle de la connexion) : son schema alimente l'autocompletion.</summary>
-    [BindableProperty]
+    [BindableProperty(PropertyChangedMethodName = nameof(OnAnalysisContextPropertyChanged))]
     public partial string? Database { get; set; }
 
     /// <summary>Parametres fournis a l'execution (dashboard) : proposes par l'autocompletion avant d'etre ecrits.</summary>
-    [BindableProperty]
+    [BindableProperty(PropertyChangedMethodName = nameof(OnAnalysisContextPropertyChanged))]
     public partial IReadOnlyList<QueryParameter>? QueryParameters { get; set; }
+
+    /// <summary>Soulignement des erreurs ; faux pour un texte qui n'est pas un script (ex. "Param = Colonne").</summary>
+    [BindableProperty(PropertyChangedMethodName = nameof(OnIsDiagnosticsEnabledPropertyChanged))]
+    public partial bool IsDiagnosticsEnabled { get; set; } = true;
 
     /// <summary>
     /// Commandes d'edition de l'editeur natif (annuler, copier, coller...), exposees telles
@@ -102,6 +108,9 @@ public partial class CodeEditor : ContentView
     private CodeDocument _document = null!;
     private SyntaxHighlightingController? _highlighting;
     private CompletionController? _completion;
+    private DiagnosticsController? _diagnostics;
+    private HoverController? _hover;
+    private SignatureHelpController? _signatureHelp;
 
     /// <summary>Evite l'aller-retour Text -> document -> Text pendant une synchronisation.</summary>
     private bool _isSynchronizing;
@@ -127,11 +136,13 @@ public partial class CodeEditor : ContentView
         {
             StartHighlighting();
             StartCompletion();
+            StartAnalysis();
         };
         Unloaded += (_, _) =>
         {
             StopHighlighting();
             StopCompletion();
+            StopAnalysis();
         };
 
 #if WINDOWS
@@ -150,13 +161,33 @@ public partial class CodeEditor : ContentView
             newConnection.PropertyChanged += editor.OnConnectionStateChanged;
 
         editor._completion?.WarmUp();
+        editor._diagnostics?.Refresh();
     }
 
     private void OnConnectionStateChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(DatabaseConnectionInfo.IsConnected))
-            _completion?.WarmUp();
+        if (e.PropertyName != nameof(DatabaseConnectionInfo.IsConnected))
+            return;
+
+        _completion?.WarmUp();
+
+        // Connexion ouverte : le DbContext ou le schema donnent un sens aux noms, les erreurs sont recalculees.
+        _diagnostics?.Refresh();
     }
+
+    private static void OnIsDiagnosticsEnabledPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        var editor = (CodeEditor)bindable;
+        if (!editor.IsLoaded)
+            return;
+
+        editor.StopAnalysis();
+        editor.StartAnalysis();
+    }
+
+    /// <summary>Autre base ou autres parametres : les noms valides ne sont plus les memes.</summary>
+    private static void OnAnalysisContextPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((CodeEditor)bindable)._diagnostics?.Refresh();
 
     /// <summary>Repercute les commandes natives sur les proprietes bindables dediees.</summary>
     private static void OnCommandsPropertyChanged(BindableObject bindable, object oldValue, object newValue)
@@ -280,11 +311,13 @@ public partial class CodeEditor : ContentView
     {
         StopHighlighting();
         StopCompletion();
+        StopAnalysis();
 
         if (IsLoaded)
         {
             StartHighlighting();
             StartCompletion();
+            StartAnalysis();
         }
     }
 
@@ -319,6 +352,35 @@ public partial class CodeEditor : ContentView
     {
         _completion?.Dispose();
         _completion = null;
+    }
+
+    // ---------- Erreurs, infobulle et signature ----------
+
+    private void StartAnalysis()
+    {
+        if (_hover is not null || SyntaxConfiguration is null)
+            return;
+
+        var service = Ioc.GetRequiredService<ICodeAnalysisService>();
+        var language = SyntaxConfiguration.Language;
+
+        if (IsDiagnosticsEnabled)
+            _diagnostics = new DiagnosticsController(Native, service, language, () => Connection, () => Database, () => QueryParameters);
+
+        _hover = new HoverController(Native, Tooltip, this, service, language, () => Connection, () => Database, () => QueryParameters,
+            _diagnostics, () => CompletionList.IsVisible);
+        _signatureHelp = new SignatureHelpController(Native, SignatureHelp, this, service, language, () => Connection, () => Database, () => QueryParameters,
+            () => CompletionList.IsVisible);
+    }
+
+    private void StopAnalysis()
+    {
+        _signatureHelp?.Dispose();
+        _signatureHelp = null;
+        _hover?.Dispose();
+        _hover = null;
+        _diagnostics?.Dispose();
+        _diagnostics = null;
     }
 
     // ---------- Options d'affichage ----------
