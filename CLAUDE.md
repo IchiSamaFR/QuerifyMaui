@@ -49,6 +49,7 @@ public partial EditorDocument? SelectedItem { get; set; }
 ```
 
 Valeur par défaut = initialiseur ; callbacks = méthodes statiques référencées par `nameof` (pas de lambda) ; `private set` = propriété en lecture seule.
+Toujours l'attribut pour toute propriété publique d'un contrôle ou d'un `BindableObject`, commandes comprises (pas de propriété CLR, pas de `BindableProperty.Create`) ; valeur créée par instance = `DefaultValueCreatorMethodName`.
 Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 
 ---

@@ -29,5 +29,6 @@
     <appconv:ExplorerNodeIconColorConverter x:Key="ExplorerNodeIconColorConverter" />
     <appconv:CompletionItemIconConverter x:Key="CompletionItemIconConverter" />
     <appconv:CompletionItemIconColorConverter x:Key="CompletionItemIconColorConverter" />
+    <appconv:QueryResultColumnsConverter x:Key="QueryResultColumnsConverter" />
 
 </ResourceDictionary>

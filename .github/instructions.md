@@ -42,7 +42,7 @@ SqlToolManagerMaui (nom affiché : **Querify**) est une application **desktop Wi
 * **Resources/Styles** : tokens (couleurs, tailles, épaisseurs) et un fichier de styles par contrôle.
 
 **Bibliothèque UI (`SqlToolManagerMaui.UI`)** — générique, sans métier SQL :
-* `ViewModels/` (`AbstractVM`, `AbstractVM_Busy`), `Views/` (`AbstractPage`, `AbstractContentView`, `Controls/` : `Layouts`, `Menus`, `Tabs`, `Trees`, `ViewSelector`).
+* `ViewModels/` (`AbstractVM`, `AbstractVM_Busy`), `Views/` (`AbstractPage`, `AbstractContentView`, `Controls/` : `DataGrids`, `Layouts`, `Menus`, `Tabs`, `Trees`, `ViewSelector`).
 * `Inputs/` (contrôles de saisie maison : `ButtonView`, `TextField`, `PickerField`, `EditorField`, chacun scindé en `X.cs` + `X.bindable.cs`), `Converters/`, `Behaviors/`, `MarkupExtensions/`.
 * `Extensions/` : `WeakReferenceMessengerExtensions` (journalisation), `FireAndForgetExtensions`. `Models/Messagings/WeakLog`.
 
@@ -162,6 +162,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 ```
 
 * Valeur par défaut = initialiseur. Options via l'attribut, toujours avec `nameof(...)` vers une méthode statique (pas de lambda).
+* Toute propriété publique d'un contrôle (ou d'un `BindableObject` comme `DataGridColumn`) passe par `[BindableProperty]`, commandes comprises : jamais de propriété CLR ni de `BindableProperty.Create`. Valeur à créer par instance (collection, commande liée à l'instance) : `DefaultValueCreatorMethodName`, pas d'affectation dans le constructeur.
 * `{ get; private set; }` = propriété en lecture seule. `new partial` pour masquer une propriété héritée.
 * Un `propertyChanged` n'est qu'un **dernier recours** : préférer un binding XAML.
 * Contrôle riche : propriétés dans un fichier partiel `X.bindable.cs`.
@@ -234,7 +235,16 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * Plafond de `QueryExecutionLimits.MaxRowsPerResultSet` (10 000) lignes par jeu, cellules converties en texte (NULL = `null`).
 * **LINQ** : le script devient le corps d'une méthode générée (`LinqCompiler.BuildQuerySource`), le contexte porte le nom de la base. Le premier `return` termine le script ; `.Dump("titre")` ajoute un jeu de résultats. Chaque requête est chargée dans un `AssemblyLoadContext` **collectable**, déchargé après l'exécution (`LinqCompiledQuery.Dispose`). Toute exception du script est rendue dans les messages.
 * **Limite LINQ** : le script tourne dans le processus de l'application. Annuler rend la main tout de suite, mais une boucle infinie continue en arrière-plan jusqu'à la fermeture, et un débordement de pile arrête l'application. Isoler l'exécution dans un processus séparé serait la seule vraie protection.
-* `QueryResultGrid` : squelette XAML, en-tête et gabarit de ligne posés en code, lignes remplies au recyclage.
+* Grille de résultats = `v:DataGrid` (UI) : colonnes fournies par `QueryResultColumnsConverter` (lecture des cellules par position, `AutoGenerateColumns="False"`), utilisée par `QueryResultsPanel` et les cartes Tableau du dashboard.
+
+### DataGrid (`SqlToolManagerMaui.UI/Views/Controls/DataGrids/`)
+
+* Colonnes : `Columns` (enfants XAML ou binding) puis, si `AutoGenerateColumns` (vrai par défaut, comme WPF), une colonne par propriété publique des éléments (`[Browsable(false)]`, `[Display(Name, Description, Order, AutoGenerateField)]`, `[DisplayName]` respectés ; liste de valeurs simples = une colonne « Valeur »). Valeur lue par `DataGridColumn.ValueGetter`, sinon `Path` (réflexion mise en cache).
+* Tri : clic sur le titre (croissant → décroissant → aucun), une colonne à la fois ; nombres et dates triés comme tels, même déjà formatés en texte (`Helpers/Tools/ValueComparison`).
+* En-tête : sens du tri à gauche du titre, bouton de filtre à droite. Le bouton ouvre `DataGridFilterPopup` sous la colonne (Entrée ou clic ailleurs pour fermer) ; le filtre s'applique après 250 ms de pause (`Helpers/Tools/TextFilter`) : `texte` contient (casse et accents ignorés), `!texte`, `=`, `!=`/`<>`, `>`, `>=`, `<`, `<=`, `NULL`, `!NULL`. Pas de colonne de numéros de ligne ; `ClearFiltersCommand` vide tous les filtres (bouton à côté de « N après filtre » dans `QueryResultsPanel`).
+* État bindable (TwoWay) : `SortMember` + `SortDirection` (colonne triée) et `Filters` (`IReadOnlyDictionary<string, string>`, remplacé en entier à chaque changement), indexés par `DataGridColumn.Key` (`Path`, sinon `Header`). L'état survit au changement de colonnes et se réapplique aux colonnes de même clé ; sans état fourni, celui déclaré sur les colonnes est publié.
+* Sélection : `SelectionMode` (None / Single) + `SelectedItem` (élément de la source) ; `ItemTappedCommand` fonctionne aussi sans sélection. Compteurs en lecture seule : `ItemsCount`, `DisplayedItemsCount`, `IsFiltered`.
+* Rendu : en-têtes, filtres et gabarit de ligne posés en code dans les conteneurs du XAML, lignes virtualisées remplies au recyclage ; styles `DataGrid*` dans `Resources/Styles/Controls/DataGridStyles.xaml`.
 
 ### Dashboards (`.schx`)
 
