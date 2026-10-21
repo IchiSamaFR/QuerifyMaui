@@ -1,5 +1,9 @@
-﻿using SqlToolManagerMaui.Core.Enums.Editors;
+﻿using CommunityToolkit.Maui.Extensions;
+using SqlToolManagerMaui.Core.Enums.Dialogs;
+using SqlToolManagerMaui.Core.Enums.Editors;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.ViewModels.Pages.Dialogs;
+using SqlToolManagerMaui.Views.Pages.Dialogs;
 
 namespace SqlToolManagerMaui.Services.Dialogs;
 
@@ -11,32 +15,42 @@ public sealed class DialogService : IDialogService
     private const string DiscardLabel = "Ne pas enregistrer";
     private const string CancelLabel = "Annuler";
 
+    private readonly IServiceProvider _services;
+
+    public DialogService(IServiceProvider services)
+    {
+        _services = services;
+    }
+
     public async Task<SaveChangesChoice> AskSaveChangesAsync(string documentName)
     {
-        // Sans page pour poser la question, on ne ferme rien : rien n'est perdu.
-        if (Shell.Current?.CurrentPage is not { } page)
-            return SaveChangesChoice.Cancel;
-
-        var answer = await page.DisplayActionSheetAsync(
+        var result = await ShowAsync(
+            "Modifications non enregistrées",
             $"Enregistrer les modifications de « {documentName} » ?",
-            CancelLabel,
-            DiscardLabel,
-            SaveLabel);
+            SaveLabel,
+            DiscardLabel);
 
-        return answer switch
+        return result switch
         {
-            SaveLabel => SaveChangesChoice.Save,
-            DiscardLabel => SaveChangesChoice.Discard,
+            MessageDialogResult.Primary => SaveChangesChoice.Save,
+            MessageDialogResult.Secondary => SaveChangesChoice.Discard,
             _ => SaveChangesChoice.Cancel,
         };
     }
 
     public async Task<bool> ConfirmAsync(string title, string message, string accept)
-    {
-        // Sans page pour demander, l'action n'a pas lieu.
-        if (Shell.Current?.CurrentPage is not { } page)
-            return false;
+        => await ShowAsync(title, message, accept, secondaryButtonText: null) == MessageDialogResult.Primary;
 
-        return await page.DisplayAlertAsync(title, message, accept, CancelLabel);
+    /// <summary>Sans page pour poser la question, rien n'est fait : <see cref="MessageDialogResult.None"/>.</summary>
+    private async Task<MessageDialogResult> ShowAsync(string title, string message, string primaryButtonText, string? secondaryButtonText)
+    {
+        if (Shell.Current?.CurrentPage is not { } page)
+            return MessageDialogResult.None;
+
+        var viewModel = _services.GetRequiredService<MessageDialogVM>();
+        viewModel.Initialize(title, message, primaryButtonText, secondaryButtonText, CancelLabel);
+
+        var result = await page.ShowPopupAsync<MessageDialogResult>(new MessageDialogPopup(viewModel), FluentPopupOptions.Create());
+        return result.WasDismissedByTappingOutsideOfPopup ? MessageDialogResult.None : result.Result;
     }
 }

@@ -7,8 +7,6 @@
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource InputFieldStyle}">
 
-        <Setter Property="ContentPadding"
-                Value="{DynamicResource ButtonPadding}" />
         <Setter Property="PlaceholderColor"
                 Value="{DynamicResource LabelPlaceHolder}" />
     </Style>

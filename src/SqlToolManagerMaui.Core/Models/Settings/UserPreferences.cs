@@ -11,7 +11,7 @@ public partial class UserPreferences : ObservableObject
     [ObservableProperty]
     public partial List<string> RecentFiles { get; set; } = [];
 
-    /// <summary>Rouvrir au demarrage les onglets laisses ouverts a la fermeture (modifications non enregistrees comprises).</summary>
+    /// <summary>Rouvrir au demarrage les onglets laisses ouverts a la fermeture (modifications des onglets sans titre comprises).</summary>
     [ObservableProperty]
     public partial bool RestoreOpenTabs { get; set; } = true;
 

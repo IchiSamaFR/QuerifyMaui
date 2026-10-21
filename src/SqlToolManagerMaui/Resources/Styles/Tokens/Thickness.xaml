@@ -27,6 +27,7 @@
 
     <Thickness x:Key="DefaultContentPadding">8</Thickness>
     <Thickness x:Key="CardContentPadding">12</Thickness>
+    <Thickness x:Key="PageContentPadding">24</Thickness>
     <Thickness x:Key="HorizontalMargin">16,0</Thickness>
 
     <x:Int16 x:Key="CardCornerRadius">4</x:Int16>

@@ -14,16 +14,18 @@ public partial class MainVM
     private bool _isWorkspaceRestored;
 
     /// <summary>
-    /// Vrai si la fenetre peut se fermer. Les onglets rouverts au demarrage gardent leurs modifications ;
-    /// sinon chaque onglet modifie est confirme, et « Annuler » garde la fenetre ouverte.
+    /// Vrai si la fenetre peut se fermer : chaque fichier modifie est confirme, « Annuler » garde la fenetre ouverte.
+    /// Seuls les onglets sans titre gardent leurs modifications pour la session suivante.
     /// </summary>
     public async Task<bool> CanCloseAsync()
     {
-        if (Preferences.RestoreOpenTabs && _isWorkspaceRestored)
-            return true;
+        var keepsUntitled = Preferences.RestoreOpenTabs && _isWorkspaceRestored;
 
         foreach (var session in Sessions.ToList())
         {
+            if (keepsUntitled && !session.Document.HasPath)
+                continue;
+
             if (!await ConfirmDiscardAsync(session))
                 return false;
         }
@@ -69,8 +71,8 @@ public partial class MainVM
     {
         var document = session.Document;
 
-        // Un fichier enregistre et non modifie est relu au demarrage : inutile de dupliquer son texte.
-        var keepText = !document.HasPath || document.IsDirty;
+        // Un fichier est relu depuis le disque : ses modifications ont ete enregistrees ou abandonnees a la fermeture.
+        var keepText = !document.HasPath;
 
         return new WorkspaceTab
         {

@@ -19,8 +19,8 @@
                          LineCommentPrefix="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=SyntaxConfiguration.Comments, x:DataType=c:CodeEditor}">
             <code:CodeEditor.Style>
                 <Style TargetType="code:CodeEditor">
-                    <Setter Property="FontSize" 
-                            Value="{StaticResource FontSize_Small}"/>
+                    <Setter Property="FontSize"
+                            Value="{StaticResource FontSize_Small}" />
 
                 </Style>
             </code:CodeEditor.Style>
