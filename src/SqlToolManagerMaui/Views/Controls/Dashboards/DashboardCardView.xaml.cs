@@ -59,7 +59,7 @@ public partial class DashboardCardView : ContentView
     private static QueryResultGrid CreateGrid(DashboardCardState card)
     {
         var grid = new QueryResultGrid();
-        grid.SetBinding(QueryResultGrid.ResultSetProperty, new Binding(nameof(DashboardCardState.Result), source: card));
+        grid.SetBinding(QueryResultGrid.ResultSetProperty, new Binding(nameof(DashboardCardState.GridResult), source: card));
         grid.SetBinding(QueryResultGrid.RowTappedCommandProperty, new Binding(nameof(DashboardCardState.ActivateRowCommand), source: card));
         return grid;
     }

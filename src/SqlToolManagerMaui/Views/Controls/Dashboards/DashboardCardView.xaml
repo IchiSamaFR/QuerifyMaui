@@ -8,8 +8,7 @@
             x:DataType="c:DashboardCardView"
             Style="{StaticResource CardStyle}"
             StrokeThickness="2"
-            Stroke="Transparent"
-            Padding="12,8">
+            Stroke="Transparent">
         <Border.Triggers>
             <DataTrigger TargetType="Border"
                          Binding="{Binding Card.IsSelected, FallbackValue=False}"
@@ -18,12 +17,10 @@
                         Value="{DynamicResource Primary}" />
                 <Setter Property="StrokeThickness"
                         Value="2" />
-                <Setter Property="Padding"
-                        Value="12,24,12,24" />
             </DataTrigger>
         </Border.Triggers>
 
-        <Grid RowDefinitions="Auto,*"
+        <Grid RowDefinitions="16,*"
               RowSpacing="6">
 
             <!-- ============ Titre ============ -->

@@ -62,6 +62,7 @@
 
         <!-- ============ Source : JSON du fichier ============ -->
         <c:CodeEditor Grid.Row="1"
+                      DocumentKey="{Binding Session.Document}"
                       Text="{Binding Session.Document.EditorText}"
                       FilePath="{Binding Session.Document.FilePath}"
                       Selection="{Binding Session.Document.Selection}"

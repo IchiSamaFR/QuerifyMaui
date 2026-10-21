@@ -10,4 +10,8 @@ public interface IDialogService
 
     /// <summary>Confirmation d'une action ; faux si l'utilisateur refuse ou si aucune page n'est affichee.</summary>
     Task<bool> ConfirmAsync(string title, string message, string accept);
+
+    /// <summary>Saisie d'un texte ; null si annulee ou si aucune page n'est affichee.</summary>
+    /// <param name="validate">Message d'erreur pour une valeur refusee (la popup reste ouverte), null si elle convient.</param>
+    Task<string?> PromptAsync(string title, string message, string initialValue, string accept, Func<string, string?>? validate = null);
 }

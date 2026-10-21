@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Enums.Dashboards;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Databases.Models.Queries;
+using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 
 namespace SqlToolManagerMaui.Core.Models.Dashboards;
@@ -15,6 +16,7 @@ public sealed partial class DashboardCardState : ObservableObject
 {
     private const string NULL_TEXT = "NULL";
     private const string NO_VALUE_TEXT = "—";
+    private const string FIRST_COLUMN_LABEL = "(première colonne)";
 
     private string _navigationParametersText;
 
@@ -32,6 +34,7 @@ public sealed partial class DashboardCardState : ObservableObject
 
         Definition = definition;
         _navigationParametersText = definition.Navigation?.FormatParameters() ?? string.Empty;
+        RefreshColumnChoices();
     }
 
     // ---------- Definition (concepteur) ----------
@@ -149,6 +152,116 @@ public sealed partial class DashboardCardState : ObservableObject
         }
     }
 
+    // ---------- Choix des colonnes (concepteur) ----------
+
+    /// <summary>
+    /// Colonnes des libelles pour un picker : cle "" = la premiere colonne, puis celles du dernier resultat.
+    /// Une colonne choisie mais absente du resultat reste proposee, pour ne pas perdre le choix avant execution.
+    /// </summary>
+    public Dictionary<string, string> LabelColumnChoices { get; private set; } = new() { [string.Empty] = FIRST_COLUMN_LABEL };
+
+    /// <summary>Colonnes de valeurs, cochees dans l'ordre du choix.</summary>
+    public ObservableCollection<DashboardColumnChoice> ValueColumnChoices { get; } = [];
+
+    /// <summary>Ajoute la colonne a la fin des valeurs, ou l'en retire.</summary>
+    [RelayCommand]
+    private void ToggleValueColumn(DashboardColumnChoice? choice)
+    {
+        if (choice is null)
+            return;
+
+        var index = Definition.ValueColumns.FindIndex(c => string.Equals(c, choice.Name, StringComparison.OrdinalIgnoreCase));
+        if (index >= 0)
+            Definition.ValueColumns.RemoveAt(index);
+        else
+            Definition.ValueColumns.Add(choice.Name);
+
+        Changed();
+    }
+
+    partial void OnResultChanged(QueryResultSet? value)
+    {
+        RefreshColumnChoices();
+        RefreshGridResult();
+    }
+
+    // ---------- Tableau ----------
+
+    private QueryResultSet? _gridSource;
+    private string? _gridColumnsKey;
+
+    /// <summary>Tableau affiche : les colonnes de valeurs choisies, dans leur ordre ; tout le resultat si aucune ne s'y trouve.</summary>
+    public QueryResultSet? GridResult { get; private set; }
+
+    /// <summary>Recalcule seulement si le resultat ou les colonnes changent : pas a chaque frappe dans la requete.</summary>
+    private void RefreshGridResult()
+    {
+        var key = string.Join('\u001f', Definition.ValueColumns);
+        if (ReferenceEquals(_gridSource, Result) && key == _gridColumnsKey)
+            return;
+
+        _gridSource = Result;
+        _gridColumnsKey = key;
+        GridResult = Project(Result, Definition.ValueColumns);
+        OnPropertyChanged(nameof(GridResult));
+    }
+
+    /// <summary>Lignes projetees sur les colonnes choisies ; elles gardent leur numero pour retrouver la ligne d'origine.</summary>
+    private static QueryResultSet? Project(QueryResultSet? result, IReadOnlyList<string> columns)
+    {
+        if (result is null || columns.Count == 0)
+            return result;
+
+        var indexes = columns
+            .Select(name => result.Columns.ToList().FindIndex(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase)))
+            .Where(index => index >= 0)
+            .Distinct()
+            .ToArray();
+
+        if (indexes.Length == 0)
+            return result;
+
+        var rows = result.Rows
+            .Select(row => new QueryResultRow(row.Number, indexes.Select(i => i < row.Cells.Length ? row.Cells[i] : null).ToArray()))
+            .ToArray();
+
+        return new QueryResultSet(result.Index, indexes.Select(i => result.Columns[i]).ToArray(), rows, result.IsTruncated, result.Title);
+    }
+
+    /// <summary>
+    /// Rebatit les listes seulement si les colonnes proposees changent (nouveau resultat) : a chaque frappe
+    /// dans la requete, seules les coches suivent, sans recreer les puces ni le picker.
+    /// </summary>
+    private void RefreshColumnChoices()
+    {
+        var available = Result?.Columns.Select(c => c.Name).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? [];
+        var configured = Definition.ValueColumns.Append(Definition.LabelColumn ?? string.Empty)
+            .Where(c => c.Length > 0 && !available.Contains(c, StringComparer.OrdinalIgnoreCase))
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+        var names = available.Concat(configured).ToList();
+
+        if (!names.SequenceEqual(ValueColumnChoices.Select(c => c.Name), StringComparer.Ordinal))
+        {
+            ValueColumnChoices.Clear();
+            foreach (var name in names)
+                ValueColumnChoices.Add(new DashboardColumnChoice(name));
+
+            LabelColumnChoices = new Dictionary<string, string> { [string.Empty] = FIRST_COLUMN_LABEL };
+            foreach (var name in names)
+                LabelColumnChoices.TryAdd(name, name);
+
+            OnPropertyChanged(nameof(LabelColumnChoices));
+        }
+
+        foreach (var choice in ValueColumnChoices)
+        {
+            var order = Definition.ValueColumns.FindIndex(c => string.Equals(c, choice.Name, StringComparison.OrdinalIgnoreCase));
+            choice.IsSelected = order >= 0;
+            choice.Order = order + 1;
+            choice.IsAvailable = Result is null || available.Contains(choice.Name, StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
     // ---------- Rendu ----------
 
     public bool HasTitle => !string.IsNullOrWhiteSpace(Definition.Title);
@@ -206,22 +319,22 @@ public sealed partial class DashboardCardState : ObservableObject
     [ObservableProperty]
     public partial bool IsSelected { get; set; }
 
+    /// <summary>Par la propriete View : le graphique, lie a View, change de forme (barres, lignes, secteurs).</summary>
     [RelayCommand]
-    private void SetCardKind(DashboardCardKind kind)
-    {
-        if (Definition.View != kind)
-            Definition.View = kind;
-        Changed();
-    }
+    private void SetCardKind(DashboardCardKind kind) => View = kind;
 
 
     // ---------- Navigation ----------
 
+    /// <summary>La ligne cliquee peut venir du tableau projete : la navigation lit les colonnes de la ligne complete.</summary>
     [RelayCommand]
     private void ActivateRow(QueryResultRow? row)
     {
-        if (HasNavigation && row is not null)
-            NavigationRequested?.Invoke(this, new DashboardNavigationRequest(this, row));
+        if (!HasNavigation || row is null)
+            return;
+
+        var source = Result?.Rows.FirstOrDefault(r => r.Number == row.Number) ?? row;
+        NavigationRequested?.Invoke(this, new DashboardNavigationRequest(this, source));
     }
 
     [RelayCommand]
@@ -244,6 +357,9 @@ public sealed partial class DashboardCardState : ObservableObject
     /// <summary>Les proprietes derivees suivent, puis l'hote reecrit le fichier.</summary>
     private void Changed()
     {
+        RefreshColumnChoices();
+        RefreshGridResult();
+
         foreach (var name in DerivedProperties)
             OnPropertyChanged(name);
 

@@ -41,6 +41,18 @@ public sealed class DialogService : IDialogService
     public async Task<bool> ConfirmAsync(string title, string message, string accept)
         => await ShowAsync(title, message, accept, secondaryButtonText: null) == MessageDialogResult.Primary;
 
+    public async Task<string?> PromptAsync(string title, string message, string initialValue, string accept, Func<string, string?>? validate = null)
+    {
+        if (Shell.Current?.CurrentPage is not { } page)
+            return null;
+
+        var viewModel = _services.GetRequiredService<TextPromptVM>();
+        viewModel.Initialize(title, message, initialValue, accept, validate);
+
+        var result = await page.ShowPopupAsync<string?>(new TextPromptPopup(viewModel), FluentPopupOptions.Create());
+        return result.WasDismissedByTappingOutsideOfPopup ? null : result.Result;
+    }
+
     /// <summary>Sans page pour poser la question, rien n'est fait : <see cref="MessageDialogResult.None"/>.</summary>
     private async Task<MessageDialogResult> ShowAsync(string title, string message, string primaryButtonText, string? secondaryButtonText)
     {

@@ -135,6 +135,7 @@ public partial class MainVM
 
                 document.FilePath = path;
                 AddRecentFile(path);
+                NotifyTabPathChanged();
             }
 
             document.MarkSaved();
@@ -218,6 +219,123 @@ public partial class MainVM
     /// <summary>Ferme l'onglet courant (entree de menu, sans parametre).</summary>
     [RelayCommand]
     private Task CloseActiveAsync() => CloseAsync(SelectedSession);
+
+    // ---------- Menu contextuel d'un onglet (parametre : la session de l'onglet) ----------
+
+    [RelayCommand]
+    private Task CloseOtherTabsAsync(AbstractSession? session)
+        => CloseManyAsync(Sessions.Where(s => !ReferenceEquals(s, session)).ToList());
+
+    [RelayCommand]
+    private Task CloseTabsToRightAsync(AbstractSession? session)
+    {
+        var index = session is null ? -1 : Sessions.IndexOf(session);
+        return index < 0 ? Task.CompletedTask : CloseManyAsync(Sessions.Skip(index + 1).ToList());
+    }
+
+    [RelayCommand]
+    private Task CloseAllTabsAsync() => CloseManyAsync(Sessions.ToList());
+
+    /// <summary>Un par un, chaque onglet modifie etant confirme : « Annuler » arrete la fermeture des suivants.</summary>
+    private async Task CloseManyAsync(IReadOnlyList<AbstractSession> sessions)
+    {
+        foreach (var session in sessions)
+        {
+            if (!Sessions.Contains(session))
+                continue;
+
+            if (!await ConfirmDiscardAsync(session))
+                return;
+
+            Remove(session);
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveTabAsync(AbstractSession? session) => await TrySaveSessionAsync(session, forceSaveAs: false);
+
+    [RelayCommand]
+    private async Task SaveTabAsAsync(AbstractSession? session) => await TrySaveSessionAsync(session, forceSaveAs: true);
+
+    /// <summary>Fichier enregistre : renomme sur le disque ; document sans titre : change son nom d'onglet.</summary>
+    [RelayCommand]
+    private async Task RenameTabAsync(AbstractSession? session)
+    {
+        if (session is null)
+            return;
+
+        var document = session.Document;
+        var name = await _dialogs.PromptAsync(
+            "Renommer",
+            document.HasPath ? $"Nouveau nom du fichier « {document.FileName} » :" : "Nouveau nom de l'onglet :",
+            document.FileName,
+            "Renommer",
+            value => ValidateName(document, value));
+
+        if (name is null || name == document.FileName)
+            return;
+
+        if (!document.HasPath)
+        {
+            document.FallbackName = name;
+            return;
+        }
+
+        // Sans extension saisie, celle du fichier est conservee.
+        var fileName = Path.HasExtension(name) ? name : name + Path.GetExtension(document.FilePath);
+        var oldPath = document.FilePath!;
+
+        await RunAsBusyAsync(async token =>
+        {
+            var newPath = await _files.RenameAsync(oldPath, fileName, token);
+            document.FilePath = newPath;
+
+            if (Preferences.RecentFiles.Any(p => IsSamePath(p, oldPath)))
+                Preferences.RecentFiles = [.. Preferences.RecentFiles.Select(p => IsSamePath(p, oldPath) ? newPath : p)];
+
+            _status.Set($"{Path.GetFileName(oldPath)} renommé en {fileName}.");
+        });
+    }
+
+    private static string? ValidateName(EditorDocument document, string name)
+    {
+        if (name.Length == 0)
+            return "Le nom est obligatoire.";
+
+        if (document.HasPath && name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            return "Le nom contient des caractères interdits dans un nom de fichier.";
+
+        return null;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanRevealTab))]
+    private void RevealTab(AbstractSession? session)
+    {
+        if (session?.Document.FilePath is not { } path)
+            return;
+
+        if (!_files.RevealInExplorer(path))
+            _status.Set($"{Path.GetFileName(path)} est introuvable sur le disque.", isError: true);
+    }
+
+    private static bool CanRevealTab(AbstractSession? session) => session?.Document.HasPath == true;
+
+    [RelayCommand(CanExecute = nameof(CanRevealTab))]
+    private async Task CopyTabPathAsync(AbstractSession? session)
+    {
+        if (session?.Document.FilePath is not { } path)
+            return;
+
+        await Clipboard.Default.SetTextAsync(path);
+        _status.Set("Chemin copié dans le presse-papiers.");
+    }
+
+    /// <summary>Un document qui recoit un chemin (Enregistrer sous, renommage) rend ses entrees de menu disponibles.</summary>
+    private void NotifyTabPathChanged()
+    {
+        RevealTabCommand.NotifyCanExecuteChanged();
+        CopyTabPathCommand.NotifyCanExecuteChanged();
+    }
 
     // ---------- Fichiers recents ----------
 

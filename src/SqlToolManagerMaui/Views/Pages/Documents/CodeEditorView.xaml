@@ -45,7 +45,8 @@
             </Grid.Triggers>
 
             <!-- ============ Editeur ============ -->
-            <c:CodeEditor Text="{Binding Session.Document.EditorText}"
+            <c:CodeEditor DocumentKey="{Binding Session.Document}"
+                          Text="{Binding Session.Document.EditorText}"
                           FilePath="{Binding Session.Document.FilePath}"
                           Selection="{Binding Session.Document.Selection}"
                           EditorPreferences="{Binding Preferences.Editor}"

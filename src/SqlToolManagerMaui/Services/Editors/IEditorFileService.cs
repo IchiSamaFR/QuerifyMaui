@@ -1,4 +1,4 @@
-namespace SqlToolManagerMaui.Services.Editors;
+﻿namespace SqlToolManagerMaui.Services.Editors;
 
 /// <summary>Contenu d'un fichier ouvert depuis le disque.</summary>
 /// <param name="FilePath">Chemin complet retenu par le selecteur.</param>
@@ -22,4 +22,10 @@ public interface IEditorFileService
 
     /// <summary>Ouvre un selecteur d'enregistrement. Retourne le chemin retenu, ou null si annule.</summary>
     Task<string?> SaveAsAsync(string suggestedFileName, string text, CancellationToken cancellationToken = default);
+
+    /// <summary>Renomme le fichier dans son dossier ; retourne le nouveau chemin. Leve une IOException si la cible existe.</summary>
+    Task<string> RenameAsync(string filePath, string newFileName, CancellationToken cancellationToken = default);
+
+    /// <summary>Ouvre l'explorateur sur le dossier du fichier, le fichier selectionne ; faux s'il n'existe plus.</summary>
+    bool RevealInExplorer(string filePath);
 }

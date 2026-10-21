@@ -3,6 +3,7 @@
                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                 x:Class="SqlToolManagerMaui.Views.Pages.MainPage"
                 x:DataType="vm:MainVM"
+                x:Name="Page"
                 Shell.NavBarIsVisible="True">
     <v:AbstractPage.Resources>
         <!-- Une vue par type de session, instanciee avec la page ; la TabBar la reaffiche d'un onglet a l'autre et la vue transmet la session a son VM -->
@@ -126,7 +127,7 @@
 
     <Grid ColumnDefinitions="340,Auto,*"
           ColumnSpacing="8"
-          Padding="8">
+          Padding="{DynamicResource CardContentPadding}">
         <Grid.Triggers>
             <!-- Explorateur ferme : colonne et separateur disparaissent -->
             <DataTrigger TargetType="Grid"
@@ -153,9 +154,49 @@
                   ContentSelector="{StaticResource DocumentViewSelector}"
                   IsClosable="True"
                   CanReorderItems="True"
-                  CloseCommand="{Binding CloseCommand}"
-                  TitleMemberPath="Document.Title"
-                  ToolTipMemberPath="Document.PathLabel">
+                  CloseCommand="{Binding CloseCommand}">
+            <!-- En-tete avec menu contextuel : les commandes recoivent la session de l'onglet clique -->
+            <v:TabBar.ItemTemplate>
+                <DataTemplate x:DataType="m:AbstractSession">
+                    <v:TabBarHeader Title="{Binding Document.Title}"
+                                    ToolTip="{Binding Document.PathLabel}"
+                                    IsClosable="True"
+                                    CloseCommand="{Binding ViewModel.CloseCommand, Source={x:Reference Page}, x:DataType=v:MainPage}">
+                        <FlyoutBase.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Fermer"
+                                                Command="{Binding ViewModel.CloseCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Fermer les autres onglets"
+                                                Command="{Binding ViewModel.CloseOtherTabsCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Fermer les onglets à droite"
+                                                Command="{Binding ViewModel.CloseTabsToRightCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Fermer tous les onglets"
+                                                Command="{Binding ViewModel.CloseAllTabsCommand, Source={x:Reference Page}, x:DataType=v:MainPage}" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Enregistrer"
+                                                Command="{Binding ViewModel.SaveTabCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Enregistrer sous..."
+                                                Command="{Binding ViewModel.SaveTabAsCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Renommer..."
+                                                Command="{Binding ViewModel.RenameTabCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Copier le chemin complet"
+                                                Command="{Binding ViewModel.CopyTabPathCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Sélectionner dans le répertoire"
+                                                Command="{Binding ViewModel.RevealTabCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                            </MenuFlyout>
+                        </FlyoutBase.ContextFlyout>
+                    </v:TabBarHeader>
+                </DataTemplate>
+            </v:TabBar.ItemTemplate>
         </v:TabBar>
     </Grid>
 </v:AbstractPage>

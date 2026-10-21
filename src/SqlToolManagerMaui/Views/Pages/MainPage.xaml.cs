@@ -12,9 +12,13 @@ public partial class MainPage : AbstractPage
     public static readonly string PAGE_ROUTE = nameof(MainPage);
     protected override string PageRoute => PAGE_ROUTE;
 
+    /// <summary>VM type pour les bindings des gabarits (menu contextuel des onglets).</summary>
+    public MainVM ViewModel { get; }
+
     public MainPage(MainVM viewModel, ConnectionExplorerView connectionExplorerView)
     : base(viewModel)
     {
+        ViewModel = viewModel;
         InitializeComponent();
         ConnectionExplorerHost.Content = connectionExplorerView;
 

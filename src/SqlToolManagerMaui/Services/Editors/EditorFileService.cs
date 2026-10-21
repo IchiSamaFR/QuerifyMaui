@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Maui.Storage;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Helpers.Tools;
+using System.Diagnostics;
 
 namespace SqlToolManagerMaui.Services.Editors;
 
@@ -69,6 +70,34 @@ public sealed class EditorFileService : IEditorFileService
         var result = await FileSaver.Default.SaveAsync(suggestedFileName, stream, cancellationToken);
 
         return result.IsSuccessful ? result.FilePath : null;
+    }
+
+    public Task<string> RenameAsync(string filePath, string newFileName, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(newFileName);
+
+        var target = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, newFileName);
+
+        return Task.Run(() =>
+        {
+            // Changement de casse seul (requete.sql -> Requete.sql) : la cible "existe", c'est le meme fichier.
+            if (File.Exists(target) && !string.Equals(Path.GetFullPath(target), Path.GetFullPath(filePath), StringComparison.OrdinalIgnoreCase))
+                throw new IOException($"{newFileName} existe déjà dans ce dossier.");
+
+            File.Move(filePath, target);
+            return target;
+        }, cancellationToken);
+    }
+
+    public bool RevealInExplorer(string filePath)
+    {
+        if (!File.Exists(filePath))
+            return false;
+
+        // /select, : le dossier s'ouvre avec le fichier deja selectionne.
+        using var explorer = Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{filePath}\"") { UseShellExecute = true });
+        return true;
     }
 
     private static void TryDelete(string path)

@@ -405,33 +405,115 @@
 
                     <Grid ColumnDefinitions="*,Auto"
                           ColumnSpacing="8">
-                        <HorizontalStackLayout Spacing="8"
-                                               IsEnabled="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}">
+                        <Grid ColumnDefinitions="Auto,Auto,Auto,*"
+                              ColumnSpacing="8"
+                              IsEnabled="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}">
                             <Button Style="{StaticResource SecondaryIconButtonStyle}"
                                     ImageSource="{mk:FluentFilledImage Icon=Play16Filled}"
                                     Command="{Binding RunCardCommand}"
                                     CommandParameter="{Binding Session.SelectedCard}"
-                                    HorizontalOptions="Start" />
+                                    HorizontalOptions="Start"
+                                    ToolTipProperties.Text="Exécuter : la liste des colonnes vient du résultat" />
 
                             <!-- LINQ : les parametres du dashboard sont des variables C# (UserId ou @UserId) -->
-                            <inp:PickerField ItemsSource="{x:Static c:DashboardGrid.QueryLanguages}"
+                            <inp:PickerField Grid.Column="1"
+                                             ItemsSource="{x:Static c:DashboardGrid.QueryLanguages}"
                                              SelectedKey="{Binding Session.SelectedCard.Language, Mode=TwoWay, FallbackValue={x:Null}}"
                                              WidthRequest="120"
                                              ToolTipProperties.Text="Langage de la requête" />
 
-                            <inp:TextField Icon="{mk:FluentFilledImage Icon=Subtitles20Filled, IconSize=16}"
-                                           VerticalTextAlignment="Center"
-                                           Placeholder="Colonne des libellés (vide = la première)"
-                                           Text="{Binding Session.SelectedCard.LabelColumn, Mode=TwoWay, FallbackValue=''}"
-                                           IsEnabled="{Binding Session.SelectedCard.IsChart, FallbackValue=False}" 
-                                           WidthRequest="280"/>
+                            <!-- ItemsSource avant SelectedKey : au changement de carte, la liste suit avant la selection -->
+                            <inp:PickerField Grid.Column="2"
+                                             ItemsSource="{Binding Session.SelectedCard.LabelColumnChoices, FallbackValue={x:Null}}"
+                                             SelectedKey="{Binding Session.SelectedCard.LabelColumn, Mode=TwoWay, FallbackValue={x:Null}}"
+                                             Icon="{mk:FluentFilledImage Icon=Subtitles20Filled, IconSize=16}"
+                                             IsEnabled="{Binding Session.SelectedCard.IsChart, FallbackValue=False}"
+                                             WidthRequest="220"
+                                             ToolTipProperties.Text="Colonne des libellés (axe ou parts du graphique)" />
 
-                            <inp:TextField Icon="{mk:FluentFilledImage Icon=Column20Filled, IconSize=16}"
-                                           Placeholder="Colonnes de valeurs (séparées par des virgules)"
-                                           Text="{Binding Session.SelectedCard.ValueColumnsText, Mode=TwoWay, FallbackValue=''}"
-                                           IsEnabled="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}"
-                                           WidthRequest="280" />
-                        </HorizontalStackLayout>
+                            <!-- Colonnes de valeurs : une puce par colonne du resultat, cochees dans l'ordre des series -->
+                            <Grid Grid.Column="3"
+                                  ColumnDefinitions="Auto,*"
+                                  ColumnSpacing="6">
+                                <Image Source="{mk:FluentFilledImage Icon=Column20Filled, IconSize=16}"
+                                       WidthRequest="16"
+                                       HeightRequest="16"
+                                       VerticalOptions="Center"
+                                       ToolTipProperties.Text="Colonnes de valeurs" />
+
+                                <Label Grid.Column="1"
+                                       Text="Exécutez la requête pour choisir ses colonnes de valeurs."
+                                       Style="{StaticResource LabelTertiaryStyle}"
+                                       VerticalOptions="Center"
+                                       IsVisible="{Binding Session.SelectedCard.ValueColumnChoices.Count, FallbackValue=False, Converter={StaticResource IsDefaultToBooleanConverter}}" />
+
+                                <ScrollView Grid.Column="1"
+                                            Orientation="Horizontal"
+                                            HorizontalScrollBarVisibility="Never"
+                                            VerticalOptions="Center">
+                                    <HorizontalStackLayout Spacing="4"
+                                                           BindableLayout.ItemsSource="{Binding Session.SelectedCard.ValueColumnChoices, FallbackValue={x:Null}}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="m:DashboardColumnChoice">
+                                                <Border Padding="8,3"
+                                                        StrokeShape="RoundRectangle 4"
+                                                        StrokeThickness="1"
+                                                        Stroke="{DynamicResource ControlStrokeColorDefault}"
+                                                        BackgroundColor="{DynamicResource ControlFillColorDefault}"
+                                                        ToolTipProperties.Text="Cliquer pour ajouter ou retirer la colonne">
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding Session.SelectedCard.ToggleValueColumnCommand, Source={x:Reference Root}, FallbackValue={x:Null}, x:DataType=c:DashboardGrid}"
+                                                                              CommandParameter="{Binding .}" />
+                                                    </Border.GestureRecognizers>
+                                                    <Border.Triggers>
+                                                        <DataTrigger TargetType="Border"
+                                                                     Binding="{Binding IsSelected}"
+                                                                     Value="True">
+                                                            <Setter Property="BackgroundColor"
+                                                                    Value="{DynamicResource Info}" />
+                                                            <Setter Property="Stroke"
+                                                                    Value="{DynamicResource InfoStroke}" />
+                                                        </DataTrigger>
+                                                        <!-- Choisie avant, mais absente du dernier resultat -->
+                                                        <DataTrigger TargetType="Border"
+                                                                     Binding="{Binding IsAvailable}"
+                                                                     Value="False">
+                                                            <Setter Property="Opacity"
+                                                                    Value="{DynamicResource DisabledOpacity}" />
+                                                            <Setter Property="ToolTipProperties.Text"
+                                                                    Value="Absente du dernier résultat : cliquer pour la retirer" />
+                                                        </DataTrigger>
+                                                    </Border.Triggers>
+
+                                                    <HorizontalStackLayout Spacing="4">
+                                                        <!-- Rang dans les series -->
+                                                        <Label Text="{Binding Order}"
+                                                               IsVisible="{Binding IsSelected}"
+                                                               FontAttributes="Bold"
+                                                               FontSize="{StaticResource FontSize_Caption}"
+                                                               TextColor="{DynamicResource TextOnInfo}"
+                                                               VerticalOptions="Center" />
+                                                        <Label Text="{Binding Name}"
+                                                               FontSize="{StaticResource FontSize_Caption}"
+                                                               TextColor="{DynamicResource TextFillColorPrimary}"
+                                                               VerticalOptions="Center">
+                                                            <Label.Triggers>
+                                                                <DataTrigger TargetType="Label"
+                                                                             Binding="{Binding IsSelected}"
+                                                                             Value="True">
+                                                                    <Setter Property="TextColor"
+                                                                            Value="{DynamicResource TextOnInfo}" />
+                                                                </DataTrigger>
+                                                            </Label.Triggers>
+                                                        </Label>
+                                                    </HorizontalStackLayout>
+                                                </Border>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </HorizontalStackLayout>
+                                </ScrollView>
+                            </Grid>
+                        </Grid>
 
                         <HorizontalStackLayout Grid.Column="1"
                                                Spacing="8">
@@ -465,7 +547,8 @@
                         <!-- Conteneur à hauteur fixe : l'éditeur ne peut plus faire varier la ligne -->
                         <Grid IsClippedToBounds="True"
                               IsVisible="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}">
-                            <c:CodeEditor Text="{Binding Session.SelectedCard.Query, Mode=TwoWay, FallbackValue=''}"
+                            <c:CodeEditor DocumentKey="{Binding Session.SelectedCard}"
+                                          Text="{Binding Session.SelectedCard.Query, Mode=TwoWay, FallbackValue=''}"
                                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
                                           EditorPreferences="{Binding EditorPreferences}"
                                           Connection="{Binding Connection}"
@@ -485,7 +568,8 @@
                         <!-- Texte libre : sans configuration de syntaxe, ni coloration ni autocompletion -->
                         <Grid IsClippedToBounds="True"
                               IsVisible="{Binding Session.SelectedCard.IsText, FallbackValue=False}">
-                            <c:CodeEditor Text="{Binding Session.SelectedCard.Text, Mode=TwoWay, FallbackValue=''}"
+                            <c:CodeEditor DocumentKey="{Binding Session.SelectedCard}"
+                                          Text="{Binding Session.SelectedCard.Text, Mode=TwoWay, FallbackValue=''}"
                                           EditorPreferences="{Binding EditorPreferences}" />
                         </Grid>
 
@@ -505,7 +589,8 @@
                             <!-- Syntaxe SQL : @Param et 'texte' colores, colonnes proposees -->
                             <Grid Grid.Row="1"
                                   IsClippedToBounds="True">
-                                <c:CodeEditor Text="{Binding Session.SelectedCard.NavigationParametersText, Mode=TwoWay, FallbackValue=''}"
+                                <c:CodeEditor DocumentKey="{Binding Session.SelectedCard}"
+                                              Text="{Binding Session.SelectedCard.NavigationParametersText, Mode=TwoWay, FallbackValue=''}"
                                               IsDiagnosticsEnabled="False"
                                               SyntaxConfiguration="{Binding SyntaxConfiguration}"
                                               EditorPreferences="{Binding EditorPreferences}"
