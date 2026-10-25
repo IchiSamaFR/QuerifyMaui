@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text;
+using Microsoft.EntityFrameworkCore;
 using SqlToolManagerMaui.Languages.Linq;
 using Xunit;
 
@@ -163,7 +164,7 @@ public class LinqCompilerTests
 
         List<(object? Value, string? Title)> dumps = [];
         using var context = Compiler.CreateContext(Model.Value, ConnectionString);
-        var result = compiled.Execute!(context, (value, title) => dumps.Add((value, title)));
+        var result = compiled.Execute!(context, (value, title) => dumps.Add((value, title)), null);
 
         Assert.Equal(42, result);
         Assert.Equal(2, dumps.Count);
@@ -171,6 +172,23 @@ public class LinqCompilerTests
         Assert.Equal("Utilisateurs", dumps[0].Title);
         Assert.Equal(40, dumps[1].Value);
         Assert.Null(dumps[1].Title);
+    }
+
+    [Fact]
+    public void Console_IsRedirectedToTheWriter()
+    {
+        var compiled = Compile("""
+            Console.Write("a");
+            Console.WriteLine("{b}");
+            Console.WriteLine("{0}+{1}", 1, 2);
+            return 0;
+            """);
+
+        var output = new StringBuilder();
+        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        compiled.Execute!(context, null, text => output.Append(text));
+
+        Assert.Equal($"a{{b}}{Environment.NewLine}1+2{Environment.NewLine}", output.ToString());
     }
 
     [Theory]

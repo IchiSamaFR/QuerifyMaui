@@ -21,6 +21,7 @@ public sealed class LinqCompiler : ILinqCompiler
     private const string QueryClass = "UserQuery";
     private const string QueryMethod = "Run";
     private const string DumpClass = "QueryExtensions";
+    private const string ConsoleClass = "Console";
 
     /// <summary>Nom de fichier virtuel des diagnostics : les positions sont celles du texte de l'onglet.</summary>
     private const string QueryFileName = "requete";
@@ -74,12 +75,12 @@ public sealed class LinqCompiler : ILinqCompiler
         var loadContext = new QueryLoadContext(model.Assembly);
         var assembly = loadContext.LoadFromStream(new MemoryStream(image));
         var method = assembly.GetType($"{QueryNamespace}.{QueryClass}", throwOnError: true)!.GetMethod(QueryMethod)!;
-        var run = method.CreateDelegate<Func<DbContext, Action<object?, string?>?, object?[], object?>>();
+        var run = method.CreateDelegate<Func<DbContext, Action<object?, string?>?, Action<string?>?, object?[], object?>>();
         var values = parameters.Select(p => p.Value).ToArray();
 
         return new LinqCompiledQuery
         {
-            Execute = (context, dump) => run(context, dump, values),
+            Execute = (context, dump, write) => run(context, dump, write, values),
             ReturnsValue = ReturnsValue(query),
             LoadContext = loadContext,
         };
@@ -130,11 +131,27 @@ public sealed class LinqCompiler : ILinqCompiler
         code.AppendLine("    }");
         code.AppendLine("}");
         code.AppendLine();
+        // Masque System.Console dans le namespace de la requete : la sortie va dans l'onglet Messages,
+        // sans Console.SetOut global (plusieurs requetes peuvent tourner en meme temps).
+        code.AppendLine($"public static class {ConsoleClass}");
+        code.AppendLine("{");
+        code.AppendLine("    internal static Action<string> __sink;");
+        code.AppendLine();
+        code.AppendLine("    public static void Write(string value) => __sink?.Invoke(value);");
+        code.AppendLine("    public static void Write(object value) => __sink?.Invoke(Convert.ToString(value));");
+        code.AppendLine("    public static void Write(string format, params object[] args) => __sink?.Invoke(string.Format(format, args));");
+        code.AppendLine("    public static void WriteLine() => __sink?.Invoke(Environment.NewLine);");
+        code.AppendLine("    public static void WriteLine(string value) => __sink?.Invoke(value + Environment.NewLine);");
+        code.AppendLine("    public static void WriteLine(object value) => __sink?.Invoke(Convert.ToString(value) + Environment.NewLine);");
+        code.AppendLine("    public static void WriteLine(string format, params object[] args) => __sink?.Invoke(string.Format(format, args) + Environment.NewLine);");
+        code.AppendLine("}");
+        code.AppendLine();
         code.AppendLine($"public static class {QueryClass}");
         code.AppendLine("{");
-        code.AppendLine($"    public static object {QueryMethod}(DbContext __context, Action<object, string> __dump, object[] __args)");
+        code.AppendLine($"    public static object {QueryMethod}(DbContext __context, Action<object, string> __dump, Action<string> __write, object[] __args)");
         code.AppendLine("    {");
         code.AppendLine($"        {DumpClass}.__sink = __dump;");
+        code.AppendLine($"        {ConsoleClass}.__sink = __write;");
         if (model is not null)
             code.AppendLine($"        var {model.ContextVariableName} = ({model.ContextClassName})__context;");
 

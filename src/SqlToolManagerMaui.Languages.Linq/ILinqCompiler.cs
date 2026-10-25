@@ -48,11 +48,11 @@ public sealed class LinqCompiledQuery : IDisposable
     /// <summary>Contexte collectable de l'assembly de la requete ; null en cas d'erreur de compilation.</summary>
     public AssemblyLoadContext? LoadContext { get; init; }
 
-    /// <summary>Execute la requete ; chaque appel a Dump(valeur, titre) est transmis au second parametre.</summary>
-    public Func<DbContext, Action<object?, string?>?, object?>? Execute { get; init; }
+    /// <summary>Execute la requete ; Dump(valeur, titre) est transmis au second parametre, Console.Write* au troisieme.</summary>
+    public Func<DbContext, Action<object?, string?>?, Action<string?>?, object?>? Execute { get; init; }
 
-    /// <summary>Execution sans recuperation des Dump().</summary>
-    public Func<DbContext, object?>? Run => Execute is { } execute ? context => execute(context, null) : null;
+    /// <summary>Execution sans recuperation des Dump() ni de la console.</summary>
+    public Func<DbContext, object?>? Run => Execute is { } execute ? context => execute(context, null, null) : null;
 
     /// <summary>Faux pour des instructions sans return : la valeur rendue (null) n'est pas un resultat.</summary>
     public bool ReturnsValue { get; init; }

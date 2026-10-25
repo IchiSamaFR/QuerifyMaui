@@ -19,7 +19,7 @@ internal sealed class LinqCompletionFilter
     /// <summary>Types frequents dans un filtre ou une projection.</summary>
     private static readonly HashSet<string> Types = new(StringComparer.Ordinal)
     {
-        "DateTime", "DateTimeOffset", "DateOnly", "TimeOnly", "TimeSpan", "Guid", "Math", "Convert", "EF", "List"
+        "DateTime", "DateTimeOffset", "DateOnly", "TimeOnly", "TimeSpan", "Guid", "Math", "Convert", "EF", "List", "Console"
     };
 
     /// <summary>Membres d'object herites par tout : bruit dans une requete.</summary>
@@ -75,7 +75,8 @@ internal sealed class LinqCompletionFilter
 
     private bool KeepsMember(string name, string kind)
     {
-        if (ObjectMembers.Contains(name))
+        // Collecteurs internes du source genere (Console.__sink...).
+        if (ObjectMembers.Contains(name) || name.StartsWith("__", StringComparison.Ordinal))
             return false;
 
         // ToListAsync, FirstOrDefaultAsync... : l'execution est synchrone, ils ne font qu'allonger la liste.

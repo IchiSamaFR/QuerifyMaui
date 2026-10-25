@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
+using System.Text;
 
 namespace SqlToolManagerMaui.Languages.Linq;
 
@@ -49,12 +50,15 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         List<QueryMessage> messages = [];
         var hasErrors = false;
         var wasCancelled = false;
+        var console = new ConsoleOutput();
+        var consoleIndex = 0;
         var stopwatch = Stopwatch.StartNew();
 
         try
         {
             var model = await _models.GetModelAsync(connection, database: null, cancellationToken);
             messages.Add(new QueryMessage($"Contexte {model.Model.ContextVariableName} ({model.Model.ContextClassName}) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
+            consoleIndex = messages.Count;
 
             // Dispose : decharge l'assembly de la requete une fois les resultats convertis.
             using var compiled = await Task.Run(() => _compiler.CompileQuery(model, query), cancellationToken);
@@ -67,7 +71,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             {
                 // WaitAsync : l'annulation rend la main tout de suite. Le code de l'utilisateur, lui, ne peut pas
                 // etre interrompu dans le processus (boucle infinie...) : il se termine en arriere-plan.
-                var outputs = await Task.Run(() => Run(model, compiled, connection.ConnectionString!, MaxRows, cancellationToken), CancellationToken.None)
+                var outputs = await Task.Run(() => Run(model, compiled, connection.ConnectionString!, MaxRows, console, cancellationToken), CancellationToken.None)
                     .WaitAsync(cancellationToken);
 
                 foreach (var output in outputs)
@@ -110,6 +114,9 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
         stopwatch.Stop();
 
+        // Avant les resultats et l'eventuelle erreur : la console a ete ecrite pendant l'execution.
+        messages.InsertRange(consoleIndex, console.ToMessages());
+
         if (wasCancelled)
             messages.Add(new QueryMessage("Requête annulée par l'utilisateur.", IsError: true));
 
@@ -137,7 +144,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5)));
 
         // Meme reserve que ExecuteAsync : le code de l'utilisateur ne peut pas etre interrompu, seulement abandonne.
-        var outputs = await Task.Run(() => Run(model, compiled, connectionString, Math.Max(1, maxRows), cancellationToken), CancellationToken.None)
+        var outputs = await Task.Run(() => Run(model, compiled, connectionString, Math.Max(1, maxRows), console: null, cancellationToken), CancellationToken.None)
             .WaitAsync(cancellationToken);
 
         // Une carte n'affiche qu'un jeu : la valeur rendue, a defaut le dernier Dump().
@@ -150,7 +157,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
     private sealed record Output(QueryResultSet ResultSet, string? Sql);
 
-    private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, CancellationToken cancellationToken)
+    private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, ConsoleOutput? console, CancellationToken cancellationToken)
     {
         using var context = _compiler.CreateContext(model, connectionString);
 
@@ -162,7 +169,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         {
             lastDumped = dumped;
             outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken));
-        });
+        }, console is null ? null : console.Write);
 
         // return x.Dump() : la valeur est deja affichee, pas de second onglet identique.
         var isAlreadyDumped = outputs.Count > 0 && Equals(value, lastDumped);
@@ -170,6 +177,56 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             outputs.Add(Capture(value, outputs.Count + 1, title: null, maxRows, cancellationToken));
 
         return outputs;
+    }
+
+    /// <summary>Sortie de Console.Write* ; le script peut encore ecrire en arriere-plan apres une annulation.</summary>
+    private sealed class ConsoleOutput
+    {
+        // Une boucle d'affichage ne doit pas saturer la memoire ni l'onglet Messages.
+        private const int MaxLength = 1_000_000;
+
+        private readonly Lock _lock = new();
+        private readonly StringBuilder _text = new();
+        private bool _isTruncated;
+
+        public void Write(string? text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            lock (_lock)
+            {
+                var room = MaxLength - _text.Length;
+                if (text.Length > room)
+                {
+                    _isTruncated = true;
+                    text = text[..Math.Max(0, room)];
+                }
+
+                _text.Append(text);
+            }
+        }
+
+        public IReadOnlyList<QueryMessage> ToMessages()
+        {
+            string text;
+            bool isTruncated;
+            lock (_lock)
+            {
+                text = _text.ToString();
+                isTruncated = _isTruncated;
+            }
+
+            if (text.Length == 0)
+                return [];
+
+            // Une ligne par message ; le saut de ligne final de WriteLine ne cree pas de ligne vide.
+            List<QueryMessage> messages = [.. text.ReplaceLineEndings("\n").TrimEnd('\n').Split('\n').Select(l => new QueryMessage(l))];
+            if (isTruncated)
+                messages.Add(new QueryMessage($"Sortie console tronquée à {MaxLength:N0} caractères.", IsError: true));
+
+            return messages;
+        }
     }
 
     private static Output Capture(object? value, int index, string? title, int maxRows, CancellationToken cancellationToken)
