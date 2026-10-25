@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Workspaces;
 
 /// <summary>Requete dans son source genere : les positions Roslyn se ramenent au texte de l'onglet par <see cref="QueryStart"/>.</summary>
 /// <param name="HasModel">Faux sans DbContext : la variable de la base n'existe pas dans le source.</param>

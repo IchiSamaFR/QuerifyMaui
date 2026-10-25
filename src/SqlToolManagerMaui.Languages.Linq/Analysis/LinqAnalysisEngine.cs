@@ -5,9 +5,12 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using SqlToolManagerMaui.Core.Enums.Editors.Analysis;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors.Analysis;
+using SqlToolManagerMaui.Languages.Linq.Compilation;
+using SqlToolManagerMaui.Languages.Linq.Queries;
+using SqlToolManagerMaui.Languages.Linq.Workspaces;
 using System.Globalization;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Analysis;
 
 /// <inheritdoc cref="ILinqAnalysisEngine"/>
 [AutoRegister(As = typeof(ILinqAnalysisEngine))]

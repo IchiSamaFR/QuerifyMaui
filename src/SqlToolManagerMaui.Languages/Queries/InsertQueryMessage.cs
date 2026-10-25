@@ -1,5 +1,5 @@
 ﻿using SqlToolManagerMaui.Databases.Models.Connections;
-using SqlToolManagerMaui.Languages.Linq;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
 
 namespace SqlToolManagerMaui.Languages.Queries;
 

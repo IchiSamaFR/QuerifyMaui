@@ -2,8 +2,10 @@
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors.Analysis;
 using SqlToolManagerMaui.Languages.Commons.Editors.Analysis;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
+using SqlToolManagerMaui.Languages.Linq.Queries;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Analysis;
 
 /// <summary>Surcharges de la methode appelee (Where, Select, Contains...) pendant la saisie de ses arguments.</summary>
 [AutoRegister(As = typeof(ISignatureHelpProvider))]

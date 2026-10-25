@@ -4,7 +4,7 @@ using SqlToolManagerMaui.Databases.Models.Schemas;
 using System.Globalization;
 using System.Text;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Modeling;
 
 /// <inheritdoc cref="IEfModelGenerator"/>
 [AutoRegister(As = typeof(IEfModelGenerator))]

@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using SqlToolManagerMaui.Core.Models.Editors.Analysis;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Analysis;
 
 /// <summary>Textes du survol et des signatures : types sans espace de noms, mots-cles C# (string, int), comme Visual Studio.</summary>
 internal static class LinqSymbolFormatter

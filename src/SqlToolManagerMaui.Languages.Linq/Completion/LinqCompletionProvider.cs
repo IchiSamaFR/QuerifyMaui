@@ -4,8 +4,11 @@ using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Languages.Commons.Editors.Completion;
+using SqlToolManagerMaui.Languages.Linq.Compilation;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
+using SqlToolManagerMaui.Languages.Linq.Queries;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Completion;
 
 /// <summary>
 /// IntelliSense C# des onglets LINQ : Roslyn analyse la requete dans le contexte genere

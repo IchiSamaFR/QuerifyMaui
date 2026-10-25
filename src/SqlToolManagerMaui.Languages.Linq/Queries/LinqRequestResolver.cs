@@ -1,9 +1,11 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Queries;
+using SqlToolManagerMaui.Languages.Linq.Compilation;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
 using System.Data.Common;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Queries;
 
 /// <summary>Ce que l'autocompletion, le survol, les signatures et les erreurs tirent d'une demande de l'editeur.</summary>
 internal static class LinqRequestResolver

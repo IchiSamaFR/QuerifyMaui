@@ -1,4 +1,8 @@
-﻿using SqlToolManagerMaui.Languages.Linq;
+﻿using SqlToolManagerMaui.Languages.Linq.Compilation;
+using SqlToolManagerMaui.Languages.Linq.Completion;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
+using SqlToolManagerMaui.Languages.Linq.Queries;
+using SqlToolManagerMaui.Languages.Linq.Workspaces;
 using Xunit;
 
 namespace SqlToolManagerMaui.Tests;

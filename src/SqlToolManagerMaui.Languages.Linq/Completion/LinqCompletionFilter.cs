@@ -1,4 +1,6 @@
-﻿namespace SqlToolManagerMaui.Languages.Linq;
+﻿using SqlToolManagerMaui.Languages.Linq.Modeling;
+
+namespace SqlToolManagerMaui.Languages.Linq.Completion;
 
 /// <summary>
 /// Reduit les suggestions Roslyn a ce qui sert dans une requete LINQ / EF : variables, mots-cles

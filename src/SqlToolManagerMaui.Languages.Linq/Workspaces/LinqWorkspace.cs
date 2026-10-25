@@ -3,12 +3,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Languages.Linq.Compilation;
+using SqlToolManagerMaui.Languages.Linq.Queries;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Workspaces;
 
 /// <inheritdoc cref="ILinqWorkspace"/>
 [AutoRegister(As = typeof(ILinqWorkspace))]

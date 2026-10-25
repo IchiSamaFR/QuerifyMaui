@@ -2,12 +2,14 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
+using SqlToolManagerMaui.Languages.Linq.Queries;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Compilation;
 
 /// <inheritdoc cref="ILinqCompiler"/>
 [AutoRegister(As = typeof(ILinqCompiler))]

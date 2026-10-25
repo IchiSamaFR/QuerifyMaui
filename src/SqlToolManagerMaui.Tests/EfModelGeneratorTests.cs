@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using SqlToolManagerMaui.Databases.Enums;
 using SqlToolManagerMaui.Databases.Models.Schemas;
-using SqlToolManagerMaui.Languages.Linq;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
 using System.Reflection;
 using Xunit;
 

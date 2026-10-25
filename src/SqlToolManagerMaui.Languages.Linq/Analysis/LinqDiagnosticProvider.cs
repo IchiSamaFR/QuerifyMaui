@@ -2,8 +2,10 @@
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors.Analysis;
 using SqlToolManagerMaui.Languages.Commons.Editors.Analysis;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
+using SqlToolManagerMaui.Languages.Linq.Queries;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Analysis;
 
 /// <summary>Erreurs de compilation d'un onglet LINQ, telles que l'execution les leverait.</summary>
 [AutoRegister(As = typeof(IDiagnosticProvider))]

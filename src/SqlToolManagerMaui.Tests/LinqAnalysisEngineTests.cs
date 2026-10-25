@@ -1,5 +1,8 @@
 ﻿using SqlToolManagerMaui.Core.Enums.Editors.Analysis;
-using SqlToolManagerMaui.Languages.Linq;
+using SqlToolManagerMaui.Languages.Linq.Analysis;
+using SqlToolManagerMaui.Languages.Linq.Compilation;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
+using SqlToolManagerMaui.Languages.Linq.Workspaces;
 using Xunit;
 
 namespace SqlToolManagerMaui.Tests;

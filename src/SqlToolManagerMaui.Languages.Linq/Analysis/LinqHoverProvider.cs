@@ -2,8 +2,10 @@
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors.Analysis;
 using SqlToolManagerMaui.Languages.Commons.Editors.Analysis;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
+using SqlToolManagerMaui.Languages.Linq.Queries;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Analysis;
 
 /// <summary>Type et origine (table, colonne) du nom survole dans un onglet LINQ.</summary>
 [AutoRegister(As = typeof(IHoverProvider))]

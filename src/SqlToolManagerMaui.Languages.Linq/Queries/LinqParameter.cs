@@ -1,7 +1,7 @@
 ﻿using SqlToolManagerMaui.Databases.Enums;
 using SqlToolManagerMaui.Databases.Models.Queries;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Queries;
 
 /// <summary>
 /// Variable typee declaree en tete d'une requete (parametre du dashboard) : utilisable sous son nom ou en @Nom.

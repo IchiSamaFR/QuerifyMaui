@@ -56,7 +56,7 @@ SqlToolManagerMaui (nom affiché : **Querify**) est une application **desktop Wi
 
 **Langages** :
 * `Languages.Commons` : `IQueryExecutor` (un par `SyntaxLanguage`), `ICompletionContextAnalyzer`, `ICompletionProvider`, `QueryExecutionLimits`.
-* `Languages.[Nom]` : un projet par langage, ne référence que `Languages.Commons`. `Languages.Sql` : `Queries/` (`SqlQueryExecutor` → `ISqlProviderExecutor` du moteur), `SqlServer/` (exécuteur, `SqlBatchSplitter`), `Completion/`. `Languages.Linq` : générateur de modèle EF, compilateur Roslyn, exécuteur, cache, complétion C# (EF Core et Roslyn restent confinés ici).
+* `Languages.[Nom]` : un projet par langage, ne référence que `Languages.Commons`. `Languages.Sql` : `Queries/` (`SqlQueryExecutor` → `ISqlProviderExecutor` du moteur), `SqlServer/` (exécuteur, `SqlBatchSplitter`), `Completion/`. `Languages.Linq` : `Modeling/` (générateur de modèle EF, cache des modèles compilés), `Compilation/` (compilateur Roslyn, requête compilée), `Workspaces/` (workspace Roslyn), `Analysis/` (diagnostics, survol, aide à la signature), `Completion/` (complétion C#), `Queries/` (exécuteur, paramètres) — EF Core et Roslyn restent confinés ici.
 * `Languages` : seul projet de langage référencé par l'application ; `IQueryExecutorResolver`, `LanguageAssemblies.All`, `InsertQueryMessage`.
 
 **Autres** : `Helpers` (extensions, `Tools/` : `JsonFile`, `TextFileEncoding`, `CorruptFileHelper`, `ConnectionStringPasswordHelper`), `Tests` (xUnit, référence les projets de langage, donc `Core`, `Databases` et `Helpers`).

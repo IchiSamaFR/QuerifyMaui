@@ -1,7 +1,7 @@
-﻿
-using SqlToolManagerMaui.Databases.Models.Connections;
+﻿using SqlToolManagerMaui.Databases.Models.Connections;
+using SqlToolManagerMaui.Languages.Linq.Compilation;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Modeling;
 
 /// <summary>
 /// DbContext compile d'une base de la connexion, partage par l'execution et l'autocompletion :

@@ -1,6 +1,8 @@
 ﻿using SqlToolManagerMaui.Core.Models.Editors.Analysis;
+using SqlToolManagerMaui.Languages.Linq.Compilation;
+using SqlToolManagerMaui.Languages.Linq.Queries;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Analysis;
 
 /// <summary>Survol, signatures et erreurs d'une requete LINQ, calcules par Roslyn dans le contexte genere.</summary>
 /// <remarks>Les positions recues et rendues sont celles du texte de la requete, pas du source genere.</remarks>

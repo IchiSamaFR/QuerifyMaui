@@ -7,6 +7,8 @@ using SqlToolManagerMaui.Core.Models.Queries;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Queries;
 using SqlToolManagerMaui.Languages.Commons.Queries;
+using SqlToolManagerMaui.Languages.Linq.Compilation;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
 using System.Collections;
 using System.Data.Common;
 using System.Diagnostics;
@@ -15,7 +17,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Queries;
 
 /// <summary>Execution d'une requete LINQ sur le DbContext genere a partir du catalogue de la connexion.</summary>
 [AutoRegister(As = typeof(IQueryExecutor))]

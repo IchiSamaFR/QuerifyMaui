@@ -2,9 +2,10 @@
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Schemas;
 using SqlToolManagerMaui.Databases.Schemas;
+using SqlToolManagerMaui.Languages.Linq.Compilation;
 using System.Runtime.CompilerServices;
 
-namespace SqlToolManagerMaui.Languages.Linq;
+namespace SqlToolManagerMaui.Languages.Linq.Modeling;
 
 /// <inheritdoc cref="ILinqModelCache"/>
 [AutoRegister(As = typeof(ILinqModelCache))]

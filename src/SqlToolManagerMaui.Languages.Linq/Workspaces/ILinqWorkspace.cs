@@ -1,4 +1,7 @@
-﻿namespace SqlToolManagerMaui.Languages.Linq;
+﻿using SqlToolManagerMaui.Languages.Linq.Compilation;
+using SqlToolManagerMaui.Languages.Linq.Queries;
+
+namespace SqlToolManagerMaui.Languages.Linq.Workspaces;
 
 /// <summary>
 /// Workspace Roslyn partage par l'autocompletion, le survol, les signatures et les erreurs :

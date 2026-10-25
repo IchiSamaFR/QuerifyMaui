@@ -1,6 +1,8 @@
-﻿using System.Text;
+﻿using SqlToolManagerMaui.Languages.Linq.Compilation;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
+using SqlToolManagerMaui.Languages.Linq.Queries;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
-using SqlToolManagerMaui.Languages.Linq;
 using Xunit;
 
 namespace SqlToolManagerMaui.Tests;

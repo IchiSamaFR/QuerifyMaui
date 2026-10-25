@@ -1,4 +1,4 @@
-﻿using SqlToolManagerMaui.Languages.Linq;
+﻿using SqlToolManagerMaui.Languages.Linq.Queries;
 using SqlToolManagerMaui.Languages.Sql.Queries;
 using System.Reflection;
 

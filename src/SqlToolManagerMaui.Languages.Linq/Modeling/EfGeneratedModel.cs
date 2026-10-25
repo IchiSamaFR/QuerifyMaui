@@ -1,16 +1,4 @@
-﻿
-using SqlToolManagerMaui.Databases.Models.Schemas;
-
-namespace SqlToolManagerMaui.Languages.Linq;
-
-/// <summary>
-/// Genere le code C# d'un DbContext EF Core a partir du catalogue d'une base : une classe par
-/// table ou vue, un DbSet par classe, et le mapping (tables, cles, noms de colonnes, precisions).
-/// </summary>
-public interface IEfModelGenerator
-{
-    EfGeneratedModel Generate(DatabaseSchemaSnapshot snapshot);
-}
+﻿namespace SqlToolManagerMaui.Languages.Linq.Modeling;
 
 /// <param name="Namespace">Espace de noms du code genere.</param>
 /// <param name="ContextClassName">Classe du DbContext (ex. RaveOnDbContext).</param>
