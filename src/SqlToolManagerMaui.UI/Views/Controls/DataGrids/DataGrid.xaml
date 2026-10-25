@@ -8,13 +8,16 @@
                 HorizontalOptions="Start"
                 IsVisible="{Binding HasColumns, Source={x:Reference Root}, x:DataType=v:DataGrid}">
 
+        <!-- Cadre autour de la grille ; le quadrillage interieur vient des lignes (DataGridRowView) -->
+        <Border Style="{DynamicResource DataGridBorderStyle}"
+                HorizontalOptions="Start">
         <Grid x:Name="GridHost"
               RowDefinitions="Auto,*"
               HorizontalOptions="Start">
 
             <!-- En-tetes : colonnes et cellules ajoutees par le code-behind -->
             <Grid x:Name="HeaderRow"
-                  Style="{DynamicResource DataGridRowStyle}" />
+                  Style="{DynamicResource DataGridHeaderRowStyle}" />
 
             <!-- Lignes virtualisees : gabarit et largeur poses par le code-behind -->
             <CollectionView x:Name="Rows"
@@ -39,5 +42,6 @@
                                    CloseCommand="{Binding CloseFilterCommand, Source={x:Reference Root}, x:DataType=v:DataGrid}"
                                    IsVisible="{Binding IsFilterEditorOpen, Source={x:Reference Root}, x:DataType=v:DataGrid}" />
         </Grid>
+        </Border>
     </ScrollView>
 </ContentView>

@@ -49,6 +49,12 @@ public partial class DataGrid : ContentView
     private readonly List<DataGridHeaderCell> _headerCells = [];
     private double[] _columnOffsets = [];
     private List<object> _rows = [];
+
+    /// <summary>Position affichee de chaque ligne (apres filtre et tri) : une ligne sur deux est assombrie.</summary>
+    private Dictionary<object, int> _rowIndexes = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>Faible : les lignes recyclees par la liste s'abonnent sans etre retenues par la grille.</summary>
+    private readonly WeakEventManager _rowsReorderedManager = new();
     private Type? _generatedItemType;
     private INotifyCollectionChanged? _observedItems;
     private INotifyCollectionChanged? _observedColumns;
@@ -276,7 +282,7 @@ public partial class DataGrid : ContentView
 
         var columns = _columns.ToArray();
         var nullText = NullValueText;
-        Rows.ItemTemplate = new DataTemplate(() => new DataGridRowView(columns, widths, nullText));
+        Rows.ItemTemplate = new DataTemplate(() => new DataGridRowView(this, columns, widths, nullText));
     }
 
     private void UpdateGeneratedColumns()
@@ -319,7 +325,14 @@ public partial class DataGrid : ContentView
             rows = Sort(rows, sortColumn);
 
         _rows = rows;
+        _rowIndexes = new Dictionary<object, int>(rows.Count, ReferenceEqualityComparer.Instance);
+        for (var i = 0; i < rows.Count; i++)
+            _rowIndexes.TryAdd(rows[i], i);
+
         SetRowsSource(rows);
+
+        // Une ligne qui garde le meme element apres un tri ne change pas de contexte : elle est prevenue.
+        _rowsReorderedManager.HandleEvent(this, EventArgs.Empty, nameof(RowsReordered));
         UpdateCounts(total, rows.Count, filters.Length > 0);
         PublishFilters();
         SelectDisplayedRow();
@@ -561,6 +574,16 @@ public partial class DataGrid : ContentView
             ? SelectionMode.Single
             : SelectionMode;
     }
+
+    /// <summary>Lignes refiltrees ou retriees : chacune recalcule sa position.</summary>
+    internal event EventHandler RowsReordered
+    {
+        add => _rowsReorderedManager.AddEventHandler(value);
+        remove => _rowsReorderedManager.RemoveEventHandler(value);
+    }
+
+    /// <summary>Position affichee de l'element, -1 s'il n'est pas affiche.</summary>
+    internal int IndexOfRow(object item) => _rowIndexes.TryGetValue(item, out var index) ? index : -1;
 
     private void SetRowsSource(IEnumerable? rows)
     {
