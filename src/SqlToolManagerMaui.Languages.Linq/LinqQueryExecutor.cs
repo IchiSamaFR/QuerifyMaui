@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Core.Enums.Queries;
 using SqlToolManagerMaui.Core.Models.Queries;
 using SqlToolManagerMaui.Databases.Models.Connections;
 using SqlToolManagerMaui.Databases.Models.Queries;
@@ -65,7 +66,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             if (!compiled.Success)
             {
                 hasErrors = true;
-                messages.AddRange(compiled.Errors.Select(e => new QueryMessage(e.ToString(), IsError: true)));
+                messages.AddRange(compiled.Errors.Select(e => new QueryMessage(e.ToString(), QueryMessageKind.Error)));
             }
             else
             {
@@ -97,19 +98,19 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         catch (LinqCompilationException ex)
         {
             hasErrors = true;
-            messages.Add(new QueryMessage(ex.Message, IsError: true));
-            messages.AddRange(ex.Errors.Take(20).Select(e => new QueryMessage(e.ToString(), IsError: true)));
+            messages.Add(new QueryMessage(ex.Message, QueryMessageKind.Error));
+            messages.AddRange(ex.Errors.Take(20).Select(e => new QueryMessage(e.ToString(), QueryMessageKind.Error)));
         }
         catch (DbException ex)
         {
             hasErrors = true;
-            messages.Add(new QueryMessage(ex.Message, IsError: true));
+            messages.Add(new QueryMessage(ex.Message, QueryMessageKind.Error));
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             // Le script est du code de l'utilisateur : toute exception (traduction EF, null, division...) est un resultat.
             hasErrors = true;
-            messages.Add(new QueryMessage($"{ex.GetType().Name} : {ex.Message}", IsError: true));
+            messages.Add(new QueryMessage($"{ex.GetType().Name} : {ex.Message}", QueryMessageKind.Error));
         }
 
         stopwatch.Stop();
@@ -118,7 +119,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         messages.InsertRange(consoleIndex, console.ToMessages());
 
         if (wasCancelled)
-            messages.Add(new QueryMessage("Requête annulée par l'utilisateur.", IsError: true));
+            messages.Add(new QueryMessage("Requête annulée par l'utilisateur.", QueryMessageKind.Error));
 
         messages.Add(new QueryMessage($"Heure de fin : {DateTime.Now:yyyy-MM-dd HH:mm:ss} (durée {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff})"));
 
@@ -182,8 +183,8 @@ public sealed class LinqQueryExecutor : IQueryExecutor
     /// <summary>Sortie de Console.Write* ; le script peut encore ecrire en arriere-plan apres une annulation.</summary>
     private sealed class ConsoleOutput
     {
-        // Une boucle d'affichage ne doit pas saturer la memoire ni l'onglet Messages.
-        private const int MaxLength = 1_000_000;
+        // Une boucle d'affichage ne doit pas saturer la memoire ni l'onglet Messages (un seul bloc de texte).
+        private const int MaxLength = 200_000;
 
         private readonly Lock _lock = new();
         private readonly StringBuilder _text = new();
@@ -221,9 +222,9 @@ public sealed class LinqQueryExecutor : IQueryExecutor
                 return [];
 
             // Une ligne par message ; le saut de ligne final de WriteLine ne cree pas de ligne vide.
-            List<QueryMessage> messages = [.. text.ReplaceLineEndings("\n").TrimEnd('\n').Split('\n').Select(l => new QueryMessage(l))];
+            List<QueryMessage> messages = [.. text.ReplaceLineEndings("\n").TrimEnd('\n').Split('\n').Select(l => new QueryMessage(l, QueryMessageKind.Output))];
             if (isTruncated)
-                messages.Add(new QueryMessage($"Sortie console tronquée à {MaxLength:N0} caractères.", IsError: true));
+                messages.Add(new QueryMessage($"Sortie console tronquée à {MaxLength:N0} caractères.", QueryMessageKind.Error));
 
             return messages;
         }

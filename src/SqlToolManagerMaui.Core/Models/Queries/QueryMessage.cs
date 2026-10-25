@@ -1,4 +1,9 @@
-﻿namespace SqlToolManagerMaui.Core.Models.Queries;
+﻿using SqlToolManagerMaui.Core.Enums.Queries;
 
-/// <summary>Message produit par l'execution : PRINT, lignes affectees ou erreur.</summary>
-public sealed record QueryMessage(string Text, bool IsError = false);
+namespace SqlToolManagerMaui.Core.Models.Queries;
+
+/// <summary>Message produit par l'execution : PRINT, sortie console, lignes affectees ou erreur.</summary>
+public sealed record QueryMessage(string Text, QueryMessageKind Kind = QueryMessageKind.Info)
+{
+    public bool IsError => Kind == QueryMessageKind.Error;
+}

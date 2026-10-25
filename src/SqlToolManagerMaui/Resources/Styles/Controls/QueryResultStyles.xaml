@@ -15,4 +15,23 @@
                 Value="{DynamicResource LabelPrimary}" />
     </Style>
 
+    <!-- Origines des messages : le moteur en retrait, la sortie du script en avant -->
+    <Style TargetType="Span"
+           x:Key="QueryMessageInfoSpanStyle">
+        <Setter Property="TextColor"
+                Value="{DynamicResource LabelTertiary}" />
+    </Style>
+
+    <Style TargetType="Span"
+           x:Key="QueryMessageOutputSpanStyle">
+        <Setter Property="TextColor"
+                Value="{DynamicResource LabelPrimary}" />
+    </Style>
+
+    <Style TargetType="Span"
+           x:Key="QueryMessageErrorSpanStyle">
+        <Setter Property="TextColor"
+                Value="{DynamicResource Danger}" />
+    </Style>
+
 </ResourceDictionary>

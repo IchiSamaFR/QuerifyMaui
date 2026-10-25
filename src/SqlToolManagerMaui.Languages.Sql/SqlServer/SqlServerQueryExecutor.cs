@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Core.Enums.Queries;
 using SqlToolManagerMaui.Core.Models.Queries;
 using SqlToolManagerMaui.Databases.Enums;
 using SqlToolManagerMaui.Databases.Models.Queries;
@@ -48,7 +49,7 @@ public sealed class SqlServerQueryExecutor : ISqlProviderExecutor
             connection.InfoMessage += (_, e) =>
             {
                 foreach (SqlError error in e.Errors)
-                    messages.Add(new QueryMessage(error.Message));
+                    messages.Add(new QueryMessage(error.Message, QueryMessageKind.Output));
             };
 
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -87,13 +88,13 @@ public sealed class SqlServerQueryExecutor : ISqlProviderExecutor
         catch (Exception ex) when (ex is ArgumentException or FormatException or InvalidOperationException)
         {
             hasErrors = true;
-            messages.Add(new QueryMessage($"Échec : {ex.Message}", IsError: true));
+            messages.Add(new QueryMessage($"Échec : {ex.Message}", QueryMessageKind.Error));
         }
 
         stopwatch.Stop();
 
         if (wasCancelled)
-            messages.Add(new QueryMessage("Requête annulée par l'utilisateur.", IsError: true));
+            messages.Add(new QueryMessage("Requête annulée par l'utilisateur.", QueryMessageKind.Error));
 
         messages.Add(new QueryMessage($"Heure de fin : {DateTime.Now:yyyy-MM-dd HH:mm:ss} (durée {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff})"));
 
@@ -199,7 +200,7 @@ public sealed class SqlServerQueryExecutor : ISqlProviderExecutor
                 ? $"Msg {error.Number}, Niveau {error.Class}, État {error.State}, Ligne {start + error.LineNumber - 1}"
                 : $"Msg {error.Number}, Niveau {error.Class}, État {error.State}";
 
-            messages.Add(new QueryMessage($"{header}{Environment.NewLine}{error.Message}", IsError: true));
+            messages.Add(new QueryMessage($"{header}{Environment.NewLine}{error.Message}", QueryMessageKind.Error));
         }
     }
 }

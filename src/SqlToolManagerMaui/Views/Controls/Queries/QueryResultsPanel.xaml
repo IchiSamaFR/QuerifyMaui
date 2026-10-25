@@ -1,8 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:appconv="clr-namespace:SqlToolManagerMaui.Converters"
              x:Class="SqlToolManagerMaui.Views.Controls.Queries.QueryResultsPanel"
              x:Name="root">
+    <ContentView.Resources>
+        <appconv:QueryMessagesConverter x:Key="QueryMessagesConverter"
+                                        InfoStyle="{StaticResource QueryMessageInfoSpanStyle}"
+                                        ErrorStyle="{StaticResource QueryMessageErrorSpanStyle}"
+                                        OutputStyle="{StaticResource QueryMessageOutputSpanStyle}" />
+    </ContentView.Resources>
+
     <v:TabBar ItemsSource="{Binding Tabs, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
               SelectedItem="{Binding SelectedTab, Source={x:Reference root}, Mode=TwoWay, x:DataType=c:QueryResultsPanel}"
               TitleMemberPath="Title">
@@ -17,30 +25,13 @@
                             AutoGenerateColumns="False"
                             IsVisible="{Binding SelectedTab.IsResultSet, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}" />
 
-                <CollectionView ItemsSource="{Binding Result.Messages, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
-                                IsVisible="{Binding SelectedTab.IsMessages, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}"
-                                SelectionMode="None"
-                                Margin="12,4">
-                    <CollectionView.ItemsLayout>
-                        <LinearItemsLayout Orientation="Vertical"
-                                           ItemSpacing="6" />
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="m:QueryMessage">
-                            <Label Text="{Binding Text}"
-                                   Style="{StaticResource QueryMessageStyle}">
-                                <Label.Triggers>
-                                    <DataTrigger TargetType="Label"
-                                                 Binding="{Binding IsError}"
-                                                 Value="True">
-                                        <Setter Property="TextColor"
-                                                Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
-                                    </DataTrigger>
-                                </Label.Triggers>
-                            </Label>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                <ScrollView IsVisible="{Binding SelectedTab.IsMessages, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}"
+                            Padding="12,4">
+                    <Label FormattedText="{Binding Result.Messages, Source={x:Reference root}, Converter={StaticResource QueryMessagesConverter}, x:DataType=c:QueryResultsPanel}"
+                           Style="{StaticResource QueryMessageStyle}"
+                           VerticalTextAlignment="Start"
+                           beh:TextSelection.IsEnabled="True" />
+                </ScrollView>
 
                 <HorizontalStackLayout IsVisible="{Binding IsExecuting, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
                                        Spacing="12"
