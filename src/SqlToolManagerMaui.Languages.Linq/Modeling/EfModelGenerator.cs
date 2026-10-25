@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.Core.Ioc;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Databases.Enums;
 using SqlToolManagerMaui.Databases.Models.Schemas;
 using System.Globalization;
@@ -11,17 +12,6 @@ namespace SqlToolManagerMaui.Languages.Linq.Modeling;
 public sealed class EfModelGenerator : IEfModelGenerator
 {
     public const string GeneratedNamespace = "SqlToolManagerMaui.Generated";
-
-    private static readonly HashSet<string> CSharpKeywords = new(StringComparer.Ordinal)
-    {
-        "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked", "class", "const",
-        "continue", "decimal", "default", "delegate", "do", "double", "else", "enum", "event", "explicit", "extern",
-        "false", "finally", "fixed", "float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface",
-        "internal", "is", "lock", "long", "namespace", "new", "null", "object", "operator", "out", "override",
-        "params", "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short",
-        "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true", "try", "typeof",
-        "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual", "void", "volatile", "while"
-    };
 
     /// <summary>Noms que l'entite ne peut pas prendre : ils masqueraient les types utilises par le code genere.</summary>
     private static readonly HashSet<string> ReservedTypeNames = new(StringComparer.Ordinal)
@@ -178,7 +168,6 @@ public sealed class EfModelGenerator : IEfModelGenerator
 
     private static void WriteEntity(StringBuilder code, EntityModel entity)
     {
-        code.AppendLine(CultureInfo.InvariantCulture, $"/// <summary>{Escape(entity.Source.Schema)}.{Escape(entity.Source.Name)}</summary>");
         // [Description] : lu par l'infobulle de l'editeur LINQ (la doc XML ne survit pas a la compilation en memoire).
         code.AppendLine(CultureInfo.InvariantCulture, $"[global::System.ComponentModel.Description({Literal(DescribeSource(entity.Source))})]");
         code.AppendLine(CultureInfo.InvariantCulture, $"public sealed class {entity.ClassName}");
@@ -250,13 +239,13 @@ public sealed class EfModelGenerator : IEfModelGenerator
 
         var builder = new StringBuilder(name.Length + 1);
         foreach (var c in name)
-            builder.Append(char.IsLetterOrDigit(c) || c == '_' ? c : '_');
+            builder.Append(SyntaxFacts.IsIdentifierPartCharacter(c) ? c : '_');
 
-        if (builder.Length == 0 || char.IsDigit(builder[0]))
+        if (builder.Length == 0 || !SyntaxFacts.IsIdentifierStartCharacter(builder[0]))
             builder.Insert(0, '_');
 
         var identifier = builder.ToString();
-        return CSharpKeywords.Contains(identifier) ? "@" + identifier : identifier;
+        return SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None ? "@" + identifier : identifier;
     }
 
     private static string Unique(string name, HashSet<string> usedNames)
@@ -279,9 +268,6 @@ public sealed class EfModelGenerator : IEfModelGenerator
         return column.IsPrimaryKey ? description + " · clé primaire" : description;
     }
 
-    private static string Literal(string value)
-        => "\"" + value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal) + "\"";
-
-    private static string Escape(string value)
-        => value.Replace("&", "&amp;", StringComparison.Ordinal).Replace("<", "&lt;", StringComparison.Ordinal).Replace(">", "&gt;", StringComparison.Ordinal);
+    /// <summary>Litteral C# echappe par Roslyn (guillemets, antislash, retours a la ligne, caracteres de controle).</summary>
+    private static string Literal(string value) => SymbolDisplay.FormatLiteral(value, quote: true);
 }

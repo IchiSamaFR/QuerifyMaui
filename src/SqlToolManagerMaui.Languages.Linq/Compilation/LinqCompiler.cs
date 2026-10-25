@@ -232,23 +232,11 @@ public sealed class LinqCompiler : ILinqCompiler
     internal static bool ReturnsValue(string query)
         => !IsStatementBlock(query) || SyntaxFactory.ParseTokens(query).Any(t => t.IsKind(SyntaxKind.ReturnKeyword));
 
-    /// <summary>Nom C# compilable d'un type de parametre (int?, string, global::System.Guid?...).</summary>
+    /// <summary>Nom C# compilable d'un type de parametre ; Roslyn l'affiche de toute facon en mot cle (int?, string).</summary>
     private static string TypeName(Type type)
-    {
-        if (Nullable.GetUnderlyingType(type) is { } underlying)
-            return TypeName(underlying) + "?";
-
-        return Type.GetTypeCode(type) switch
-        {
-            TypeCode.String => "string",
-            TypeCode.Int32 => "int",
-            TypeCode.Int64 => "long",
-            TypeCode.Decimal => "decimal",
-            TypeCode.Double => "double",
-            TypeCode.Boolean => "bool",
-            _ => "global::" + (type.FullName ?? type.Name).Replace('+', '.'),
-        };
-    }
+        => Nullable.GetUnderlyingType(type) is { } underlying
+            ? TypeName(underlying) + "?"
+            : "global::" + (type.FullName ?? type.Name).Replace('+', '.');
 
     private static byte[]? Emit(Microsoft.CodeAnalysis.Compilation compilation, out IReadOnlyList<Diagnostic> errors, CancellationToken cancellationToken = default)
     {

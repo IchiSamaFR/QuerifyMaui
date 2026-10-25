@@ -6,7 +6,7 @@ namespace SqlToolManagerMaui.Languages.Linq.Completion;
 /// <summary>
 /// Reduit les suggestions Roslyn a ce qui sert dans une requete LINQ / EF : variables, mots-cles
 /// de requete, quelques types utiles et entites generees en debut d'expression ; apres un point,
-/// les membres sans la plomberie d'object, de DbContext ni les variantes Async.
+/// les membres sans ceux d'object ni les variantes Async, et seulement les DbSet sur le contexte.
 /// </summary>
 internal sealed class LinqCompletionFilter
 {
@@ -31,34 +31,27 @@ internal sealed class LinqCompletionFilter
         "Equals", "GetHashCode", "GetType", "ReferenceEquals", "MemberwiseClone"
     };
 
-    /// <summary>Membres du DbContext hors DbSet : ecriture, suivi, metadonnees.</summary>
-    private static readonly HashSet<string> ContextPlumbing = new(StringComparer.Ordinal)
-    {
-        "Add", "AddRange", "Attach", "AttachRange", "Update", "UpdateRange", "Remove", "RemoveRange",
-        "Entry", "Find", "SaveChanges", "Dispose", "ChangeTracker", "Database", "Model", "ContextId",
-        "SavingChanges", "SavedChanges", "SaveChangesFailed", "FromExpression"
-    };
-
     private static readonly HashSet<string> VariableKinds = new(StringComparer.Ordinal) { WellKnownTags.Local, WellKnownTags.Parameter, WellKnownTags.RangeVariable };
 
     private static readonly HashSet<string> TypeKinds = new(StringComparer.Ordinal) { WellKnownTags.Class, WellKnownTags.Structure, WellKnownTags.Enum, WellKnownTags.Interface, WellKnownTags.Delegate };
 
-    private readonly EfGeneratedModel? _model;
-    private readonly string? _memberOf;
+    private readonly bool _isMemberAccess;
+    private readonly IReadOnlySet<string>? _contextMembers;
     private readonly HashSet<string> _entities;
 
-    /// <param name="memberOf">Identifiant avant le point (vide si expression complexe), null hors acces membre.</param>
-    public LinqCompletionFilter(EfGeneratedModel? model, string? memberOf)
+    /// <param name="isMemberAccess">Mot complete apres un point.</param>
+    /// <param name="contextMembers">DbSet du contexte si l'expression avant le point en est un, null sinon.</param>
+    public LinqCompletionFilter(EfGeneratedModel? model, bool isMemberAccess, IReadOnlySet<string>? contextMembers)
     {
-        _model = model;
-        _memberOf = memberOf;
+        _isMemberAccess = isMemberAccess;
+        _contextMembers = contextMembers;
         _entities = new HashSet<string>(model?.EntityClassNames ?? [], StringComparer.Ordinal);
     }
 
     /// <param name="name">Texte insere (DisplayText Roslyn, sans suffixe "&lt;&gt;").</param>
     /// <param name="kind">Nature retenue par <see cref="LinqCompletionEngine"/>.</param>
     public bool Keeps(string name, string kind)
-        => _memberOf is null ? KeepsInExpression(name, kind) : KeepsMember(name, kind);
+        => _isMemberAccess ? KeepsMember(name, kind) : KeepsInExpression(name, kind);
 
     private bool KeepsInExpression(string name, string kind)
     {
@@ -86,9 +79,6 @@ internal sealed class LinqCompletionFilter
         if (kind is WellKnownTags.Method or WellKnownTags.ExtensionMethod && name.EndsWith("Async", StringComparison.Ordinal))
             return false;
 
-        if (_model is not null && string.Equals(_memberOf, _model.ContextVariableName, StringComparison.Ordinal))
-            return !ContextPlumbing.Contains(name);
-
-        return true;
+        return _contextMembers is null || _contextMembers.Contains(name);
     }
 }

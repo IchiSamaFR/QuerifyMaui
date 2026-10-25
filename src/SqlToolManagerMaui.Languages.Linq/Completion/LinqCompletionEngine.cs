@@ -42,11 +42,18 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
 
         var position = linq.QueryStart + Math.Clamp(caretOffset, 0, query.Length);
         var list = await service.GetCompletionsAsync(document, position, cancellationToken: cancellationToken);
+
+        // Mot vide (curseur juste apres le point) : FindToken rend le jeton suivant, dont le precedent est le point.
         var root = await document.GetSyntaxRootAsync(cancellationToken);
+        var dot = root?.FindToken(list.Span.Start).GetPreviousToken() ?? default;
+        var isMemberAccess = dot.IsKind(SyntaxKind.DotToken);
+        var contextMembers = dot.Parent is MemberAccessExpressionSyntax access
+            ? await ContextMembersAsync(document, access.Expression, cancellationToken)
+            : null;
 
         // Roslyn propose tout ce qui est visible (System.Security, System.IO, snippets...) :
         // on ne garde que ce qui sert a ecrire une requete EF.
-        var filter = new LinqCompletionFilter(model?.Model, root is null ? null : MemberAccessTarget(root, list.Span.Start));
+        var filter = new LinqCompletionFilter(model?.Model, isMemberAccess, contextMembers);
 
         return list.ItemsList
             .Where(item => filter.Keeps(item.DisplayText, KindOf(item.Tags)))
@@ -59,31 +66,24 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
     }
 
     /// <summary>
-    /// Expression avant le "." qui precede le mot complete : son dernier identifiant ("RaveOnDb", "u"),
-    /// chaine vide si c'est autre chose (appel, indexeur, u?.) ; null hors acces membre.
+    /// Proprietes declarees par le DbContext genere (ses DbSet) si l'expression avant le point en est un ;
+    /// null sinon. Le reste (SaveChanges, ChangeTracker, Database...) vient de DbContext : plomberie EF.
     /// </summary>
-    private static string? MemberAccessTarget(SyntaxNode root, int wordStart)
+    private static async Task<IReadOnlySet<string>?> ContextMembersAsync(Document document, ExpressionSyntax expression, CancellationToken cancellationToken)
     {
-        // Mot vide (curseur juste apres le point) : FindToken rend le jeton suivant, dont le precedent est le point.
-        var dot = root.FindToken(wordStart).GetPreviousToken();
-        if (!dot.IsKind(SyntaxKind.DotToken) || dot.Span.End > wordStart)
+        if (await document.GetSemanticModelAsync(cancellationToken) is not { } semantic
+            || semantic.Compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.DbContext") is not { } dbContext
+            || semantic.GetTypeInfo(expression, cancellationToken).Type is not INamedTypeSymbol type)
             return null;
 
-        return dot.Parent switch
+        for (var parent = type.BaseType; parent is not null; parent = parent.BaseType)
         {
-            MemberAccessExpressionSyntax access => LastName(access.Expression),
-            QualifiedNameSyntax qualified => LastName(qualified.Left),
-            _ => string.Empty,
-        };
-    }
+            if (SymbolEqualityComparer.Default.Equals(parent, dbContext))
+                return type.GetMembers().OfType<IPropertySymbol>().Where(p => p.DeclaredAccessibility == Accessibility.Public).Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
+        }
 
-    private static string LastName(SyntaxNode node) => node switch
-    {
-        SimpleNameSyntax name => name.Identifier.ValueText,
-        MemberAccessExpressionSyntax access => access.Name.Identifier.ValueText,
-        QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText,
-        _ => string.Empty,
-    };
+        return null;
+    }
 
     private static string KindOf(ImmutableArray<string> tags)
         => KindTags.FirstOrDefault(tags.Contains) ?? (tags.IsDefaultOrEmpty ? "Text" : tags[0]);

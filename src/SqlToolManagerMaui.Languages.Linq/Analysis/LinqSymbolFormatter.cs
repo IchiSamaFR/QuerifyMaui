@@ -6,29 +6,9 @@ namespace SqlToolManagerMaui.Languages.Linq.Analysis;
 /// <summary>Textes des signatures et precisions du survol : types sans espace de noms, mots-cles C# (string, int), comme Visual Studio.</summary>
 internal static class LinqSymbolFormatter
 {
-    private const SymbolDisplayMiscellaneousOptions Miscellaneous =
-        SymbolDisplayMiscellaneousOptions.UseSpecialTypes
-        | SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers
-        | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier;
-
-    private const SymbolDisplayParameterOptions ParameterOptions =
-        SymbolDisplayParameterOptions.IncludeType
-        | SymbolDisplayParameterOptions.IncludeName
-        | SymbolDisplayParameterOptions.IncludeParamsRefOut
-        | SymbolDisplayParameterOptions.IncludeDefaultValue;
-
-    private static readonly SymbolDisplayFormat TypeFormat = new(
-        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-        miscellaneousOptions: Miscellaneous);
-
-    private static readonly SymbolDisplayFormat ParameterFormat = new(
-        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-        parameterOptions: ParameterOptions,
-        miscellaneousOptions: Miscellaneous);
+    /// <summary>Format de Visual Studio (noms courts, mots cles C#), nullabilite comprise.</summary>
+    private static readonly SymbolDisplayFormat Format = SymbolDisplayFormat.MinimallyQualifiedFormat
+        .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
     /// <summary>
     /// Description du modele genere (table, colonne SQL) portee par le symbole, son type ou l'element
@@ -57,16 +37,16 @@ internal static class LinqSymbolFormatter
     public static SignatureInfo ToSignature(IMethodSymbol method)
     {
         var typeArguments = method.IsGenericMethod
-            ? $"<{string.Join(", ", method.TypeArguments.Select(t => t.ToDisplayString(TypeFormat)))}>"
+            ? $"<{string.Join(", ", method.TypeArguments.Select(t => t.ToDisplayString(Format)))}>"
             : string.Empty;
 
         var prefix = method.MethodKind == MethodKind.Constructor
-            ? $"{method.ContainingType.ToDisplayString(TypeFormat)}("
-            : $"{method.ReturnType.ToDisplayString(TypeFormat)} {method.Name}{typeArguments}(";
+            ? $"{method.ContainingType.ToDisplayString(Format)}("
+            : $"{method.ReturnType.ToDisplayString(Format)} {method.Name}{typeArguments}(";
 
         return new SignatureInfo(
             prefix,
-            method.Parameters.Select(p => p.ToDisplayString(ParameterFormat)).ToArray(),
+            method.Parameters.Select(p => p.ToDisplayString(Format)).ToArray(),
             ")",
             DeclaredBy(method));
     }
@@ -74,7 +54,7 @@ internal static class LinqSymbolFormatter
     private static string? DeclaredBy(IMethodSymbol method)
     {
         var container = (method.ReducedFrom ?? method).ContainingType;
-        return container is null ? null : $"Déclarée par {container.ToDisplayString(TypeFormat)}";
+        return container is null ? null : $"Déclarée par {container.ToDisplayString(Format)}";
     }
 
     /// <summary>[Description] pose par le generateur du DbContext sur les entites et leurs proprietes.</summary>
