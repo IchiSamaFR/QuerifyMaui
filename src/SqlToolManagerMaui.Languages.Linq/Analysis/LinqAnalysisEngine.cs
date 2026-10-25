@@ -2,13 +2,11 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.QuickInfo;
-using SqlToolManagerMaui.Core.Enums.Editors.Analysis;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors.Analysis;
 using SqlToolManagerMaui.Languages.Linq.Compilation;
 using SqlToolManagerMaui.Languages.Linq.Queries;
 using SqlToolManagerMaui.Languages.Linq.Workspaces;
-using System.Globalization;
 
 namespace SqlToolManagerMaui.Languages.Linq.Analysis;
 
@@ -16,9 +14,6 @@ namespace SqlToolManagerMaui.Languages.Linq.Analysis;
 [AutoRegister(As = typeof(ILinqAnalysisEngine))]
 public sealed class LinqAnalysisEngine : ILinqAnalysisEngine
 {
-    /// <summary>Au-dela, une erreur en amont fait cascader les suivantes : les premieres suffisent.</summary>
-    private const int MaxDiagnostics = 100;
-
     private readonly ILinqWorkspace _workspace;
 
     public LinqAnalysisEngine(ILinqWorkspace workspace)
@@ -73,59 +68,7 @@ public sealed class LinqAnalysisEngine : ILinqAnalysisEngine
         if (linq.HasModel && await linq.Document.GetSemanticModelAsync(cancellationToken) is { } semantic)
             all = semantic.GetDiagnostics(cancellationToken: cancellationToken);
 
-        List<CodeDiagnostic> diagnostics = [];
-        foreach (var diagnostic in all.OrderBy(d => d.Location.SourceSpan.Start))
-        {
-            if (diagnostic.Severity is not (DiagnosticSeverity.Error or DiagnosticSeverity.Warning) || diagnostic.IsSuppressed || !diagnostic.Location.IsInSource)
-                continue;
-
-            var span = diagnostic.Location.SourceSpan;
-            var start = span.Start - linq.QueryStart;
-            if (start < 0)
-                continue;
-
-            if (start > query.Length)
-            {
-                // ")" ou ";" attendu est signale sur le code genere qui suit la requete : on le rattache a sa fin.
-                // Une erreur semantique au-dela de la requete concerne le code genere lui-meme.
-                if (!syntax.Contains(diagnostic))
-                    continue;
-
-                start = query.Length;
-            }
-
-            var (visibleStart, visibleLength) = Widen(query, start, Math.Min(span.Length, query.Length - start));
-            if (visibleLength == 0)
-                continue;
-
-            diagnostics.Add(new CodeDiagnostic(
-                visibleStart,
-                visibleLength,
-                diagnostic.Severity == DiagnosticSeverity.Error ? CodeDiagnosticSeverity.Error : CodeDiagnosticSeverity.Warning,
-                diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.Id));
-
-            if (diagnostics.Count == MaxDiagnostics)
-                break;
-        }
-
-        return diagnostics;
-    }
-
-    /// <summary>Une erreur sans longueur (symbole manquant) souligne le caractere visible le plus proche.</summary>
-    private static (int Start, int Length) Widen(string query, int start, int length)
-    {
-        if (length > 0)
-            return (start, length);
-
-        if (start < query.Length && !char.IsWhiteSpace(query[start]))
-            return (start, 1);
-
-        var previous = start - 1;
-        while (previous >= 0 && char.IsWhiteSpace(query[previous]))
-            previous--;
-
-        return previous >= 0 ? (previous, 1) : (start, 0);
+        return LinqDiagnosticMapper.ToQuery(all, syntax, linq, query);
     }
 
     // ---------- Signatures ----------

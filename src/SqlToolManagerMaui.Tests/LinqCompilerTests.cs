@@ -121,10 +121,11 @@ public class LinqCompilerTests
     [Fact]
     public async Task Statements_ErrorsPointToQueryText()
     {
-        var compiled = await Compiler.CompileQueryAsync(Model.Value, "var users = RaveOnDb.AspNetUsers;\nreturn users.Wher(u => true);");
+        const string query = "var users = RaveOnDb.AspNetUsers;\nreturn users.Wher(u => true);";
+        var compiled = await Compiler.CompileQueryAsync(Model.Value, query);
 
         Assert.False(compiled.Success);
-        Assert.Equal(2, compiled.Errors[0].Line);
+        Assert.Equal(query.IndexOf("Wher", StringComparison.Ordinal), compiled.Errors[0].Start);
     }
 
     [Theory]
@@ -140,12 +141,13 @@ public class LinqCompilerTests
     [Fact]
     public async Task Errors_PointToQueryText()
     {
-        var compiled = await Compiler.CompileQueryAsync(Model.Value, "RaveOnDb.AspNetUsers\n    .Wher(u => true)");
+        const string query = "RaveOnDb.AspNetUsers\n    .Wher(u => true)";
+        var compiled = await Compiler.CompileQueryAsync(Model.Value, query);
 
         Assert.False(compiled.Success);
         var error = compiled.Errors[0];
-        Assert.Equal("CS1061", error.Id);
-        Assert.Equal(2, error.Line);
+        Assert.Equal("CS1061", error.Code);
+        Assert.StartsWith("Ligne 2, colonne 6 : CS1061 ", LinqDiagnosticMapper.Describe(error, query), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -153,7 +155,7 @@ public class LinqCompilerTests
     {
         var compiled = await Compiler.CompileQueryAsync(Model.Value, "Northwind.Orders");
 
-        Assert.Contains(compiled.Errors, e => e.Id == "CS0103" && e.Line == 1 && e.Column == 1);
+        Assert.Contains(compiled.Errors, e => e.Code == "CS0103" && e.Start == 0);
     }
 
     [Fact]

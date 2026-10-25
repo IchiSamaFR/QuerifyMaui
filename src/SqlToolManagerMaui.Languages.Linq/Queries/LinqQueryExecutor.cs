@@ -9,6 +9,7 @@ using SqlToolManagerMaui.Databases.Models.Queries;
 using SqlToolManagerMaui.Languages.Commons.Queries;
 using SqlToolManagerMaui.Languages.Linq.Compilation;
 using SqlToolManagerMaui.Languages.Linq.Modeling;
+using SqlToolManagerMaui.Languages.Linq.Workspaces;
 using System.Collections;
 using System.Data.Common;
 using System.Diagnostics;
@@ -68,7 +69,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             if (!compiled.Success)
             {
                 hasErrors = true;
-                messages.AddRange(compiled.Errors.Select(e => new QueryMessage(e.ToString(), QueryMessageKind.Error)));
+                messages.AddRange(compiled.Errors.Select(e => new QueryMessage(LinqDiagnosticMapper.Describe(e, query), QueryMessageKind.Error)));
             }
             else
             {
@@ -101,7 +102,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         {
             hasErrors = true;
             messages.Add(new QueryMessage(ex.Message, QueryMessageKind.Error));
-            messages.AddRange(ex.Errors.Take(20).Select(e => new QueryMessage(e.ToString(), QueryMessageKind.Error)));
+            messages.AddRange(ex.Errors.Take(20).Select(e => new QueryMessage(e, QueryMessageKind.Error)));
         }
         catch (DbException ex)
         {
@@ -144,7 +145,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
         using var compiled = await Task.Run(() => _compiler.CompileQueryAsync(model, query, variables, cancellationToken), cancellationToken);
         if (!compiled.Success)
-            throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5)));
+            throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5).Select(e => LinqDiagnosticMapper.Describe(e, query))));
 
         // Meme reserve que ExecuteAsync : le code de l'utilisateur ne peut pas etre interrompu, seulement abandonne.
         var outputs = await Task.Run(() => Run(model, compiled, connectionString, Math.Max(1, maxRows), console: null, cancellationToken), CancellationToken.None)

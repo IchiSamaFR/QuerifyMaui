@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SqlToolManagerMaui.Core.Models.Editors.Analysis;
 using System.Runtime.Loader;
 
 namespace SqlToolManagerMaui.Languages.Linq.Compilation;
@@ -23,7 +24,8 @@ public sealed class LinqCompiledQuery : IDisposable
     /// <summary>Faux pour des instructions sans return : la valeur rendue (null) n'est pas un resultat.</summary>
     public bool ReturnsValue { get; init; }
 
-    public IReadOnlyList<LinqDiagnostic> Errors { get; init; } = [];
+    /// <summary>Positions dans le texte de la requete, comme les soulignements de l'editeur.</summary>
+    public IReadOnlyList<CodeDiagnostic> Errors { get; init; } = [];
 
     public bool Success => Execute is not null;
 

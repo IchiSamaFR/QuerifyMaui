@@ -1,11 +1,14 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
+using SqlToolManagerMaui.Core.Enums.Editors.Analysis;
 using SqlToolManagerMaui.Core.Ioc;
+using SqlToolManagerMaui.Core.Models.Editors.Analysis;
 using SqlToolManagerMaui.Languages.Linq.Modeling;
 using SqlToolManagerMaui.Languages.Linq.Queries;
 using SqlToolManagerMaui.Languages.Linq.Workspaces;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
@@ -63,7 +66,7 @@ public sealed class LinqCompiler : ILinqCompiler
         var compilation = CSharpCompilation.Create($"EfModel_{Guid.NewGuid():N}", [CSharpSyntaxTree.ParseText(model.Source, ParseOptions)], PlatformReferences, CompilationOptions);
         var image = Emit(compilation, out var errors);
         if (image is null)
-            throw new LinqCompilationException($"Le modele genere pour {model.ContextVariableName} ne compile pas.", errors);
+            throw new LinqCompilationException($"Le modele genere pour {model.ContextVariableName} ne compile pas.", errors.Select(e => e.ToString()).ToArray());
 
         // Contexte non collectable : le modele vit tant que l'application, et EF garde ses types en cache.
         var context = new AssemblyLoadContext($"EfModel:{model.ContextVariableName}", isCollectible: false);
@@ -86,14 +89,14 @@ public sealed class LinqCompiler : ILinqCompiler
         parameters ??= [];
 
         // Le projet Roslyn de l'editeur a deja lie les references : la compilation repart de lui.
-        var document = _workspace.GetDocument(model, query, parameters).Document;
-        var compilation = await document.Project.GetCompilationAsync(cancellationToken)
+        var linq = _workspace.GetDocument(model, query, parameters);
+        var compilation = await linq.Document.Project.GetCompilationAsync(cancellationToken)
             ?? throw new InvalidOperationException("Roslyn n'a pas produit de compilation pour la requete.");
 
         // Nom unique : chaque requete est chargee dans son propre contexte collectable.
         var image = Emit(compilation.WithAssemblyName($"LinqQuery_{Guid.NewGuid():N}"), out var errors, cancellationToken);
         if (image is null)
-            return new LinqCompiledQuery { Errors = errors };
+            return new LinqCompiledQuery { Errors = await QueryErrorsAsync(linq, query, errors, cancellationToken) };
 
         var loadContext = new QueryLoadContext(model.Assembly);
         var assembly = loadContext.LoadFromStream(new MemoryStream(image));
@@ -247,23 +250,29 @@ public sealed class LinqCompiler : ILinqCompiler
         };
     }
 
-    private static byte[]? Emit(Microsoft.CodeAnalysis.Compilation compilation, out IReadOnlyList<LinqDiagnostic> errors, CancellationToken cancellationToken = default)
+    private static byte[]? Emit(Microsoft.CodeAnalysis.Compilation compilation, out IReadOnlyList<Diagnostic> errors, CancellationToken cancellationToken = default)
     {
         using var image = new MemoryStream();
         var result = compilation.Emit(image, cancellationToken: cancellationToken);
 
         errors = result.Diagnostics
             .Where(d => d.Severity == DiagnosticSeverity.Error)
-            .Select(ToDiagnostic)
             .ToArray();
 
         return result.Success ? image.ToArray() : null;
     }
 
-    private static LinqDiagnostic ToDiagnostic(Diagnostic diagnostic)
+    /// <summary>Erreurs ramenees au texte de l'onglet, comme les soulignements de l'editeur.</summary>
+    private static async Task<IReadOnlyList<CodeDiagnostic>> QueryErrorsAsync(LinqDocument linq, string query, IReadOnlyList<Diagnostic> errors, CancellationToken cancellationToken)
     {
-        var position = diagnostic.Location.GetMappedLineSpan().StartLinePosition;
-        return new LinqDiagnostic(position.Line + 1, position.Character + 1, diagnostic.Id, diagnostic.GetMessage(System.Globalization.CultureInfo.CurrentUICulture));
+        var tree = await linq.Document.GetSyntaxTreeAsync(cancellationToken);
+        var syntax = tree?.GetDiagnostics(cancellationToken).ToHashSet() ?? [];
+        var mapped = LinqDiagnosticMapper.ToQuery(errors, syntax, linq, query).Where(e => e.IsError).ToArray();
+
+        // Erreur dans le code genere autour de la requete : sans position utile, mais jamais silencieuse.
+        return mapped.Length > 0
+            ? mapped
+            : [.. errors.Take(1).Select(e => new CodeDiagnostic(0, 0, CodeDiagnosticSeverity.Error, e.GetMessage(CultureInfo.CurrentUICulture), e.Id))];
     }
 
     private static IReadOnlyList<MetadataReference> LoadPlatformReferences()
