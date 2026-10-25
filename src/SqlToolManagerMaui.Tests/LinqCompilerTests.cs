@@ -1,6 +1,7 @@
 ﻿using SqlToolManagerMaui.Languages.Linq.Compilation;
 using SqlToolManagerMaui.Languages.Linq.Modeling;
 using SqlToolManagerMaui.Languages.Linq.Queries;
+using SqlToolManagerMaui.Languages.Linq.Workspaces;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -12,14 +13,14 @@ public class LinqCompilerTests
 {
     private const string ConnectionString = "Server=localhost;Database=RaveOnDb;Trusted_Connection=True;TrustServerCertificate=True";
 
-    private static readonly LinqCompiler Compiler = new();
+    private static readonly LinqCompiler Compiler = new(new LinqWorkspace());
 
     private static readonly Lazy<LinqModelAssembly> Model = new(() => Compiler.CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
 
     [Fact]
-    public void MethodSyntax_TranslatesToSql()
+    public async Task MethodSyntax_TranslatesToSql()
     {
-        var sql = Translate("""
+        var sql = await TranslateAsync("""
             RaveOnDb.AspNetUsers
                 .Where(u => u.Email != null && !u.EmailConfirmed)
                 .OrderBy(u => u.Email)
@@ -32,17 +33,17 @@ public class LinqCompilerTests
     }
 
     [Fact]
-    public void QuerySyntax_TranslatesToSql()
+    public async Task QuerySyntax_TranslatesToSql()
     {
-        var sql = Translate("from u in RaveOnDb.AspNetUsers where u.AccessFailedCount > 3 select u.Id");
+        var sql = await TranslateAsync("from u in RaveOnDb.AspNetUsers where u.AccessFailedCount > 3 select u.Id");
 
         Assert.Contains("[AccessFailedCount] > 3", sql, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Join_OnCompositeKeyTable()
+    public async Task Join_OnCompositeKeyTable()
     {
-        var sql = Translate("""
+        var sql = await TranslateAsync("""
             from u in RaveOnDb.AspNetUsers
             join r in RaveOnDb.AspNetUserRoles on u.Id equals r.UserId
             select new { u.Email, r.RoleId }
@@ -53,19 +54,19 @@ public class LinqCompilerTests
     }
 
     [Fact]
-    public void Scalar_ReturnsValueType()
+    public async Task Scalar_ReturnsValueType()
     {
-        var compiled = Compile("40 + 2");
+        var compiled = await CompileAsync("40 + 2");
 
         using var context = Compiler.CreateContext(Model.Value, ConnectionString);
         Assert.Equal(42, compiled.Run!(context));
     }
 
     [Fact]
-    public void Parameters_DeclaredAsTypedVariables()
+    public async Task Parameters_DeclaredAsTypedVariables()
     {
         // Nom seul ou @Nom (identifiant verbatim) : meme variable, comme un parametre SQL.
-        using var compiled = Compiler.CompileQuery(Model.Value, "UserId + @UserId", [new LinqParameter("UserId", typeof(int?), 21)]);
+        using var compiled = await Compiler.CompileQueryAsync(Model.Value, "UserId + @UserId", [new LinqParameter("UserId", typeof(int?), 21)]);
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
         using var context = Compiler.CreateContext(Model.Value, ConnectionString);
@@ -73,9 +74,9 @@ public class LinqCompilerTests
     }
 
     [Fact]
-    public void Parameters_SentAsSqlParameters()
+    public async Task Parameters_SentAsSqlParameters()
     {
-        using var compiled = Compiler.CompileQuery(Model.Value, "RaveOnDb.AspNetUsers.Where(u => u.Email == @Email)",
+        using var compiled = await Compiler.CompileQueryAsync(Model.Value, "RaveOnDb.AspNetUsers.Where(u => u.Email == @Email)",
             [new LinqParameter("Email", typeof(string), "a@b.fr")]);
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
@@ -87,9 +88,9 @@ public class LinqCompilerTests
     }
 
     [Fact]
-    public void Statements_ReturnVariable()
+    public async Task Statements_ReturnVariable()
     {
-        var sql = Translate("""
+        var sql = await TranslateAsync("""
             var ids = RaveOnDb.AspNetUsers.Select(u => u.Id);
             return ids;
             """);
@@ -98,9 +99,9 @@ public class LinqCompilerTests
     }
 
     [Fact]
-    public void Statements_ComposeBeforeReturn()
+    public async Task Statements_ComposeBeforeReturn()
     {
-        var sql = Translate("""
+        var sql = await TranslateAsync("""
             var counts = RaveOnDb.AspNetUsers.Select(u => u.AccessFailedCount);
             return counts.Where(i => i > 10);
             """);
@@ -109,18 +110,18 @@ public class LinqCompilerTests
     }
 
     [Fact]
-    public void Statements_WithoutReturnGiveNull()
+    public async Task Statements_WithoutReturnGiveNull()
     {
-        var compiled = Compile("var ids = RaveOnDb.AspNetUsers.Select(u => u.Id);");
+        var compiled = await CompileAsync("var ids = RaveOnDb.AspNetUsers.Select(u => u.Id);");
 
         using var context = Compiler.CreateContext(Model.Value, ConnectionString);
         Assert.Null(compiled.Run!(context));
     }
 
     [Fact]
-    public void Statements_ErrorsPointToQueryText()
+    public async Task Statements_ErrorsPointToQueryText()
     {
-        var compiled = Compiler.CompileQuery(Model.Value, "var users = RaveOnDb.AspNetUsers;\nreturn users.Wher(u => true);");
+        var compiled = await Compiler.CompileQueryAsync(Model.Value, "var users = RaveOnDb.AspNetUsers;\nreturn users.Wher(u => true);");
 
         Assert.False(compiled.Success);
         Assert.Equal(2, compiled.Errors[0].Line);
@@ -137,9 +138,9 @@ public class LinqCompilerTests
         => Assert.Equal(expected, LinqCompiler.IsStatementBlock(query));
 
     [Fact]
-    public void Errors_PointToQueryText()
+    public async Task Errors_PointToQueryText()
     {
-        var compiled = Compiler.CompileQuery(Model.Value, "RaveOnDb.AspNetUsers\n    .Wher(u => true)");
+        var compiled = await Compiler.CompileQueryAsync(Model.Value, "RaveOnDb.AspNetUsers\n    .Wher(u => true)");
 
         Assert.False(compiled.Success);
         var error = compiled.Errors[0];
@@ -148,17 +149,17 @@ public class LinqCompilerTests
     }
 
     [Fact]
-    public void Errors_UnknownContext()
+    public async Task Errors_UnknownContext()
     {
-        var compiled = Compiler.CompileQuery(Model.Value, "Northwind.Orders");
+        var compiled = await Compiler.CompileQueryAsync(Model.Value, "Northwind.Orders");
 
         Assert.Contains(compiled.Errors, e => e.Id == "CS0103" && e.Line == 1 && e.Column == 1);
     }
 
     [Fact]
-    public void Dump_CollectsEachValueAndContinues()
+    public async Task Dump_CollectsEachValueAndContinues()
     {
-        var compiled = Compile("""
+        var compiled = await CompileAsync("""
             RaveOnDb.AspNetUsers.Dump("Utilisateurs");
             var total = 40.Dump();
             return total + 2;
@@ -177,9 +178,9 @@ public class LinqCompilerTests
     }
 
     [Fact]
-    public void Console_IsRedirectedToTheWriter()
+    public async Task Console_IsRedirectedToTheWriter()
     {
-        var compiled = Compile("""
+        var compiled = await CompileAsync("""
             Console.Write("a");
             Console.WriteLine("{b}");
             Console.WriteLine("{0}+{1}", 1, 2);
@@ -201,18 +202,18 @@ public class LinqCompilerTests
     public void ReturnsValueDetection(string query, bool expected)
         => Assert.Equal(expected, LinqCompiler.ReturnsValue(query));
 
-    private static string Translate(string query)
+    private static async Task<string> TranslateAsync(string query)
     {
-        var compiled = Compile(query);
+        var compiled = await CompileAsync(query);
 
         using var context = Compiler.CreateContext(Model.Value, ConnectionString);
         var queryable = Assert.IsAssignableFrom<IQueryable>(compiled.Run!(context));
         return queryable.ToQueryString();
     }
 
-    private static LinqCompiledQuery Compile(string query)
+    private static async Task<LinqCompiledQuery> CompileAsync(string query)
     {
-        var compiled = Compiler.CompileQuery(Model.Value, query);
+        var compiled = await Compiler.CompileQueryAsync(Model.Value, query);
         Assert.True(compiled.Success, string.Join(Environment.NewLine, compiled.Errors));
         return compiled;
     }

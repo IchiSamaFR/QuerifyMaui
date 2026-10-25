@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Languages.Linq.Modeling;
 using SqlToolManagerMaui.Languages.Linq.Queries;
+using SqlToolManagerMaui.Languages.Linq.Workspaces;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -42,11 +43,25 @@ public sealed class LinqCompiler : ILinqCompiler
         "System.", "mscorlib", "netstandard", "Microsoft.CSharp", "Microsoft.EntityFrameworkCore", "Microsoft.Extensions.", "Microsoft.Data.SqlClient"
     ];
 
+    /// <summary>Options communes au modele, aux requetes executees et au workspace de l'editeur.</summary>
+    internal static CSharpParseOptions ParseOptions { get; } = new(LanguageVersion.Latest);
+
+    /// <inheritdoc cref="ParseOptions"/>
+    internal static CSharpCompilationOptions CompilationOptions { get; } = new(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Disable);
+
+    private readonly ILinqWorkspace _workspace;
+
+    public LinqCompiler(ILinqWorkspace workspace)
+    {
+        _workspace = workspace;
+    }
+
     public LinqModelAssembly CompileModel(EfGeneratedModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        var image = Emit($"EfModel_{Guid.NewGuid():N}", model.Source, PlatformReferences, out var errors);
+        var compilation = CSharpCompilation.Create($"EfModel_{Guid.NewGuid():N}", [CSharpSyntaxTree.ParseText(model.Source, ParseOptions)], PlatformReferences, CompilationOptions);
+        var image = Emit(compilation, out var errors);
         if (image is null)
             throw new LinqCompilationException($"Le modele genere pour {model.ContextVariableName} ne compile pas.", errors);
 
@@ -63,14 +78,20 @@ public sealed class LinqCompiler : ILinqCompiler
         };
     }
 
-    public LinqCompiledQuery CompileQuery(LinqModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null)
+    public async Task<LinqCompiledQuery> CompileQueryAsync(LinqModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(model);
         ArgumentNullException.ThrowIfNull(query);
 
         parameters ??= [];
-        var (source, _) = BuildQuerySource(model.Model, query, parameters);
-        var image = Emit($"LinqQuery_{Guid.NewGuid():N}", source, [.. PlatformReferences, model.Reference], out var errors);
+
+        // Le projet Roslyn de l'editeur a deja lie les references : la compilation repart de lui.
+        var document = _workspace.GetDocument(model, query, parameters).Document;
+        var compilation = await document.Project.GetCompilationAsync(cancellationToken)
+            ?? throw new InvalidOperationException("Roslyn n'a pas produit de compilation pour la requete.");
+
+        // Nom unique : chaque requete est chargee dans son propre contexte collectable.
+        var image = Emit(compilation.WithAssemblyName($"LinqQuery_{Guid.NewGuid():N}"), out var errors, cancellationToken);
         if (image is null)
             return new LinqCompiledQuery { Errors = errors };
 
@@ -226,16 +247,10 @@ public sealed class LinqCompiler : ILinqCompiler
         };
     }
 
-    private static byte[]? Emit(string assemblyName, string source, IEnumerable<MetadataReference> references, out IReadOnlyList<LinqDiagnostic> errors)
+    private static byte[]? Emit(Microsoft.CodeAnalysis.Compilation compilation, out IReadOnlyList<LinqDiagnostic> errors, CancellationToken cancellationToken = default)
     {
-        var compilation = CSharpCompilation.Create(
-            assemblyName,
-            [CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Latest))],
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Disable));
-
         using var image = new MemoryStream();
-        var result = compilation.Emit(image);
+        var result = compilation.Emit(image, cancellationToken: cancellationToken);
 
         errors = result.Diagnostics
             .Where(d => d.Severity == DiagnosticSeverity.Error)

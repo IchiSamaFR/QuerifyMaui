@@ -14,10 +14,11 @@ public interface ILinqCompiler
     LinqModelAssembly CompileModel(EfGeneratedModel model);
 
     /// <summary>
-    /// Compile une expression LINQ ; les erreurs sont rapportees, pas levees. Les <paramref name="parameters"/>
-    /// sont declares en variables avant la requete, leurs valeurs fixees pour l'execution.
+    /// Compile une expression LINQ depuis le document du workspace (celui que l'editeur analyse) ; les erreurs
+    /// sont rapportees, pas levees. Les <paramref name="parameters"/> sont declares en variables avant la requete,
+    /// leurs valeurs fixees pour l'execution.
     /// </summary>
-    LinqCompiledQuery CompileQuery(LinqModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null);
+    Task<LinqCompiledQuery> CompileQueryAsync(LinqModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default);
 
     /// <summary>Contexte EF du modele sur une chaine de connexion SQL Server.</summary>
     DbContext CreateContext(LinqModelAssembly model, string connectionString);

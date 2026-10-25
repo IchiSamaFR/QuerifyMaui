@@ -64,7 +64,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             consoleIndex = messages.Count;
 
             // Dispose : decharge l'assembly de la requete une fois les resultats convertis.
-            using var compiled = await Task.Run(() => _compiler.CompileQuery(model, query), cancellationToken);
+            using var compiled = await Task.Run(() => _compiler.CompileQueryAsync(model, query, cancellationToken: cancellationToken), cancellationToken);
             if (!compiled.Success)
             {
                 hasErrors = true;
@@ -142,7 +142,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         var model = await _models.GetModelAsync(connection, string.IsNullOrWhiteSpace(database) ? null : database, cancellationToken);
         var variables = parameters.Select(LinqParameter.From).ToArray();
 
-        using var compiled = await Task.Run(() => _compiler.CompileQuery(model, query, variables), cancellationToken);
+        using var compiled = await Task.Run(() => _compiler.CompileQueryAsync(model, query, variables, cancellationToken), cancellationToken);
         if (!compiled.Success)
             throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5)));
 

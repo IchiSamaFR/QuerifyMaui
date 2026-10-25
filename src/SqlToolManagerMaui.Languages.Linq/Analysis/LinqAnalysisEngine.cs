@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.QuickInfo;
 using SqlToolManagerMaui.Core.Enums.Editors.Analysis;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors.Analysis;
@@ -36,30 +36,21 @@ public sealed class LinqAnalysisEngine : ILinqAnalysisEngine
             return null;
 
         var linq = _workspace.GetDocument(model, query, parameters);
-        if (await linq.Document.GetSyntaxRootAsync(cancellationToken) is not { } root)
+        if (QuickInfoService.GetService(linq.Document) is not { } service)
             return null;
 
-        // Le caractere survole, ou celui qui le precede (souris posee juste apres la fin du nom).
-        var position = linq.QueryStart + offset;
-        var name = FindName(root, position) ?? (offset > 0 ? FindName(root, position - 1) : null);
-        if (name is not { } token || !linq.Contains(token.Span))
+        // Infobulle de Visual Studio : libelles localises, surcharges ; le nom touche par la souris compte aussi.
+        var info = await service.GetQuickInfoAsync(linq.Document, linq.QueryStart + offset, cancellationToken);
+        var signature = info?.Sections.FirstOrDefault(section => section.Kind == QuickInfoSectionKinds.Description);
+        if (info is null || signature is null || !linq.Contains(info.Span))
             return null;
 
-        var symbol = await SymbolFinder.FindSymbolAtPositionAsync(linq.Document, token.SpanStart, cancellationToken);
-        if (symbol is null)
-            return null;
+        // Le [Description] du modele genere (table, colonne SQL) prime sur la documentation XML.
+        var symbol = await SymbolFinder.FindSymbolAtPositionAsync(linq.Document, info.Span.Start, cancellationToken);
+        var details = (symbol is null ? null : LinqSymbolFormatter.Details(symbol))
+            ?? info.Sections.FirstOrDefault(section => section.Kind == QuickInfoSectionKinds.DocumentationComments)?.Text;
 
-        return new HoverInfo(token.SpanStart - linq.QueryStart, token.Span.Length, LinqSymbolFormatter.Describe(symbol), LinqSymbolFormatter.Details(symbol));
-    }
-
-    /// <summary>Identifiant (var compris) ou type predefini (int, string) a cette position.</summary>
-    private static SyntaxToken? FindName(SyntaxNode root, int position)
-    {
-        var token = root.FindToken(position);
-        if (!token.Span.Contains(position))
-            return null;
-
-        return token.IsKind(SyntaxKind.IdentifierToken) || SyntaxFacts.IsPredefinedType(token.Kind()) ? token : null;
+        return new HoverInfo(info.Span.Start - linq.QueryStart, info.Span.Length, signature.Text, details);
     }
 
     // ---------- Erreurs ----------

@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.Core.Enums.Editors.Completion;
+﻿using Microsoft.CodeAnalysis.Tags;
+using SqlToolManagerMaui.Core.Enums.Editors.Completion;
 using SqlToolManagerMaui.Core.Enums.Editors.Highlighting;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors.Completion;
@@ -65,14 +66,14 @@ public sealed class LinqCompletionProvider : ICompletionProvider
 
     private static CompletionItemKind ToKind(string roslynKind) => roslynKind switch
     {
-        "Method" or "ExtensionMethod" => CompletionItemKind.Method,
-        "Property" => CompletionItemKind.Property,
-        "Field" or "EnumMember" or "Event" => CompletionItemKind.Field,
-        "Local" or "Parameter" or "RangeVariable" => CompletionItemKind.Variable,
-        "Class" or "Structure" or "Interface" or "Enum" or "Delegate" => CompletionItemKind.Type,
-        "Namespace" => CompletionItemKind.Namespace,
-        "Keyword" => CompletionItemKind.Keyword,
-        "Snippet" => CompletionItemKind.Snippet,
+        WellKnownTags.Method or WellKnownTags.ExtensionMethod => CompletionItemKind.Method,
+        WellKnownTags.Property => CompletionItemKind.Property,
+        WellKnownTags.Field or WellKnownTags.EnumMember or WellKnownTags.Event => CompletionItemKind.Field,
+        WellKnownTags.Local or WellKnownTags.Parameter or WellKnownTags.RangeVariable => CompletionItemKind.Variable,
+        WellKnownTags.Class or WellKnownTags.Structure or WellKnownTags.Interface or WellKnownTags.Enum or WellKnownTags.Delegate => CompletionItemKind.Type,
+        WellKnownTags.Namespace => CompletionItemKind.Namespace,
+        WellKnownTags.Keyword => CompletionItemKind.Keyword,
+        WellKnownTags.Snippet => CompletionItemKind.Snippet,
         _ => CompletionItemKind.Text
     };
 }

@@ -1,4 +1,5 @@
-﻿using SqlToolManagerMaui.Languages.Linq.Modeling;
+﻿using Microsoft.CodeAnalysis.Tags;
+using SqlToolManagerMaui.Languages.Linq.Modeling;
 
 namespace SqlToolManagerMaui.Languages.Linq.Completion;
 
@@ -38,9 +39,9 @@ internal sealed class LinqCompletionFilter
         "SavingChanges", "SavedChanges", "SaveChangesFailed", "FromExpression"
     };
 
-    private static readonly HashSet<string> VariableKinds = new(StringComparer.Ordinal) { "Local", "Parameter", "RangeVariable" };
+    private static readonly HashSet<string> VariableKinds = new(StringComparer.Ordinal) { WellKnownTags.Local, WellKnownTags.Parameter, WellKnownTags.RangeVariable };
 
-    private static readonly HashSet<string> TypeKinds = new(StringComparer.Ordinal) { "Class", "Structure", "Enum", "Interface", "Delegate" };
+    private static readonly HashSet<string> TypeKinds = new(StringComparer.Ordinal) { WellKnownTags.Class, WellKnownTags.Structure, WellKnownTags.Enum, WellKnownTags.Interface, WellKnownTags.Delegate };
 
     private readonly EfGeneratedModel? _model;
     private readonly string? _memberOf;
@@ -65,7 +66,7 @@ internal sealed class LinqCompletionFilter
         if (VariableKinds.Contains(kind))
             return !name.StartsWith("__", StringComparison.Ordinal);
 
-        if (kind == "Keyword")
+        if (kind == WellKnownTags.Keyword)
             return Keywords.Contains(name);
 
         if (TypeKinds.Contains(kind))
@@ -82,7 +83,7 @@ internal sealed class LinqCompletionFilter
             return false;
 
         // ToListAsync, FirstOrDefaultAsync... : l'execution est synchrone, ils ne font qu'allonger la liste.
-        if (kind is "Method" or "ExtensionMethod" && name.EndsWith("Async", StringComparison.Ordinal))
+        if (kind is WellKnownTags.Method or WellKnownTags.ExtensionMethod && name.EndsWith("Async", StringComparison.Ordinal))
             return false;
 
         if (_model is not null && string.Equals(_memberOf, _model.ContextVariableName, StringComparison.Ordinal))

@@ -12,7 +12,7 @@ public class LinqAnalysisEngineTests
 {
     private static readonly LinqAnalysisEngine Engine = new(new LinqWorkspace());
 
-    private static readonly Lazy<LinqModelAssembly> Model = new(() => new LinqCompiler().CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
+    private static readonly Lazy<LinqModelAssembly> Model = new(() => new LinqCompiler(new LinqWorkspace()).CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
 
     [Fact]
     public async Task Hover_PropertyShowsTypeAndColumn()

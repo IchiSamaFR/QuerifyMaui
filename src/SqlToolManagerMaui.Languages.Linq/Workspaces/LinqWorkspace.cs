@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using SqlToolManagerMaui.Core.Ioc;
@@ -63,8 +62,8 @@ public sealed class LinqWorkspace : ILinqWorkspace
                 $"Linq_{name}",
                 $"Linq_{name}",
                 LanguageNames.CSharp,
-                compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                parseOptions: new CSharpParseOptions(LanguageVersion.Latest),
+                compilationOptions: LinqCompiler.CompilationOptions,
+                parseOptions: LinqCompiler.ParseOptions,
                 metadataReferences: references);
 
             var projectId = _workspace.AddProject(project).Id;

@@ -3,7 +3,7 @@ using SqlToolManagerMaui.Core.Models.Editors.Analysis;
 
 namespace SqlToolManagerMaui.Languages.Linq.Analysis;
 
-/// <summary>Textes du survol et des signatures : types sans espace de noms, mots-cles C# (string, int), comme Visual Studio.</summary>
+/// <summary>Textes des signatures et precisions du survol : types sans espace de noms, mots-cles C# (string, int), comme Visual Studio.</summary>
 internal static class LinqSymbolFormatter
 {
     private const SymbolDisplayMiscellaneousOptions Miscellaneous =
@@ -17,21 +17,6 @@ internal static class LinqSymbolFormatter
         | SymbolDisplayParameterOptions.IncludeParamsRefOut
         | SymbolDisplayParameterOptions.IncludeDefaultValue;
 
-    private static readonly SymbolDisplayFormat SymbolFormat = new(
-        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-        memberOptions: SymbolDisplayMemberOptions.IncludeType
-            | SymbolDisplayMemberOptions.IncludeContainingType
-            | SymbolDisplayMemberOptions.IncludeParameters
-            | SymbolDisplayMemberOptions.IncludeRef,
-        delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
-        extensionMethodStyle: SymbolDisplayExtensionMethodStyle.InstanceMethod,
-        parameterOptions: ParameterOptions,
-        propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
-        localOptions: SymbolDisplayLocalOptions.IncludeType,
-        miscellaneousOptions: Miscellaneous);
-
     private static readonly SymbolDisplayFormat TypeFormat = new(
         globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
@@ -44,10 +29,6 @@ internal static class LinqSymbolFormatter
         genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
         parameterOptions: ParameterOptions,
         miscellaneousOptions: Miscellaneous);
-
-    /// <summary>Ex. "(propriete) string Student.Name", "(variable locale) IQueryable&lt;Student&gt; students".</summary>
-    public static string Describe(ISymbol symbol)
-        => $"({KindLabel(symbol)}) {symbol.ToDisplayString(SymbolFormat)}";
 
     /// <summary>
     /// Description du modele genere (table, colonne SQL) portee par le symbole, son type ou l'element
@@ -89,30 +70,6 @@ internal static class LinqSymbolFormatter
             ")",
             DeclaredBy(method));
     }
-
-    private static string KindLabel(ISymbol symbol) => symbol switch
-    {
-        IPropertySymbol => "propriété",
-        IFieldSymbol { ContainingType.TypeKind: TypeKind.Enum } => "valeur d'énumération",
-        IFieldSymbol { IsConst: true } => "constante",
-        IFieldSymbol => "champ",
-        ILocalSymbol => "variable locale",
-        IParameterSymbol { ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } } => "paramètre de lambda",
-        IParameterSymbol => "paramètre",
-        IRangeVariableSymbol => "variable de requête",
-        IMethodSymbol { MethodKind: MethodKind.Constructor } => "constructeur",
-        IMethodSymbol { IsExtensionMethod: true } or IMethodSymbol { ReducedFrom: not null } => "extension",
-        IMethodSymbol => "méthode",
-        INamedTypeSymbol { TypeKind: TypeKind.Class } => "classe",
-        INamedTypeSymbol { TypeKind: TypeKind.Struct } => "structure",
-        INamedTypeSymbol { TypeKind: TypeKind.Interface } => "interface",
-        INamedTypeSymbol { TypeKind: TypeKind.Enum } => "énumération",
-        INamedTypeSymbol { TypeKind: TypeKind.Delegate } => "délégué",
-        ITypeSymbol => "type",
-        INamespaceSymbol => "espace de noms",
-        IEventSymbol => "événement",
-        _ => symbol.Kind.ToString(),
-    };
 
     private static string? DeclaredBy(IMethodSymbol method)
     {

@@ -1,4 +1,8 @@
-﻿using SqlToolManagerMaui.Core.Ioc;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Tags;
+using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Languages.Linq.Compilation;
 using SqlToolManagerMaui.Languages.Linq.Queries;
 using SqlToolManagerMaui.Languages.Linq.Workspaces;
@@ -14,8 +18,10 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
     /// <summary>Tags Roslyn retenus pour la nature, du plus precis au plus general.</summary>
     private static readonly string[] KindTags =
     [
-        "ExtensionMethod", "Method", "Property", "Field", "Event", "Local", "Parameter", "RangeVariable",
-        "Class", "Structure", "Interface", "Enum", "EnumMember", "Delegate", "Namespace", "Keyword", "Snippet"
+        WellKnownTags.ExtensionMethod, WellKnownTags.Method, WellKnownTags.Property, WellKnownTags.Field, WellKnownTags.Event,
+        WellKnownTags.Local, WellKnownTags.Parameter, WellKnownTags.RangeVariable,
+        WellKnownTags.Class, WellKnownTags.Structure, WellKnownTags.Interface, WellKnownTags.Enum, WellKnownTags.EnumMember,
+        WellKnownTags.Delegate, WellKnownTags.Namespace, WellKnownTags.Keyword, WellKnownTags.Snippet
     ];
 
     private readonly ILinqWorkspace _workspace;
@@ -36,11 +42,11 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
 
         var position = linq.QueryStart + Math.Clamp(caretOffset, 0, query.Length);
         var list = await service.GetCompletionsAsync(document, position, cancellationToken: cancellationToken);
-        var source = (await document.GetTextAsync(cancellationToken)).ToString();
+        var root = await document.GetSyntaxRootAsync(cancellationToken);
 
         // Roslyn propose tout ce qui est visible (System.Security, System.IO, snippets...) :
         // on ne garde que ce qui sert a ecrire une requete EF.
-        var filter = new LinqCompletionFilter(model?.Model, MemberAccessTarget(source, list.Span.Start));
+        var filter = new LinqCompletionFilter(model?.Model, root is null ? null : MemberAccessTarget(root, list.Span.Start));
 
         return list.ItemsList
             .Where(item => filter.Keeps(item.DisplayText, KindOf(item.Tags)))
@@ -54,27 +60,30 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
 
     /// <summary>
     /// Expression avant le "." qui precede le mot complete : son dernier identifiant ("RaveOnDb", "u"),
-    /// chaine vide si c'est autre chose (appel, indexeur) ; null hors acces membre.
+    /// chaine vide si c'est autre chose (appel, indexeur, u?.) ; null hors acces membre.
     /// </summary>
-    private static string? MemberAccessTarget(string source, int wordStart)
+    private static string? MemberAccessTarget(SyntaxNode root, int wordStart)
     {
-        var i = wordStart - 1;
-        while (i >= 0 && char.IsWhiteSpace(source[i]))
-            i--;
-
-        if (i < 0 || source[i] != '.')
+        // Mot vide (curseur juste apres le point) : FindToken rend le jeton suivant, dont le precedent est le point.
+        var dot = root.FindToken(wordStart).GetPreviousToken();
+        if (!dot.IsKind(SyntaxKind.DotToken) || dot.Span.End > wordStart)
             return null;
 
-        i--;
-        while (i >= 0 && char.IsWhiteSpace(source[i]))
-            i--;
-
-        var end = i + 1;
-        while (i >= 0 && (char.IsLetterOrDigit(source[i]) || source[i] == '_'))
-            i--;
-
-        return source[(i + 1)..end];
+        return dot.Parent switch
+        {
+            MemberAccessExpressionSyntax access => LastName(access.Expression),
+            QualifiedNameSyntax qualified => LastName(qualified.Left),
+            _ => string.Empty,
+        };
     }
+
+    private static string LastName(SyntaxNode node) => node switch
+    {
+        SimpleNameSyntax name => name.Identifier.ValueText,
+        MemberAccessExpressionSyntax access => access.Name.Identifier.ValueText,
+        QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText,
+        _ => string.Empty,
+    };
 
     private static string KindOf(ImmutableArray<string> tags)
         => KindTags.FirstOrDefault(tags.Contains) ?? (tags.IsDefaultOrEmpty ? "Text" : tags[0]);
