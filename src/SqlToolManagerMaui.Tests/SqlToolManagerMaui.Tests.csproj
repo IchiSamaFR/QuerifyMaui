@@ -14,6 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\SqlToolManagerMaui.Languages.JavaScript\SqlToolManagerMaui.Languages.JavaScript.csproj" />
 		<ProjectReference Include="..\SqlToolManagerMaui.Languages.Linq\SqlToolManagerMaui.Languages.Linq.csproj" />
 		<ProjectReference Include="..\SqlToolManagerMaui.Languages.Sql\SqlToolManagerMaui.Languages.Sql.csproj" />
 	</ItemGroup>

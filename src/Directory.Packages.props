@@ -19,6 +19,8 @@
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="5.0.0" />
 		<!-- Parseur T-SQL : erreurs de syntaxe soulignees dans l'editeur. -->
 		<PackageVersion Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="180.117.0" />
+		<!-- Interpreteur JavaScript (et TypeScript via Sucrase embarque). -->
+		<PackageVersion Include="Jint" Version="4.9.3" />
 
 		<!-- Interface -->
 		<!-- CodeEdit.Maui exige Microsoft.Maui.Controls >= 10.0.101. -->

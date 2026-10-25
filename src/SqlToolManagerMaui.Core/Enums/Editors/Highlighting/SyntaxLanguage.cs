@@ -14,5 +14,11 @@ public enum SyntaxLanguage
     Sql,
 
     /// <summary>Requete LINQ en C# sur un DbContext Entity Framework genere (Linq.xshd).</summary>
-    Linq
+    Linq,
+
+    /// <summary>Script JavaScript execute par Jint, avec l'objet db (JavaScript.xshd).</summary>
+    JavaScript,
+
+    /// <summary>Script TypeScript : types retires puis execute comme du JavaScript (TypeScript.xshd).</summary>
+    TypeScript
 }

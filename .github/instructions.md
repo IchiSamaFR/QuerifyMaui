@@ -56,7 +56,7 @@ SqlToolManagerMaui (nom affiché : **Querify**) est une application **desktop Wi
 
 **Langages** :
 * `Languages.Commons` : `IQueryExecutor` (un par `SyntaxLanguage`), `ICompletionContextAnalyzer`, `ICompletionProvider`, `QueryExecutionLimits`.
-* `Languages.[Nom]` : un projet par langage, ne référence que `Languages.Commons`. `Languages.Sql` : `Queries/` (`SqlQueryExecutor` → `ISqlProviderExecutor` du moteur), `SqlServer/` (exécuteur, `SqlBatchSplitter`), `Completion/`. `Languages.Linq` : `Modeling/` (générateur de modèle EF, cache des modèles compilés), `Compilation/` (compilateur Roslyn, requête compilée), `Workspaces/` (workspace Roslyn), `Analysis/` (diagnostics, survol, aide à la signature), `Completion/` (complétion C#), `Queries/` (exécuteur, paramètres) — EF Core et Roslyn restent confinés ici.
+* `Languages.[Nom]` : un projet par langage, ne référence que `Languages.Commons`. `Languages.Sql` : `Queries/` (`SqlQueryExecutor` → `ISqlProviderExecutor` du moteur), `SqlServer/` (exécuteur, `SqlBatchSplitter`), `Completion/`. `Languages.Linq` : générateur de modèle EF, compilateur Roslyn, exécuteur, cache, complétion C# (EF Core et Roslyn restent confinés ici). `Languages.JavaScript` : JavaScript et TypeScript sur Jint (`JavaScriptRunner` commun, un exécuteur fin par valeur de `SyntaxLanguage`, Sucrase embarqué pour le TypeScript).
 * `Languages` : seul projet de langage référencé par l'application ; `IQueryExecutorResolver`, `LanguageAssemblies.All`, `InsertQueryMessage`.
 
 **Autres** : `Helpers` (extensions, `Tools/` : `JsonFile`, `TextFileEncoding`, `CorruptFileHelper`, `ConnectionStringPasswordHelper`), `Tests` (xUnit, référence les projets de langage, donc `Core`, `Databases` et `Helpers`).
@@ -117,7 +117,7 @@ SqlToolManagerMaui/
 * **CommunityToolkit.Mvvm** — MVVM, messenger. **CommunityToolkit.Maui / .Markup** — `[BindableProperty]`, popups, `FileSaver`, snackbar.
 * **CodeEdit.Maui** (préversion) — éditeur de code (`.UseCodeEditor()`). Exige `Microsoft.Maui.Controls` >= 10.0.101 et la projection Windows forcée par `WindowsSdkPackageVersion`.
 * **AathifMahir.Maui.MauiIcons.Fluent** — icônes Fluent. **LiveChartsCore.SkiaSharpView.Maui** — graphiques des dashboards.
-* **Microsoft.Data.SqlClient** — SQL Server. **EF Core + Roslyn** — langage LINQ.
+* **Microsoft.Data.SqlClient** — SQL Server. **EF Core + Roslyn** — langage LINQ. **Jint** — langages JavaScript et TypeScript (Sucrase 3.35.1 embarqué dans `Languages.JavaScript/Resources/`, voir son `README.md`).
 * **Newtonsoft.Json** — fichiers JSON de l'application (`JsonFile`) ; **System.Text.Json** (source-gen) — fichiers `.schx`.
 
 Toutes les versions sont dans `src/Directory.Packages.props` : un `PackageReference` n'indique jamais de `Version`.
@@ -234,6 +234,8 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * `SqlServerQueryExecutor` : une connexion par exécution, `CommandTimeout = 0`, lots `GO` / `GO n` (`SqlBatchSplitter`, qui ignore les GO dans chaînes et commentaires bloc), un lot en erreur n'arrête pas les suivants, lignes d'erreur recalées sur le script, erreurs SQL rendues dans les messages.
 * Plafond de `QueryExecutionLimits.MaxRowsPerResultSet` (10 000) lignes par jeu, cellules converties en texte (NULL = `null`).
 * **LINQ** : le script devient le corps d'une méthode générée (`LinqCompiler.BuildQuerySource`), le contexte porte le nom de la base. Le premier `return` termine le script ; `.Dump("titre")` ajoute un jeu de résultats. Chaque requête est chargée dans un `AssemblyLoadContext` **collectable**, déchargé après l'exécution (`LinqCompiledQuery.Dispose`). Toute exception du script est rendue dans les messages.
+* **JavaScript / TypeScript** (`Languages.JavaScript`) : un `Engine` Jint par exécution, sans accès CLR. Objet `db` : `db.query(sql, { param: valeur })` passe par `IQueryReader` (indépendant du moteur), bloque via `Task.Run` (Jint est synchrone) et rend un tableau d'objets ; nombres et booléens retrouvent leur type d'après `TypeName` de la colonne. Résultats : `return`, expression finale ou `.dump("titre")` ; `console.*` va dans les messages. Le TypeScript est seulement débarrassé de ses types (`SucraseTypeScriptTranspiler`, numéros de ligne conservés), sans vérification. `ReadAsync` (dashboard) lève `NotSupportedException`.
+* **Garde-fous JS** : délai choisi dans Requête > Délai des scripts (`UserPreferences.ScriptTimeoutSeconds`, lu via `IScriptExecutionSettings` de `Languages.Commons`, appels à la base compris), `JavaScriptLimits` (instructions, allocations cumulées, profondeur d'appel avec garde de pile) et annulation branchée sur `Constraints.Cancellation` : contrairement au LINQ, une boucle infinie est vraiment interrompue.
 * **Limite LINQ** : le script tourne dans le processus de l'application. Annuler rend la main tout de suite, mais une boucle infinie continue en arrière-plan jusqu'à la fermeture, et un débordement de pile arrête l'application. Isoler l'exécution dans un processus séparé serait la seule vraie protection.
 * Grille de résultats = `v:DataGrid` (UI) : colonnes fournies par `QueryResultColumnsConverter` (lecture des cellules par position, `AutoGenerateColumns="False"`), utilisée par `QueryResultsPanel` et les cartes Tableau du dashboard.
 
@@ -268,7 +270,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 
 ### Préférences utilisateur
 
-* `UserPreferences` (`Core/Models/Settings/`) : fichiers récents (10 max), restauration des onglets, options de l'éditeur (`Editor`), volets (`Panels`).
+* `UserPreferences` (`Core/Models/Settings/`) : fichiers récents (10 max), restauration des onglets, délai des scripts JS / TS, options de l'éditeur (`Editor`), volets (`Panels`).
 * Persistées par `IUserPreferencesStore` dans `preferences.json` : écriture regroupée (300 ms), jamais une version plus ancienne par-dessus une plus récente, `Flush()` à la fermeture. `PreferencesChanged` est un `event`.
 * Onglets mémorisés : `IWorkspaceStore` (`workspace.json`), écrits à la fermeture, relus par `MainVM.LoadDatasBusyAsync`.
 * Dossier nommé `Settings` (et non `Preferences`) pour ne pas masquer `Microsoft.Maui.Storage.Preferences`.
@@ -320,4 +322,4 @@ dotnet test src/SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj
 
 ---
 
-**Dernière mise à jour** : 2026-10-20
+**Dernière mise à jour** : 2026-10-25

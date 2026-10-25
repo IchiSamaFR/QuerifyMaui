@@ -1,4 +1,5 @@
 ﻿using SqlToolManagerMaui.Languages.Linq.Queries;
+using SqlToolManagerMaui.Languages.JavaScript;
 using SqlToolManagerMaui.Languages.Sql.Queries;
 using System.Reflection;
 
@@ -12,5 +13,6 @@ public static class LanguageAssemblies
         typeof(LanguageAssemblies).Assembly,
         typeof(SqlQueryExecutor).Assembly,
         typeof(LinqQueryExecutor).Assembly,
+        typeof(JavaScriptQueryExecutor).Assembly,
     ];
 }

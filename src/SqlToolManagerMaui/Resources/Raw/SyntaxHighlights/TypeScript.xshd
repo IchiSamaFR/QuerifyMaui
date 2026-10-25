@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Coloration TypeScript des scripts (types retires avant execution), couleurs Visual Studio sombre.
+  Les noms de couleur servent aussi de categorie a l'autocompletion :
+  DataType et Type -> types, Keyword et Control -> mots-cles.
+-->
+<SyntaxDefinition name="TypeScript" extensions=".ts;.mts;.cts" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+
+	<Property name="LineComment" value="//" />
+
+	<!-- Texte non reconnu : peint explicitement pour que la couleur d'un commentaire ne deborde pas a la frappe -->
+	<Color name="Default" foreground="#D4D4D4" />
+	<Color name="Comment" foreground="#6A9955" />
+	<Color name="String" foreground="#CE9178" />
+	<Color name="Number" foreground="#B5CEA8" />
+	<Color name="Keyword" foreground="#569CD6" />
+	<Color name="Control" foreground="#D8A0DF" />
+	<Color name="DataType" foreground="#569CD6" />
+	<Color name="Type" foreground="#4EC9B0" />
+	<Color name="Method" foreground="#DCDCAA" />
+	<Color name="Operator" foreground="#D4D4D4" />
+
+	<RuleSet ignoreCase="false">
+
+		<Span color="Comment">
+			<Begin>//</Begin>
+		</Span>
+
+		<Span color="Comment" multiline="true">
+			<Begin>/\*</Begin>
+			<End>\*/</End>
+		</Span>
+
+		<!-- Gabarit `...` : peut couvrir plusieurs lignes, \ echappe, fermeture optionnelle pendant la frappe -->
+		<Rule color="String">`(?:[^`\\]|\\.)*`?</Rule>
+
+		<Rule color="String">"(?:[^"\\\n]|\\.)*"?</Rule>
+
+		<Rule color="String">'(?:[^'\\\n]|\\.)*'?</Rule>
+
+		<Keywords color="Control">
+			<Word>if</Word><Word>else</Word><Word>switch</Word><Word>case</Word><Word>default</Word><Word>for</Word>
+			<Word>while</Word><Word>do</Word><Word>break</Word><Word>continue</Word><Word>return</Word><Word>throw</Word>
+			<Word>try</Word><Word>catch</Word><Word>finally</Word><Word>await</Word><Word>yield</Word>
+		</Keywords>
+
+		<Keywords color="Keyword">
+			<Word>var</Word><Word>let</Word><Word>const</Word><Word>function</Word><Word>class</Word><Word>extends</Word>
+			<Word>new</Word><Word>delete</Word><Word>typeof</Word><Word>instanceof</Word><Word>in</Word><Word>of</Word>
+			<Word>void</Word><Word>this</Word><Word>super</Word><Word>null</Word><Word>undefined</Word><Word>true</Word>
+			<Word>false</Word><Word>async</Word><Word>static</Word><Word>get</Word><Word>set</Word><Word>import</Word>
+			<Word>export</Word><Word>from</Word><Word>as</Word><Word>debugger</Word><Word>with</Word><Word>NaN</Word>
+			<Word>Infinity</Word><Word>interface</Word><Word>type</Word><Word>enum</Word><Word>namespace</Word><Word>declare</Word>
+			<Word>abstract</Word><Word>implements</Word><Word>private</Word><Word>protected</Word><Word>public</Word><Word>readonly</Word>
+			<Word>keyof</Word><Word>infer</Word><Word>is</Word><Word>unique</Word><Word>satisfies</Word><Word>override</Word>
+		</Keywords>
+
+		<Keywords color="DataType">
+			<Word>string</Word><Word>number</Word><Word>boolean</Word><Word>any</Word><Word>unknown</Word><Word>never</Word>
+			<Word>object</Word><Word>bigint</Word><Word>symbol</Word>
+		</Keywords>
+
+		<!-- Globales courantes, et l'objet db expose par l'application -->
+		<Keywords color="Type">
+			<Word>Math</Word><Word>JSON</Word><Word>Date</Word><Word>Array</Word><Word>Object</Word><Word>String</Word>
+			<Word>Number</Word><Word>Boolean</Word><Word>Promise</Word><Word>Map</Word><Word>Set</Word><Word>RegExp</Word>
+			<Word>Error</Word><Word>console</Word><Word>db</Word>
+		</Keywords>
+
+		<!-- Appel de fonction : identifiant suivi d'une parenthese, eventuellement generique -->
+		<Rule color="Method">(?&lt;![\p{L}\p{Nd}_$])[\p{L}_$][\p{L}\p{Nd}_$]*(?=\s*(?:&lt;[^&lt;&gt;()]*&gt;)?\s*\()</Rule>
+
+		<Rule color="Number">\b0[xXbBoO][0-9a-fA-F_]+n?|(\b\d[\d_]*(\.[0-9_]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?n?</Rule>
+
+		<Rule color="Operator">[?,.;:()\[\]{}+\-/%*&lt;&gt;^~!|&amp;=]+</Rule>
+	</RuleSet>
+</SyntaxDefinition>

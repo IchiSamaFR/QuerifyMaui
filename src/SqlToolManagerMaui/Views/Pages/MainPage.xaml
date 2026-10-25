@@ -107,6 +107,14 @@
                                          Command="{Binding MainMenuBar.SetLanguageCommand}"
                                          CommandParameter="{x:Static en:SyntaxLanguage.Linq}"
                                          IsChecked="{Binding MainMenuBar.IsLinqLanguage}" />
+                <v:CheckedMenuFlyoutItem Label="JavaScript"
+                                         Command="{Binding MainMenuBar.SetLanguageCommand}"
+                                         CommandParameter="{x:Static en:SyntaxLanguage.JavaScript}"
+                                         IsChecked="{Binding MainMenuBar.IsJavaScriptLanguage}" />
+                <v:CheckedMenuFlyoutItem Label="TypeScript"
+                                         Command="{Binding MainMenuBar.SetLanguageCommand}"
+                                         CommandParameter="{x:Static en:SyntaxLanguage.TypeScript}"
+                                         IsChecked="{Binding MainMenuBar.IsTypeScriptLanguage}" />
             </MenuFlyoutSubItem>
         </MenuBarItem>
 
@@ -119,6 +127,26 @@
             </MenuFlyoutItem>
             <MenuFlyoutItem Text="Annuler l'exécution"
                             Command="{Binding MainMenuBar.CancelCommand}" />
+            <MenuFlyoutSeparator />
+            <!-- Garde-fou des scripts JavaScript / TypeScript, lu a chaque execution -->
+            <MenuFlyoutSubItem Text="Délai des scripts">
+                <v:CheckedMenuFlyoutItem Label="30 secondes"
+                                         Command="{Binding MainMenuBar.SetScriptTimeoutCommand}"
+                                         CommandParameter="30"
+                                         IsChecked="{Binding Preferences.ScriptTimeoutSeconds, Converter={StaticResource IsEqualConverter}, ConverterParameter=30}" />
+                <v:CheckedMenuFlyoutItem Label="1 minute"
+                                         Command="{Binding MainMenuBar.SetScriptTimeoutCommand}"
+                                         CommandParameter="60"
+                                         IsChecked="{Binding Preferences.ScriptTimeoutSeconds, Converter={StaticResource IsEqualConverter}, ConverterParameter=60}" />
+                <v:CheckedMenuFlyoutItem Label="5 minutes"
+                                         Command="{Binding MainMenuBar.SetScriptTimeoutCommand}"
+                                         CommandParameter="300"
+                                         IsChecked="{Binding Preferences.ScriptTimeoutSeconds, Converter={StaticResource IsEqualConverter}, ConverterParameter=300}" />
+                <v:CheckedMenuFlyoutItem Label="Sans limite"
+                                         Command="{Binding MainMenuBar.SetScriptTimeoutCommand}"
+                                         CommandParameter="0"
+                                         IsChecked="{Binding Preferences.ScriptTimeoutSeconds, Converter={StaticResource IsEqualConverter}, ConverterParameter=0}" />
+            </MenuFlyoutSubItem>
             <MenuFlyoutSeparator />
             <MenuFlyoutItem Text="Se déconnecter"
                             Command="{Binding MainMenuBar.Connection.DisconnectCommand}" />

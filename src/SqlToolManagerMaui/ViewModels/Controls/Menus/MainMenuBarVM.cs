@@ -10,6 +10,7 @@ using SqlToolManagerMaui.Services.Settings;
 using SqlToolManagerMaui.ViewModels.Pages.Documents;
 using SqlToolManagerMaui.ViewModels.Pages.Shared;
 using System.ComponentModel;
+using System.Globalization;
 using System.Windows.Input;
 
 namespace SqlToolManagerMaui.ViewModels.Controls.Menus;
@@ -48,11 +49,17 @@ public partial class MainMenuBarVM : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsSqlLanguage))]
     [NotifyPropertyChangedFor(nameof(IsLinqLanguage))]
+    [NotifyPropertyChangedFor(nameof(IsJavaScriptLanguage))]
+    [NotifyPropertyChangedFor(nameof(IsTypeScriptLanguage))]
     public partial SyntaxLanguage Language { get; private set; } = SyntaxLanguage.Sql;
 
     public bool IsSqlLanguage => Language == SyntaxLanguage.Sql;
 
     public bool IsLinqLanguage => Language == SyntaxLanguage.Linq;
+
+    public bool IsJavaScriptLanguage => Language == SyntaxLanguage.JavaScript;
+
+    public bool IsTypeScriptLanguage => Language == SyntaxLanguage.TypeScript;
 
     public MainMenuBarVM(IUserPreferencesStore preferences,
         DatabaseConnectionVM connection,
@@ -142,4 +149,8 @@ public partial class MainMenuBarVM : ObservableObject
 
     [RelayCommand]
     private void ToggleTabIndentation() => Preferences.Editor.IsTabIndentation = !Preferences.Editor.IsTabIndentation;
+
+    /// <summary>Parametre : la duree en secondes, en texte depuis le XAML ; 0 = sans limite.</summary>
+    [RelayCommand]
+    private void SetScriptTimeout(string seconds) => Preferences.ScriptTimeoutSeconds = int.Parse(seconds, CultureInfo.InvariantCulture);
 }

@@ -118,11 +118,13 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 
 ### Ajouter un langage
 1. Créer `SqlToolManagerMaui.Languages.[Nom]` (référence `Languages.Commons` uniquement, jamais un autre langage)
-2. Y implémenter `IQueryExecutor` (`Languages.Commons`) en `[AutoRegister(As = typeof(IQueryExecutor))]`, avec sa valeur de `SyntaxLanguage` : `QueryExecutorResolver` le découvre seul
+2. Y implémenter `IQueryExecutor` (`Languages.Commons`) en `[AutoRegister(As = typeof(IQueryExecutor))]`, avec sa valeur de `SyntaxLanguage` : `QueryExecutorResolver` le découvre seul. Un projet peut porter plusieurs valeurs (JavaScript / TypeScript) : un exécuteur fin par valeur, autour d'un moteur commun
 3. L'ajouter à la solution et en `ProjectReference` de `SqlToolManagerMaui.Languages` (jamais du projet principal)
 4. Ajouter un de ses types à `LanguageAssemblies.All` (`SqlToolManagerMaui.Languages`) pour que son assembly soit scannée
+5. Ajouter la valeur à `SyntaxLanguage` (`Core/Enums`) et le fichier `Resources/Raw/SyntaxHighlights/<valeur>.xshd` (coloration, extensions, mots-clés de la complétion), puis l'entrée du menu Affichage > Langage
+6. Un script JS tiers (ex. Sucrase) est embarqué en `EmbeddedResource` du projet de langage, avec un `README.md` d'origine et de version
 
 ---
 
-**Dernière mise à jour** : 2026-10-20
+**Dernière mise à jour** : 2026-10-25
 **Source centralisée** : `.github/instructions.md`

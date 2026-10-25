@@ -15,6 +15,10 @@ public partial class UserPreferences : ObservableObject
     [ObservableProperty]
     public partial bool RestoreOpenTabs { get; set; } = true;
 
+    /// <summary>Duree maximale d'un script JavaScript / TypeScript, en secondes ; 0 = sans limite.</summary>
+    [ObservableProperty]
+    public partial int ScriptTimeoutSeconds { get; set; } = 60;
+
     // Lecture seule : instances stables pour les bindings ; Json.NET les remplit en place.
     public EditorPreferences Editor { get; } = new();
 
