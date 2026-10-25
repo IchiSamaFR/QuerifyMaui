@@ -12,7 +12,10 @@ public partial class CompletionPopup : ContentView
 {
     public const double RowHeight = 24;
     public const int VisibleRows = 10;
-    public const double PopupWidth = 320;
+    public const double MinPopupWidth = 320;
+
+    /// <summary>Au-dela, le libelle est tronque (le detail reste entier).</summary>
+    public const double MaxPopupWidth = 640;
 
     /// <summary>Padding + bordure du cadre.</summary>
     private const double Chrome = 10;
@@ -27,10 +30,12 @@ public partial class CompletionPopup : ContentView
     /// <summary>Index de la suggestion affichee sur la premiere ligne.</summary>
     private int _offset;
 
+    /// <summary>Largeur atteinte depuis l'ouverture : la liste ne retrecit pas au defilement.</summary>
+    private double _width = MinPopupWidth;
+
     public CompletionPopup()
     {
         InitializeComponent();
-        WidthRequest = PopupWidth;
 
         for (var i = 0; i < _rows.Length; i++)
             _rows[i] = new CompletionEntry();
@@ -47,6 +52,15 @@ public partial class CompletionPopup : ContentView
     public CompletionItem? SelectedItem => _selectedIndex >= 0 && _selectedIndex < _items.Count ? _items[_selectedIndex] : null;
 
     public double PopupHeight => HeightRequest;
+
+    public double PopupWidth => Math.Min(WidthRequest, MaximumWidthRequest);
+
+    /// <summary>Ferme la liste ; la prochaine ouverture repart de la largeur minimale.</summary>
+    public void Hide()
+    {
+        IsVisible = false;
+        _width = MinPopupWidth;
+    }
 
     /// <summary>Remplace la liste en gardant la suggestion courante si elle est encore presente.</summary>
     public void SetItems(IReadOnlyList<CompletionItem> items)
@@ -124,7 +138,20 @@ public partial class CompletionPopup : ContentView
             row.IsSelected = item is not null && index == _selectedIndex;
         }
 
+        UpdateWidth();
         UpdateThumb();
+    }
+
+    /// <summary>
+    /// Largeur du plus long element visible. Mesure sans limite : une colonne * mesuree dans une largeur
+    /// finie s'etirerait jusqu'au maximum. MaximumWidthRequest tronque ensuite le libelle.
+    /// </summary>
+    private void UpdateWidth()
+    {
+        foreach (var row in Rows.Children)
+            _width = Math.Max(_width, row.Measure(double.PositiveInfinity, RowHeight).Width + Chrome);
+
+        WidthRequest = _width;
     }
 
     private void UpdateThumb()

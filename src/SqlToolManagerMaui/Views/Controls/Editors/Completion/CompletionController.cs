@@ -346,7 +346,7 @@ public sealed class CompletionController : IDisposable
         CancelPending();
         _pendingTrigger = null;
         _session = null;
-        _popup.IsVisible = false;
+        _popup.Hide();
     }
 
     private void CancelPending()
@@ -405,7 +405,10 @@ public sealed class CompletionController : IDisposable
         if (y + height > _host.Height && caret.Top - height - CaretGap >= 0)
             y = caret.Top - height - CaretGap;
 
-        _popup.TranslationX = Math.Clamp(caret.Left, 0, Math.Max(0, _host.Width - CompletionPopup.PopupWidth));
+        // Jamais plus large que l'editeur.
+        _popup.MaximumWidthRequest = Math.Min(CompletionPopup.MaxPopupWidth, _host.Width);
+
+        _popup.TranslationX = Math.Clamp(caret.Left, 0, Math.Max(0, _host.Width - _popup.PopupWidth));
         _popup.TranslationY = y;
         _popup.IsVisible = true;
     }

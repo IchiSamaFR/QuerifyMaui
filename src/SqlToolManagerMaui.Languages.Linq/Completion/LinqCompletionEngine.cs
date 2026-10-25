@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Tags;
@@ -43,46 +44,49 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
         var position = linq.QueryStart + Math.Clamp(caretOffset, 0, query.Length);
         var list = await service.GetCompletionsAsync(document, position, cancellationToken: cancellationToken);
 
-        // Mot vide (curseur juste apres le point) : FindToken rend le jeton suivant, dont le precedent est le point.
-        var root = await document.GetSyntaxRootAsync(cancellationToken);
-        var dot = root?.FindToken(list.Span.Start).GetPreviousToken() ?? default;
-        var isMemberAccess = dot.IsKind(SyntaxKind.DotToken);
-        var contextMembers = dot.Parent is MemberAccessExpressionSyntax access
-            ? await ContextMembersAsync(document, access.Expression, cancellationToken)
-            : null;
+        var imported = await ImportedNamespacesAsync(document, cancellationToken);
 
-        // Roslyn propose tout ce qui est visible (System.Security, System.IO, snippets...) :
-        // on ne garde que ce qui sert a ecrire une requete EF.
-        var filter = new LinqCompletionFilter(model?.Model, isMemberAccess, contextMembers);
-
-        return list.ItemsList
-            .Where(item => filter.Keeps(item.DisplayText, KindOf(item.Tags)))
-            .Select(item => new LinqCompletionCandidate(
-                item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix,
-                item.DisplayText,
-                KindOf(item.Tags),
-                string.IsNullOrEmpty(item.InlineDescription) ? null : item.InlineDescription))
-            .ToArray();
-    }
-
-    /// <summary>
-    /// Proprietes declarees par le DbContext genere (ses DbSet) si l'expression avant le point en est un ;
-    /// null sinon. Le reste (SaveChanges, ChangeTracker, Database...) vient de DbContext : plomberie EF.
-    /// </summary>
-    private static async Task<IReadOnlySet<string>?> ContextMembersAsync(Document document, ExpressionSyntax expression, CancellationToken cancellationToken)
-    {
-        if (await document.GetSemanticModelAsync(cancellationToken) is not { } semantic
-            || semantic.Compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.DbContext") is not { } dbContext
-            || semantic.GetTypeInfo(expression, cancellationToken).Type is not INamedTypeSymbol type)
-            return null;
-
-        for (var parent = type.BaseType; parent is not null; parent = parent.BaseType)
+        // TEST : propositions brutes de Roslyn, sans filtre LinqCompletionFilter.
+        List<LinqCompletionCandidate> candidates = [];
+        foreach (var item in list.ItemsList)
         {
-            if (SymbolEqualityComparer.Default.Equals(parent, dbContext))
-                return type.GetMembers().OfType<IPropertySymbol>().Where(p => p.DeclaredAccessibility == Accessibility.Public).Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
+            var kind = KindOf(item.Tags);
+            if (InsertTextOf(item, kind, imported) is not { } insertText)
+                continue;
+
+            candidates.Add(new LinqCompletionCandidate(
+                item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix,
+                insertText,
+                kind,
+                string.IsNullOrEmpty(item.InlineDescription) ? null : item.InlineDescription));
         }
 
-        return null;
+        return candidates;
+    }
+
+    /// <summary>Usings du source genere : ce qui en vient s'ecrit sans qualification.</summary>
+    private static async Task<HashSet<string>> ImportedNamespacesAsync(Document document, CancellationToken cancellationToken)
+        => await document.GetSyntaxRootAsync(cancellationToken) is CompilationUnitSyntax root
+            ? root.Usings.Select(u => u.Name?.ToString()).OfType<string>().ToHashSet(StringComparer.Ordinal)
+            : [];
+
+    /// <summary>
+    /// Type ou methode d'un namespace absent des usings (Roslyn le met dans InlineDescription) : un type est insere
+    /// avec son nom complet, la requete ne pouvant pas declarer de using ; une methode d'extension ne se qualifie
+    /// pas apres un point, elle ne compilerait pas : elle est ecartee.
+    /// </summary>
+    private static string? InsertTextOf(RoslynCompletion.CompletionItem item, string kind, HashSet<string> imported)
+    {
+        var ns = item.InlineDescription;
+        if (string.IsNullOrEmpty(ns) || imported.Contains(ns))
+            return item.DisplayText;
+
+        return kind switch
+        {
+            WellKnownTags.Method or WellKnownTags.ExtensionMethod => null,
+            WellKnownTags.Class or WellKnownTags.Structure or WellKnownTags.Interface or WellKnownTags.Enum or WellKnownTags.Delegate => $"{ns}.{item.DisplayText}",
+            _ => item.DisplayText,
+        };
     }
 
     private static string KindOf(ImmutableArray<string> tags)

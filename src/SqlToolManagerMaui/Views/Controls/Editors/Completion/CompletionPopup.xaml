@@ -4,6 +4,8 @@
              x:Class="SqlToolManagerMaui.Views.Controls.Editors.Completion.CompletionPopup"
              HorizontalOptions="Start"
              VerticalOptions="Start"
+             MinimumWidthRequest="{x:Static c:CompletionPopup.MinPopupWidth}"
+             MaximumWidthRequest="{x:Static c:CompletionPopup.MaxPopupWidth}"
              IsVisible="False">
 
     <!-- Pas de CollectionView : la liste ne doit jamais prendre le focus a l'editeur.
