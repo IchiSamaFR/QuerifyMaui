@@ -11,8 +11,8 @@
                                Spacing="8"
                                VerticalOptions="Center">
             <Image Source="app_logo.png"
-                   WidthRequest="16"
-                   HeightRequest="16"
+                   WidthRequest="14"
+                   HeightRequest="14"
                    VerticalOptions="Center" />
             <Label Text="Querify"
                    FontSize="12"
