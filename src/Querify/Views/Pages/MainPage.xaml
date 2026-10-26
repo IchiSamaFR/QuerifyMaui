@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<v:AbstractPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                x:Class="Querify.Views.Pages.MainPage"
+                x:DataType="vm:MainVM"
+                x:Name="Page"
+                Shell.NavBarIsVisible="True">
+    <v:AbstractPage.Resources>
+        <!-- Une vue par type de session, instanciee avec la page ; la TabBar la reaffiche d'un onglet a l'autre et la vue transmet la session a son VM -->
+        <v:DocumentViewSelector x:Key="DocumentViewSelector">
+            <v:DocumentViewSelector.CodeEditorView>
+                <v:CodeEditorView x:DataType="m:CodeEditorSession"
+                                  Session="{Binding .}" />
+            </v:DocumentViewSelector.CodeEditorView>
+            <v:DocumentViewSelector.DashboardView>
+                <v:DashboardView x:DataType="m:DashboardSession"
+                                 Session="{Binding .}" />
+            </v:DocumentViewSelector.DashboardView>
+        </v:DocumentViewSelector>
+    </v:AbstractPage.Resources>
+
+    <!-- Barre de menus : Fichier sur MainVM, le reste sur MainMenuBarVM qui suit l'onglet selectionne -->
+    <v:AbstractPage.MenuBarItems>
+        <MenuBarItem Text="Fichier">
+            <MenuFlyoutItem Text="Nouveau fichier"
+                            Command="{Binding NewCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Ctrl"
+                                         Key="N" />
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Nouveau tableau de bord"
+                            Command="{Binding NewDashboardCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Ctrl"
+                                         Key="D" />
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Ouvrir"
+                            Command="{Binding OpenCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Ctrl"
+                                         Key="O" />
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <v:MenuFlyoutSubItemExtended Text="Fichiers récents"
+                                         EmptyText="Aucun fichier récent"
+                                         ItemsSource="{Binding Preferences.RecentFiles}"
+                                         ItemCommand="{Binding OpenRecentCommand}"
+                                         FooterCommand="{Binding ClearRecentFilesCommand}" />
+            <v:CheckedMenuFlyoutItem Label="Rouvrir les onglets au démarrage"
+                                     Command="{Binding MainMenuBar.ToggleRestoreOpenTabsCommand}"
+                                     IsChecked="{Binding Preferences.RestoreOpenTabs}" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Enregistrer"
+                            Command="{Binding SaveCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Ctrl"
+                                         Key="S" />
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Enregistrer sous"
+                            Command="{Binding SaveAsCommand}" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Fermer"
+                            Command="{Binding CloseActiveCommand}" />
+        </MenuBarItem>
+
+        <MenuBarItem Text="Édition">
+            <MenuFlyoutItem Text="Annuler"
+                            Command="{Binding MainMenuBar.EditionCommands.Undo}" />
+            <MenuFlyoutItem Text="Rétablir"
+                            Command="{Binding MainMenuBar.EditionCommands.Redo}" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Couper"
+                            Command="{Binding MainMenuBar.EditionCommands.Cut}" />
+            <MenuFlyoutItem Text="Copier"
+                            Command="{Binding MainMenuBar.EditionCommands.Copy}" />
+            <MenuFlyoutItem Text="Coller"
+                            Command="{Binding MainMenuBar.EditionCommands.Paste}" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Tout sélectionner"
+                            Command="{Binding MainMenuBar.EditionCommands.SelectAll}" />
+        </MenuBarItem>
+
+        <MenuBarItem Text="Affichage">
+            <v:CheckedMenuFlyoutItem Label="Explorateur d'objets"
+                                     Command="{Binding MainMenuBar.ToggleObjectExplorerCommand}"
+                                     IsChecked="{Binding Preferences.Panels.IsObjectExplorerOpen}" />
+            <MenuFlyoutSeparator />
+            <v:CheckedMenuFlyoutItem Label="Numéros de ligne"
+                                     Command="{Binding MainMenuBar.ToggleLineNumbersCommand}"
+                                     IsChecked="{Binding Preferences.Editor.IsLineDisplayed}" />
+            <v:CheckedMenuFlyoutItem Label="Retour à la ligne"
+                                     Command="{Binding MainMenuBar.ToggleWordWrapCommand}"
+                                     IsChecked="{Binding Preferences.Editor.IsWordWrapped}" />
+            <v:CheckedMenuFlyoutItem Label="Indentation par tabulations"
+                                     Command="{Binding MainMenuBar.ToggleTabIndentationCommand}"
+                                     IsChecked="{Binding Preferences.Editor.IsTabIndentation}" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutSubItem Text="Langage">
+                <v:CheckedMenuFlyoutItem Label="SQL (T-SQL)"
+                                         Command="{Binding MainMenuBar.SetLanguageCommand}"
+                                         CommandParameter="{x:Static en:SyntaxLanguage.Sql}"
+                                         IsChecked="{Binding MainMenuBar.IsSqlLanguage}" />
+                <v:CheckedMenuFlyoutItem Label="LINQ (Entity Framework)"
+                                         Command="{Binding MainMenuBar.SetLanguageCommand}"
+                                         CommandParameter="{x:Static en:SyntaxLanguage.Linq}"
+                                         IsChecked="{Binding MainMenuBar.IsLinqLanguage}" />
+            </MenuFlyoutSubItem>
+        </MenuBarItem>
+
+        <MenuBarItem Text="Requête">
+            <MenuFlyoutItem Text="Exécuter"
+                            Command="{Binding MainMenuBar.ExecuteCommand}">
+                <MenuFlyoutItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="F5" />
+                </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Annuler l'exécution"
+                            Command="{Binding MainMenuBar.CancelCommand}" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Se déconnecter"
+                            Command="{Binding MainMenuBar.Connection.DisconnectCommand}" />
+        </MenuBarItem>
+    </v:AbstractPage.MenuBarItems>
+
+    <Grid ColumnDefinitions="340,Auto,*"
+          ColumnSpacing="8"
+          Padding="{DynamicResource CardContentPadding}">
+        <Grid.Triggers>
+            <!-- Explorateur ferme : colonne et separateur disparaissent -->
+            <DataTrigger TargetType="Grid"
+                         Binding="{Binding Preferences.Panels.IsObjectExplorerOpen}"
+                         Value="False">
+                <Setter Property="ColumnDefinitions"
+                        Value="0,0,*" />
+                <Setter Property="ColumnSpacing"
+                        Value="0" />
+            </DataTrigger>
+        </Grid.Triggers>
+
+        <!-- ============ Colonne gauche : liste des connexions ============ -->
+        <ContentPresenter x:Name="ConnectionExplorerHost"
+                          IsVisible="{Binding Preferences.Panels.IsObjectExplorerOpen}" />
+
+        <v:GridSplitter Grid.Column="1"
+                        IsVisible="{Binding Preferences.Panels.IsObjectExplorerOpen}" />
+        
+        <!-- ============ Onglets : le contenu suit la session selectionnee ============ -->
+        <v:TabBar Grid.Column="2"
+                  ItemsSource="{Binding Sessions}"
+                  SelectedItem="{Binding SelectedSession}"
+                  ContentSelector="{StaticResource DocumentViewSelector}"
+                  IsClosable="True"
+                  CanReorderItems="True"
+                  CloseCommand="{Binding CloseCommand}">
+            <!-- En-tete avec menu contextuel : les commandes recoivent la session de l'onglet clique -->
+            <v:TabBar.ItemTemplate>
+                <DataTemplate x:DataType="m:AbstractSession">
+                    <v:TabBarHeader Title="{Binding Document.Title}"
+                                    ToolTip="{Binding Document.PathLabel}"
+                                    IsClosable="True"
+                                    CloseCommand="{Binding ViewModel.CloseCommand, Source={x:Reference Page}, x:DataType=v:MainPage}">
+                        <FlyoutBase.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Fermer"
+                                                Command="{Binding ViewModel.CloseCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Fermer les autres onglets"
+                                                Command="{Binding ViewModel.CloseOtherTabsCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Fermer les onglets à droite"
+                                                Command="{Binding ViewModel.CloseTabsToRightCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Fermer tous les onglets"
+                                                Command="{Binding ViewModel.CloseAllTabsCommand, Source={x:Reference Page}, x:DataType=v:MainPage}" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Enregistrer"
+                                                Command="{Binding ViewModel.SaveTabCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Enregistrer sous..."
+                                                Command="{Binding ViewModel.SaveTabAsCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Renommer..."
+                                                Command="{Binding ViewModel.RenameTabCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Copier le chemin complet"
+                                                Command="{Binding ViewModel.CopyTabPathCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                                <MenuFlyoutItem Text="Sélectionner dans le répertoire"
+                                                Command="{Binding ViewModel.RevealTabCommand, Source={x:Reference Page}, x:DataType=v:MainPage}"
+                                                CommandParameter="{Binding .}" />
+                            </MenuFlyout>
+                        </FlyoutBase.ContextFlyout>
+                    </v:TabBarHeader>
+                </DataTemplate>
+            </v:TabBar.ItemTemplate>
+        </v:TabBar>
+    </Grid>
+</v:AbstractPage>

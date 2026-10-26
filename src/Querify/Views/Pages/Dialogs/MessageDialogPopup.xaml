@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="Querify.Views.Pages.Dialogs.MessageDialogPopup"
+               x:DataType="vm:MessageDialogVM"
+               BackgroundColor="{DynamicResource FlyoutBackground}"
+               Background="{DynamicResource FlyoutBackground}"
+               Padding="0"
+               WidthRequest="430">
+
+    <Grid RowDefinitions="Auto,Auto"
+          RowSpacing="32"
+          Padding="{DynamicResource PageContentPadding}">
+
+        <VerticalStackLayout Spacing="12">
+            <Label Text="{Binding Title}"
+                   Style="{StaticResource LabelHeaderStyle}"
+                   LineBreakMode="WordWrap" />
+
+            <Label Text="{Binding Message}"
+                   Style="{StaticResource LabelStyle}"
+                   LineBreakMode="WordWrap" />
+        </VerticalStackLayout>
+
+        <!-- Bandeau de boutons plus sombre, separe du contenu comme le ContentDialog de WPF UI -->
+        <Grid Grid.Row="1"
+              RowDefinitions="Auto">
+            <HorizontalStackLayout Spacing="6"
+                                   HorizontalOptions="End">
+                <Button x:Name="PrimaryButton"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding PrimaryCommand}"
+                        Text="{Binding PrimaryButtonText}"
+                        MinimumWidthRequest="120" />
+
+                <Button Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding SecondaryCommand}"
+                        Text="{Binding SecondaryButtonText}"
+                        IsVisible="{Binding HasSecondaryButton}"
+                        MinimumWidthRequest="120" />
+
+                <Button Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding CloseCommand}"
+                        Text="{Binding CloseButtonText}"
+                        MinimumWidthRequest="120" />
+            </HorizontalStackLayout>
+        </Grid>
+    </Grid>
+</toolkit:Popup>

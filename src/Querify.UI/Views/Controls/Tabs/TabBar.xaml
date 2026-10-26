@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:v="clr-namespace:Querify.UI.Views.Controls.Tabs"
+             x:Class="Querify.UI.Views.Controls.Tabs.TabBar"
+             x:Name="Root">
+    <v:TabBar.ItemTemplate>
+        <DataTemplate>
+            <v:TabBarHeader CloseCommand="{Binding CloseTabCommand, Source={x:Reference Root}}"
+                            TitleMemberPath="{Binding TitleMemberPath, Source={x:Reference Root}}"
+                            ToolTipMemberPath="{Binding ToolTipMemberPath, Source={x:Reference Root}}"
+                            IsClosable="{Binding IsClosable, Source={x:Reference Root}}" />
+
+        </DataTemplate>
+    </v:TabBar.ItemTemplate>
+
+    <!-- Explicite : la propriete de contenu de la TabBar est Items -->
+    <ContentView.Content>
+        <Border StrokeThickness="0"
+                StrokeShape="RoundRectangle 4"
+                Background="Transparent">
+            <Grid RowDefinitions="Auto,*"
+                  ColumnDefinitions="*,Auto"
+                  ColumnSpacing="16">
+                <!-- Sans habillage natif des elements : le visuel de selection revient aux en-tetes -->
+                <inp:BorderlessCollectionView x:Name="TabsList"
+                                              SelectedItem="{Binding SelectedItem, Source={x:Reference Root}}"
+                                              ItemsSource="{Binding ItemsSource, Source={x:Reference Root}}"
+                                              CanReorderItems="{Binding CanReorderItems, Source={x:Reference Root}}"
+                                              ItemTemplate="{Binding ItemTemplate, Source={x:Reference Root}}"
+                                              SelectionMode="Single"
+                                              HorizontalScrollBarVisibility="Never">
+                    <inp:BorderlessCollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal" />
+                    </inp:BorderlessCollectionView.ItemsLayout>
+                </inp:BorderlessCollectionView>
+
+                <ContentView Grid.Column="1"
+                             Content="{Binding TrailingContent, Source={x:Reference Root}}" />
+
+                <ContentView Grid.Row="1"
+                             Grid.ColumnSpan="2"
+                             Padding="{DynamicResource CardContentPadding}"
+                             Background="{DynamicResource CardBackground}"
+                             Content="{Binding SelectedContent, Source={x:Reference Root}}" />
+            </Grid>
+        </Border>
+    </ContentView.Content>
+</ContentView>

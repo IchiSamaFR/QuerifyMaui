@@ -4,7 +4,7 @@ A derouler sur le zip publie par la CI (`Querify-0.1.0-rc.N-win-x64.zip`), sur u
 
 ## Installation et donnees
 
-- [ ] Le zip s'extrait et `SqlToolManagerMaui.exe` demarre sans runtime a installer
+- [ ] Le zip s'extrait et `Querify.exe` demarre sans runtime a installer
 - [ ] Titre de la fenetre, icone et version (0.1.0) corrects
 - [ ] Poste ayant deja utilise l'app : les connexions de `%LOCALAPPDATA%\User Name\fr.ichisamafr.querify` sont reprises dans `%LOCALAPPDATA%\IchiSamaFR\fr.ichisamafr.querify`
 - [ ] Apres reprise, les chaines de connexion s'ouvrent (coffre SecureStorage recopie lui aussi)

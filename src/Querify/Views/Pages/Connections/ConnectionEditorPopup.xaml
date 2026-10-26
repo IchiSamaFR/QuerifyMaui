@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="Querify.Views.Pages.Connections.ConnectionEditorPopup"
+               x:DataType="vm:ConnectionEditorVM"
+               BackgroundColor="{DynamicResource FlyoutBackground}"
+               Background="{DynamicResource FlyoutBackground}"
+               Padding="24"
+               WidthRequest="560">
+
+    <VerticalStackLayout Spacing="16">
+
+        <Label Text="{Binding Title}"
+               Style="{StaticResource LabelHeaderStyle}" />
+
+        <inp:TextField Title="Nom"
+                       Text="{Binding Draft.Info.Name}"
+                       Placeholder="Production, Recette, ..."
+                       HorizontalOptions="Fill" />
+
+        <inp:EditorField Title="Chaine de connexion"
+                         Text="{Binding Draft.ConnectionString, Mode=TwoWay}"
+                         Placeholder="Server=.;Database=MaBase;Trusted_Connection=True;TrustServerCertificate=True"
+                         HorizontalOptions="Fill" />
+
+        <Label Text="Moteur : SQL Server. La chaine est conservee chiffree dans le coffre de Windows, jamais dans le fichier de configuration."
+               Style="{StaticResource LabelTertiaryStyle}" />
+
+        <!-- Message de validation / resultat du test -->
+        <Label Text="{Binding StatusMessage}"
+               IsVisible="{Binding HasStatusMessage}"
+               LineBreakMode="WordWrap">
+            <Label.Triggers>
+                <DataTrigger TargetType="Label"
+                             Binding="{Binding IsStatusError}"
+                             Value="True">
+                    <Setter Property="TextColor"
+                            Value="{StaticResource ErrorDark}" />
+                </DataTrigger>
+            </Label.Triggers>
+        </Label>
+
+        <!-- Actions : test a gauche, validation a droite (dialogue Fluent) -->
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto"
+              ColumnSpacing="8">
+            <Button Grid.Column="0"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding TestCommand}"
+                    Text="Tester"
+                    ImageSource="{mk:FluentFilledImage Icon=PlugConnected20Filled}" />
+
+            <ActivityIndicator Grid.Column="1"
+                               IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               HorizontalOptions="Start"
+                               WidthRequest="20"
+                               HeightRequest="20" />
+
+            <Button Grid.Column="2"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding CancelCommand}"
+                    Text="Annuler" />
+
+            <Button Grid.Column="3"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Command="{Binding SaveCommand}"
+                    Text="Enregistrer"
+                    ImageSource="{mk:FluentFilledImage Icon=Save20Filled}" />
+        </Grid>
+    </VerticalStackLayout>
+</toolkit:Popup>

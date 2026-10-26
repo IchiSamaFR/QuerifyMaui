@@ -1,4 +1,4 @@
-# Copilot Instructions — SqlToolManagerMaui
+# Copilot Instructions — Querify
 
 **Source partagée avec Claude** : consultez `.github/instructions.md` pour le contexte complet et à jour.
 

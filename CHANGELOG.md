@@ -27,4 +27,4 @@ Première version publique.
 
 Voir [docs/recette-0.1.0.md](docs/recette-0.1.0.md#limites-connues-notes-de-version).
 
-[0.1.0]: https://github.com/IchiSamaFR/SqlToolManagerMaui/releases/tag/v0.1.0
+[0.1.0]: https://github.com/IchiSamaFR/Querify/releases/tag/v0.1.0

@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:appconv="clr-namespace:Querify.Converters"
+             x:Class="Querify.Views.Controls.Queries.QueryResultsPanel"
+             x:Name="root">
+    <ContentView.Resources>
+        <appconv:QueryMessagesConverter x:Key="QueryMessagesConverter"
+                                        InfoStyle="{StaticResource QueryMessageInfoSpanStyle}"
+                                        ErrorStyle="{StaticResource QueryMessageErrorSpanStyle}"
+                                        OutputStyle="{StaticResource QueryMessageOutputSpanStyle}" />
+    </ContentView.Resources>
+
+    <v:TabBar ItemsSource="{Binding Tabs, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+              SelectedItem="{Binding SelectedTab, Source={x:Reference root}, Mode=TwoWay, x:DataType=c:QueryResultsPanel}"
+              TitleMemberPath="Title">
+
+        <!-- ============ Contenu partagé de l'onglet sélectionné ============ -->
+        <!-- Declare avant le resume : celui-ci reference ResultGrid -->
+        <v:TabBar.DefaultContent>
+            <Grid RowDefinitions="*,Auto">
+                <v:DataGrid x:Name="ResultGrid"
+                            ItemsSource="{Binding SelectedTab.ResultSet.Rows, Source={x:Reference root}, FallbackValue={x:Null}, x:DataType=c:QueryResultsPanel}"
+                            Columns="{Binding SelectedTab.ResultSet, Source={x:Reference root}, FallbackValue={x:Null}, Converter={StaticResource QueryResultColumnsConverter}, x:DataType=c:QueryResultsPanel}"
+                            AutoGenerateColumns="False"
+                            IsVisible="{Binding SelectedTab.IsResultSet, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}" />
+
+                <ScrollView IsVisible="{Binding SelectedTab.IsMessages, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}"
+                            Padding="12,4">
+                    <Label FormattedText="{Binding Result.Messages, Source={x:Reference root}, Converter={StaticResource QueryMessagesConverter}, x:DataType=c:QueryResultsPanel}"
+                           Style="{StaticResource QueryMessageStyle}"
+                           VerticalTextAlignment="Start"
+                           beh:TextSelection.IsEnabled="True" />
+                </ScrollView>
+
+                <HorizontalStackLayout IsVisible="{Binding IsExecuting, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+                                       Spacing="12"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding IsExecuting, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+                                       Color="{DynamicResource Primary}"
+                                       WidthRequest="20"
+                                       HeightRequest="20" />
+                    <Label Text="Exécution en cours..."
+                           Style="{StaticResource LabelTertiaryStyle}" />
+                </HorizontalStackLayout>
+            </Grid>
+        </v:TabBar.DefaultContent>
+
+        <!-- ============ Resume + filtre + duree + fermeture ============ -->
+        <v:TabBar.TrailingContent>
+            <HorizontalStackLayout Spacing="12"
+                                   VerticalOptions="Center">
+                <Label Text="{Binding SelectedTab.ResultSet.Summary, Source={x:Reference root}, FallbackValue='', x:DataType=c:QueryResultsPanel}"
+                       Style="{StaticResource LabelTertiaryStyle}"
+                       VerticalOptions="Center" />
+
+                <HorizontalStackLayout IsVisible="{Binding IsFiltered, Source={x:Reference ResultGrid}, x:DataType=v:DataGrid}"
+                                       Spacing="4"
+                                       VerticalOptions="Center">
+                    <Label Text="{Binding DisplayedItemsCount, Source={x:Reference ResultGrid}, StringFormat='{0} après filtre', x:DataType=v:DataGrid}"
+                           Style="{StaticResource LabelTertiaryStyle}"
+                           VerticalOptions="Center" />
+                    <ImageButton Style="{StaticResource DataGridFilterButtonStyle}"
+                                 Command="{Binding ClearFiltersCommand, Source={x:Reference ResultGrid}, x:DataType=v:DataGrid}"
+                                 Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}, IconSize=10}"
+                                 ToolTipProperties.Text="Effacer tous les filtres" />
+                </HorizontalStackLayout>
+
+                <Label Text="{Binding Result.ElapsedLabel, Source={x:Reference root}, FallbackValue='', x:DataType=c:QueryResultsPanel}"
+                       Style="{StaticResource LabelTertiaryStyle}"
+                       VerticalOptions="Center" />
+
+                <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                             Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+                             Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}, IconSize=12}"
+                             ToolTipProperties.Text="Fermer les résultats" />
+            </HorizontalStackLayout>
+        </v:TabBar.TrailingContent>
+    </v:TabBar>
+</ContentView>

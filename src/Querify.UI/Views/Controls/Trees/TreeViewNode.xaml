@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Querify.UI.Views.Controls.Trees.TreeViewNode"
+             x:Name="Root">
+
+    <ContentView.Resources>
+        <conv:ColorToBrushConverter x:Key="ColorToBrushConverter" />
+        <inp:DoubleToCornerRadiusConverter x:Key="DoubleToCornerRadiusConverter" />
+        <inp:CornerRadiusToStrokeShapeConverter x:Key="CornerRadiusToStrokeShapeConverter" />
+    </ContentView.Resources>
+
+    <!-- Apparence lue sur le TreeView proprietaire (Owner) : elle est declaree une fois pour tout l'arbre -->
+    <VerticalStackLayout>
+        <Border StrokeThickness="0"
+                BackgroundColor="Transparent"
+                HeightRequest="{Binding Owner.ItemHeight, Source={x:Reference Root}, x:DataType=v:TreeViewNode}"
+                StrokeShape="{Binding Owner.ItemCornerRadius, Source={x:Reference Root}, Converter={StaticResource CornerRadiusToStrokeShapeConverter}, x:DataType=v:TreeViewNode}">
+            <Border.Triggers>
+                <DataTrigger TargetType="Border"
+                             Binding="{Binding IsSelected, Source={x:Reference Root}, x:DataType=v:TreeViewNode}"
+                             Value="True">
+                    <Setter Property="BackgroundColor"
+                            Value="{Binding Owner.ItemSelectedColor, Source={x:Reference Root}, x:DataType=v:TreeViewNode}" />
+                </DataTrigger>
+            </Border.Triggers>
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnHeaderTapped" />
+                <TapGestureRecognizer NumberOfTapsRequired="2"
+                                      Tapped="OnToggleTapped" />
+                <PointerGestureRecognizer PointerEntered="OnHeaderPointerEntered"
+                                          PointerExited="OnHeaderPointerExited" />
+            </Border.GestureRecognizers>
+
+            <Grid>
+                <!-- Fond de survol -->
+                <BoxView x:Name="HoverBackground"
+                         Opacity="0"
+                         InputTransparent="True"
+                         Color="{Binding Owner.ItemHoverColor, Source={x:Reference Root}, x:DataType=v:TreeViewNode}"
+                         CornerRadius="{Binding Owner.ItemCornerRadius, Source={x:Reference Root}, Converter={StaticResource DoubleToCornerRadiusConverter}, x:DataType=v:TreeViewNode}" />
+
+                <!-- Pastille de selection -->
+                <BoxView WidthRequest="3"
+                         HeightRequest="14"
+                         CornerRadius="1.5"
+                         HorizontalOptions="Start"
+                         VerticalOptions="Center"
+                         InputTransparent="True"
+                         Color="{Binding Owner.SelectionIndicatorColor, Source={x:Reference Root}, x:DataType=v:TreeViewNode}"
+                         IsVisible="{Binding IsSelected, Source={x:Reference Root}, x:DataType=v:TreeViewNode}" />
+
+                <!-- Chevron puis contenu de l'ItemTemplate (ajoute en colonne 1 par le code-behind) -->
+                <Grid x:Name="HeaderRow"
+                      ColumnDefinitions="16,*"
+                      ColumnSpacing="4">
+                    <ContentView WidthRequest="16"
+                                 HeightRequest="16"
+                                 VerticalOptions="Center"
+                                 IsVisible="{Binding CanExpand, Source={x:Reference Root}, x:DataType=v:TreeViewNode}">
+                        <ContentView.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnToggleTapped" />
+                        </ContentView.GestureRecognizers>
+
+                        <Path Data="M 0,0 L 4,4 L 0,8"
+                              StrokeThickness="1.2"
+                              StrokeLineCap="Round"
+                              StrokeLineJoin="Round"
+                              WidthRequest="6"
+                              HeightRequest="10"
+                              HorizontalOptions="Center"
+                              VerticalOptions="Center"
+                              InputTransparent="True"
+                              Stroke="{Binding Owner.ChevronColor, Source={x:Reference Root}, Converter={StaticResource ColorToBrushConverter}, x:DataType=v:TreeViewNode}">
+                            <Path.Triggers>
+                                <DataTrigger TargetType="Path"
+                                             Binding="{Binding IsExpanded, Source={x:Reference Root}, x:DataType=v:TreeViewNode}"
+                                             Value="True">
+                                    <Setter Property="Rotation"
+                                            Value="90" />
+                                </DataTrigger>
+                            </Path.Triggers>
+                        </Path>
+                    </ContentView>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Enfants : meme gabarit, un niveau plus loin -->
+        <VerticalStackLayout x:Name="ChildrenHost"
+                             x:FieldModifier="internal"
+                             IsVisible="{Binding IsExpanded, Source={x:Reference Root}, x:DataType=v:TreeViewNode}" />
+    </VerticalStackLayout>
+</ContentView>

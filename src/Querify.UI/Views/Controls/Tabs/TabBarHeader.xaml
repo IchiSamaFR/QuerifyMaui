@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:v="clr-namespace:Querify.UI.Views.Controls.Tabs"
+             xmlns:mk="http://querify.app/dotnet/maui/markup"
+             x:Class="Querify.UI.Views.Controls.Tabs.TabBarHeader"
+             x:Name="Root">
+    <ContentView.Style>
+        <Style TargetType="ContentView">
+            <Setter Property="VisualStateManager.VisualStateGroups">
+                <VisualStateGroupList>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState Name="Normal">
+                            <VisualState.Setters>
+                                <Setter TargetName="border"
+                                        Property="BackgroundColor"
+                                        Value="Transparent" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState Name="Disabled" />
+                        <VisualState x:Name="PointerOver">
+                            <VisualState.Setters>
+                                <Setter TargetName="border"
+                                        Property="BackgroundColor"
+                                        Value="{DynamicResource CardBackground}" />
+                                <Setter TargetName="border"
+                                        Property="Opacity"
+                                        Value="{DynamicResource PointerOverOpacity}" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState x:Name="Focused">
+                            <VisualState.Setters>
+                                <Setter TargetName="border"
+                                        Property="BackgroundColor"
+                                        Value="{DynamicResource CardBackground}" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState x:Name="Selected">
+                            <VisualState.Setters>
+                                <Setter TargetName="border"
+                                        Property="BackgroundColor"
+                                        Value="{DynamicResource CardBackground}" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateGroupList>
+            </Setter>
+        </Style>
+    </ContentView.Style>
+
+    <Border x:Name="border"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 4 4 0 0"
+            Padding="2"
+            BackgroundColor="{DynamicResource CardBackground}"
+            ToolTipProperties.Text="{Binding ToolTip, Source={x:Reference Root}, x:DataType=v:TabBarHeader}">
+
+        <Grid ColumnDefinitions="*,Auto"
+              ColumnSpacing="4"
+              Padding="8,0,8,0"
+              HeightRequest="{DynamicResource InputHeight}">
+
+            <Label Grid.Column="0"
+                   Text="{Binding Title, Source={x:Reference Root}, x:DataType=v:TabBarHeader}"
+                   Style="{StaticResource LabelStyle}"
+                   VerticalOptions="Center" />
+
+            <!-- Pastille "modifie" et bouton fermer partagent le meme emplacement -->
+            <ImageButton Grid.Column="1"
+                         IsVisible="{Binding IsClosable, Source={x:Reference Root}}"
+                         Style="{DynamicResource TextImageButtonStyle}"
+                         Source="{mk:FluentFilledImage Icon=Dismiss12Filled, IconSize=12}"
+                         Clicked="ImageButton_Clicked" />
+        </Grid>
+    </Border>
+</ContentView>

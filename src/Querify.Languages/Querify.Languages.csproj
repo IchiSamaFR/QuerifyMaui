@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<RootNamespace>Querify.Languages</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Querify.Languages.Commons\Querify.Languages.Commons.csproj" />
+		<ProjectReference Include="..\Querify.Languages.Linq\Querify.Languages.Linq.csproj" />
+		<ProjectReference Include="..\Querify.Languages.Sql\Querify.Languages.Sql.csproj" />
+	</ItemGroup>
+
+</Project>

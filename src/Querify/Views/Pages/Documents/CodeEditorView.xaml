@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Querify.Views.Pages.Documents.CodeEditorView">
+    <!-- BindingContext : CodeEditorVM (singleton), pose par le code-behind ; la vue lui transmet sa session -->
+    <Grid x:Name="Body"
+          x:DataType="vm:CodeEditorVM"
+          RowDefinitions="Auto,*">
+
+        <!-- ============ En-tete : execution et connexion ============ -->
+        <HorizontalStackLayout Spacing="8">
+            <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                         Command="{Binding ExecuteQueryCommand}"
+                         Source="{mk:FluentImage Icon=Play16, IconColor={StaticResource Success}}"
+                         ToolTipProperties.Text="Exécuter la requête" />
+
+            <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                         Command="{Binding ExecuteQueryCancelCommand}"
+                         Source="{mk:FluentImage Icon=Stop16, IconColor={StaticResource Danger}}"
+                         ToolTipProperties.Text="Arrêter l'exécution de la requête" />
+
+            <v:Separator />
+
+            <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                         Command="{Binding Connection.DisconnectCommand}"
+                         Source="{mk:FluentImage Icon=PlugDisconnected20, IconColor={StaticResource Danger}}"
+                         ToolTipProperties.Text="Déconnecter la connexion" />
+
+            <inp:PickerField ItemsSource="{Binding Connection.Connections}"
+                             SelectedItem="{Binding Connection.SelectedConnection, Mode=TwoWay}"
+                             DisplayMemberPath="Name"
+                             WidthRequest="220" />
+        </HorizontalStackLayout>
+
+        <Grid Grid.Row="1"
+              RowDefinitions="*,Auto,Auto"
+              RowSpacing="8">
+            <Grid.Triggers>
+                <DataTrigger TargetType="Grid"
+                             Binding="{Binding Session.HasResultsPanel, FallbackValue=False}"
+                             Value="False">
+                    <Setter Property="RowSpacing"
+                            Value="0" />
+                </DataTrigger>
+            </Grid.Triggers>
+
+            <!-- ============ Editeur ============ -->
+            <c:CodeEditor DocumentKey="{Binding Session.Document}"
+                          Text="{Binding Session.Document.EditorText}"
+                          FilePath="{Binding Session.Document.FilePath}"
+                          Selection="{Binding Session.Document.Selection}"
+                          EditorPreferences="{Binding Preferences.Editor}"
+                          SyntaxConfiguration="{Binding SyntaxConfiguration}"
+                          Connection="{Binding Connection.ActiveConnection}"
+                          Commands="{Binding EditionCommands, Mode=OneWayToSource}" />
+
+            <v:GridSplitter Grid.Row="1"
+                            IsVisible="{Binding Session.HasResultsPanel, FallbackValue=False}" />
+
+            <!-- ============ Resultats + barre d'etat ============ -->
+            <Grid Grid.Row="2"
+                  HeightRequest="300"
+                  IsVisible="{Binding Session.HasResultsPanel, FallbackValue=False}">
+                <c:QueryResultsPanel Result="{Binding Session.LastResult}"
+                                     IsExecuting="{Binding Session.IsExecuting, FallbackValue=False}"
+                                     CloseCommand="{Binding CloseResultsCommand}" />
+
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentView>

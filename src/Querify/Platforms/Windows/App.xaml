@@ -1,0 +1,36 @@
+﻿<maui:MauiWinUIApplication
+    x:Class="Querify.WinUI.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:maui="using:Microsoft.Maui"
+    xmlns:local="using:Querify.WinUI">
+
+    <maui:MauiWinUIApplication.Resources>
+        <ResourceDictionary>
+            <!--
+              Accent systeme WinUI remplace par "Info" (WPF UI PaletteLightBlueColor) :
+              ComboBox, MenuFlyout, focus, selection de texte suivent la meme couleur que l'app.
+              En theme sombre, WinUI utilise Light2 pour les fonds accentues et Light3 pour le texte.
+            -->
+            <Color x:Key="SystemAccentColor">#0288D1</Color>
+            <Color x:Key="SystemAccentColorLight1">#039BE5</Color>
+            <Color x:Key="SystemAccentColorLight2">#03A9F4</Color>
+            <Color x:Key="SystemAccentColorLight3">#4FC3F7</Color>
+            <Color x:Key="SystemAccentColorDark1">#0277BD</Color>
+            <Color x:Key="SystemAccentColorDark2">#01579B</Color>
+            <Color x:Key="SystemAccentColorDark3">#013A66</Color>
+
+            <!--
+              Ecart entre la colonne d'icone et le libelle des entrees de menu.
+              Le template WinUI de MenuFlyoutItem ne l'expose pas autrement : c'est la marge
+              gauche du TextBlock, alimentee par ces ressources de theme.
+              16 = largeur du Viewbox d'icone (figee par le template), 8 = ecart voulu.
+            -->
+            <Thickness x:Key="MenuFlyoutItemPlaceholderThemeThickness">16,0,0,0</Thickness>
+
+            <!-- Variante quand DEUX colonnes sont reservees (icone ET coche). -->
+            <Thickness x:Key="MenuFlyoutItemDoublePlaceholderThemeThickness">16,0,0,0</Thickness>
+        </ResourceDictionary>
+    </maui:MauiWinUIApplication.Resources>
+
+</maui:MauiWinUIApplication>

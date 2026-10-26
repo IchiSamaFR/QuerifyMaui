@@ -10,8 +10,8 @@ Application Windows pour écrire et exécuter des requêtes **SQL** et **LINQ / 
 
 ## Installation
 
-1. Télécharger `Querify-X.Y.Z-win-x64.zip` depuis les [Releases](https://github.com/IchiSamaFR/SqlToolManagerMaui/releases).
-2. Extraire l'archive et lancer `SqlToolManagerMaui.exe`.
+1. Télécharger `Querify-X.Y.Z-win-x64.zip` depuis les [Releases](https://github.com/IchiSamaFR/Querify/releases).
+2. Extraire l'archive et lancer `Querify.exe`.
 
 Aucun runtime à installer : .NET et le Windows App SDK sont embarqués. Windows 10 1809 ou plus récent, x64.
 
@@ -27,9 +27,9 @@ Les données (connexions, préférences, journaux) sont dans `%LOCALAPPDATA%\Ich
 Prérequis : Windows, SDK .NET 10 et workload MAUI.
 
 ```powershell
-dotnet workload restore src/SqlToolManagerMaui.slnx
-dotnet build src/SqlToolManagerMaui.slnx
-dotnet test src/SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj
+dotnet workload restore src/Querify.slnx
+dotnet build src/Querify.slnx
+dotnet test src/Querify.Tests/Querify.Tests.csproj
 ```
 
 Architecture, conventions et processus : [.github/instructions.md](.github/instructions.md).

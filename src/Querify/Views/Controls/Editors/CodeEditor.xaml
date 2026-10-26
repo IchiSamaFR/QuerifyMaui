@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:code="clr-namespace:CodeEdit.Maui;assembly=CodeEdit.Maui"
+             x:Class="Querify.Views.Controls.Editors.CodeEditor">
+
+    <!-- Le popup partage la cellule de l'editeur : ses coordonnees sont celles du controle -->
+    <Grid RowDefinitions="*,Auto"
+          Background="Transparent"
+          BackgroundColor="Transparent">
+        <code:CodeEditor Grid.Row="0"
+                         x:Name="Native"
+                         Background="Transparent"
+                         BackgroundColor="Transparent"
+                         ShowLineNumbers="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorPreferences.IsLineDisplayed, x:DataType=c:CodeEditor}"
+                         WordWrap="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorPreferences.IsWordWrapped, x:DataType=c:CodeEditor}"
+                         UseTabs="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorPreferences.IsTabIndentation, x:DataType=c:CodeEditor}"
+                         IndentSize="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorPreferences.IndentationSize, x:DataType=c:CodeEditor}"
+                         LineCommentPrefix="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=SyntaxConfiguration.Comments, x:DataType=c:CodeEditor}">
+            <code:CodeEditor.Style>
+                <Style TargetType="code:CodeEditor">
+                    <Setter Property="FontSize"
+                            Value="{StaticResource FontSize_Small}" />
+
+                </Style>
+            </code:CodeEditor.Style>
+        </code:CodeEditor>
+
+        <HorizontalStackLayout Grid.Row="1"
+                               Spacing="16"
+                               Padding="8,0"
+                               HorizontalOptions="End">
+            <Label Text="{Binding SyntaxConfiguration.Definition.Name}"
+                   Style="{StaticResource LabelTertiaryStyle}"
+                   VerticalOptions="Center" />
+
+            <Label Text="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=FilePath, x:DataType=c:CodeEditor}"
+                   Style="{StaticResource LabelTertiaryStyle}"
+                   LineBreakMode="HeadTruncation"
+                   MaximumWidthRequest="420"
+                   VerticalOptions="Center" />
+
+            <Label Style="{StaticResource LabelTertiaryStyle}"
+                   VerticalOptions="Center">
+                <Label.Text>
+                    <MultiBinding StringFormat="Ln {0}, Col {1}">
+                        <Binding Path="Selection.CaretLine"
+                                 Source="{RelativeSource AncestorType={x:Type c:CodeEditor}}" />
+                        <Binding Path="Selection.CaretColumn"
+                                 Source="{RelativeSource AncestorType={x:Type c:CodeEditor}}" />
+                    </MultiBinding>
+                </Label.Text>
+            </Label>
+        </HorizontalStackLayout>
+
+        <!-- Infobulle et signature avant la liste d'autocompletion : elle reste au premier plan -->
+        <c:CodeTooltipPopup x:Name="Tooltip" />
+
+        <c:SignatureHelpPopup x:Name="SignatureHelp" />
+
+        <c:CompletionPopup x:Name="CompletionList" />
+    </Grid>
+
+</ContentView>
