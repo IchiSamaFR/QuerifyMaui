@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- Le calque laisse passer les clics vers l'element (selection, glisser), pas ses poignees -->
+<Grid xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+      x:Class="Querify.UI.Views.Controls.Layouts.GridSpanResizer"
+      InputTransparent="True"
+      CascadeInputTransparent="False">
+
+    <!-- ============ Bords ============ -->
+    <ContentView x:Name="LeftHandle"
+                 WidthRequest="8"
+                 HorizontalOptions="Start"
+                 HandlerChanging="OnHandleHandlerChanging"
+                 HandlerChanged="OnHandleHandlerChanged">
+        <BoxView Color="{DynamicResource Primary}"
+                 WidthRequest="4"
+                 HeightRequest="24"
+                 CornerRadius="2"
+                 HorizontalOptions="Center"
+                 VerticalOptions="Center" />
+    </ContentView>
+
+    <ContentView x:Name="RightHandle"
+                 WidthRequest="8"
+                 HorizontalOptions="End"
+                 HandlerChanging="OnHandleHandlerChanging"
+                 HandlerChanged="OnHandleHandlerChanged">
+        <BoxView Color="{DynamicResource Primary}"
+                 WidthRequest="4"
+                 HeightRequest="24"
+                 CornerRadius="2"
+                 HorizontalOptions="Center"
+                 VerticalOptions="Center" />
+    </ContentView>
+
+    <ContentView x:Name="TopHandle"
+                 HeightRequest="8"
+                 VerticalOptions="Start"
+                 HandlerChanging="OnHandleHandlerChanging"
+                 HandlerChanged="OnHandleHandlerChanged">
+        <BoxView Color="{DynamicResource Primary}"
+                 WidthRequest="24"
+                 HeightRequest="4"
+                 CornerRadius="2"
+                 HorizontalOptions="Center"
+                 VerticalOptions="Center" />
+    </ContentView>
+
+    <ContentView x:Name="BottomHandle"
+                 HeightRequest="8"
+                 VerticalOptions="End"
+                 HandlerChanging="OnHandleHandlerChanging"
+                 HandlerChanged="OnHandleHandlerChanged">
+        <BoxView Color="{DynamicResource Primary}"
+                 WidthRequest="24"
+                 HeightRequest="4"
+                 CornerRadius="2"
+                 HorizontalOptions="Center"
+                 VerticalOptions="Center" />
+    </ContentView>
+
+    <!-- ============ Coins (au-dessus des bords) ============ -->
+    <ContentView x:Name="TopLeftHandle"
+                 WidthRequest="14"
+                 HeightRequest="14"
+                 HorizontalOptions="Start"
+                 VerticalOptions="Start"
+                 HandlerChanging="OnHandleHandlerChanging"
+                 HandlerChanged="OnHandleHandlerChanged">
+        <BoxView Color="{DynamicResource Primary}"
+                 WidthRequest="8"
+                 HeightRequest="8"
+                 CornerRadius="2"
+                 HorizontalOptions="Start"
+                 VerticalOptions="Start" />
+    </ContentView>
+
+    <ContentView x:Name="TopRightHandle"
+                 WidthRequest="14"
+                 HeightRequest="14"
+                 HorizontalOptions="End"
+                 VerticalOptions="Start"
+                 HandlerChanging="OnHandleHandlerChanging"
+                 HandlerChanged="OnHandleHandlerChanged">
+        <BoxView Color="{DynamicResource Primary}"
+                 WidthRequest="8"
+                 HeightRequest="8"
+                 CornerRadius="2"
+                 HorizontalOptions="End"
+                 VerticalOptions="Start" />
+    </ContentView>
+
+    <ContentView x:Name="BottomLeftHandle"
+                 WidthRequest="14"
+                 HeightRequest="14"
+                 HorizontalOptions="Start"
+                 VerticalOptions="End"
+                 HandlerChanging="OnHandleHandlerChanging"
+                 HandlerChanged="OnHandleHandlerChanged">
+        <BoxView Color="{DynamicResource Primary}"
+                 WidthRequest="8"
+                 HeightRequest="8"
+                 CornerRadius="2"
+                 HorizontalOptions="Start"
+                 VerticalOptions="End" />
+    </ContentView>
+
+    <ContentView x:Name="BottomRightHandle"
+                 WidthRequest="14"
+                 HeightRequest="14"
+                 HorizontalOptions="End"
+                 VerticalOptions="End"
+                 HandlerChanging="OnHandleHandlerChanging"
+                 HandlerChanged="OnHandleHandlerChanged">
+        <BoxView Color="{DynamicResource Primary}"
+                 WidthRequest="8"
+                 HeightRequest="8"
+                 CornerRadius="2"
+                 HorizontalOptions="End"
+                 VerticalOptions="End" />
+    </ContentView>
+</Grid>

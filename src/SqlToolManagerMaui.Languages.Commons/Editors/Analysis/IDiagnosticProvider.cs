@@ -1,9 +1,0 @@
-﻿using SqlToolManagerMaui.Core.Models.Editors.Analysis;
-
-namespace SqlToolManagerMaui.Languages.Commons.Editors.Analysis;
-
-/// <summary>Erreurs et avertissements d'un texte ; chaque fournisseur ignore les langages qui ne sont pas les siens.</summary>
-public interface IDiagnosticProvider
-{
-    Task<IReadOnlyList<CodeDiagnostic>> GetDiagnosticsAsync(CodeAnalysisRequest request, CancellationToken cancellationToken = default);
-}

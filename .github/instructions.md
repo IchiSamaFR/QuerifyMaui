@@ -1,4 +1,4 @@
-﻿# SqlToolManagerMaui - Instructions Partagées
+﻿# Querify - Instructions Partagées
 
 **Source centralisée pour Claude et Copilot. À consulter en priorité.**
 
@@ -6,7 +6,7 @@
 
 ## À propos du projet
 
-SqlToolManagerMaui (nom affiché : **Querify**) est une application **desktop Windows** .NET MAUI permettant d'écrire et d'exécuter des requêtes SQL / EntityFramework : éditeur multi-onglets avec coloration syntaxique, gestion des connexions aux bases, le tout dans un habillage **Windows 11**. Architecture MVVM basée sur CommunityToolkit.Mvvm.
+Querify (nom affiché : **Querify**) est une application **desktop Windows** .NET MAUI permettant d'écrire et d'exécuter des requêtes SQL / EntityFramework : éditeur multi-onglets avec coloration syntaxique, gestion des connexions aux bases, le tout dans un habillage **Windows 11**. Architecture MVVM basée sur CommunityToolkit.Mvvm.
 
 ---
 
@@ -33,7 +33,7 @@ SqlToolManagerMaui (nom affiché : **Querify**) est une application **desktop Wi
 
 `Helpers` ← `Databases` (indépendante) ← `Core` ← `Languages.Commons` ← `Languages.Sql` / `Languages.Linq` ← `Languages` ← application. `UI` ne référence que `Helpers`. L'application référence `Core`, `Databases`, `Languages` et `UI`.
 
-**Application (`SqlToolManagerMaui`)** :
+**Application (`Querify`)** :
 * **Views/Pages** : `MainPage` (hérite de `AbstractPage`), `Connections/` (explorateur, popup de connexion), `Documents/` (`CodeEditorView`, `DashboardView`, `DocumentViewSelector`).
 * **Views/Controls** : contrôles XAML propres à l'application, par domaine : `Editors/` (`CodeEditor`, `Completion/`, coloration), `Queries/` (résultats), `Dashboards/`. Un sous-dossier = un sous-namespace, à ajouter dans `Properties/AppXmlns.cs`.
 * **ViewModels** : `Pages/` (`MainVM` en trois fichiers partiels : base, `Files`, `Workspace`), `Pages/Documents/` (`DocumentVM<TSession>`, `CodeEditorVM`, `DashboardVM`), `Pages/Shared/` (`DatabaseConnectionVM`, `StatusBarVM`), `Pages/Connections/`, `Controls/Menus/MainMenuBarVM`.
@@ -41,14 +41,14 @@ SqlToolManagerMaui (nom affiché : **Querify**) est une application **desktop Wi
 * **Ioc** : locator statique + scan des `[AutoRegister]`. **Platforms/Windows** : code WinUI (`WindowCloseGuard`).
 * **Resources/Styles** : tokens (couleurs, tailles, épaisseurs) et un fichier de styles par contrôle.
 
-**Bibliothèque UI (`SqlToolManagerMaui.UI`)** — générique, sans métier SQL :
+**Bibliothèque UI (`Querify.UI`)** — générique, sans métier SQL :
 * `ViewModels/` (`AbstractVM`, `AbstractVM_Busy`), `Views/` (`AbstractPage`, `AbstractContentView`, `Controls/` : `DataGrids`, `Layouts`, `Menus`, `Tabs`, `Trees`, `ViewSelector`).
 * `Inputs/` (contrôles de saisie maison : `ButtonView`, `TextField`, `PickerField`, `EditorField`, chacun scindé en `X.cs` + `X.bindable.cs`), `Converters/`, `Behaviors/`, `MarkupExtensions/`.
 * `Extensions/` : `WeakReferenceMessengerExtensions` (journalisation), `FireAndForgetExtensions`. `Models/Messagings/WeakLog`.
 
-**Noyau (`SqlToolManagerMaui.Core`)** : modèles et énumérations de l'application par domaine (`Dashboards/`, `Databases/`, `Editors/`, `Queries/`, `Settings/`), `Serialization/` (`DashboardSerializer`, System.Text.Json source-gen), `Ioc/AutoRegisterAttribute`. Aucun service.
+**Noyau (`Querify.Core`)** : modèles et énumérations de l'application par domaine (`Dashboards/`, `Databases/`, `Editors/`, `Queries/`, `Settings/`), `Serialization/` (`DashboardSerializer`, System.Text.Json source-gen), `Ioc/AutoRegisterAttribute`. Aucun service.
 
-**Bases de données (`SqlToolManagerMaui.Databases`)** : librairie **indépendante** (aucune référence de projet). Tout ce qui parle à un moteur, indépendamment du langage et des dashboards. Services enregistrés par `services.AddDatabases()`, pas par `[AutoRegister]`.
+**Bases de données (`Querify.Databases`)** : librairie **indépendante** (aucune référence de projet). Tout ce qui parle à un moteur, indépendamment du langage et des dashboards. Services enregistrés par `services.AddDatabases()`, pas par `[AutoRegister]`.
 * `Models/`, `Enums/` : `DatabaseConnectionInfo`, `ConnectionTestResult`, catalogue, `DatabaseSchemaSnapshot`, `QueryResultSet`, `QueryParameter`, `DatabaseProvider`...
 * `Connections/`, `Queries/`, `Schemas/` : contrats par moteur (`IConnectionTester`, `IQueryReader`, `IDatabaseSchemaReader`) et leurs résolveurs, `IQueryDataService`, `IDatabaseSchemaCache`.
 * `Common/KeyedServiceMap<TKey, TService>` : base de tous les résolveurs (une implémentation par clé, doublon signalé au démarrage).
@@ -64,7 +64,7 @@ SqlToolManagerMaui (nom affiché : **Querify**) est une application **desktop Wi
 ### Structure du dépôt
 
 ```
-SqlToolManagerMaui/
+Querify/
 ├── .github/
 │   ├── instructions.md              # CE FICHIER — source centralisée
 │   ├── copilot-instructions.md
@@ -74,14 +74,14 @@ SqlToolManagerMaui/
     ├── .editorconfig
     ├── Directory.Build.props        # Réglages communs à tous les projets
     ├── Directory.Packages.props     # Versions de tous les paquets NuGet
-    ├── SqlToolManagerMaui.slnx
-    ├── SqlToolManagerMaui/          # Application MAUI (Windows)
-    ├── SqlToolManagerMaui.Core/
-    ├── SqlToolManagerMaui.Databases/
-    ├── SqlToolManagerMaui.Helpers/
-    ├── SqlToolManagerMaui.Languages(.Commons|.Sql|.Linq)/
-    ├── SqlToolManagerMaui.Tests/
-    └── SqlToolManagerMaui.UI/
+    ├── Querify.slnx
+    ├── Querify/          # Application MAUI (Windows)
+    ├── Querify.Core/
+    ├── Querify.Databases/
+    ├── Querify.Helpers/
+    ├── Querify.Languages(.Commons|.Sql|.Linq)/
+    ├── Querify.Tests/
+    └── Querify.UI/
 ```
 
 ---
@@ -201,9 +201,9 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 2. **Modèles** — `Core/Models/[Domaine]/` (ou `Databases/Models/` s'ils parlent au moteur).
 3. **Service** — `Services/[Domaine]/` derrière une interface.
 4. **ViewModel** — `ViewModels/Pages/` (`AbstractVM`) ou `Pages/Documents/` (`DocumentVM<TSession>`).
-5. **Vue** — page dans `Views/Pages/` (`AbstractPage`, `PAGE_ROUTE`, `ShellContent` dans `AppShell.xaml`) ou contrôle dans `Views/Controls/[Domaine]/` ; générique → `SqlToolManagerMaui.UI`.
+5. **Vue** — page dans `Views/Pages/` (`AbstractPage`, `PAGE_ROUTE`, `ShellContent` dans `AppShell.xaml`) ou contrôle dans `Views/Controls/[Domaine]/` ; générique → `Querify.UI`.
 6. **DI** — `[AutoRegister]`. **Namespaces XAML** — `AppXmlns.cs`.
-7. **Tests** — logique sans MAUI testable dans `SqlToolManagerMaui.Tests`.
+7. **Tests** — logique sans MAUI testable dans `Querify.Tests`.
 8. **Compilation & validation**.
 
 ---
@@ -237,7 +237,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * **Limite LINQ** : le script tourne dans le processus de l'application. Annuler rend la main tout de suite, mais une boucle infinie continue en arrière-plan jusqu'à la fermeture, et un débordement de pile arrête l'application. Isoler l'exécution dans un processus séparé serait la seule vraie protection.
 * Grille de résultats = `v:DataGrid` (UI) : colonnes fournies par `QueryResultColumnsConverter` (lecture des cellules par position, `AutoGenerateColumns="False"`), utilisée par `QueryResultsPanel` et les cartes Tableau du dashboard.
 
-### DataGrid (`SqlToolManagerMaui.UI/Views/Controls/DataGrids/`)
+### DataGrid (`Querify.UI/Views/Controls/DataGrids/`)
 
 * Colonnes : `Columns` (enfants XAML ou binding) puis, si `AutoGenerateColumns` (vrai par défaut, comme WPF), une colonne par propriété publique des éléments (`[Browsable(false)]`, `[Display(Name, Description, Order, AutoGenerateField)]`, `[DisplayName]` respectés ; liste de valeurs simples = une colonne « Valeur »). Valeur lue par `DataGridColumn.ValueGetter`, sinon `Path` (réflexion mise en cache).
 * Tri : clic sur le titre (croissant → décroissant → aucun), une colonne à la fois ; nombres et dates triés comme tels, même déjà formatés en texte (`Helpers/Tools/ValueComparison`).
@@ -259,7 +259,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 
 ### Connexions
 
-* `ConnectionStore` vit dans `SqlToolManagerMaui.Databases` (testé sur Linux) ; l'app lui fournit `IConnectionSecretStore` (`SecureStorageConnectionSecretStore`) et `IConnectionDescriptorStorage` (`JsonConnectionDescriptorStorage`).
+* `ConnectionStore` vit dans `Querify.Databases` (testé sur Linux) ; l'app lui fournit `IConnectionSecretStore` (`SecureStorageConnectionSecretStore`) et `IConnectionDescriptorStorage` (`JsonConnectionDescriptorStorage`).
 * Stockage mixte : métadonnées dans `connections.json` (`AppDataDirectory`, `JsonFile`), chaîne complète chiffrée dans le `SecureStorage` (`connectionstring:{id}`). `DatabaseConnectionInfo.ConnectionString` n'est renseignée qu'**en mémoire** (connexion ouverte) et n'est jamais sérialisée.
 * Fichier corrompu : copie `.corrupt-date` puis liste vide. Fichier illisible : rien n'est mis en cache et toute écriture est refusée, pour ne pas écraser les connexions.
 * Abonnement : `IConnectionStore.Subscribe` (appelé tout de suite puis à chaque ajout / modification / suppression) ; `DatabaseConnectionVM` et `ConnectionExplorerVM` s'y abonnent.
@@ -286,7 +286,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 
 ### Pièges connus
 
-* Les `XmlnsDefinition` de `SqlToolManagerMaui.UI` ne sont vues que si son assembly est chargé **avant** le premier parsing XAML : si un converter devient introuvable au démarrage, forcer ce chargement dans `MauiProgram` (`typeof(...)` d'un type de UI).
+* Les `XmlnsDefinition` de `Querify.UI` ne sont vues que si son assembly est chargé **avant** le premier parsing XAML : si un converter devient introuvable au démarrage, forcer ce chargement dans `MauiProgram` (`typeof(...)` d'un type de UI).
 * En MAUI 10, `DisplayAlert` / `DisplayActionSheet` sont obsolètes : `DisplayAlertAsync` / `DisplayActionSheetAsync`.
 * Les `ResourceDictionary` sans `x:Class` sont analysés à l'exécution : une erreur de clé ne se voit pas à la compilation.
 
@@ -313,8 +313,8 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 ## Validation
 
 ```bash
-dotnet build src/SqlToolManagerMaui.slnx
-dotnet test src/SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj
+dotnet build src/Querify.slnx
+dotnet test src/Querify.Tests/Querify.Tests.csproj
 ```
 
 `MauiStrictXamlCompilation` transforme les avertissements de binding en erreurs : un `x:DataType` manquant casse le build. La CI (`.github/workflows/build.yml`) fait la même chose sur Windows à chaque push et pull request.

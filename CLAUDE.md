@@ -1,8 +1,8 @@
-# SqlToolManagerMaui - Instructions pour Claude
+# Querify - Instructions pour Claude
 
 ## 🎯 À propos du projet
 
-SqlToolManagerMaui est une application desktop Windows .NET MAUI pour écrire et exécuter des requêtes SQL / EntityFramework : éditeur multi-onglets avec coloration syntaxique, gestion des connexions aux bases, habillage Windows 11. Architecture MVVM basée sur CommunityToolkit.Mvvm.
+Querify est une application desktop Windows .NET MAUI pour écrire et exécuter des requêtes SQL / EntityFramework : éditeur multi-onglets avec coloration syntaxique, gestion des connexions aux bases, habillage Windows 11. Architecture MVVM basée sur CommunityToolkit.Mvvm.
 
 ---
 
@@ -29,7 +29,7 @@ Cette source unique est partagée entre Claude et Copilot. Consulte ce fichier p
 
 Respecter **absolument** :
 1. L'architecture MVVM — les ViewModels héritent de `AbstractVM`, les pages de `AbstractPage`
-2. La stratification des couches — Views, ViewModels, Services (app), `SqlToolManagerMaui.Core` (modèles, enums, contrats applicatifs), `SqlToolManagerMaui.Databases` (librairie indépendante, sans référence de projet : moteurs de base, connexion, catalogue, requêtes paramétrées, et leurs modèles ; `Core` la référence), `SqlToolManagerMaui.Languages.Commons` (contrats communs aux langages), `SqlToolManagerMaui.Languages.[Nom]` (une implémentation par langage), `SqlToolManagerMaui.Languages` (agrège les langages et fournit les résolveurs) et `SqlToolManagerMaui.UI` pour le générique
+2. La stratification des couches — Views, ViewModels, Services (app), `Querify.Core` (modèles, enums, contrats applicatifs), `Querify.Databases` (librairie indépendante, sans référence de projet : moteurs de base, connexion, catalogue, requêtes paramétrées, et leurs modèles ; `Core` la référence), `Querify.Languages.Commons` (contrats communs aux langages), `Querify.Languages.[Nom]` (une implémentation par langage), `Querify.Languages` (agrège les langages et fournit les résolveurs) et `Querify.UI` pour le générique
 3. L'injection de dépendances — déclaration par `[AutoRegister]` sur la classe (scan dans `Ioc/ServiceCollectionExtensions.cs`), injection par constructeur
 4. Les anti-patterns à éviter — pas de logique dans le code-behind, pas de ViewModel connu d'un contrôle, pas d'API Xamarin.Forms
 
@@ -58,9 +58,9 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 
 - **Source centralisée** : `.github/instructions.md`
 - **Référence Copilot** : `.github/copilot-instructions.md`
-- **Repository** : SqlToolManagerMaui
+- **Repository** : Querify
 - **Framework** : .NET MAUI (net10.0-windows10.0.19041.0, win-x64)
-- **Solution** : `src/SqlToolManagerMaui.slnx`
+- **Solution** : `src/Querify.slnx`
 
 ---
 
@@ -102,10 +102,10 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 3. Page XAML dans `Views/Pages/` (hérite de `AbstractPage`, expose `PAGE_ROUTE`)
 4. `ShellContent` dans `AppShell.xaml` (aujourd'hui une seule page : pas de volet de navigation)
 5. Marquer service, page et VM avec `[AutoRegister]` (`As = typeof(IService)` pour un service, `Lifetime = ServiceLifetime.Transient` si besoin)
-6. Compiler : `dotnet build src/SqlToolManagerMaui.slnx`
+6. Compiler : `dotnet build src/Querify.slnx`
 
 ### Extraire un contrôle
-1. Spécifique à l'app → `Views/Controls/[Domaine]/` ; générique sans métier → `SqlToolManagerMaui.UI`
+1. Spécifique à l'app → `Views/Controls/[Domaine]/` ; générique sans métier → `Querify.UI`
 2. Toujours un couple `X.xaml` + `X.xaml.cs` (même pour un `MenuFlyoutItem` ou un `Grid`) : structure, bindings internes, triggers et gestes dans le XAML ; le code-behind se limite aux `[BindableProperty]`, à `InitializeComponent()` et à ce que le XAML ne sait pas faire (colonnes dynamiques, natif WinUI), construit dans un conteneur nommé du XAML. Exceptions : non-vues et `UI.Inputs` (classes de base dérivées)
 3. Exposer des `BindableProperty`, jamais un `x:DataType` de ViewModel
 4. Se lier à soi-même via `x:Name="Root"` + `{Binding MaProp, Source={x:Reference Root}, x:DataType=v:MonControle}` dans le contrôle, ou `{Binding Source={RelativeSource AncestorType={x:Type c:MonControle}}, ...}` dans un contrôle composé
@@ -117,10 +117,10 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 3. Ajouter la valeur à `DatabaseProvider` (`Databases/Enums`)
 
 ### Ajouter un langage
-1. Créer `SqlToolManagerMaui.Languages.[Nom]` (référence `Languages.Commons` uniquement, jamais un autre langage)
+1. Créer `Querify.Languages.[Nom]` (référence `Languages.Commons` uniquement, jamais un autre langage)
 2. Y implémenter `IQueryExecutor` (`Languages.Commons`) en `[AutoRegister(As = typeof(IQueryExecutor))]`, avec sa valeur de `SyntaxLanguage` : `QueryExecutorResolver` le découvre seul
-3. L'ajouter à la solution et en `ProjectReference` de `SqlToolManagerMaui.Languages` (jamais du projet principal)
-4. Ajouter un de ses types à `LanguageAssemblies.All` (`SqlToolManagerMaui.Languages`) pour que son assembly soit scannée
+3. L'ajouter à la solution et en `ProjectReference` de `Querify.Languages` (jamais du projet principal)
+4. Ajouter un de ses types à `LanguageAssemblies.All` (`Querify.Languages`) pour que son assembly soit scannée
 
 ---
 

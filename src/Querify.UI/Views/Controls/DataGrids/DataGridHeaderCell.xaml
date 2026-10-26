@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Querify.UI.Views.Controls.DataGrids.DataGridHeaderCell"
+             x:Name="Root"
+             Style="{DynamicResource DataGridHeaderCellStyle}">
+
+    <HorizontalStackLayout>
+
+        <!-- Zone de tri (titre) ; le bouton de filtre reste hors de cette zone pour ne pas trier au clic.
+             Fond transparent : sans fond, WinUI ne remonte pas le clic -->
+        <Grid BackgroundColor="Transparent"
+              ToolTipProperties.Text="{Binding Column.ToolTip, Source={x:Reference Root}, FallbackValue={x:Null}, x:DataType=v:DataGridHeaderCell}">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding SortCommand, Source={x:Reference Root}, x:DataType=v:DataGridHeaderCell}"
+                                      CommandParameter="{Binding Column, Source={x:Reference Root}, x:DataType=v:DataGridHeaderCell}" />
+            </Grid.GestureRecognizers>
+
+            <Label Text="{Binding Column.Header, Source={x:Reference Root}, FallbackValue='', x:DataType=v:DataGridHeaderCell}"
+                   Style="{DynamicResource DataGridHeaderStyle}" />
+        </Grid>
+
+        <!-- Filtre : icone accentuee tant qu'un filtre est saisi -->
+        <ImageButton Style="{DynamicResource TextImageButtonStyle}"
+                     Source="{mk:FluentFilledImage Icon=Filter16Filled, IconColor={StaticResource Primary}, IconSize=12}"
+                     Command="{Binding FilterCommand, Source={x:Reference Root}, x:DataType=v:DataGridHeaderCell}"
+                     CommandParameter="{Binding Column, Source={x:Reference Root}, x:DataType=v:DataGridHeaderCell}"
+                     IsVisible="{Binding IsFilterButtonVisible, Source={x:Reference Root}, x:DataType=v:DataGridHeaderCell}"
+                     ToolTipProperties.Text="Filtrer">
+            <ImageButton.Triggers>
+                <DataTrigger TargetType="ImageButton"
+                             Binding="{Binding Column.FilterText, Source={x:Reference Root}, FallbackValue='', x:DataType=v:DataGridHeaderCell}"
+                             Value="">
+                    <Setter Property="Source"
+                            Value="{mk:FluentFilledImage Icon=Filter16Filled, IconColor={StaticResource LabelTertiary}, IconSize=12}" />
+                </DataTrigger>
+            </ImageButton.Triggers>
+        </ImageButton>
+
+        <!-- Sens du tri, apres le filtre : un seul controle, la source change selon le sens -->
+        <Image VerticalOptions="Center"
+               HeightRequest="12"
+               IsVisible="False">
+            <Image.Triggers>
+                <DataTrigger TargetType="Image"
+                             Binding="{Binding Column.SortDirection, Source={x:Reference Root}, FallbackValue={x:Static v:DataGridSortDirection.None}, x:DataType=v:DataGridHeaderCell}"
+                             Value="{x:Static v:DataGridSortDirection.Ascending}">
+                    <Setter Property="Source"
+                            Value="{mk:FluentFilledImage Icon=ArrowUp20Filled}" />
+                    <Setter Property="IsVisible"
+                            Value="True" />
+                </DataTrigger>
+                <DataTrigger TargetType="Image"
+                             Binding="{Binding Column.SortDirection, Source={x:Reference Root}, FallbackValue={x:Static v:DataGridSortDirection.None}, x:DataType=v:DataGridHeaderCell}"
+                             Value="{x:Static v:DataGridSortDirection.Descending}">
+                    <Setter Property="Source"
+                            Value="{mk:FluentFilledImage Icon=ArrowDown20Filled}" />
+                    <Setter Property="IsVisible"
+                            Value="True" />
+                </DataTrigger>
+            </Image.Triggers>
+        </Image>
+    </HorizontalStackLayout>
+</ContentView>
