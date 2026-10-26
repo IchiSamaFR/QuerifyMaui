@@ -2,6 +2,18 @@
   <Folder Name="/Tests/">
     <Project Path="SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj" />
   </Folder>
+  <Folder Name="/.Solution/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/.Solution/.github/">
+    <File Path="../.github/copilot-instructions.md" />
+    <File Path="../.github/instructions.md" />
+  </Folder>
+  <Folder Name="/.Solution/.github/workflows/">
+    <File Path="../.github/workflows/build.yml" />
+  </Folder>
   <Folder Name="/Databases/">
     <Project Path="SqlToolManagerMaui.Databases/SqlToolManagerMaui.Databases.csproj" />
   </Folder>
