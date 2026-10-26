@@ -6,7 +6,6 @@ using LiveChartsCore.SkiaSharpView.Maui;
 using MauiIcons.Core;
 using MauiIcons.Fluent;
 using MauiIcons.Fluent.Filled;
-using Microsoft.Extensions.Logging;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using SqlToolManagerMaui.Services.Diagnostics;
 using SqlToolManagerMaui.UI.Extensions;
@@ -50,9 +49,6 @@ public static class MauiProgram
             .UseMauiCommunityToolkitMarkup();
 
         builder.Services.AddApplicationServices();
-#if DEBUG
-        builder.Logging.AddDebug();
-#endif
 
         MauiApp app = builder.Build();
         // Locator statique, pour le peu de code qui ne peut pas recevoir ses dépendances.
