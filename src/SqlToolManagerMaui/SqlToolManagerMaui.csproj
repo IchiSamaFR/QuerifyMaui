@@ -37,6 +37,13 @@
 		<NoWarn>$(NoWarn);MVVMTK0045;MCTEXP001</NoWarn>
 	</PropertyGroup>
 
+	<!-- Release autonome : propriete dediee car un -p:WindowsAppSDKSelfContained global descend aussi
+	     dans SqlToolManagerMaui.UI, dont le MsixContent entre en conflit au publish (NETSDK1152) -->
+	<PropertyGroup Condition="'$(QuerifySelfContained)' == 'true'">
+		<SelfContained>true</SelfContained>
+		<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+	</PropertyGroup>
+
 	<!-- ===================== XAML ===================== -->
 	<PropertyGroup>
 		<!-- Bindings compiles partout ; un x:DataType manquant casse le build -->
