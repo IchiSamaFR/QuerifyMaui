@@ -2,8 +2,8 @@
 using CommunityToolkit.Mvvm.Input;
 using SqlToolManagerMaui.Core.Ioc;
 using SqlToolManagerMaui.Core.Models.Editors;
+using SqlToolManagerMaui.Databases.Connections;
 using SqlToolManagerMaui.Databases.Models.Connections;
-using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.UI.Extensions;
 
 namespace SqlToolManagerMaui.ViewModels.Pages.Shared;

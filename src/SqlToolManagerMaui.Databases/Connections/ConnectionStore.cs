@@ -1,29 +1,25 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using SqlToolManagerMaui.Core.Ioc;
-using SqlToolManagerMaui.Databases.Models.Connections;
-using SqlToolManagerMaui.Helpers.Extensions;
-using SqlToolManagerMaui.Helpers.Tools;
-using SqlToolManagerMaui.UI.Extensions;
+﻿using SqlToolManagerMaui.Databases.Models.Connections;
 
-namespace SqlToolManagerMaui.Services.Databases.Connections;
+namespace SqlToolManagerMaui.Databases.Connections;
 
 /// <summary>
-/// Stockage mixte : le fichier connections.json (AppDataDirectory) ne contient que
-/// des metadonnees affichables, la chaine de connexion complete est chiffree par
-/// le SecureStorage de la plateforme sous la cle <c>connectionstring:{id}</c>.
-/// Toutes les ecritures passent par un semaphore : le fichier est reecrit en entier.
+/// Stockage mixte : les descripteurs ne contiennent que des metadonnees affichables, la chaine de
+/// connexion complete vit dans le coffre. Toutes les ecritures passent par un semaphore : la liste est reecrite en entier.
 /// </summary>
-[AutoRegister(As = typeof(IConnectionStore))]
 public sealed class ConnectionStore : IConnectionStore
 {
-    private const string FileName = "connections.json";
-    private const string SecureKeyPrefix = "connectionstring:";
-
+    private readonly IConnectionSecretStore _secrets;
+    private readonly IConnectionDescriptorStorage _storage;
     private readonly SemaphoreSlim _gate = new(1, 1);
-    private readonly string _filePath = Path.Combine(FileSystem.AppDataDirectory, FileName);
 
     private List<DatabaseConnectionInfo>? _cache;
-    private Action<IReadOnlyList<DatabaseConnectionInfo>>? _onChanged = null;
+    private Action<IReadOnlyList<DatabaseConnectionInfo>>? _onChanged;
+
+    public ConnectionStore(IConnectionSecretStore secrets, IConnectionDescriptorStorage storage)
+    {
+        _secrets = secrets;
+        _storage = storage;
+    }
 
     /// <inheritdoc/>
     public async Task<string?> GetConnectionStringAsync(Guid id, CancellationToken cancellationToken = default)
@@ -31,7 +27,7 @@ public sealed class ConnectionStore : IConnectionStore
         cancellationToken.ThrowIfCancellationRequested();
         try
         {
-            return await SecureStorage.Default.GetAsync(SecureKey(id));
+            return await _secrets.GetAsync(id);
         }
         catch (Exception)
         {
@@ -48,7 +44,7 @@ public sealed class ConnectionStore : IConnectionStore
         try
         {
             var items = await LoadUnsafeAsync(forWrite: false, cancellationToken);
-            _onChanged?.Invoke(items.OrderBy(c => c.Name).ToList());
+            _onChanged?.Invoke(Sorted(items));
             return true;
         }
         finally
@@ -65,7 +61,7 @@ public sealed class ConnectionStore : IConnectionStore
         {
             _onChanged += action;
             var items = await LoadUnsafeAsync(forWrite: false, cancellationToken);
-            _onChanged?.Invoke(items.OrderBy(c => c.Name).ToList());
+            _onChanged?.Invoke(Sorted(items));
             return true;
         }
         finally
@@ -107,7 +103,7 @@ public sealed class ConnectionStore : IConnectionStore
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
         // Le secret d'abord : si le coffre refuse, aucun descripteur orphelin n'est ecrit.
-        await SecureStorage.Default.SetAsync(SecureKey(info.Id), connectionString);
+        await _secrets.SetAsync(info.Id, connectionString);
 
         await _gate.WaitAsync(cancellationToken);
         try
@@ -139,7 +135,7 @@ public sealed class ConnectionStore : IConnectionStore
             }
 
             await SaveUnsafeAsync(items, cancellationToken);
-            _onChanged?.Invoke(items.OrderBy(c => c.Name).ToList());
+            _onChanged?.Invoke(Sorted(items));
         }
         finally
         {
@@ -161,7 +157,7 @@ public sealed class ConnectionStore : IConnectionStore
                 removed.CloseConnection();
                 await SaveUnsafeAsync(items, cancellationToken);
             }
-            _onChanged?.Invoke(items.OrderBy(c => c.Name).ToList());
+            _onChanged?.Invoke(Sorted(items));
         }
         finally
         {
@@ -170,7 +166,7 @@ public sealed class ConnectionStore : IConnectionStore
 
         try
         {
-            SecureStorage.Default.Remove(SecureKey(id));
+            _secrets.Remove(id);
         }
         catch (Exception)
         {
@@ -178,48 +174,30 @@ public sealed class ConnectionStore : IConnectionStore
         }
     }
 
-    private static string SecureKey(Guid id) => $"{SecureKeyPrefix}{id:N}";
+    private static List<DatabaseConnectionInfo> Sorted(List<DatabaseConnectionInfo> items) => items.OrderBy(c => c.Name).ToList();
 
     /// <summary>
-    /// Fichier corrompu : copie mise de cote, puis liste vide (la reecriture ne perd plus rien).
-    /// Fichier illisible (verrouille, droits) ou copie impossible : rien n'est mis en cache et une
-    /// ecriture (<paramref name="forWrite"/>) est refusee, sinon elle effacerait les connexions enregistrees.
+    /// Source illisible : rien n'est mis en cache (relue au prochain appel) et une ecriture
+    /// (<paramref name="forWrite"/>) est refusee, sinon elle effacerait les connexions enregistrees.
     /// </summary>
     private async Task<List<DatabaseConnectionInfo>> LoadUnsafeAsync(bool forWrite, CancellationToken cancellationToken)
     {
         if (_cache is not null)
             return _cache;
 
-        var result = await JsonFile.ReadAsync<List<DatabaseConnectionInfo>>(_filePath, cancellationToken);
-        switch (result.Status)
-        {
-            case JsonFileStatus.Missing:
-                return _cache = [];
-            case JsonFileStatus.Loaded:
-                return _cache = result.Value ?? [];
-            case JsonFileStatus.Corrupted when result.BackupPath is not null:
-                WeakReferenceMessenger.Default.LogError(result.Error!, $"{FileName} était corrompu : copie conservée sous {Path.GetFileName(result.BackupPath)}.");
-                return _cache = [];
-            case JsonFileStatus.Corrupted:
-                return Unreadable(forWrite, result.Error!, $"{FileName} est corrompu et n'a pas pu être copié : connexions non chargées.");
-            default:
-                return Unreadable(forWrite, result.Error!, $"Connexions illisibles : {result.Error!.Message}");
-        }
-    }
+        if (await _storage.ReadAsync(cancellationToken) is { } items)
+            return _cache = items;
 
-    private static List<DatabaseConnectionInfo> Unreadable(bool forWrite, Exception exception, string message)
-    {
         // En ecriture, l'appelant recoit l'erreur (RunAsBusyAsync ou popup la journalisent).
         if (forWrite)
-            throw new IOException($"{message} Modification annulée pour ne pas écraser les connexions enregistrées.", exception);
+            throw new IOException("Connexions illisibles : modification annulée pour ne pas écraser les connexions enregistrées.");
 
-        WeakReferenceMessenger.Default.LogError(exception, message);
         return [];
     }
 
     private async Task SaveUnsafeAsync(List<DatabaseConnectionInfo> items, CancellationToken cancellationToken)
     {
-        await JsonFile.WriteAllTextAsync(_filePath, JsonFile.Serialize(items), cancellationToken);
+        await _storage.WriteAsync(items, cancellationToken);
         _cache = items;
     }
 }

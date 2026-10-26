@@ -9,11 +9,13 @@ namespace SqlToolManagerMaui.Databases;
 /// <summary>Enregistrement des services de la librairie (elle ne depend d'aucun projet de l'application).</summary>
 public static class DatabasesServiceCollectionExtensions
 {
-    /// <summary>Resolveurs, cache des catalogues et implementations de chaque moteur.</summary>
+    /// <summary>Stockage des connexions, resolveurs, cache des catalogues et implementations de chaque moteur.</summary>
     public static IServiceCollection AddDatabases(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        // IConnectionSecretStore et IConnectionDescriptorStorage sont fournis par l'hote.
+        services.AddSingleton<IConnectionStore, ConnectionStore>();
         services.AddSingleton<IConnectionTesterResolver, ConnectionTesterResolver>();
         services.AddSingleton<IDatabaseSchemaReaderResolver, DatabaseSchemaReaderResolver>();
         services.AddSingleton<IDatabaseSchemaCache, DatabaseSchemaCache>();

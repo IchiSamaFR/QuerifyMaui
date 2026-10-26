@@ -37,7 +37,7 @@ SqlToolManagerMaui (nom affiché : **Querify**) est une application **desktop Wi
 * **Views/Pages** : `MainPage` (hérite de `AbstractPage`), `Connections/` (explorateur, popup de connexion), `Documents/` (`CodeEditorView`, `DashboardView`, `DocumentViewSelector`).
 * **Views/Controls** : contrôles XAML propres à l'application, par domaine : `Editors/` (`CodeEditor`, `Completion/`, coloration), `Queries/` (résultats), `Dashboards/`. Un sous-dossier = un sous-namespace, à ajouter dans `Properties/AppXmlns.cs`.
 * **ViewModels** : `Pages/` (`MainVM` en trois fichiers partiels : base, `Files`, `Workspace`), `Pages/Documents/` (`DocumentVM<TSession>`, `CodeEditorVM`, `DashboardVM`), `Pages/Shared/` (`DatabaseConnectionVM`, `StatusBarVM`), `Pages/Connections/`, `Controls/Menus/MainMenuBarVM`.
-* **Services** (derrière une interface, par domaine) : `Databases/` (`ConnectionStore`, dialogue de connexion), `Dialogs/` (`IDialogService` : questions posées depuis un VM), `Diagnostics/` (`FileLogWriter`), `Editors/` (fichiers, coloration, complétion), `Settings/` (préférences, onglets mémorisés).
+* **Services** (derrière une interface, par domaine) : `Databases/` (coffre `SecureStorage` et fichier `connections.json` fournis à `ConnectionStore`, dialogue de connexion), `Dialogs/` (`IDialogService` : questions posées depuis un VM), `Diagnostics/` (`FileLogWriter`), `Editors/` (fichiers, coloration, complétion), `Settings/` (préférences, onglets mémorisés).
 * **Ioc** : locator statique + scan des `[AutoRegister]`. **Platforms/Windows** : code WinUI (`WindowCloseGuard`).
 * **Resources/Styles** : tokens (couleurs, tailles, épaisseurs) et un fichier de styles par contrôle.
 
@@ -259,6 +259,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 
 ### Connexions
 
+* `ConnectionStore` vit dans `SqlToolManagerMaui.Databases` (testé sur Linux) ; l'app lui fournit `IConnectionSecretStore` (`SecureStorageConnectionSecretStore`) et `IConnectionDescriptorStorage` (`JsonConnectionDescriptorStorage`).
 * Stockage mixte : métadonnées dans `connections.json` (`AppDataDirectory`, `JsonFile`), chaîne complète chiffrée dans le `SecureStorage` (`connectionstring:{id}`). `DatabaseConnectionInfo.ConnectionString` n'est renseignée qu'**en mémoire** (connexion ouverte) et n'est jamais sérialisée.
 * Fichier corrompu : copie `.corrupt-date` puis liste vide. Fichier illisible : rien n'est mis en cache et toute écriture est refusée, pour ne pas écraser les connexions.
 * Abonnement : `IConnectionStore.Subscribe` (appelé tout de suite puis à chaque ajout / modification / suppression) ; `DatabaseConnectionVM` et `ConnectionExplorerVM` s'y abonnent.

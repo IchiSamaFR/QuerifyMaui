@@ -7,7 +7,6 @@ using SqlToolManagerMaui.Core.Models.Databases.Connections;
 using SqlToolManagerMaui.Databases.Connections;
 using SqlToolManagerMaui.Databases.Enums;
 using SqlToolManagerMaui.Databases.Models.Connections;
-using SqlToolManagerMaui.Services.Databases;
 using SqlToolManagerMaui.UI.Extensions;
 using SqlToolManagerMaui.UI.ViewModels;
 

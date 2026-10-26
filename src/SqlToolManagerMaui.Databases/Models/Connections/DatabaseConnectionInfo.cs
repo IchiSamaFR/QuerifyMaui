@@ -8,7 +8,7 @@ namespace SqlToolManagerMaui.Databases.Models.Connections;
 /// Descripteur d'une connexion enregistree.
 /// ATTENTION : cet objet est serialise en clair dans connections.json.
 /// La chaine de connexion complete n'y figure jamais : elle vit dans le SecureStorage
-/// (voir <c>ConnectionStore</c> dans l'application), seules les metadonnees d'affichage
+/// (voir <c>ConnectionStore</c> et <c>IConnectionSecretStore</c>), seules les metadonnees d'affichage
 /// (serveur, base) sont recopiees ici.
 /// <see cref="ConnectionString"/> n'est renseignee qu'en memoire, quand la connexion est
 /// ouverte (<see cref="IsConnected"/>) ; l'attribut Newtonsoft [JsonIgnore] l'exclut du fichier
@@ -72,6 +72,18 @@ public sealed partial class DatabaseConnectionInfo : ObservableObject
 
     [JsonIgnore]
     public bool IsEditing => !IsNew;
+
+    /// <summary>Copie du descripteur, sans la chaine de connexion (comme dans le fichier).</summary>
+    public DatabaseConnectionInfo Clone() => new()
+    {
+        Id = Id,
+        Name = Name,
+        Provider = Provider,
+        Server = Server,
+        Database = Database,
+        CreatedAt = CreatedAt,
+        UpdatedAt = UpdatedAt,
+    };
 
     public bool CloseConnection()
     {

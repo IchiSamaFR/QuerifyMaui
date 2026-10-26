@@ -64,19 +64,16 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             messages.Add(new QueryMessage($"Contexte {model.Model.ContextVariableName} ({model.Model.ContextClassName}) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
             consoleIndex = messages.Count;
 
-            // Dispose : decharge l'assembly de la requete une fois les resultats convertis.
-            using var compiled = await Task.Run(() => _compiler.CompileQueryAsync(model, query, cancellationToken: cancellationToken), cancellationToken);
+            var compiled = await Task.Run(() => _compiler.CompileQueryAsync(model, query, cancellationToken: cancellationToken), cancellationToken);
             if (!compiled.Success)
             {
+                compiled.Dispose();
                 hasErrors = true;
                 messages.AddRange(compiled.Errors.Select(e => new QueryMessage(LinqDiagnosticMapper.Describe(e, query), QueryMessageKind.Error)));
             }
             else
             {
-                // WaitAsync : l'annulation rend la main tout de suite. Le code de l'utilisateur, lui, ne peut pas
-                // etre interrompu dans le processus (boucle infinie...) : il se termine en arriere-plan.
-                var outputs = await Task.Run(() => Run(model, compiled, connection.ConnectionString!, MaxRows, console, cancellationToken), CancellationToken.None)
-                    .WaitAsync(cancellationToken);
+                var outputs = await RunAsync(model, compiled, connection.ConnectionString!, MaxRows, console, cancellationToken);
 
                 foreach (var output in outputs)
                 {
@@ -93,6 +90,11 @@ public sealed class LinqQueryExecutor : IQueryExecutor
                 if (outputs.Count == 0)
                     messages.Add(new QueryMessage("Aucun résultat : terminez par return ou affichez une valeur avec .Dump()."));
             }
+        }
+        catch (LinqRunAbandonedException ex)
+        {
+            wasCancelled = true;
+            messages.Add(new QueryMessage(ex.Message, QueryMessageKind.Error));
         }
         catch (OperationCanceledException)
         {
@@ -143,13 +145,14 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         var model = await _models.GetModelAsync(connection, string.IsNullOrWhiteSpace(database) ? null : database, cancellationToken);
         var variables = parameters.Select(LinqParameter.From).ToArray();
 
-        using var compiled = await Task.Run(() => _compiler.CompileQueryAsync(model, query, variables, cancellationToken), cancellationToken);
+        var compiled = await Task.Run(() => _compiler.CompileQueryAsync(model, query, variables, cancellationToken), cancellationToken);
         if (!compiled.Success)
+        {
+            compiled.Dispose();
             throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5).Select(e => LinqDiagnosticMapper.Describe(e, query))));
+        }
 
-        // Meme reserve que ExecuteAsync : le code de l'utilisateur ne peut pas etre interrompu, seulement abandonne.
-        var outputs = await Task.Run(() => Run(model, compiled, connectionString, Math.Max(1, maxRows), console: null, cancellationToken), CancellationToken.None)
-            .WaitAsync(cancellationToken);
+        var outputs = await RunAsync(model, compiled, connectionString, Math.Max(1, maxRows), console: null, cancellationToken);
 
         // Une carte n'affiche qu'un jeu : la valeur rendue, a defaut le dernier Dump().
         return outputs.Count > 0
@@ -160,6 +163,36 @@ public sealed class LinqQueryExecutor : IQueryExecutor
     // ---------- Execution ----------
 
     private sealed record Output(QueryResultSet ResultSet, string? Sql);
+
+    /// <summary>
+    /// Execute puis decharge <paramref name="compiled"/>. L'annulation rend la main tout de suite, mais le code de
+    /// l'utilisateur ne peut pas etre interrompu dans le processus (boucle infinie...) : l'assembly n'est alors
+    /// dechargee qu'a sa fin reelle, et <see cref="LinqRunAbandonedException"/> le signale.
+    /// </summary>
+    private Task<List<Output>> RunAsync(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, ConsoleOutput? console, CancellationToken cancellationToken)
+    {
+        var run = Task.Run(() => Run(model, compiled, connectionString, maxRows, console, cancellationToken), CancellationToken.None);
+        return WaitAsync(run, compiled, cancellationToken);
+    }
+
+    private static async Task<List<Output>> WaitAsync(Task<List<Output>> run, LinqCompiledQuery compiled, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await run.WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (!run.IsCompleted)
+        {
+            // Exception eventuelle observee ici : le resultat n'interesse plus personne.
+            _ = run.ContinueWith(t => { _ = t.Exception; compiled.Dispose(); }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            throw new LinqRunAbandonedException(cancellationToken);
+        }
+        finally
+        {
+            if (run.IsCompleted)
+                compiled.Dispose();
+        }
+    }
 
     private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, ConsoleOutput? console, CancellationToken cancellationToken)
     {

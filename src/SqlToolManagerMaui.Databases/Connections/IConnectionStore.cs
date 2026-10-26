@@ -1,10 +1,9 @@
-﻿
-using SqlToolManagerMaui.Databases.Models.Connections;
+﻿using SqlToolManagerMaui.Databases.Models.Connections;
 
-namespace SqlToolManagerMaui.Services.Databases;
+namespace SqlToolManagerMaui.Databases.Connections;
 
 /// <summary>
-/// Persistance des connexions : descripteurs en JSON, chaines de connexion en SecureStorage.
+/// Persistance des connexions : descripteurs via <see cref="IConnectionDescriptorStorage"/>, chaines de connexion via <see cref="IConnectionSecretStore"/>.
 /// </summary>
 public interface IConnectionStore
 {
