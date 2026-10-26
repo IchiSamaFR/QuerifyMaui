@@ -1,6 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Tags;
 using SqlToolManagerMaui.Core.Ioc;
@@ -46,7 +44,7 @@ public sealed class LinqCompletionEngine : ILinqCompletionEngine
 
         var imported = await ImportedNamespacesAsync(document, cancellationToken);
 
-        // TEST : propositions brutes de Roslyn, sans filtre LinqCompletionFilter.
+        // Toutes les propositions de Roslyn : le filtre de saisie de l'editeur les reduit a la frappe.
         List<LinqCompletionCandidate> candidates = [];
         foreach (var item in list.ItemsList)
         {
