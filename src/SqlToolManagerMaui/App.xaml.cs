@@ -1,4 +1,5 @@
 ﻿using SqlToolManagerMaui.ViewModels.Pages;
+using SqlToolManagerMaui.Views.Controls.TitleBars;
 
 namespace SqlToolManagerMaui
 {
@@ -14,7 +15,7 @@ namespace SqlToolManagerMaui
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            var window = new Window(Ioc.GetRequiredService<AppShell>());
+            var window = new Window(Ioc.GetRequiredService<AppShell>()) { TitleBar = new AppTitleBar() };
             var main = Ioc.GetRequiredService<MainVM>();
 
 #if WINDOWS
