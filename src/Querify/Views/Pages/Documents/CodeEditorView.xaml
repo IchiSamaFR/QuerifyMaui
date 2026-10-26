@@ -9,6 +9,11 @@
 
         <!-- ============ En-tete : execution et connexion ============ -->
         <HorizontalStackLayout Spacing="8">
+            <inp:PickerField ItemsSource="{x:Static vm:QueryLanguages.All}"
+                             SelectedKey="{Binding SelectedLanguageKey, Mode=TwoWay}"
+                             WidthRequest="120"
+                             ToolTipProperties.Text="Langage de l'onglet" />
+
             <ImageButton Style="{StaticResource TextImageButtonStyle}"
                          Command="{Binding ExecuteQueryCommand}"
                          Source="{mk:FluentImage Icon=Play16, IconColor={StaticResource Success}}"

@@ -1,7 +1,6 @@
 ﻿using CodeEdit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Dashboards;
 using Querify.Core.Models.Editors;
@@ -15,7 +14,7 @@ using System.Windows.Input;
 namespace Querify.ViewModels.Controls.Menus;
 
 /// <summary>
-/// Etat de la barre de menus declaree dans MainPage.xaml. Les menus Edition, Requete et Langage
+/// Etat de la barre de menus declaree dans MainPage.xaml. Les menus Edition et Requete
 /// suivent la session selectionnee (<see cref="AttachSession"/>) et le VM qui l'affiche ; les
 /// commandes Fichier sont liees directement a MainVM.
 /// </summary>
@@ -37,22 +36,9 @@ public partial class MainMenuBarVM : ObservableObject
     [ObservableProperty]
     public partial ICommand? CancelCommand { get; private set; }
 
-    /// <summary>Null hors d'un onglet de script. Parametre : la valeur de <see cref="SyntaxLanguage"/>.</summary>
-    [ObservableProperty]
-    public partial ICommand? SetLanguageCommand { get; private set; }
-
     /// <summary>Commandes d'edition du CodeEditor de la vue affichee.</summary>
     [ObservableProperty]
     public partial CodeEditorCommands? EditionCommands { get; private set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSqlLanguage))]
-    [NotifyPropertyChangedFor(nameof(IsLinqLanguage))]
-    public partial SyntaxLanguage Language { get; private set; } = SyntaxLanguage.Sql;
-
-    public bool IsSqlLanguage => Language == SyntaxLanguage.Sql;
-
-    public bool IsLinqLanguage => Language == SyntaxLanguage.Linq;
 
     public MainMenuBarVM(IUserPreferencesStore preferences,
         DatabaseConnectionVM connection,
@@ -69,50 +55,34 @@ public partial class MainMenuBarVM : ObservableObject
         _dashboard.PropertyChanged += OnEditorVMPropertyChanged;
     }
 
-    /// <summary>Branche les menus Edition, Requete et Langage sur la session selectionnee.</summary>
+    /// <summary>Branche les menus Edition et Requete sur la session selectionnee.</summary>
     public void AttachSession(AbstractSession? session)
     {
-        if (_session is not null)
-            _session.Document.PropertyChanged -= OnDocumentPropertyChanged;
-
         _session = session;
-
-        if (session is not null)
-            session.Document.PropertyChanged += OnDocumentPropertyChanged;
 
         switch (session)
         {
             case CodeEditorSession:
                 ExecuteCommand = _codeEditor.ExecuteQueryCommand;
                 CancelCommand = _codeEditor.ExecuteQueryCancelCommand;
-                SetLanguageCommand = _codeEditor.SetLanguageCommand;
                 break;
             case DashboardSession:
                 ExecuteCommand = _dashboard.ApplyParametersCommand;
                 CancelCommand = _dashboard.CancelLoadingCommand;
-                SetLanguageCommand = null;
                 break;
             default:
                 ExecuteCommand = null;
                 CancelCommand = null;
-                SetLanguageCommand = null;
                 break;
         }
 
         RefreshEditionCommands();
-        RefreshLanguage();
     }
 
     private void OnEditorVMPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(CodeEditorVM.EditionCommands))
             RefreshEditionCommands();
-    }
-
-    private void OnDocumentPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(EditorDocument.Language))
-            RefreshLanguage();
     }
 
     private void RefreshEditionCommands()
@@ -123,13 +93,13 @@ public partial class MainMenuBarVM : ObservableObject
             _ => null,
         };
 
-    private void RefreshLanguage()
-        => Language = _session is CodeEditorSession session ? session.Document.Language : SyntaxLanguage.Sql;
-
     // ---------- Commandes des preferences ----------
 
     [RelayCommand]
     private void ToggleRestoreOpenTabs() => Preferences.RestoreOpenTabs = !Preferences.RestoreOpenTabs;
+
+    [RelayCommand]
+    private void ToggleInsertTemplate() => Preferences.Editor.InsertTemplateOnNew = !Preferences.Editor.InsertTemplateOnNew;
 
     [RelayCommand]
     private void ToggleObjectExplorer() => Preferences.Panels.IsObjectExplorerOpen = !Preferences.Panels.IsObjectExplorerOpen;

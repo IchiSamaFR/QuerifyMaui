@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Maui;
 using Querify.Core.Enums.Dashboards;
-using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Models.Dashboards;
 using Querify.Core.Models.Editors.Highlighting;
 using Querify.Core.Models.Settings;
@@ -18,13 +17,6 @@ public partial class DashboardGrid : ContentView
 {
     /// <summary>Rendus proposes pour une carte.</summary>
     public static DashboardCardKind[] CardKinds { get; } = Enum.GetValues<DashboardCardKind>();
-
-    /// <summary>Langages proposes pour la requete d'une carte : la cle est le langage, la valeur son libelle.</summary>
-    public static Dictionary<SyntaxLanguage, string> QueryLanguages { get; } = new()
-    {
-        [SyntaxLanguage.Sql] = "SQL",
-        [SyntaxLanguage.Linq] = "LINQ (EF)",
-    };
 
     [BindableProperty]
     public partial DashboardSession? Session { get; set; }

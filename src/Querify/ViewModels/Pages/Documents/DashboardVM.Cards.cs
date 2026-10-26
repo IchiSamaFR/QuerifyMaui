@@ -17,7 +17,7 @@ public partial class DashboardVM
         CancelLoadingCommand.NotifyCanExecuteChanged();
     }
 
-    private bool CanApplyParameters() => Connection.IsConnected && Session?.Current is not null;
+    private bool CanApplyParameters() => Connection.IsConnected && Session?.IsLoading == false && Session?.Current is not null;
 
     private bool CanCancelLoading() => Connection.IsConnected && Session?.IsLoading == true;
 

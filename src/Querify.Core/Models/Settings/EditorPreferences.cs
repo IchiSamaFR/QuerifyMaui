@@ -16,4 +16,8 @@ public partial class EditorPreferences : ObservableObject
 
     [ObservableProperty]
     public partial int IndentationSize { get; set; } = 4;
+
+    /// <summary>Un nouveau script s'ouvre sur le modele de son langage (prise en main).</summary>
+    [ObservableProperty]
+    public partial bool InsertTemplateOnNew { get; set; } = true;
 }

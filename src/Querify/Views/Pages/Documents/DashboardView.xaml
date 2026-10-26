@@ -9,6 +9,25 @@
 
         <!-- ============ En-tete : chargement des cartes, connexion et vue ============ -->
         <HorizontalStackLayout Spacing="8">
+            <!-- Langage de la carte selectionnee, modifiable dans le concepteur seulement ; LINQ : les parametres sont des variables C# (UserId ou @UserId) -->
+            <inp:PickerField ItemsSource="{x:Static vm:QueryLanguages.All}"
+                             SelectedKey="{Binding Session.SelectedCard.Language, Mode=TwoWay, FallbackValue={x:Null}}"
+                             WidthRequest="120"
+                             ToolTipProperties.Text="Langage de la requête de la carte sélectionnée">
+                <inp:PickerField.IsEnabled>
+                    <MultiBinding Converter="{StaticResource IsAllTrueConverter}">
+                        <Binding Path="Session.IsDesigning"
+                                 FallbackValue="False" />
+                        <Binding Path="Session.SelectedCard"
+                                 Converter="{StaticResource IsNullObjectConverter}"
+                                 ConverterParameter="invert"
+                                 FallbackValue="False" />
+                        <Binding Path="Session.SelectedCard.UsesQuery"
+                                 FallbackValue="False" />
+                    </MultiBinding>
+                </inp:PickerField.IsEnabled>
+            </inp:PickerField>
+
             <ImageButton Style="{StaticResource TextImageButtonStyle}"
                          Command="{Binding ApplyParametersCommand}"
                          Source="{mk:FluentImage Icon=Play16, IconColor={StaticResource Success}}"
@@ -33,12 +52,31 @@
                              FontSize="{StaticResource FontSize_Caption}" />
 
             <v:Separator />
-            
-            <inp:PickerField ItemsSource="{x:Static vm:DashboardVM.Modes}"
-                             SelectedKey="{Binding SelectedModeKey, Mode=TwoWay}"
-                             WidthRequest="140"
-                             FontSize="{StaticResource FontSize_Caption}"
-                             ToolTipProperties.Text="Vue du dashboard" />
+
+            <Border Style="{StaticResource CardStyle}"
+                    Padding="0">
+                <HorizontalStackLayout Spacing="0">
+                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                                 Command="{Binding SetModeCommand}"
+                                 CommandParameter="{x:Static en:DashboardMode.View}"
+                                 Source="{mk:FluentImage Icon=ContentView20}"
+                                 ToolTipProperties.Text="Vue dashboard"
+                                 Margin="0,2,0,0"
+                                 IsEnabled="{Binding SelectedMode, Converter={StaticResource IsNotEqualConverter}, ConverterParameter={x:Static en:DashboardMode.View}, FallbackValue=False}" />
+                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
+                                 Command="{Binding SetModeCommand}"
+                                 CommandParameter="{x:Static en:DashboardMode.Design}"
+                                 Source="{mk:FluentImage Icon=ResizeSmall20}"
+                                 ToolTipProperties.Text="Vue conception"
+                                 Margin="0,2,0,0"
+                                 IsEnabled="{Binding SelectedMode, Converter={StaticResource IsNotEqualConverter}, ConverterParameter={x:Static en:DashboardMode.Design}, FallbackValue=False}" />
+                    <Label Text="{Binding SelectedModeKey}"
+                           FontSize="{StaticResource FontSize_Caption}"
+                           VerticalTextAlignment="Center"
+                           WidthRequest="80" 
+                           Margin="4,0,0,0"/>
+                </HorizontalStackLayout>
+            </Border>
 
             <ImageButton Style="{StaticResource TextImageButtonStyle}"
                          Command="{Binding ShowSettingsCommand}"

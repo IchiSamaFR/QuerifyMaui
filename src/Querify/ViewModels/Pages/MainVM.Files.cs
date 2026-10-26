@@ -19,12 +19,20 @@ public partial class MainVM
     private int _untitledCount;
     private int _untitledDashboardCount;
 
-    /// <summary>Ouvre un onglet de script vide.</summary>
+    /// <summary>Nouveau script (SQL sans parametre), sur le modele du langage si la preference est active.</summary>
     [RelayCommand]
-    private void New()
+    private async Task NewAsync(SyntaxLanguage? language)
+    {
+        var target = language ?? SyntaxLanguage.Sql;
+        var template = Preferences.Editor.InsertTemplateOnNew ? await _templates.GetAsync(target, LifetimeToken) : string.Empty;
+        AddUntitled(target, template);
+    }
+
+    /// <summary>Le modele est le texte « enregistre » : l'onglet n'est pas modifie tant qu'on n'y touche pas.</summary>
+    private void AddUntitled(SyntaxLanguage language = SyntaxLanguage.Sql, string text = "")
     {
         _untitledCount++;
-        Add(new CodeEditorSession(new EditorDocument($"Sans titre {_untitledCount}", filePath: null, fileText: string.Empty)));
+        Add(new CodeEditorSession(new EditorDocument($"Sans titre {_untitledCount}", filePath: null, fileText: text, language)));
         _status.Clear();
     }
 
@@ -193,8 +201,9 @@ public partial class MainVM
 
         session.Dispose();
 
+        // Remplacement automatique du dernier onglet : vide, le modele n'est propose qu'a la creation.
         if (Sessions.Count == 0)
-            New();
+            AddUntitled();
     }
 
     /// <summary>Vrai si l'onglet peut etre ferme : non modifie, enregistre, ou modifications abandonnees.</summary>

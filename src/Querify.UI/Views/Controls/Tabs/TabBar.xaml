@@ -22,6 +22,14 @@
             <Grid RowDefinitions="Auto,*"
                   ColumnDefinitions="*,Auto"
                   ColumnSpacing="16">
+                <Grid.Triggers>
+                    <DataTrigger TargetType="Grid"
+                                 Binding="{Binding TrailingContent, Source={x:Reference Root}, Converter={StaticResource IsNullObjectConverter}}"
+                                 Value="True">
+                        <Setter Property="ColumnSpacing"
+                                Value="0" />
+                    </DataTrigger>
+                </Grid.Triggers>
                 <!-- Sans habillage natif des elements : le visuel de selection revient aux en-tetes -->
                 <inp:BorderlessCollectionView x:Name="TabsList"
                                               SelectedItem="{Binding SelectedItem, Source={x:Reference Root}}"
@@ -29,7 +37,8 @@
                                               CanReorderItems="{Binding CanReorderItems, Source={x:Reference Root}}"
                                               ItemTemplate="{Binding ItemTemplate, Source={x:Reference Root}}"
                                               SelectionMode="Single"
-                                              HorizontalScrollBarVisibility="Never">
+                                              HorizontalScrollBarVisibility="Never"
+                                              ItemsUpdatingScrollMode="KeepItemsInView">
                     <inp:BorderlessCollectionView.ItemsLayout>
                         <LinearItemsLayout Orientation="Horizontal" />
                     </inp:BorderlessCollectionView.ItemsLayout>

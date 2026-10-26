@@ -22,20 +22,19 @@
     <!-- Barre de menus : Fichier sur MainVM, le reste sur MainMenuBarVM qui suit l'onglet selectionne -->
     <v:AbstractPage.MenuBarItems>
         <MenuBarItem Text="Fichier">
-            <MenuFlyoutItem Text="Nouveau fichier"
-                            Command="{Binding NewCommand}">
-                <MenuFlyoutItem.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Ctrl"
-                                         Key="N" />
-                </MenuFlyoutItem.KeyboardAccelerators>
-            </MenuFlyoutItem>
-            <MenuFlyoutItem Text="Nouveau tableau de bord"
-                            Command="{Binding NewDashboardCommand}">
-                <MenuFlyoutItem.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Ctrl"
-                                         Key="D" />
-                </MenuFlyoutItem.KeyboardAccelerators>
-            </MenuFlyoutItem>
+            <MenuFlyoutSubItem Text="Nouveau">
+                <MenuFlyoutItem Text="Script SQL (T-SQL)"
+                                Command="{Binding NewCommand}"
+                                CommandParameter="{x:Static en:SyntaxLanguage.Sql}" />
+                <MenuFlyoutItem Text="Script LINQ (Entity Framework)"
+                                Command="{Binding NewCommand}"
+                                CommandParameter="{x:Static en:SyntaxLanguage.Linq}" />
+
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem Text="Tableau de bord"
+                                Command="{Binding NewDashboardCommand}" />
+
+            </MenuFlyoutSubItem>
             <MenuFlyoutItem Text="Ouvrir"
                             Command="{Binding OpenCommand}">
                 <MenuFlyoutItem.KeyboardAccelerators>
@@ -51,6 +50,9 @@
             <v:CheckedMenuFlyoutItem Label="Rouvrir les onglets au démarrage"
                                      Command="{Binding MainMenuBar.ToggleRestoreOpenTabsCommand}"
                                      IsChecked="{Binding Preferences.RestoreOpenTabs}" />
+            <v:CheckedMenuFlyoutItem Label="Modèle dans les nouveaux fichiers"
+                                     Command="{Binding MainMenuBar.ToggleInsertTemplateCommand}"
+                                     IsChecked="{Binding Preferences.Editor.InsertTemplateOnNew}" />
             <MenuFlyoutSeparator />
             <MenuFlyoutItem Text="Enregistrer"
                             Command="{Binding SaveCommand}">
@@ -97,17 +99,6 @@
             <v:CheckedMenuFlyoutItem Label="Indentation par tabulations"
                                      Command="{Binding MainMenuBar.ToggleTabIndentationCommand}"
                                      IsChecked="{Binding Preferences.Editor.IsTabIndentation}" />
-            <MenuFlyoutSeparator />
-            <MenuFlyoutSubItem Text="Langage">
-                <v:CheckedMenuFlyoutItem Label="SQL (T-SQL)"
-                                         Command="{Binding MainMenuBar.SetLanguageCommand}"
-                                         CommandParameter="{x:Static en:SyntaxLanguage.Sql}"
-                                         IsChecked="{Binding MainMenuBar.IsSqlLanguage}" />
-                <v:CheckedMenuFlyoutItem Label="LINQ (Entity Framework)"
-                                         Command="{Binding MainMenuBar.SetLanguageCommand}"
-                                         CommandParameter="{x:Static en:SyntaxLanguage.Linq}"
-                                         IsChecked="{Binding MainMenuBar.IsLinqLanguage}" />
-            </MenuFlyoutSubItem>
         </MenuBarItem>
 
         <MenuBarItem Text="Requête">
