@@ -83,6 +83,14 @@ public partial class DashboardVM
         if (queried.Count == 0)
             return;
 
+        // Sans connexion, rien ne s'execute : l'erreur habituelle s'affiche sans demander d'accord.
+        if (Connection.ActiveConnection is not null && !await EnsureApprovedAsync(session))
+        {
+            foreach (var card in queried)
+                card.Error = "Requêtes non autorisées pour ce fichier : appliquez les paramètres pour les autoriser.";
+            return;
+        }
+
         var token = session.BeginLoad();
         try
         {

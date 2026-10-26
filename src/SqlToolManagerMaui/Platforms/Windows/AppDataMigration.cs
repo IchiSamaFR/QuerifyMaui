@@ -1,22 +1,30 @@
 ﻿namespace SqlToolManagerMaui.WinUI;
 
 /// <summary>
-/// L'ApplicationId nomme le dossier de donnees (%LOCALAPPDATA%\&lt;editeur&gt;\&lt;ApplicationId&gt; : Data, Settings, coffre).
-/// Apres un changement d'identifiant, l'ancien dossier est recopie au premier lancement ; il reste en place.
+/// L'editeur (PublisherDisplayName du manifeste) et l'ApplicationId nomment le dossier de donnees
+/// (%LOCALAPPDATA%\&lt;editeur&gt;\&lt;ApplicationId&gt; : Data, Settings, coffre).
+/// Apres un changement de l'un des deux, l'ancien dossier est recopie au premier lancement ; il reste en place.
 /// </summary>
 public static class AppDataMigration
 {
     /// <summary>Erreur de copie a journaliser une fois le journal pret ; null si rien a faire ou copie reussie.</summary>
-    public static Exception? MigrateFrom(string previousApplicationId)
+    /// <param name="previousRoots">Anciens dossiers relatifs a %LOCALAPPDATA% (editeur\identifiant), du plus recent au plus ancien.</param>
+    public static Exception? MigrateFrom(params string[] previousRoots)
     {
         string? tempRoot = null;
         try
         {
-            // AppDataDirectory = ...\<ApplicationId>\Data
+            // AppDataDirectory = ...\<editeur>\<ApplicationId>\Data
             var currentRoot = Path.GetDirectoryName(FileSystem.AppDataDirectory)!;
-            var previousRoot = Path.Combine(Path.GetDirectoryName(currentRoot)!, previousApplicationId);
+            if (HasFiles(currentRoot))
+                return null;
 
-            if (!Directory.Exists(previousRoot) || HasFiles(currentRoot))
+            var localAppData = Path.GetDirectoryName(Path.GetDirectoryName(currentRoot)!)!;
+            var previousRoot = previousRoots
+                .Select(root => Path.Combine(localAppData, root))
+                .FirstOrDefault(root => !string.Equals(root, currentRoot, StringComparison.OrdinalIgnoreCase) && HasFiles(root));
+
+            if (previousRoot is null)
                 return null;
 
             // Copie dans un dossier temporaire puis renommage : une copie interrompue sera refaite au lancement suivant.

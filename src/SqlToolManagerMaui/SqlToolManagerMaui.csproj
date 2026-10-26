@@ -6,11 +6,12 @@
 		<RootNamespace>SqlToolManagerMaui</RootNamespace>
 		<ApplicationTitle>Querify</ApplicationTitle>
 		<!--
-		  Nomme le dossier de donnees (%LOCALAPPDATA%\User Name\<ApplicationId>) : connexions, coffre, preferences, journaux.
-		  Ne pas le changer sans mettre l'ancien dans MauiProgram.PreviousApplicationId (copie au premier lancement).
+		  Nomme le dossier de donnees (%LOCALAPPDATA%\<PublisherDisplayName du manifeste>\<ApplicationId>) : connexions, coffre, preferences, journaux.
+		  Ne pas le changer (ni l'editeur) sans ajouter l'ancien dossier a MauiProgram.PreviousDataRoots (copie au premier lancement).
 		-->
 		<ApplicationId>fr.ichisamafr.querify</ApplicationId>
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<!-- Version unique : Directory.Build.props (la CI la remplace par celle du tag). -->
+		<ApplicationDisplayVersion>$(Version)</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 		<WindowsPackageType>None</WindowsPackageType>
 

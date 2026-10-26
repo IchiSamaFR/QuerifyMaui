@@ -293,6 +293,9 @@ public partial class MainVM
             if (Preferences.RecentFiles.Any(p => IsSamePath(p, oldPath)))
                 Preferences.RecentFiles = [.. Preferences.RecentFiles.Select(p => IsSamePath(p, oldPath) ? newPath : p)];
 
+            if (Preferences.TrustedDashboards.Any(p => IsSamePath(p, oldPath)))
+                Preferences.TrustedDashboards = [.. Preferences.TrustedDashboards.Select(p => IsSamePath(p, oldPath) ? newPath : p)];
+
             _status.Set($"{Path.GetFileName(oldPath)} renommé en {fileName}.");
         });
     }

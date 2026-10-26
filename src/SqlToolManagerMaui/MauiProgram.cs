@@ -15,14 +15,21 @@ namespace SqlToolManagerMaui;
 
 public static class MauiProgram
 {
-    /// <summary>Identifiant precedent (voir ApplicationId dans le csproj) : son dossier de donnees est repris.</summary>
-    private const string PreviousApplicationId = "com.companyname.sqltoolmanagermaui";
+    /// <summary>
+    /// Anciens dossiers de donnees (editeur\ApplicationId, voir csproj et Package.appxmanifest), du plus recent au plus ancien :
+    /// le premier trouve est repris.
+    /// </summary>
+    private static readonly string[] PreviousDataRoots =
+    [
+        @"User Name\fr.ichisamafr.querify",
+        @"User Name\com.companyname.sqltoolmanagermaui",
+    ];
 
     public static MauiApp CreateMauiApp()
     {
 #if WINDOWS
         // Avant tout acces au dossier de donnees (stores, journal).
-        var migrationError = WinUI.AppDataMigration.MigrateFrom(PreviousApplicationId);
+        var migrationError = WinUI.AppDataMigration.MigrateFrom(PreviousDataRoots);
 #endif
 
         var builder = MauiApp.CreateBuilder();

@@ -13,6 +13,7 @@
   </Folder>
   <Folder Name="/.Solution/.github/workflows/">
     <File Path="../.github/workflows/build.yml" />
+    <File Path="../.github/workflows/release.yml" />
   </Folder>
   <Folder Name="/Databases/">
     <Project Path="SqlToolManagerMaui.Databases/SqlToolManagerMaui.Databases.csproj" />
