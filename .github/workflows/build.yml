@@ -1,5 +1,5 @@
-﻿# Compile la solution (app MAUI Windows comprise) et lance les tests.
-# Execute sur un runner auto-heberge Windows (SDK .NET 10 + workload maui-windows preinstalles).
+﻿# Tests sur le runner auto-heberge Linux (VPS), sans workload MAUI.
+# Le build de l'app MAUI Windows se lance a la demande sur un runner Windows heberge par GitHub.
 name: Build
 
 on:
@@ -8,22 +8,39 @@ on:
     paths: ['src/**', '.github/workflows/build.yml']
   pull_request:
     paths: ['src/**', '.github/workflows/build.yml']
+  workflow_dispatch:
 
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: self-hosted
+  tests:
+    runs-on: [self-hosted, linux]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore
-        run: dotnet restore src/SqlToolManagerMaui.slnx
-
-      - name: Build
-        run: dotnet build src/SqlToolManagerMaui.slnx -c Release --no-restore
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
 
       - name: Tests
-        run: dotnet test src/SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj -c Release --no-build
+        run: dotnet test src/SqlToolManagerMaui.Tests/SqlToolManagerMaui.Tests.csproj -c Release
+
+  build-maui:
+    # Uniquement a la demande (Actions > Build > Run workflow), pour limiter les couts.
+    if: github.event_name == 'workflow_dispatch'
+    needs: tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Workload MAUI
+        run: dotnet workload restore src/SqlToolManagerMaui.slnx --skip-manifest-update
+
+      - name: Build
+        run: dotnet build src/SqlToolManagerMaui.slnx -c Release
