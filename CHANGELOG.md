@@ -21,6 +21,7 @@ Première version publique.
 - Requêtes LINQ / Entity Framework sur un DbContext généré depuis le catalogue (Roslyn), `.Dump()` et sortie console.
 - Dashboards `.schx` : concepteur en grille, cartes tableau / graphique / valeur / bouton, paramètres et navigation entre pages, requêtes SQL ou LINQ.
 - Accord demandé avant d'exécuter les requêtes d'un `.schx` qui ne vient pas de l'application.
+- Menu Fichier ▸ Nouveau par langage (SQL, LINQ, tableau de bord) ; modèle de prise en main dans les nouveaux scripts, désactivable.
 - Journal des erreurs dans le dossier de données (14 jours).
 
 ### Limites connues

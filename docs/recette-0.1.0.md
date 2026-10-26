@@ -20,6 +20,7 @@ A derouler sur le zip publie par la CI (`Querify-0.1.0-rc.N-win-x64.zip`), sur u
 ## Editeur SQL
 
 - [ ] Nouveau / Ouvrir / Enregistrer / Enregistrer sous / Renommer / fichiers recents
+- [ ] Nouveau ▸ SQL (Ctrl+N) / LINQ (Ctrl+Maj+N) / Tableau de bord (Ctrl+D) : modele du langage insere, onglet non marque modifie ; preference « Modele dans les nouveaux fichiers » respectee
 - [ ] Coloration, numeros de ligne, retour a la ligne, indentation
 - [ ] Execution du document, puis de la seule selection
 - [ ] Script a plusieurs lots `GO`, dont un en erreur : les suivants s'executent, ligne d'erreur recalee

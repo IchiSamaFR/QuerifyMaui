@@ -405,7 +405,7 @@
 
                     <Grid ColumnDefinitions="*,Auto"
                           ColumnSpacing="8">
-                        <Grid ColumnDefinitions="Auto,Auto,Auto,*"
+                        <Grid ColumnDefinitions="Auto,Auto,*"
                               ColumnSpacing="8"
                               IsEnabled="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}">
                             <Button Style="{StaticResource SecondaryIconButtonStyle}"
@@ -415,15 +415,8 @@
                                     HorizontalOptions="Start"
                                     ToolTipProperties.Text="Exécuter : la liste des colonnes vient du résultat" />
 
-                            <!-- LINQ : les parametres du dashboard sont des variables C# (UserId ou @UserId) -->
-                            <inp:PickerField Grid.Column="1"
-                                             ItemsSource="{x:Static c:DashboardGrid.QueryLanguages}"
-                                             SelectedKey="{Binding Session.SelectedCard.Language, Mode=TwoWay, FallbackValue={x:Null}}"
-                                             WidthRequest="120"
-                                             ToolTipProperties.Text="Langage de la requête" />
-
                             <!-- ItemsSource avant SelectedKey : au changement de carte, la liste suit avant la selection -->
-                            <inp:PickerField Grid.Column="2"
+                            <inp:PickerField Grid.Column="1"
                                              ItemsSource="{Binding Session.SelectedCard.LabelColumnChoices, FallbackValue={x:Null}}"
                                              SelectedKey="{Binding Session.SelectedCard.LabelColumn, Mode=TwoWay, FallbackValue={x:Null}}"
                                              Icon="{mk:FluentFilledImage Icon=Subtitles20Filled, IconSize=16}"
@@ -432,7 +425,7 @@
                                              ToolTipProperties.Text="Colonne des libellés (axe ou parts du graphique)" />
 
                             <!-- Colonnes de valeurs : une puce par colonne du resultat, cochees dans l'ordre des series -->
-                            <Grid Grid.Column="3"
+                            <Grid Grid.Column="2"
                                   ColumnDefinitions="Auto,*"
                                   ColumnSpacing="6">
                                 <Image Source="{mk:FluentFilledImage Icon=Column20Filled, IconSize=16}"
@@ -517,22 +510,6 @@
 
                         <HorizontalStackLayout Grid.Column="1"
                                                Spacing="8">
-                            <Label Style="{StaticResource LabelTertiaryStyle}"
-                                   VerticalOptions="Center">
-                                <Label.Text>
-                                    <MultiBinding StringFormat="Colonne {0}, ligne {1} · {2} × {3} cases">
-                                        <Binding Path="Session.SelectedCard.Column"
-                                                 FallbackValue="0" />
-                                        <Binding Path="Session.SelectedCard.Row"
-                                                 FallbackValue="0" />
-                                        <Binding Path="Session.SelectedCard.ColumnSpan"
-                                                 FallbackValue="0" />
-                                        <Binding Path="Session.SelectedCard.RowSpan"
-                                                 FallbackValue="0" />
-                                    </MultiBinding>
-                                </Label.Text>
-                            </Label>
-
                             <Button Style="{StaticResource DangerButtonStyle}"
                                     Text="Supprimer"
                                     Command="{Binding DeleteCardCommand}"

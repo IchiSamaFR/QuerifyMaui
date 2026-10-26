@@ -33,6 +33,7 @@ public partial class MainVM : AbstractVM
     private readonly IWorkspaceStore _workspace;
     private readonly IUserPreferencesStore _preferencesStore;
     private readonly IDialogService _dialogs;
+    private readonly IDocumentTemplateStore _templates;
 
     /// <summary>Onglets ouverts, dans l'ordre d'ouverture.</summary>
     [ObservableProperty]
@@ -54,7 +55,8 @@ public partial class MainVM : AbstractVM
         IUserPreferencesStore preferences,
         MainMenuBarVM mainMenuBar,
         IWorkspaceStore workspace,
-        IDialogService dialogs)
+        IDialogService dialogs,
+        IDocumentTemplateStore templates)
     {
         _files = files;
         _syntaxConfigurations = syntaxConfigurations;
@@ -64,6 +66,7 @@ public partial class MainVM : AbstractVM
         _workspace = workspace;
         _preferencesStore = preferences;
         _dialogs = dialogs;
+        _templates = templates;
         Preferences = preferences.Preferences;
         MainMenuBar = mainMenuBar;
 
@@ -76,8 +79,9 @@ public partial class MainVM : AbstractVM
         await RestoreWorkspaceAsync(LifetimeToken);
         await _connection.RefreshAsync(LifetimeToken);
 
+        // Premier lancement (ou aucun onglet a restaurer) : le modele guide la prise en main.
         if (Sessions.Count == 0)
-            New();
+            await NewAsync(SyntaxLanguage.Sql);
     }
 
     [RelayCommand]
@@ -101,7 +105,7 @@ public partial class MainVM : AbstractVM
     private void InsertQuery(InsertQueryMessage message)
     {
         if (SelectedSession is not CodeEditorSession)
-            New();
+            AddUntitled();
 
         if (SelectedSession is not CodeEditorSession session)
             return;

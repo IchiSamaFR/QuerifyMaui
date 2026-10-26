@@ -48,7 +48,7 @@ public partial class CodeEditorVM : DocumentVM<CodeEditorSession>
     protected override void OnSessionSwitched(CodeEditorSession? oldValue, CodeEditorSession? newValue)
     {
         ExecuteQueryCommand.NotifyCanExecuteChanged();
-        SetLanguageCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(SelectedLanguageKey));
         RefreshSyntaxConfigurationAsync().FireAndForget("Coloration syntaxique indisponible pour cet onglet.");
     }
 
@@ -73,10 +73,20 @@ public partial class CodeEditorVM : DocumentVM<CodeEditorSession>
 
     // ---------- Langage ----------
 
-    private bool HasSession() => Session is not null;
+    /// <summary>Cle de la liste deroulante du langage (object) : une valeur nulle ou inconnue est ignoree.</summary>
+    public object? SelectedLanguageKey
+    {
+        get => Session?.Document.Language;
+        set
+        {
+            if (value is SyntaxLanguage language)
+                SetLanguageAsync(language).FireAndForget("Changement de langage impossible.");
+            else
+                OnPropertyChanged();
+        }
+    }
 
     /// <summary>Change le langage de l'onglet ; le texte n'est pas touche.</summary>
-    [RelayCommand(CanExecute = nameof(HasSession))]
     private async Task SetLanguageAsync(SyntaxLanguage language)
     {
         if (Session is not { } session || session.Document.Language == language)

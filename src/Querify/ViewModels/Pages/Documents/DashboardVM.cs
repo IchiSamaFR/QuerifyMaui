@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Querify.Core.Enums.Dashboards;
 using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
@@ -74,17 +75,18 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
     }
 
     /// <summary>Cle de la liste deroulante des vues (object) : une valeur nulle ou inconnue est ignoree.</summary>
-    public object? SelectedModeKey
+    public DashboardMode SelectedMode
     {
-        get => Session?.Mode;
+        get => Session?.Mode ?? DashboardMode.View;
         set
         {
-            if (value is DashboardMode mode)
-                SetMode(mode);
-            else
-                OnPropertyChanged();
+            if (Session is null || Session.Mode == value)
+                return;
+            SetMode(value);
         }
     }
+    public string SelectedModeKey
+        => Modes.TryGetValue(SelectedMode, out var key) ? key : string.Empty;
 
     private async Task LoadSyntaxConfigurationsAsync(ISyntaxConfigurationStore syntaxConfigurations)
     {
@@ -94,7 +96,7 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
 
     protected override void OnSessionSwitched(DashboardSession? oldValue, DashboardSession? newValue)
     {
-        OnPropertyChanged(nameof(SelectedModeKey));
+        OnPropertyChanged(nameof(SelectedMode));
 
         // Les modifications de l'onglet quitte sont ecrites tout de suite.
         FlushPendingWrites();
@@ -172,6 +174,7 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
 
     // ---------- Bascule Dashboard / Concepteur / Source ----------
 
+    [RelayCommand]
     private void SetMode(DashboardMode mode)
     {
         if (Session is not { } session || session.Mode == mode)
@@ -180,6 +183,7 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
         // La vue Source doit montrer le JSON a jour, et Load comparer au dernier texte ecrit.
         FlushPendingWrites();
         session.Mode = mode;
+        OnPropertyChanged(nameof(SelectedMode));
         OnPropertyChanged(nameof(SelectedModeKey));
 
         // Retour depuis la vue Source : le JSON a pu etre modifie a la main.
