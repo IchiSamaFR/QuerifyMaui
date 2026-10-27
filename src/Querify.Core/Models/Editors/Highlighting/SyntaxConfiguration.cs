@@ -1,4 +1,5 @@
 ﻿using Querify.Core.Enums.Editors.Highlighting;
+using Quill.Code.Highlighting;
 
 namespace Querify.Core.Models.Editors.Highlighting;
 
@@ -13,6 +14,6 @@ public sealed class SyntaxConfiguration
     /// <summary>Prefixe de commentaire de ligne (ex. "--" en T-SQL).</summary>
     public required string Comments { get; init; }
 
-    /// <summary>Regles de coloration chargees depuis le .xshd du langage.</summary>
+    /// <summary>Regles de coloration chargees depuis le .xshd du langage (Quill).</summary>
     public required SyntaxDefinition Definition { get; init; }
 }

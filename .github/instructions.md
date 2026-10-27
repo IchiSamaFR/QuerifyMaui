@@ -118,7 +118,7 @@ Querify/
 * **CodeEdit.Maui** (préversion) — éditeur de code (`.UseCodeEditor()`). Exige `Microsoft.Maui.Controls` >= 10.0.101 et la projection Windows forcée par `WindowsSdkPackageVersion`.
 * **AathifMahir.Maui.MauiIcons.Fluent** — icônes Fluent. **LiveChartsCore.SkiaSharpView.Maui** — graphiques des dashboards.
 * **Microsoft.Data.SqlClient** — SQL Server. **EF Core + Roslyn** — langage LINQ.
-* **Quill.Code / Quill.Code.CSharp** (bibliothèque maison, dépôt voisin `..\..\Quill.Code`, en `ProjectReference` en attendant le paquet NuGet) — modèles des éditeurs (`CompletionItem`, `CompletionItemKind`, `CodeDiagnostic`, `HoverInfo`, `SignatureHelpInfo`…) référencés par `Core`, moteur C# Roslyn (`CSharpWorkspace`, `ICSharpLanguageService`, `CSharpDiagnosticMapper`, enregistrés par `AddQuillCSharp()`) utilisé par `Languages.Linq`.
+* **Quill.Code / Quill.Code.CSharp** (bibliothèque maison, dépôt voisin `..\..\Quill.Code`, en `ProjectReference` en attendant le paquet NuGet) — modèles des éditeurs (`CompletionItem`, `CompletionItemKind`, `CodeDiagnostic`, `HoverInfo`, `SignatureHelpInfo`…) référencés par `Core`, moteur C# Roslyn (`CSharpWorkspace`, `ICSharpLanguageService`, `CSharpDiagnosticMapper`, enregistrés par `AddQuillCSharp()`) utilisé par `Languages.Linq`, coloration (`XshdReader` lit les `.xshd` pour `XshdSyntaxConfigurationStore`, `SyntaxHighlighter.Highlight` découpe le texte pour `SyntaxHighlightingController`).
 * **Newtonsoft.Json** — fichiers JSON de l'application (`JsonFile`) ; **System.Text.Json** (source-gen) — fichiers `.schx`.
 
 Toutes les versions sont dans `src/Directory.Packages.props` : un `PackageReference` n'indique jamais de `Version`.
