@@ -1,7 +1,7 @@
 ﻿using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
-using Querify.Languages.Linq.Workspaces;
+using Quill.Code.Analysis;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -147,7 +147,7 @@ public class LinqCompilerTests
         Assert.False(compiled.Success);
         var error = compiled.Errors[0];
         Assert.Equal("CS1061", error.Code);
-        Assert.StartsWith("Ligne 2, colonne 6 : CS1061 ", LinqDiagnosticMapper.Describe(error, query), StringComparison.Ordinal);
+        Assert.StartsWith("Ligne 2, colonne 6 : CS1061 ", error.Describe(query), StringComparison.Ordinal);
     }
 
     [Fact]

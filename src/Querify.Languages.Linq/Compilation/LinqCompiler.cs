@@ -5,8 +5,7 @@ using Querify.Core.Ioc;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Querify.Languages.Linq.Workspaces;
-using Quill.Code.Analysis;
-using Quill.Code.CSharp.Analysis;
+using Quill.Code.CSharp.Compilation;
 using Quill.Code.CSharp.Workspaces;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -89,18 +88,21 @@ public sealed class LinqCompiler : ILinqCompiler
 
         parameters ??= [];
 
-        // Le projet Roslyn de l'editeur a deja lie les references : la compilation repart de lui.
-        var linq = _services.Get(model, parameters).Project.CreateDocument(query);
-        var compilation = await linq.Document.Project.GetCompilationAsync(cancellationToken)
-            ?? throw new InvalidOperationException("Roslyn n'a pas produit de compilation pour la requete.");
+        // Projet meme de l'editeur (references, contexte genere) : ce qui est souligne est ce qui echoue.
+        var compiled = await _services.Get(model, parameters).CompileAsync(query, new CSharpCompileOptions
+        {
+            AssemblyName = $"LinqQuery_{Guid.NewGuid():N}",
 
-        // Nom unique : chaque requete est chargee dans son propre contexte collectable.
-        var image = Emit(compilation.WithAssemblyName($"LinqQuery_{Guid.NewGuid():N}"), out var errors, cancellationToken);
-        if (image is null)
-            return new LinqCompiledQuery { Errors = await QueryErrorsAsync(linq, errors, cancellationToken) };
+            // Le modele est servi tel quel (EF garde ses types en cache), le reste vient du runtime.
+            ResolveAssembly = name => AssemblyName.ReferenceMatchesDefinition(name, model.Assembly.GetName()) ? model.Assembly : null,
+        }, cancellationToken);
 
-        var loadContext = new QueryLoadContext(model.Assembly);
-        var assembly = loadContext.LoadFromStream(new MemoryStream(image));
+        if (compiled.Assembly is not { } assembly)
+        {
+            compiled.Dispose();
+            return new LinqCompiledQuery { Errors = compiled.Errors };
+        }
+
         var method = assembly.GetType($"{QueryNamespace}.{QueryClass}", throwOnError: true)!.GetMethod(QueryMethod)!;
         var run = method.CreateDelegate<Func<DbContext, Action<object?, string?>?, Action<string?>?, object?[], object?>>();
         var values = parameters.Select(p => p.Value).ToArray();
@@ -109,7 +111,7 @@ public sealed class LinqCompiler : ILinqCompiler
         {
             Execute = (context, dump, write) => run(context, dump, write, values),
             ReturnsValue = ReturnsValue(query),
-            LoadContext = loadContext,
+            Compilation = compiled,
         };
     }
 
@@ -239,10 +241,11 @@ public sealed class LinqCompiler : ILinqCompiler
             ? TypeName(underlying) + "?"
             : "global::" + (type.FullName ?? type.Name).Replace('+', '.');
 
-    private static byte[]? Emit(Microsoft.CodeAnalysis.Compilation compilation, out IReadOnlyList<Diagnostic> errors, CancellationToken cancellationToken = default)
+    /// <summary>Modele genere (hors editeur) : image de l'assembly, ou null et ses erreurs.</summary>
+    private static byte[]? Emit(Microsoft.CodeAnalysis.Compilation compilation, out IReadOnlyList<Diagnostic> errors)
     {
         using var image = new MemoryStream();
-        var result = compilation.Emit(image, cancellationToken: cancellationToken);
+        var result = compilation.Emit(image);
 
         errors = result.Diagnostics
             .Where(d => d.Severity == DiagnosticSeverity.Error)
@@ -251,22 +254,10 @@ public sealed class LinqCompiler : ILinqCompiler
         return result.Success ? image.ToArray() : null;
     }
 
-    /// <summary>Erreurs ramenees au texte de l'onglet, comme les soulignements de l'editeur.</summary>
-    private static async Task<IReadOnlyList<CodeDiagnostic>> QueryErrorsAsync(CSharpDocument linq, IReadOnlyList<Diagnostic> errors, CancellationToken cancellationToken)
-    {
-        var mapped = (await CSharpDiagnosticMapper.MapAsync(linq, errors, cancellationToken)).Where(e => e.IsError).ToArray();
-
-        // Erreur dans le code genere autour de la requete : sans position utile, mais jamais silencieuse.
-        return mapped.Length > 0
-            ? mapped
-            : [.. errors.Take(1).Select(e => new CodeDiagnostic(0, 0, CodeDiagnosticSeverity.Error, e.GetMessage(CultureInfo.CurrentUICulture), e.Id))];
-    }
-
     private static IReadOnlyList<MetadataReference> LoadPlatformReferences()
     {
-        var paths = (AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string)?.Split(Path.PathSeparator)
-            // Hote sans TPA : les assemblies deja chargees font l'affaire.
-            ?? AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location)).Select(a => a.Location).ToArray();
+        // Assemblies du runtime (a defaut, celles deja chargees).
+        var paths = CSharpReferences.GetTrustedPlatformAssemblyPaths();
 
         // EF n'est peut-etre pas encore charge : on force ses assemblies dans la liste.
         string[] required = [typeof(DbContext).Assembly.Location, typeof(SqlServerDbContextOptionsExtensions).Assembly.Location, typeof(RelationalQueryableExtensions).Assembly.Location];
@@ -276,15 +267,5 @@ public sealed class LinqCompiler : ILinqCompiler
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .Select(path => (MetadataReference)MetadataReference.CreateFromFile(path))
                     .ToArray();
-    }
-
-    /// <summary>
-    /// Contexte d'une requete : le modele est servi tel quel, le reste vient du contexte par defaut.
-    /// Collectable : sinon chaque execution garde son assembly en memoire jusqu'a la fermeture de l'application.
-    /// </summary>
-    private sealed class QueryLoadContext(Assembly model) : AssemblyLoadContext(isCollectible: true)
-    {
-        protected override Assembly? Load(AssemblyName assemblyName)
-            => AssemblyName.ReferenceMatchesDefinition(assemblyName, model.GetName()) ? model : null;
     }
 }

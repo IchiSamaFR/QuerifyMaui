@@ -9,7 +9,7 @@ using Querify.Databases.Models.Queries;
 using Querify.Languages.Commons.Queries;
 using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
-using Querify.Languages.Linq.Workspaces;
+using Quill.Code.Analysis;
 using System.Collections;
 using System.Data.Common;
 using System.Diagnostics;
@@ -69,7 +69,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             {
                 compiled.Dispose();
                 hasErrors = true;
-                messages.AddRange(compiled.Errors.Select(e => new QueryMessage(LinqDiagnosticMapper.Describe(e, query), QueryMessageKind.Error)));
+                messages.AddRange(compiled.Errors.Select(e => new QueryMessage(e.Describe(query), QueryMessageKind.Error)));
             }
             else
             {
@@ -149,7 +149,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         if (!compiled.Success)
         {
             compiled.Dispose();
-            throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5).Select(e => LinqDiagnosticMapper.Describe(e, query))));
+            throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5).Select(e => e.Describe(query))));
         }
 
         var outputs = await RunAsync(model, compiled, connectionString, Math.Max(1, maxRows), console: null, cancellationToken);
