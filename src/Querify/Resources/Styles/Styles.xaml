@@ -13,6 +13,7 @@
         <ResourceDictionary Source="./Controls/PickerStyles.xaml" />
         <ResourceDictionary Source="./Controls/QueryResultStyles.xaml" />
         <ResourceDictionary Source="./Controls/TextFieldStyles.xaml" />
+        <ResourceDictionary Source="./Controls/ToggleButtonFieldStyles.xaml" />
     </ResourceDictionary.MergedDictionaries>
     
 </ResourceDictionary>

@@ -74,19 +74,18 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
         LoadSyntaxConfigurationsAsync(syntaxConfigurations).FireAndForget("Coloration des requêtes du concepteur indisponible.");
     }
 
-    /// <summary>Cle de la liste deroulante des vues (object) : une valeur nulle ou inconnue est ignoree.</summary>
-    public DashboardMode SelectedMode
+    /// <summary>Bascule Dashboard / Concepteur de l'en-tete ; depuis la vue Source, l'activer ouvre le concepteur.</summary>
+    public bool IsDesignMode
     {
-        get => Session?.Mode ?? DashboardMode.View;
+        get => Session?.Mode == DashboardMode.Design;
         set
         {
-            if (Session is null || Session.Mode == value)
-                return;
-            SetMode(value);
+            SetMode(value ? DashboardMode.Design : DashboardMode.View);
+
+            // Sans session (ou mode inchange), le controle doit revenir sur l'etat reel.
+            OnPropertyChanged();
         }
     }
-    public string SelectedModeKey
-        => Modes.TryGetValue(SelectedMode, out var key) ? key : string.Empty;
 
     private async Task LoadSyntaxConfigurationsAsync(ISyntaxConfigurationStore syntaxConfigurations)
     {
@@ -96,7 +95,7 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
 
     protected override void OnSessionSwitched(DashboardSession? oldValue, DashboardSession? newValue)
     {
-        OnPropertyChanged(nameof(SelectedMode));
+        OnPropertyChanged(nameof(IsDesignMode));
 
         // Les modifications de l'onglet quitte sont ecrites tout de suite.
         FlushPendingWrites();
@@ -183,8 +182,7 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
         // La vue Source doit montrer le JSON a jour, et Load comparer au dernier texte ecrit.
         FlushPendingWrites();
         session.Mode = mode;
-        OnPropertyChanged(nameof(SelectedMode));
-        OnPropertyChanged(nameof(SelectedModeKey));
+        OnPropertyChanged(nameof(IsDesignMode));
 
         // Retour depuis la vue Source : le JSON a pu etre modifie a la main.
         if (mode != DashboardMode.Source)
