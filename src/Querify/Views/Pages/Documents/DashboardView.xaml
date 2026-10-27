@@ -53,30 +53,13 @@
 
             <v:Separator />
 
-            <Border Style="{StaticResource CardStyle}"
-                    Padding="0">
-                <HorizontalStackLayout Spacing="0">
-                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Command="{Binding SetModeCommand}"
-                                 CommandParameter="{x:Static en:DashboardMode.View}"
-                                 Source="{mk:FluentImage Icon=ContentView20}"
-                                 ToolTipProperties.Text="Vue dashboard"
-                                 Margin="0,2,0,0"
-                                 IsEnabled="{Binding SelectedMode, Converter={StaticResource IsNotEqualConverter}, ConverterParameter={x:Static en:DashboardMode.View}, FallbackValue=False}" />
-                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Command="{Binding SetModeCommand}"
-                                 CommandParameter="{x:Static en:DashboardMode.Design}"
-                                 Source="{mk:FluentImage Icon=ResizeSmall20}"
-                                 ToolTipProperties.Text="Vue conception"
-                                 Margin="0,2,0,0"
-                                 IsEnabled="{Binding SelectedMode, Converter={StaticResource IsNotEqualConverter}, ConverterParameter={x:Static en:DashboardMode.Design}, FallbackValue=False}" />
-                    <Label Text="{Binding SelectedModeKey}"
-                           FontSize="{StaticResource FontSize_Caption}"
-                           VerticalTextAlignment="Center"
-                           WidthRequest="80" 
-                           Margin="4,0,0,0"/>
-                </HorizontalStackLayout>
-            </Border>
+            <inp:ToggleButtonField IsToggled="{Binding IsDesignMode}"
+                                   OffIcon="{mk:FluentImage Icon=ContentView20}"
+                                   OffText="Dashboard"
+                                   OnIcon="{mk:FluentImage Icon=ResizeSmall20}"
+                                   OnText="Concepteur"
+                                   LabelWidthRequest="70"
+                                   ToolTipProperties.Text="Basculer entre le dashboard et le concepteur" />
 
             <ImageButton Style="{StaticResource TextImageButtonStyle}"
                          Command="{Binding ShowSettingsCommand}"
