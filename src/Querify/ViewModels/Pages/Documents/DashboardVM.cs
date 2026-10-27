@@ -14,6 +14,7 @@ using Querify.Services.Editors.Highlighting;
 using Querify.Services.Settings;
 using Querify.UI.Extensions;
 using Querify.ViewModels.Pages.Shared;
+using Querify.Diagnostics;
 
 namespace Querify.ViewModels.Pages.Documents;
 
@@ -81,12 +82,15 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
 
     private async Task LoadSyntaxConfigurationsAsync(ISyntaxConfigurationStore syntaxConfigurations)
     {
-        SqlSyntaxConfiguration = await syntaxConfigurations.GetAsync(SyntaxLanguage.Sql);
-        LinqSyntaxConfiguration = await syntaxConfigurations.GetAsync(SyntaxLanguage.Linq);
+        SqlSyntaxConfiguration = await PerfTrace.MeasureAsync("Coloration SQL", () => syntaxConfigurations.GetAsync(SyntaxLanguage.Sql));
+        LinqSyntaxConfiguration = await PerfTrace.MeasureAsync("Coloration LINQ", () => syntaxConfigurations.GetAsync(SyntaxLanguage.Linq));
     }
 
     protected override void OnSessionSwitched(DashboardSession? oldValue, DashboardSession? newValue)
     {
+        PerfTrace.Mark($"OnSessionSwitched -> {newValue?.Document.FileName ?? "null"}");
+        using var _ = PerfTrace.Measure("OnSessionSwitched (total)");
+
         OnPropertyChanged(nameof(IsDesignMode));
 
         // Les modifications de l'onglet quitte sont ecrites tout de suite.
@@ -121,10 +125,21 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
 
     private void Open(DashboardSession session)
     {
-        Load(session);
+        bool loaded;
+        using (PerfTrace.Measure("Open > Load"))
+            loaded = Load(session);
 
+        // La connexion du fichier est choisie AVANT d'ouvrir la page : sinon les cartes etaient lues
+        // une premiere fois sans connexion (ou sur la precedente), puis relues apres le changement.
+        // Aucune page n'est ouverte a ce stade : le changement de connexion ne relit rien.
         if (session.Definition?.Connection is { } name)
+        {
+            using var _ = PerfTrace.Measure($"Open > SelectByName({name})");
             Connection.SelectByName(name);
+        }
+
+        if (loaded)
+            OpenStartPage(session);
 
         if (session.HasError)
             Status.Set($"{session.Document.FileName} : fichier invalide, corrigez-le dans la vue Source.", isError: true);
@@ -135,21 +150,23 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
     {
         RefreshCanExecute();
 
+        PerfTrace.Mark("OnConnectionChanged -> relecture des cartes");
         if (Session is { Current: { } page } session)
             LoadCardsAsync(session, page.Cards).FireAndForget("Lecture des cartes du dashboard en échec.");
     }
 
-    /// <summary>Relit le fichier s'il a change depuis la derniere lecture ou ecriture, puis ouvre la page de depart.</summary>
-    private void Load(DashboardSession session)
+    /// <summary>Relit le fichier s'il a change depuis la derniere lecture ou ecriture (vrai si relu) ; aucune page n'est ouverte.</summary>
+    private bool Load(DashboardSession session)
     {
         var text = session.Document.EditorText;
         if (string.Equals(session.LoadedText, text, StringComparison.Ordinal))
-            return;
+            return false;
 
         DashboardDefinition? definition = null;
         string? error = null;
         try
         {
+            using var _ = PerfTrace.Measure($"Load > Deserialize ({text.Length} car.)");
             definition = DashboardSerializer.Deserialize(text);
         }
         catch (FormatException ex)
@@ -157,9 +174,16 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
             error = ex.Message;
         }
 
-        session.Load(definition, text, error);
+        using (PerfTrace.Measure("Load > session.Load"))
+            session.Load(definition, text, error);
 
-        if (definition is not null)
+        return true;
+    }
+
+    /// <summary>Ouvre la page de depart du fichier relu (et lit ses cartes).</summary>
+    private void OpenStartPage(DashboardSession session)
+    {
+        if (session.Definition is { } definition)
             OpenPage(session, definition.FindPage(definition.StartPage) ?? definition.Pages[0], asRoot: true);
     }
 
@@ -177,8 +201,8 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
         OnPropertyChanged(nameof(IsDesignMode));
 
         // Retour depuis la vue Source : le JSON a pu etre modifie a la main.
-        if (mode != DashboardMode.Source)
-            Load(session);
+        if (mode != DashboardMode.Source && Load(session))
+            OpenStartPage(session);
     }
 
     /// <summary>

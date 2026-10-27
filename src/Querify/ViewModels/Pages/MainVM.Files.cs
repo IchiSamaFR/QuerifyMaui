@@ -7,6 +7,7 @@ using Querify.Core.Models.Editors;
 using Querify.Core.Serialization;
 using Querify.Services.Editors;
 using System.Globalization;
+using Querify.Diagnostics;
 
 namespace Querify.ViewModels.Pages;
 
@@ -101,6 +102,8 @@ public partial class MainVM
         if (DashboardSerializer.IsDashboardFile(content.FilePath))
         {
             _status.Set($"{fileName} ouvert.");
+            PerfTrace.Mark($"Ouverture du dashboard {fileName}");
+            using var _ = PerfTrace.Measure("MainVM : Add(DashboardSession)");
             Add(new DashboardSession(new EditorDocument(fileName, content.FilePath, content.Text, SyntaxLanguage.None)));
             return;
         }

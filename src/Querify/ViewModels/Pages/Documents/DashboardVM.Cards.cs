@@ -3,12 +3,15 @@ using Querify.Core.Models.Dashboards;
 using Querify.Databases.Models.Connections;
 using Querify.Databases.Models.Queries;
 using Querify.UI.Extensions;
+using Querify.Diagnostics;
 
 namespace Querify.ViewModels.Pages.Documents;
 
 /// <summary>Partie consultation : navigation entre pages et lecture des cartes.</summary>
 public partial class DashboardVM
 {
+    private const string NoConnectionMessage = "Choisissez une connexion pour alimenter les cartes.";
+
     // ---------- Consultation ----------
 
     protected override void RefreshCanExecute()
@@ -70,7 +73,9 @@ public partial class DashboardVM
 
     private void OpenPage(DashboardSession session, DashboardPageDefinition page, bool asRoot)
     {
-        var state = session.Open(page, asRoot);
+        DashboardPageState state;
+        using (PerfTrace.Measure($"OpenPage > session.Open({page.Title})"))
+            state = session.Open(page, asRoot);
         LoadCardsAsync(session, state.Cards).FireAndForget("Lecture des cartes du dashboard en échec.");
     }
 
@@ -80,11 +85,20 @@ public partial class DashboardVM
     private async Task LoadCardsAsync(DashboardSession session, IEnumerable<DashboardCardState> cards)
     {
         var queried = cards.Where(c => c.UsesQuery).ToList();
+        PerfTrace.Mark($"LoadCardsAsync : {queried.Count} carte(s) avec requete");
         if (queried.Count == 0)
             return;
 
-        // Sans connexion, rien ne s'execute : l'erreur habituelle s'affiche sans demander d'accord.
-        if (Connection.ActiveConnection is not null && !await EnsureApprovedAsync(session))
+        // Sans connexion : message direct, sans passer par une exception (couteuse, surtout sous debogueur).
+        if (Connection.ActiveConnection is null)
+        {
+            foreach (var card in queried)
+                card.Error = NoConnectionMessage;
+            Status.Set(NoConnectionMessage, isError: true);
+            return;
+        }
+
+        if (!await PerfTrace.MeasureAsync("EnsureApproved", () => EnsureApprovedAsync(session)))
         {
             foreach (var card in queried)
                 card.Error = "Requêtes non autorisées pour ce fichier : appliquez les paramètres pour les autoriser.";
@@ -121,7 +135,7 @@ public partial class DashboardVM
         DatabaseConnectionInfo connection;
         try
         {
-            connection = await OpenConnectionAsync(token);
+            connection = await PerfTrace.MeasureAsync("OpenConnectionAsync", () => OpenConnectionAsync(token));
         }
         catch (OperationCanceledException)
         {
@@ -136,7 +150,7 @@ public partial class DashboardVM
         }
 
         var database = session.Definition?.Database;
-        await Task.WhenAll(queried.Select(card => LoadCardAsync(connection, database, card, parameters, token)));
+        await PerfTrace.MeasureAsync("Toutes les cartes", () => Task.WhenAll(queried.Select(card => LoadCardAsync(connection, database, card, parameters, token))));
     }
 
     private async Task LoadCardAsync(DatabaseConnectionInfo connection, string? database, DashboardCardState card, IReadOnlyList<QueryParameter> parameters, CancellationToken token)
@@ -152,8 +166,13 @@ public partial class DashboardVM
         card.Error = null;
         try
         {
-            card.Result = await _executors.Resolve(card.Language)
-                .ReadAsync(connection, database, card.Definition.Query, parameters, CARD_MAX_ROWS, token);
+            var label = $"Carte '{card.Definition.Title}' ({card.Language})";
+            var result = await PerfTrace.MeasureAsync($"{label} ReadAsync",
+                () => _executors.Resolve(card.Language).ReadAsync(connection, database, card.Definition.Query, parameters, CARD_MAX_ROWS, token));
+
+            // Affectation = mise a jour des liaisons (DataGrid / graphique) sur le thread UI.
+            using (PerfTrace.Measure($"{label} affectation Result ({result.Rows.Count} lignes)"))
+                card.Result = result;
         }
         catch (OperationCanceledException)
         {
@@ -173,7 +192,7 @@ public partial class DashboardVM
     private async Task<DatabaseConnectionInfo> OpenConnectionAsync(CancellationToken token)
     {
         var connection = Connection.ActiveConnection
-            ?? throw new InvalidOperationException("Choisissez une connexion pour alimenter les cartes.");
+            ?? throw new InvalidOperationException(NoConnectionMessage);
 
         if (!await _connectionStore.OpenConnectionAsync(connection, token))
             throw new InvalidOperationException($"La chaîne de connexion de {connection.Name} est introuvable : réenregistrez-la depuis la page Connexions.");

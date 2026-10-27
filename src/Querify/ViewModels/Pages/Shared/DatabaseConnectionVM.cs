@@ -5,6 +5,7 @@ using Querify.Core.Models.Editors;
 using Querify.Databases.Connections;
 using Querify.Databases.Models.Connections;
 using Querify.UI.Extensions;
+using Querify.Diagnostics;
 
 namespace Querify.ViewModels.Pages.Shared;
 
@@ -107,7 +108,7 @@ public partial class DatabaseConnectionVM : ObservableObject
     {
         // Ouverture anticipee : l'execution la refait de toute facon (await) si elle a echoue.
         if (value is not null)
-            _connectionStore.OpenConnectionAsync(value).FireAndForget($"Connexion {value.Name} non ouverte.");
+            PerfTrace.MeasureAsync($"Ouverture anticipee {value.Name}", () => _connectionStore.OpenConnectionAsync(value)).FireAndForget($"Connexion {value.Name} non ouverte.");
 
         if (_isAttaching)
             return;
