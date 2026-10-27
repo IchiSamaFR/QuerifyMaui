@@ -6,10 +6,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- LINQ : DbContext genere puis compile en memoire ; Features pour l'IntelliSense C# (CompletionService de Roslyn). -->
+		<!-- LINQ : DbContext genere puis compile en memoire ; Roslyn vient de Quill.Code.CSharp. -->
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" />
 	</ItemGroup>
 
 	<ItemGroup>

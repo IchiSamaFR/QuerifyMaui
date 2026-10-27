@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Quill.Code.Analysis;
-using System.Runtime.Loader;
+using Quill.Code.CSharp.Compilation;
 
 namespace Querify.Languages.Linq.Compilation;
 
@@ -10,10 +10,8 @@ namespace Querify.Languages.Linq.Compilation;
 /// </summary>
 public sealed class LinqCompiledQuery : IDisposable
 {
-    private int _isDisposed;
-
-    /// <summary>Contexte collectable de l'assembly de la requete ; null en cas d'erreur de compilation.</summary>
-    public AssemblyLoadContext? LoadContext { get; init; }
+    /// <summary>Assembly de la requete chargee par Quill (contexte collectable) ; null en cas d'erreur de compilation.</summary>
+    public CSharpCompilationResult? Compilation { get; init; }
 
     /// <summary>Execute la requete ; Dump(valeur, titre) est transmis au second parametre, Console.Write* au troisieme.</summary>
     public Func<DbContext, Action<object?, string?>?, Action<string?>?, object?>? Execute { get; init; }
@@ -30,9 +28,5 @@ public sealed class LinqCompiledQuery : IDisposable
     public bool Success => Execute is not null;
 
     /// <summary>L'assembly est libere par le GC des que plus rien ne reference ses types (resultats deja convertis en texte).</summary>
-    public void Dispose()
-    {
-        if (Interlocked.Exchange(ref _isDisposed, 1) == 0)
-            LoadContext?.Unload();
-    }
+    public void Dispose() => Compilation?.Dispose();
 }
