@@ -7,8 +7,8 @@
                   x:Class="Querify.UI.Views.Controls.Layouts.ExpanderExtended"
                   x:Name="expander"
                   Background="{StaticResource CardBackground}"
-                  CornerRadius="4"
-                  Padding="8">
+                  CornerRadius="{DynamicResource CardCornerRadius}"
+                  Padding="{DynamicResource DefaultContentPadding}">
     <toolkit:Expander.Header>
         <Grid ColumnDefinitions="*,Auto">
             <Label Text="{Binding Title, Source={x:Reference expander}, x:DataType=v:ExpanderExtended}"

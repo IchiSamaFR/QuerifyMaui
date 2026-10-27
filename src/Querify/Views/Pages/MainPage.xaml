@@ -117,7 +117,7 @@
     </v:AbstractPage.MenuBarItems>
 
     <Grid ColumnDefinitions="340,Auto,*"
-          ColumnSpacing="8"
+          Style="{StaticResource GridSpacingStyle}"
           Padding="{DynamicResource CardContentPadding}">
         <Grid.Triggers>
             <!-- Explorateur ferme : colonne et separateur disparaissent -->

@@ -25,7 +25,7 @@
 
             <!-- ============ Titre ============ -->
             <Grid ColumnDefinitions="*,Auto"
-                  ColumnSpacing="8">
+                  Style="{StaticResource GridSpacingStyle}">
                 <Label Text="{Binding Card.Title, FallbackValue=''}"
                        IsVisible="{Binding Card.IsSelected, FallbackValue=False, Converter={StaticResource BooleanInvertConverter}}"
                        Style="{StaticResource LabelThirdHeaderStyle}"

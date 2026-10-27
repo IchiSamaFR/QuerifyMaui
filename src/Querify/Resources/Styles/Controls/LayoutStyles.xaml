@@ -9,20 +9,23 @@
                 Value="{DynamicResource DefaultCollectionSpacing}" />
     </Style>
 
-    <Style x:Key="VerticalStackLayoutSpacingStyle"
-           TargetType="VerticalStackLayout"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource StackSpacingStyle}" />
+    <Style TargetType="VerticalStackLayout"
+           ApplyToDerivedTypes="True">
+        <Setter Property="Spacing"
+                Value="{DynamicResource DefaultCollectionSpacing}" />
+    </Style>
 
-    <Style x:Key="HorizontalStackLayoutSpacingStyle"
-           TargetType="HorizontalStackLayout"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource StackSpacingStyle}" />
+    <Style TargetType="HorizontalStackLayout"
+           ApplyToDerivedTypes="True">
+        <Setter Property="Spacing"
+                Value="{DynamicResource DefaultCollectionSpacing}" />
+    </Style>
 
-    <Style x:Key="StackLayoutSpacingStyle"
-           TargetType="StackLayout"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource StackSpacingStyle}" />
+    <Style TargetType="StackLayout"
+           ApplyToDerivedTypes="True">
+        <Setter Property="Spacing"
+                Value="{DynamicResource DefaultCollectionSpacing}" />
+    </Style>
 
     <Style x:Key="GridSpacingStyle"
            TargetType="Grid"
@@ -51,6 +54,14 @@
            ApplyToDerivedTypes="True">
         <Setter Property="Background"
                 Value="{DynamicResource CardBackground}" />
+    </Style>
+
+    <Style TargetType="v:WrapLayout"
+           ApplyToDerivedTypes="True">
+        <Setter Property="HorizontalSpacing"
+                Value="{DynamicResource DefaultCollectionSpacing}" />
+        <Setter Property="VerticalSpacing"
+                Value="{DynamicResource DefaultCollectionSpacing}" />
     </Style>
 
 </ResourceDictionary>

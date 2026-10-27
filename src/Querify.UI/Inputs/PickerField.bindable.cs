@@ -7,9 +7,9 @@ public partial class PickerField
 {
     // ── Bindable Properties ───────────────────────────────────────────────────
 
-    /// <summary>Source des éléments : un <see cref="IDictionary"/> (clé/valeur) ou une liste simple.</summary>
+    /// <summary>Marge intérieure du texte dans le champ (défaut : 8,0,8,0).</summary>
     [BindableProperty]
-    public partial Thickness ContentPadding { get; set; }
+    public partial Thickness ContentPadding { get; set; } = new Thickness(8, 0, 8, 0);
 
     /// <summary>Source des éléments : un <see cref="IDictionary"/> (clé/valeur) ou une liste simple.</summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnItemsSourcePropertyChanged))]

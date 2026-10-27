@@ -143,7 +143,7 @@
         <Setter Property="MinimumWidthRequest"
                 Value="{DynamicResource ButtonHeight}" />
         <Setter Property="CornerRadius"
-                Value="4" />
+                Value="{DynamicResource ButtonCornerRadius}" />
         <Setter Property="Padding"
                 Value="{DynamicResource ButtonPadding}" />
         <Setter Property="VerticalOptions"

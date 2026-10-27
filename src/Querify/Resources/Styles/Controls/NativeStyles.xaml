@@ -154,7 +154,7 @@
         <Setter Property="StrokeThickness"
                 Value="2" />
         <Setter Property="Margin"
-                Value="4" />
+                Value="{DynamicResource DefaultMargin}" />
         <Setter Property="StrokeShape"
                 Value="RoundRectangle 4" />
         <Setter Property="Padding"

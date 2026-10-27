@@ -28,7 +28,7 @@
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="m:CompletionEntry">
                         <Grid ColumnDefinitions="20,*,Auto"
-                              ColumnSpacing="8"
+                              Style="{StaticResource GridSpacingStyle}"
                               Padding="6,0,10,0"
                               IsVisible="{Binding HasItem}"
                               HeightRequest="{x:Static c:CompletionPopup.RowHeight}">

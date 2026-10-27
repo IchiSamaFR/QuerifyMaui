@@ -87,7 +87,7 @@ public partial class CodeEditor : ContentView
     /// quelles pour le menu Edition.
     /// </summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnCommandsPropertyChanged))]
-    public partial CodeEdit.Maui.CodeEditorCommands? Commands { get; private set; }
+    public partial CodeEdit.Maui.CodeEditorCommands? Commands { get; set; }
 
     /// <summary>Commande Annuler de l'editeur natif.</summary>
     [BindableProperty]
