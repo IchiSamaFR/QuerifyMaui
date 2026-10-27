@@ -1,5 +1,4 @@
-﻿using Querify.Languages.Linq.Analysis;
-using Querify.Languages.Linq.Compilation;
+﻿using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Analysis;
@@ -8,10 +7,8 @@ using Xunit;
 namespace Querify.Tests;
 
 /// <summary>Le caractere | marque la position (souris ou curseur) ; Roslyn analyse dans le contexte genere.</summary>
-public class LinqAnalysisEngineTests
+public class LinqAnalysisTests
 {
-    private static readonly LinqAnalysisEngine Engine = new(TestLinq.Workspace, TestLinq.Language);
-
     private static readonly Lazy<LinqModelAssembly> Model = new(() => new LinqCompiler(TestLinq.Workspace).CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
 
     [Fact]
@@ -29,7 +26,7 @@ public class LinqAnalysisEngineTests
     public async Task Hover_LambdaParameterShowsEntity()
     {
         const string query = "RaveOnDb.AspNetUsers.Where(u => u.Email != null)";
-        var hover = await Engine.GetHoverAsync(Model.Value, query, query.IndexOf("u =>", StringComparison.Ordinal));
+        var hover = await TestLinq.HoverAsync(Model.Value, query, query.IndexOf("u =>", StringComparison.Ordinal));
 
         Assert.NotNull(hover);
         Assert.Contains("AspNetUsers u", hover.Signature, StringComparison.Ordinal);
@@ -49,7 +46,7 @@ public class LinqAnalysisEngineTests
     public async Task Hover_RangeMapsToQueryText()
     {
         const string query = "RaveOnDb.AspNetUsers";
-        var hover = await Engine.GetHoverAsync(Model.Value, query, query.Length - 2);
+        var hover = await TestLinq.HoverAsync(Model.Value, query, query.Length - 2);
 
         Assert.NotNull(hover);
         Assert.Equal(query.IndexOf("AspNetUsers", StringComparison.Ordinal), hover.Start);
@@ -64,7 +61,7 @@ public class LinqAnalysisEngineTests
     public async Task Diagnostics_UnknownMemberIsAnError()
     {
         const string query = "RaveOnDb.AspNetUsers.Where(u => u.Mail != null)";
-        var diagnostics = await Engine.GetDiagnosticsAsync(Model.Value, query);
+        var diagnostics = await TestLinq.DiagnosticsAsync(Model.Value, query);
 
         var error = Assert.Single(diagnostics);
         Assert.Equal(CodeDiagnosticSeverity.Error, error.Severity);
@@ -73,13 +70,13 @@ public class LinqAnalysisEngineTests
 
     [Fact]
     public async Task Diagnostics_ValidQueryHasNone()
-        => Assert.Empty(await Engine.GetDiagnosticsAsync(Model.Value, "RaveOnDb.AspNetUsers.Where(u => u.EmailConfirmed).Select(u => u.Email)"));
+        => Assert.Empty(await TestLinq.DiagnosticsAsync(Model.Value, "RaveOnDb.AspNetUsers.Where(u => u.EmailConfirmed).Select(u => u.Email)"));
 
     [Fact]
     public async Task Diagnostics_MissingParenthesisAtEndOfQuery()
     {
         const string query = "RaveOnDb.AspNetUsers.Where(u => u.EmailConfirmed";
-        var diagnostics = await Engine.GetDiagnosticsAsync(Model.Value, query);
+        var diagnostics = await TestLinq.DiagnosticsAsync(Model.Value, query);
 
         Assert.Contains(diagnostics, d => d.IsError && d.End <= query.Length);
     }
@@ -87,8 +84,8 @@ public class LinqAnalysisEngineTests
     [Fact]
     public async Task Diagnostics_WithoutModelOnlySyntax()
     {
-        Assert.Empty(await Engine.GetDiagnosticsAsync(null, "RaveOnDb.AspNetUsers.Where(u => u.EmailConfirmed)"));
-        Assert.NotEmpty(await Engine.GetDiagnosticsAsync(null, "RaveOnDb.AspNetUsers.Where(u => )"));
+        Assert.Empty(await TestLinq.DiagnosticsAsync(null, "RaveOnDb.AspNetUsers.Where(u => u.EmailConfirmed)"));
+        Assert.NotEmpty(await TestLinq.DiagnosticsAsync(null, "RaveOnDb.AspNetUsers.Where(u => )"));
     }
 
     [Fact]
@@ -119,15 +116,15 @@ public class LinqAnalysisEngineTests
     public async Task Signature_NoneOutsideArguments()
         => Assert.Null(await SignatureAsync("RaveOnDb.AspNetUsers.Count()|"));
 
-    private static Task<Core.Models.Editors.Analysis.HoverInfo?> HoverAsync(string queryWithMarker)
+    private static Task<HoverInfo?> HoverAsync(string queryWithMarker)
     {
         var offset = queryWithMarker.IndexOf('|', StringComparison.Ordinal);
-        return Engine.GetHoverAsync(Model.Value, queryWithMarker.Remove(offset, 1), offset);
+        return TestLinq.HoverAsync(Model.Value, queryWithMarker.Remove(offset, 1), offset);
     }
 
-    private static Task<Core.Models.Editors.Analysis.SignatureHelpInfo?> SignatureAsync(string queryWithCaret)
+    private static Task<SignatureHelpInfo?> SignatureAsync(string queryWithCaret)
     {
         var caret = queryWithCaret.IndexOf('|', StringComparison.Ordinal);
-        return Engine.GetSignatureHelpAsync(Model.Value, queryWithCaret.Remove(caret, 1), caret);
+        return TestLinq.SignatureHelpAsync(Model.Value, queryWithCaret.Remove(caret, 1), caret);
     }
 }

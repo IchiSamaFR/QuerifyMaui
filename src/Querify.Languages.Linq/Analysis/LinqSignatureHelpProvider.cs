@@ -2,9 +2,9 @@
 using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Analysis;
 using Querify.Languages.Commons.Editors.Analysis;
-using Querify.Languages.Linq.Modeling;
-using Querify.Languages.Linq.Queries;
+using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Analysis;
+using Quill.Code.CSharp;
 
 namespace Querify.Languages.Linq.Analysis;
 
@@ -12,13 +12,13 @@ namespace Querify.Languages.Linq.Analysis;
 [AutoRegister(As = typeof(ISignatureHelpProvider))]
 public sealed class LinqSignatureHelpProvider : ISignatureHelpProvider
 {
-    private readonly ILinqModelCache _models;
-    private readonly ILinqAnalysisEngine _engine;
+    private readonly ILinqEditorDocuments _documents;
+    private readonly ICSharpLanguageService _language;
 
-    public LinqSignatureHelpProvider(ILinqModelCache models, ILinqAnalysisEngine engine)
+    public LinqSignatureHelpProvider(ILinqEditorDocuments documents, ICSharpLanguageService language)
     {
-        _models = models;
-        _engine = engine;
+        _documents = documents;
+        _language = language;
     }
 
     public async Task<SignatureHelpInfo?> GetSignatureHelpAsync(CodeAnalysisRequest request, CancellationToken cancellationToken = default)
@@ -28,7 +28,7 @@ public sealed class LinqSignatureHelpProvider : ISignatureHelpProvider
         if (request.Language != SyntaxLanguage.Linq)
             return null;
 
-        var model = await LinqRequestResolver.TryGetModelAsync(_models, request.Connection, request.Database, cancellationToken);
-        return await _engine.GetSignatureHelpAsync(model, request.Text, request.Offset, LinqRequestResolver.ToParameters(request.Parameters), cancellationToken);
+        var document = await _documents.GetAsync(request.Text, request.Connection, request.Database, request.Parameters, cancellationToken);
+        return await _language.GetSignatureHelpAsync(document, request.Offset, cancellationToken);
     }
 }
