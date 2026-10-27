@@ -5,10 +5,11 @@
     <!-- BindingContext : DashboardVM (singleton), pose par le code-behind ; la vue lui transmet sa session -->
     <Grid x:Name="Body"
           x:DataType="vm:DashboardVM"
-          RowDefinitions="Auto,*">
+          RowDefinitions="Auto,*"
+          Style="{StaticResource GridSpacingStyle}">
 
         <!-- ============ En-tete : chargement des cartes, connexion et vue ============ -->
-        <HorizontalStackLayout Spacing="8">
+        <HorizontalStackLayout>
             <!-- Langage de la carte selectionnee, modifiable dans le concepteur seulement ; LINQ : les parametres sont des variables C# (UserId ou @UserId) -->
             <inp:PickerField ItemsSource="{x:Static vm:QueryLanguages.All}"
                              SelectedKey="{Binding Session.SelectedCard.Language, Mode=TwoWay, FallbackValue={x:Null}}"

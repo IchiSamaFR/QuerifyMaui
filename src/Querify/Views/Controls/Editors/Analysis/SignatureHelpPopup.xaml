@@ -23,7 +23,7 @@
 
         <VerticalStackLayout Spacing="4">
             <Grid ColumnDefinitions="Auto,*"
-                  ColumnSpacing="8">
+                  Style="{StaticResource GridSpacingStyle}">
                 <!-- Surcharge affichee (Haut / Bas pour changer) -->
                 <Label Text="{Binding Counter, Source={x:Reference Root}, x:DataType=c:SignatureHelpPopup}"
                        IsVisible="{Binding Counter, Source={x:Reference Root}, x:DataType=c:SignatureHelpPopup, Converter={StaticResource IsStringNullOrEmptyConverter}, ConverterParameter=invert}"

@@ -74,11 +74,20 @@ internal static class BorderlessHandlers
             if (view is not BorderlessPicker)
                 return;
 
-            handler.PlatformView.Padding = new Microsoft.UI.Xaml.Thickness(8, 0, 8, 0);
             handler.PlatformView.Margin = new Microsoft.UI.Xaml.Thickness(0);
             handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
             handler.PlatformView.MinHeight = 0;
             handler.PlatformView.Background = null;
+        });
+
+        // Le padding est appliqué au ComboBox natif (et non en Margin MAUI) : seul le texte est décalé.
+        PickerHandler.Mapper.AppendToMapping(nameof(BorderlessPicker.Padding), (handler, view) =>
+        {
+            if (view is not BorderlessPicker picker)
+                return;
+
+            var p = picker.Padding;
+            handler.PlatformView.Padding = new Microsoft.UI.Xaml.Thickness(p.Left, p.Top, p.Right, p.Bottom);
         });
 
         // Windows : la bordure basse du TextBox en focus utilise l'accent systeme (bleu).

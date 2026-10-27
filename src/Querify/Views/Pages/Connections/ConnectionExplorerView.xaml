@@ -6,7 +6,7 @@
                        x:Name="root">
     <Border Style="{StaticResource CardStyle}">
         <Grid RowDefinitions="Auto,Auto,*"
-              RowSpacing="8">
+              Style="{StaticResource GridSpacingStyle}">
 
             <!-- ============ En-tete + barre d'outils (Explorateur d'objets SSMS) ============ -->
             <Grid ColumnDefinitions="*,Auto">

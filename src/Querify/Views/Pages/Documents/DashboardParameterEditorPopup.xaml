@@ -37,7 +37,7 @@
                LineBreakMode="WordWrap" />
 
         <Grid ColumnDefinitions="*,Auto,Auto"
-              ColumnSpacing="8">
+              Style="{StaticResource GridSpacingStyle}">
             <Button Grid.Column="1"
                     Style="{StaticResource SecondaryButtonStyle}"
                     Command="{Binding CancelCommand}"

@@ -8,7 +8,6 @@
     <!-- Contenu propre plutot que Icon/Title : le gabarit MAUI espace trop l'icone du titre -->
     <TitleBar.LeadingContent>
         <HorizontalStackLayout Padding="12,0,0,0"
-                               Spacing="8"
                                VerticalOptions="Center">
             <Image Source="app_logo.png"
                    WidthRequest="14"
