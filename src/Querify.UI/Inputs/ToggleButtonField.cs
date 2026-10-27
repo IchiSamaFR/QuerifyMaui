@@ -43,10 +43,6 @@ public partial class ToggleButtonField : ButtonView
         _offImage.Margin = new Thickness(0, 2, 0, 0);
         _onImage.Margin = new Thickness(0, 2, 0, 0);
 
-        Children.Add(_offImage);
-        Children.Add(_onImage);
-        Children.Add(_label);
-
         BindParts();
 
         // Clicked part avant Command : la commande voit deja le nouvel etat.
@@ -99,9 +95,28 @@ public partial class ToggleButtonField : ButtonView
     /// <summary>L'opacite et le libelle dependent de deux proprietes a la fois : mis a jour ici plutot que par converters.</summary>
     private void UpdateState()
     {
-        _offImage.Opacity = IsToggled ? InactiveIconOpacity : 1d;
-        _onImage.Opacity = IsToggled ? 1d : InactiveIconOpacity;
-        _label.Text = IsToggled ? OnText : OffText;
-        _label.IsVisible = !string.IsNullOrEmpty(_label.Text);
+        Children.Clear();
+        if (_offImage?.Source != null)
+        {
+            _offImage.Opacity = IsToggled ? InactiveIconOpacity : 1d;
+            Children.Add(_offImage);
+        }
+        if (_onImage?.Source != null)
+        {
+            _onImage.Opacity = IsToggled ? 1d : InactiveIconOpacity;
+            Children.Add(_onImage);
+        }
+        if (_label != null)
+        {
+            _label.Text = IsToggled ? OnText : OffText;
+            _label.IsVisible = !string.IsNullOrEmpty(_label.Text);
+
+            if (_label.IsVisible)
+                Children.Add(_label);
+        }
+
+        // Sans infobulle d'etat, celle posee directement (ToolTipProperties.Text) est conservee.
+        if (OnToolTip is not null || OffToolTip is not null)
+            ToolTipProperties.SetText(this, IsToggled ? OnToolTip : OffToolTip);
     }
 }

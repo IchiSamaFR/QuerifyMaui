@@ -26,10 +26,10 @@ public partial class ToggleButtonField
     [BindableProperty(PropertyChangedMethodName = nameof(OnToggledValuePropertyChanged))]
     public partial object? ToggledOffValue { get; set; }
 
-    [BindableProperty]
+    [BindableProperty(PropertyChangedMethodName = nameof(OnStatePropertyChanged))]
     public partial ImageSource? OffIcon { get; set; }
 
-    [BindableProperty]
+    [BindableProperty(PropertyChangedMethodName = nameof(OnStatePropertyChanged))]
     public partial ImageSource? OnIcon { get; set; }
 
     /// <summary>Libelle affiche quand <see cref="IsToggled"/> est faux ; vide = pas de libelle.</summary>
@@ -39,6 +39,14 @@ public partial class ToggleButtonField
     /// <summary>Libelle affiche quand <see cref="IsToggled"/> est vrai ; vide = pas de libelle.</summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnStatePropertyChanged))]
     public partial string? OnText { get; set; }
+
+    /// <summary>Infobulle quand <see cref="IsToggled"/> est faux.</summary>
+    [BindableProperty(PropertyChangedMethodName = nameof(OnStatePropertyChanged))]
+    public partial string? OffToolTip { get; set; }
+
+    /// <summary>Infobulle quand <see cref="IsToggled"/> est vrai.</summary>
+    [BindableProperty(PropertyChangedMethodName = nameof(OnStatePropertyChanged))]
+    public partial string? OnToolTip { get; set; }
 
     /// <summary>Opacite de l'icone de l'etat inactif.</summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnStatePropertyChanged))]

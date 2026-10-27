@@ -40,6 +40,11 @@
                    MaximumWidthRequest="420"
                    VerticalOptions="Center" />
 
+            <Label Text="{Binding Source={RelativeSource AncestorType={x:Type c:CodeEditor}}, Path=EditorPreferences.ZoomPercent, StringFormat='{0} %', FallbackValue='100 %', x:DataType=c:CodeEditor}"
+                   Style="{StaticResource LabelTertiaryStyle}"
+                   VerticalOptions="Center"
+                   ToolTipProperties.Text="Zoom : Ctrl+molette, Ctrl++ / Ctrl+-, Ctrl+0" />
+
             <Label Style="{StaticResource LabelTertiaryStyle}"
                    VerticalOptions="Center">
                 <Label.Text>
@@ -59,6 +64,9 @@
         <c:SignatureHelpPopup x:Name="SignatureHelp" />
 
         <c:CompletionPopup x:Name="CompletionList" />
+
+        <!-- Rechercher / Remplacer, en haut a droite comme dans Visual Studio -->
+        <c:FindReplacePopup x:Name="FindPopup" />
     </Grid>
 
 </ContentView>
