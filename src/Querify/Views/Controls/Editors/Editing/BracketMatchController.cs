@@ -1,6 +1,6 @@
 ﻿using CodeEdit.Maui;
-using Querify.Core.Enums.Editors;
 using Querify.Core.Enums.Editors.Highlighting;
+using Quill.Code.Editing;
 using RichEdit.Maui;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
@@ -12,9 +12,6 @@ namespace Querify.Views.Controls.Editors.Editing;
 /// </summary>
 public sealed class BracketMatchController : IDisposable
 {
-    private const string Openers = "([{";
-    private const string Closers = ")]}";
-
     private readonly NativeCodeEditor _editor;
     private readonly Func<SyntaxLanguage> _language;
     private readonly RichTextDecorationLayer _layer;
@@ -77,67 +74,22 @@ public sealed class BracketMatchController : IDisposable
         var language = _language();
         if (_scan is not { } scan || scan.Revision != snapshot.Revision || scan.Language != language)
         {
-            scan = (snapshot.Revision, language, SourceScanner.Classify(text, language));
+            scan = (snapshot.Revision, language, SourceScanner.Classify(text, EditorSyntax.For(language)));
             _scan = scan;
         }
 
-        var regions = scan.Regions;
-        var caret = selection.Active;
-
         // Comme VS : fermant juste avant le curseur, puis ouvrant juste apres.
-        int[] candidates = [caret - 1, caret];
-        foreach (var index in candidates)
+        if (BracketMatcher.FindPair(text, selection.Active, scan.Regions) is { } pair)
         {
-            if (index < 0 || index >= text.Length || regions[index] != SourceRegion.Code)
-                continue;
-
-            var match = FindMatch(text, regions, index);
-            if (match < 0)
-                continue;
-
-            var first = Math.Min(index, match);
-            var second = Math.Max(index, match);
             _layer.TrySet(snapshot.Revision,
             [
-                new RichTextDecoration(new RichTextRange(first, 1), _style),
-                new RichTextDecoration(new RichTextRange(second, 1), _style),
+                new RichTextDecoration(new RichTextRange(pair.Open, 1), _style),
+                new RichTextDecoration(new RichTextRange(pair.Close, 1), _style),
             ]);
             return;
         }
 
         _layer.Clear();
-    }
-
-    /// <summary>Position du crochet associe a celui de <paramref name="index"/>, ou -1.</summary>
-    private static int FindMatch(string text, SourceRegion[] regions, int index)
-    {
-        var bracket = text[index];
-        var opener = Openers.IndexOf(bracket);
-        var closer = Closers.IndexOf(bracket);
-        if (opener < 0 && closer < 0)
-            return -1;
-
-        var forward = opener >= 0;
-        var kind = forward ? opener : closer;
-        var open = Openers[kind];
-        var close = Closers[kind];
-
-        var depth = 0;
-        for (var i = index; forward ? i < text.Length : i >= 0; i += forward ? 1 : -1)
-        {
-            if (regions[i] != SourceRegion.Code)
-                continue;
-
-            if (text[i] == open)
-                depth += forward ? 1 : -1;
-            else if (text[i] == close)
-                depth += forward ? -1 : 1;
-
-            if (depth == 0)
-                return i;
-        }
-
-        return -1;
     }
 
     private static Color ResourceColor(string key, Color fallback)
