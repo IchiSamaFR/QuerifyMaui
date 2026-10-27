@@ -59,26 +59,13 @@
                                    OnIcon="{mk:FluentImage Icon=ResizeSmall20}"
                                    OnText="Concepteur"
                                    LabelWidthRequest="70"
-                                   ToolTipProperties.Text="Basculer entre le dashboard et le concepteur" />
+                                   OffToolTip="Passer au concepteur"
+                                   OnToolTip="Revenir au dashboard" />
 
-            <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                         Command="{Binding ShowSettingsCommand}"
-                         Source="{mk:FluentImage Icon=EditSettings20}"
-                         Opacity="{DynamicResource DisabledOpacity}"
-                         ToolTipProperties.Text="Afficher les paramètres">
-                <ImageButton.Triggers>
-                    <DataTrigger TargetType="ImageButton"
-                                 Binding="{Binding Preferences.Panels.IsDashboardParamsOpen}"
-                                 Value="True">
-                        <Setter Property="Background"
-                                Value="{DynamicResource ButtonBackground}" />
-                        <Setter Property="Opacity"
-                                Value="{DynamicResource FrontOpacity}" />
-                        <Setter Property="ToolTipProperties.Text"
-                                Value="Cacher les paramètres" />
-                    </DataTrigger>
-                </ImageButton.Triggers>
-            </ImageButton>
+            <inp:ToggleButtonField IsToggled="{Binding Preferences.Panels.IsDashboardParamsOpen}"
+                                   OnIcon="{mk:FluentImage Icon=EditSettings20}"
+                                   OffToolTip="Afficher les paramètres"
+                                   OnToolTip="Cacher les paramètres" />
         </HorizontalStackLayout>
 
         <!-- ============ Source : JSON du fichier ============ -->

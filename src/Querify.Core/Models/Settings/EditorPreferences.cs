@@ -17,6 +17,10 @@ public partial class EditorPreferences : ObservableObject
     [ObservableProperty]
     public partial int IndentationSize { get; set; } = 4;
 
+    /// <summary>Zoom de l'editeur en pourcentage (Ctrl+molette, Ctrl++ / Ctrl+-, Ctrl+0).</summary>
+    [ObservableProperty]
+    public partial int ZoomPercent { get; set; } = 100;
+
     /// <summary>Un nouveau script s'ouvre sur le modele de son langage (prise en main).</summary>
     [ObservableProperty]
     public partial bool InsertTemplateOnNew { get; set; } = true;

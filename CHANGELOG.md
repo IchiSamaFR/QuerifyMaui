@@ -16,6 +16,9 @@ Première version publique.
 - Dashboards `.schx` : concepteur en grille, cartes tableau / graphique / valeur / bouton, paramètres et navigation entre pages, requêtes SQL ou LINQ.
 - Accord demandé avant d'exécuter les requêtes d'un `.schx` qui ne vient pas de l'application.
 - Menu Fichier ▸ Nouveau par langage (SQL, LINQ, tableau de bord) ; modèle de prise en main dans les nouveaux scripts, désactivable.
+- Raccourcis d'édition façon Visual Studio : indentation à l'Entrée, paires ( [ { " ', retour arrière intelligent, copier / couper / coller de ligne, Ctrl+D, Alt+↑/↓, Ctrl+Maj+K, Ctrl+K Ctrl+C / Ctrl+U, Ctrl+Entrée, Début, crochet associé.
+- Zoom de l'éditeur (Ctrl+molette, Ctrl++ / Ctrl+-, Ctrl+0), conservé dans les préférences.
+- Rechercher / Remplacer (Ctrl+F / Ctrl+H) en haut à droite de l'éditeur : recherche à la frappe, casse, F3 / Maj+F3, compteur, Tout remplacer.
 - Journal des erreurs dans le dossier de données (14 jours).
 
 ### Limites connues

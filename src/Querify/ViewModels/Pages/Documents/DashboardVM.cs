@@ -40,14 +40,6 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
     private readonly HashSet<DashboardSession> _pendingWrites = [];
     private CancellationTokenSource? _writeDelay;
 
-    /// <summary>Choix de la liste deroulante des vues : la cle est la vue, la valeur son libelle.</summary>
-    public static Dictionary<DashboardMode, string> Modes { get; } = new()
-    {
-        [DashboardMode.View] = "Dashboard",
-        [DashboardMode.Design] = "Concepteur",
-        [DashboardMode.Source] = "Source",
-    };
-
     /// <summary>Coloration des requetes des cartes dans le concepteur.</summary>
     [ObservableProperty]
     public partial SyntaxConfiguration? SqlSyntaxConfiguration { get; private set; }

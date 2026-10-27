@@ -13,6 +13,7 @@
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.Editors")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.Editors.Analysis")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.Editors.Completion")]
+[assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.Editors.Search")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.Queries")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.TitleBars")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/viewmodels", "Querify.ViewModels.Controls.Menus")]

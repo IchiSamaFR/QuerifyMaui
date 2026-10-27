@@ -12,6 +12,8 @@ using Querify.Services.Editors.Highlighting;
 using Querify.UI.Extensions;
 using Querify.Views.Controls.Editors.Analysis;
 using Querify.Views.Controls.Editors.Completion;
+using Querify.Views.Controls.Editors.Editing;
+using Querify.Views.Controls.Editors.Search;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -120,6 +122,12 @@ public partial class CodeEditor : ContentView
     private DiagnosticsController? _diagnostics;
     private HoverController? _hover;
     private SignatureHelpController? _signatureHelp;
+    private EditingController? _editing;
+    private BracketMatchController? _brackets;
+    private FindReplaceController? _find;
+
+    /// <summary>Taille de police du style, avant zoom.</summary>
+    private readonly double _baseFontSize;
 
     /// <summary>Evite l'aller-retour Text -> document -> Text pendant une synchronisation.</summary>
     private bool _isSynchronizing;
@@ -152,6 +160,10 @@ public partial class CodeEditor : ContentView
         InitializeComponent();
 
         Commands = Native.Commands;
+
+        // Entree est geree par EditingController : le retour natif ajouterait l'indentation une seconde fois.
+        Native.AutoIndent = false;
+        _baseFontSize = Native.FontSize > 0 ? Native.FontSize : 13d;
         AttachDocument(CodeDocument.FromPlainText(Text));
 
         Native.SelectionChanged += OnNativeSelectionChanged;
@@ -164,12 +176,14 @@ public partial class CodeEditor : ContentView
             StartHighlighting();
             StartCompletion();
             StartAnalysis();
+            StartEditing();
         };
         Unloaded += (_, _) =>
         {
             StopHighlighting();
             StopCompletion();
             StopAnalysis();
+            StopEditing();
         };
 
 #if WINDOWS
@@ -267,8 +281,24 @@ public partial class CodeEditor : ContentView
             richBox.ContextRequested += (_, e) => e.Handled = true;
         }
 
+        // Ctrl+molette : zoom ; les evenements deja traites par le defilement sont recus aussi.
+        box.AddHandler(Microsoft.UI.Xaml.UIElement.PointerWheelChangedEvent,
+            new Microsoft.UI.Xaml.Input.PointerEventHandler(OnNativePointerWheelChanged), handledEventsToo: true);
+
         box.Loaded += (_, _) => SyncHoverBrushes(box);
         box.ActualThemeChanged += (_, _) => SyncHoverBrushes(box);
+    }
+
+    private void OnNativePointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!e.KeyModifiers.HasFlag(Windows.System.VirtualKeyModifiers.Control))
+            return;
+
+        var delta = e.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties.MouseWheelDelta;
+        if (delta != 0)
+            Zoom(delta > 0 ? ZoomStep : -ZoomStep);
+
+        e.Handled = true;
     }
 
     private void SyncHoverBrushes(Microsoft.UI.Xaml.Controls.Control box)
@@ -531,6 +561,94 @@ public partial class CodeEditor : ContentView
         _diagnostics = null;
     }
 
+    // ---------- Edition, crochets et recherche ----------
+
+    private void StartEditing()
+    {
+        _editing ??= new EditingController(Native, () => SyntaxConfiguration, () => CompletionList.IsVisible);
+        _brackets ??= new BracketMatchController(Native, () => SyntaxConfiguration?.Language ?? Core.Enums.Editors.Highlighting.SyntaxLanguage.None);
+        _find ??= new FindReplaceController(Native, FindPopup);
+    }
+
+    private void StopEditing()
+    {
+        _editing?.Dispose();
+        _editing = null;
+        _brackets?.Dispose();
+        _brackets = null;
+        _find?.Dispose();
+        _find = null;
+    }
+
+    /// <summary>L'editeur peut relayer deux fois la meme touche : la seconde est ignoree dans le meme passage.</summary>
+    private (EditorKey Key, EditorKeyModifiers Modifiers)? _lastHandledKey;
+
+    /// <summary>Raccourcis du controle (zoom, recherche) ; l'edition du texte revient a EditingController.</summary>
+    private void OnNativeKeyDown(object? sender, EditorKeyEventArgs e)
+    {
+        if (e.Handled)
+            return;
+
+        if (_lastHandledKey == (e.Key, e.Modifiers))
+        {
+            e.Handled = true;
+            return;
+        }
+
+        switch (e.Key, e.Modifiers)
+        {
+            case (EditorKey.Plus or EditorKey.Add, EditorKeyModifiers.Control):
+                Zoom(ZoomStep);
+                break;
+            case (EditorKey.Minus or EditorKey.Subtract, EditorKeyModifiers.Control):
+                Zoom(-ZoomStep);
+                break;
+            case (EditorKey.D0 or EditorKey.NumPad0, EditorKeyModifiers.Control):
+                Zoom(null);
+                break;
+            case (EditorKey.F, EditorKeyModifiers.Control):
+                _find?.Open(replace: false);
+                break;
+            case (EditorKey.H, EditorKeyModifiers.Control):
+                _find?.Open(replace: true);
+                break;
+            case (EditorKey.F3, EditorKeyModifiers.None or EditorKeyModifiers.Shift):
+                _find?.FindFromEditor(forward: e.Modifiers == EditorKeyModifiers.None);
+                break;
+            case (EditorKey.Escape, EditorKeyModifiers.None) when _find?.IsOpen == true && !CompletionList.IsVisible:
+                _find.Close();
+                break;
+            default:
+                return;
+        }
+
+        e.Handled = true;
+        _lastHandledKey = (e.Key, e.Modifiers);
+        Dispatcher.Dispatch(() => _lastHandledKey = null);
+    }
+
+    // ---------- Zoom ----------
+
+    private const int DefaultZoom = 100;
+    private const int MinZoom = 50;
+    private const int MaxZoom = 300;
+    private const int ZoomStep = 10;
+
+    /// <summary>Ajoute <paramref name="delta"/> points de zoom, ou revient a 100 % (null) ; conserve dans les preferences.</summary>
+    private void Zoom(int? delta)
+    {
+        if (EditorPreferences is not { } preferences)
+            return;
+
+        preferences.ZoomPercent = delta is { } step ? Math.Clamp(preferences.ZoomPercent + step, MinZoom, MaxZoom) : DefaultZoom;
+    }
+
+    private void ApplyZoom()
+    {
+        var zoom = Math.Clamp(EditorPreferences?.ZoomPercent ?? DefaultZoom, MinZoom, MaxZoom);
+        Native.FontSize = _baseFontSize * zoom / DefaultZoom;
+    }
+
     // ---------- Options d'affichage ----------
 
     private static void OnEditorPreferencesPropertyChanged(BindableObject bindable, object oldValue, object newValue)
@@ -543,10 +661,17 @@ public partial class CodeEditor : ContentView
 
         if (newConfiguration is not null)
             newConfiguration.PropertyChanged += OnEditorPreferencesPropertyChanged;
+
+        ApplyZoom();
     }
 
     private void OnEditorPreferencesPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        => RefreshLayout();
+    {
+        if (e.PropertyName == nameof(Core.Models.Settings.EditorPreferences.ZoomPercent))
+            ApplyZoom();
+
+        RefreshLayout();
+    }
 
     /// <summary>
     /// Quand WordWrap bascule, CodeEdit.Maui reconfigure le RichEditBox natif mais MAUI
@@ -564,87 +689,6 @@ public partial class CodeEditor : ContentView
         }
 #endif
     }
-
-    // ---------- Couper la ligne ----------
-
-    private static readonly RichTextEditOptions CutLineOptions = new(RichTextUndoBehavior.CreateUnit, "Couper la ligne", null);
-
-    /// <summary>Coupe en cours : l'editeur peut relayer deux fois la meme touche, la seconde couperait la ligne suivante.</summary>
-    private bool _isCuttingLine;
-
-    /// <summary>Ctrl+X sans selection coupe la ligne entiere, comme Visual Studio.</summary>
-    private void OnNativeKeyDown(object? sender, EditorKeyEventArgs e)
-    {
-        if (e.Handled || e.Key != EditorKey.X || e.Modifiers != EditorKeyModifiers.Control || !Native.SelectionState.IsEmpty)
-            return;
-
-        e.Handled = true;
-        if (_isCuttingLine)
-            return;
-
-        CutLineAsync().FireAndForget("Impossible de couper la ligne.");
-    }
-
-    private async Task CutLineAsync()
-    {
-        _isCuttingLine = true;
-        try
-        {
-            await CutCurrentLineAsync();
-        }
-        finally
-        {
-            _isCuttingLine = false;
-        }
-    }
-
-    private async Task CutCurrentLineAsync()
-    {
-        var snapshot = _document.CurrentSnapshot;
-        var text = snapshot.Text;
-        if (text.Length == 0)
-            return;
-
-        // \n, \r\n, \r, et les separateurs Unicode que l'editeur affiche aussi comme des retours a la ligne.
-        var caret = Math.Clamp(Native.SelectionState.Active, 0, text.Length);
-        var lineStart = caret;
-        while (lineStart > 0 && !IsLineBreak(text[lineStart - 1]))
-            lineStart--;
-
-        var lineEnd = caret;
-        while (lineEnd < text.Length && !IsLineBreak(text[lineEnd]))
-            lineEnd++;
-
-        // Le presse-papiers recoit toujours la ligne avec son retour : collee, elle reste une ligne a part.
-        // Derniere ligne : c'est le retour qui la precede qui part, pour ne pas laisser de ligne vide.
-        int removeStart, removeEnd;
-        if (lineEnd < text.Length)
-        {
-            removeStart = lineStart;
-            removeEnd = lineEnd + (text[lineEnd] == '\r' && lineEnd + 1 < text.Length && text[lineEnd + 1] == '\n' ? 2 : 1);
-        }
-        else
-        {
-            removeEnd = lineEnd;
-            removeStart = lineStart == 0 ? 0 : lineStart - (lineStart >= 2 && text[lineStart - 1] == '\n' && text[lineStart - 2] == '\r' ? 2 : 1);
-        }
-
-        // Presse-papiers d'abord : s'il echoue, la ligne n'est pas perdue.
-        await Clipboard.Default.SetTextAsync(text[lineStart..lineEnd] + Environment.NewLine);
-
-        // Texte modifie pendant l'ecriture du presse-papiers : la plage calculee ne designe plus la ligne
-        // (TryApplyEdits la decalerait sur la suivante).
-        if (_document != Native.Document || _document.Revision != snapshot.Revision)
-            return;
-
-        Native.TryApplyEdits(
-            snapshot.Revision,
-            [new RichTextEdit(new RichTextRange(removeStart, removeEnd - removeStart), string.Empty)],
-            new RichTextSelectionState(removeStart, removeStart),
-            CutLineOptions);
-    }
-
-    private static bool IsLineBreak(char c) => c is '\n' or '\r' or LineSeparator or ParagraphSeparator;
 
     // ---------- Separateurs de ligne Unicode ----------
 

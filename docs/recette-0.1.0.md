@@ -20,7 +20,15 @@ A derouler sur le zip publie par la CI (`Querify-0.1.0-rc.N-win-x64.zip`), sur u
 ## Editeur SQL
 
 - [ ] Nouveau / Ouvrir / Enregistrer / Enregistrer sous / Renommer / fichiers recents
-- [ ] Nouveau ▸ SQL (Ctrl+N) / LINQ (Ctrl+Maj+N) / Tableau de bord (Ctrl+D) : modele du langage insere, onglet non marque modifie ; preference « Modele dans les nouveaux fichiers » respectee
+- [ ] Nouveau ▸ SQL / LINQ / Tableau de bord : modele du langage insere, onglet non marque modifie ; preference « Modele dans les nouveaux fichiers » respectee
+- [ ] Entree garde l'indentation ; apres `{` un niveau de plus ; entre `{}` bloc sur 3 lignes ; Maj+Entree idem
+- [ ] Paires ( [ { " ' : fermeture auto, selection entouree, fermant saute ; rien dans un commentaire ou une chaine ; `}` sur ligne vide desindente
+- [ ] Retour arriere : paire vide, niveau d'indentation dans les espaces de tete
+- [ ] Ctrl+C / Ctrl+X sans selection : ligne entiere ; Ctrl+V la colle au-dessus ; Ctrl+D ; Alt+Haut / Alt+Bas ; Ctrl+Maj+K
+- [ ] Tab / Maj+Tab, Ctrl+K Ctrl+C / Ctrl+K Ctrl+U, Ctrl+Entree / Ctrl+Maj+Entree, Debut (deux appuis)
+- [ ] Crochet associe encadre (ignore dans chaines et commentaires)
+- [ ] Zoom Ctrl+molette / Ctrl++ / Ctrl+- / Ctrl+0, pourcentage en barre d'etat, conserve au redemarrage
+- [ ] Ctrl+F / Ctrl+H : barre en haut a droite, recherche a la frappe, Aa, F3 / Maj+F3, « 2 sur 5 », Tout remplacer annule d'un seul Ctrl+Z
 - [ ] Coloration, numeros de ligne, retour a la ligne, indentation
 - [ ] Execution du document, puis de la seule selection
 - [ ] Script a plusieurs lots `GO`, dont un en erreur : les suivants s'executent, ligne d'erreur recalee
