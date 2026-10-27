@@ -7,6 +7,7 @@ using Querify.Databases.Models.Connections;
 using Querify.Languages.Commons.Editors.Completion;
 using Querify.Services.Editors.Highlighting;
 using Quill.Code.Completion;
+using Quill.Code.Highlighting;
 using System.Collections.Concurrent;
 
 namespace Querify.Services.Editors.Completion;

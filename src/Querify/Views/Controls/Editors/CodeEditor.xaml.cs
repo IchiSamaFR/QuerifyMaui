@@ -505,7 +505,7 @@ public partial class CodeEditor : ContentView
             return;
 
         // Un controle ne recoit pas ses dependances par constructeur : c'est le cas prevu pour Ioc.
-        _highlighting = new SyntaxHighlightingController(Native, Ioc.GetRequiredService<ISyntaxHighlighter>());
+        _highlighting = new SyntaxHighlightingController(Native);
         _highlighting.Start(SyntaxConfiguration.Definition);
     }
 

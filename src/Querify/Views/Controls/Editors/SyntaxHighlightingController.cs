@@ -1,7 +1,6 @@
 ﻿using CodeEdit.Maui;
 using RichEdit.Maui;
-using Querify.Core.Models.Editors.Highlighting;
-using Querify.Services.Editors.Highlighting;
+using Quill.Code.Highlighting;
 using Querify.UI.Extensions;
 using System.Collections.Concurrent;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
@@ -19,19 +18,17 @@ public sealed class SyntaxHighlightingController : IDisposable
     private static readonly TimeSpan DebounceDelay = TimeSpan.FromMilliseconds(150);
 
     private readonly NativeCodeEditor _editor;
-    private readonly ISyntaxHighlighter _highlighter;
     private readonly RichTextDecorationLayer _layer;
 
     private SyntaxDefinition? _definition;
     private CancellationTokenSource? _pending;
     private bool _isDisposed;
 
-    public SyntaxHighlightingController(NativeCodeEditor editor, ISyntaxHighlighter highlighter)
+    public SyntaxHighlightingController(NativeCodeEditor editor)
     {
         ArgumentNullException.ThrowIfNull(editor);
 
         _editor = editor;
-        _highlighter = highlighter;
         _layer = editor.Decorations.CreateLayer();
 
         _editor.ContentChanged += OnEditorChanged;
@@ -74,8 +71,8 @@ public sealed class SyntaxHighlightingController : IDisposable
             var decorations = await Task.Run(() =>
             {
                 var text = snapshot.Text;
-                var tokens = _highlighter.Tokenize(definition, text, cancellationToken);
-                return BuildDecorations(tokens, text.Length, definition.DefaultColor);
+                var tokens = Quill.Code.Highlighting.SyntaxHighlighter.Highlight(definition, text, cancellationToken);
+                return BuildDecorations(tokens, text.Length, definition.DefaultColor?.Foreground);
             }, cancellationToken);
 
             _editor.Dispatcher.Dispatch(() =>
@@ -112,8 +109,11 @@ public sealed class SyntaxHighlightingController : IDisposable
             if (defaultColor is not null && token.Start > position)
                 decorations.Add(Decorate(position, token.Start - position, defaultColor));
 
-            decorations.Add(Decorate(token.Start, token.Length, token.Color));
-            position = token.Start + token.Length;
+            // Regle sans couleur : texte reconnu, laisse a la couleur par defaut.
+            if ((token.Color?.Foreground ?? defaultColor) is { } color)
+                decorations.Add(Decorate(token.Start, token.Length, color));
+
+            position = token.End;
         }
 
         if (defaultColor is not null && length > position)
