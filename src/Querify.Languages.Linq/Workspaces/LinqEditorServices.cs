@@ -5,31 +5,31 @@ using Querify.Databases.Models.Queries;
 using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
-using Quill.Code.CSharp.Workspaces;
+using Quill.Code.CSharp;
 using System.Data.Common;
 
 namespace Querify.Languages.Linq.Workspaces;
 
-/// <inheritdoc cref="ILinqEditorDocuments"/>
-[AutoRegister(As = typeof(ILinqEditorDocuments))]
-public sealed class LinqEditorDocuments : ILinqEditorDocuments
+/// <inheritdoc cref="ILinqEditorServices"/>
+/// <remarks>Distinct de <see cref="ILinqLanguageServices"/> : le cache des modeles depend du compilateur, qui depend des services.</remarks>
+[AutoRegister(As = typeof(ILinqEditorServices))]
+public sealed class LinqEditorServices : ILinqEditorServices
 {
     private readonly ILinqModelCache _models;
-    private readonly ILinqWorkspace _workspace;
+    private readonly ILinqLanguageServices _services;
 
-    public LinqEditorDocuments(ILinqModelCache models, ILinqWorkspace workspace)
+    public LinqEditorServices(ILinqModelCache models, ILinqLanguageServices services)
     {
         _models = models;
-        _workspace = workspace;
+        _services = services;
     }
 
-    public async Task<CSharpDocument> GetAsync(string query, DatabaseConnectionInfo? connection, string? database, IReadOnlyList<QueryParameter> parameters, CancellationToken cancellationToken = default)
+    public async Task<ICSharpLanguageService> GetAsync(DatabaseConnectionInfo? connection, string? database, IReadOnlyList<QueryParameter> parameters, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(parameters);
 
         var model = await TryGetModelAsync(connection, database, cancellationToken);
-        return _workspace.GetDocument(model, query, ToParameters(parameters));
+        return _services.Get(model, ToParameters(parameters));
     }
 
     /// <summary>DbContext de la base, ou null (pas de connexion, base injoignable, modele invalide) : l'analyse se rabat sur le C# seul.</summary>

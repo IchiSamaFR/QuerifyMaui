@@ -53,11 +53,11 @@ public sealed class LinqCompiler : ILinqCompiler
     /// <inheritdoc cref="ParseOptions"/>
     internal static CSharpCompilationOptions CompilationOptions { get; } = new(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Disable);
 
-    private readonly ILinqWorkspace _workspace;
+    private readonly ILinqLanguageServices _services;
 
-    public LinqCompiler(ILinqWorkspace workspace)
+    public LinqCompiler(ILinqLanguageServices services)
     {
-        _workspace = workspace;
+        _services = services;
     }
 
     public LinqModelAssembly CompileModel(EfGeneratedModel model)
@@ -90,7 +90,7 @@ public sealed class LinqCompiler : ILinqCompiler
         parameters ??= [];
 
         // Le projet Roslyn de l'editeur a deja lie les references : la compilation repart de lui.
-        var linq = _workspace.GetDocument(model, query, parameters);
+        var linq = _services.Get(model, parameters).Project.CreateDocument(query);
         var compilation = await linq.Document.Project.GetCompilationAsync(cancellationToken)
             ?? throw new InvalidOperationException("Roslyn n'a pas produit de compilation pour la requete.");
 

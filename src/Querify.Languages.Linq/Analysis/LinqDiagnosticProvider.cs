@@ -4,7 +4,6 @@ using Querify.Core.Models.Editors.Analysis;
 using Querify.Languages.Commons.Editors.Analysis;
 using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Analysis;
-using Quill.Code.CSharp;
 
 namespace Querify.Languages.Linq.Analysis;
 
@@ -12,13 +11,11 @@ namespace Querify.Languages.Linq.Analysis;
 [AutoRegister(As = typeof(IDiagnosticProvider))]
 public sealed class LinqDiagnosticProvider : IDiagnosticProvider
 {
-    private readonly ILinqEditorDocuments _documents;
-    private readonly ICSharpLanguageService _language;
+    private readonly ILinqEditorServices _services;
 
-    public LinqDiagnosticProvider(ILinqEditorDocuments documents, ICSharpLanguageService language)
+    public LinqDiagnosticProvider(ILinqEditorServices services)
     {
-        _documents = documents;
-        _language = language;
+        _services = services;
     }
 
     public async Task<IReadOnlyList<CodeDiagnostic>> GetDiagnosticsAsync(CodeAnalysisRequest request, CancellationToken cancellationToken = default)
@@ -28,8 +25,8 @@ public sealed class LinqDiagnosticProvider : IDiagnosticProvider
         if (request.Language != SyntaxLanguage.Linq)
             return [];
 
-        var document = await _documents.GetAsync(request.Text, request.Connection, request.Database, request.Parameters, cancellationToken);
-        var diagnostics = await _language.GetDiagnosticsAsync(document, cancellationToken);
+        var service = await _services.GetAsync(request.Connection, request.Database, request.Parameters, cancellationToken);
+        var diagnostics = await service.GetDiagnosticsAsync(request.Text, cancellationToken);
 
         // Les informations (suggestions) ne sont pas soulignees dans un onglet LINQ.
         return diagnostics.Where(d => d.Severity != CodeDiagnosticSeverity.Info).ToArray();

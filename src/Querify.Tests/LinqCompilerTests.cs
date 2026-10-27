@@ -13,7 +13,7 @@ public class LinqCompilerTests
 {
     private const string ConnectionString = "Server=localhost;Database=RaveOnDb;Trusted_Connection=True;TrustServerCertificate=True";
 
-    private static readonly LinqCompiler Compiler = new(TestLinq.Workspace);
+    private static readonly LinqCompiler Compiler = new(TestLinq.Services);
 
     private static readonly Lazy<LinqModelAssembly> Model = new(() => Compiler.CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
 

@@ -1,7 +1,6 @@
 ﻿using Querify.Core.Ioc;
 using Querify.Databases;
 using Querify.Languages;
-using Quill.Code.CSharp;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -16,7 +15,6 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddDatabases()
-            .AddQuillCSharp()
             .AddAutoRegisteredServices([typeof(ServiceCollectionExtensions).Assembly, .. LanguageAssemblies.All]);
     }
 
