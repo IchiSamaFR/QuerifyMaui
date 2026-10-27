@@ -5,7 +5,6 @@ using Querify.Databases.Models.Connections;
 using Querify.Languages.Commons.Editors.Completion;
 using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Completion;
-using Quill.Code.CSharp;
 
 namespace Querify.Languages.Linq.Completion;
 
@@ -16,13 +15,11 @@ namespace Querify.Languages.Linq.Completion;
 [AutoRegister(As = typeof(ICompletionProvider))]
 public sealed class LinqCompletionProvider : ICompletionProvider
 {
-    private readonly ILinqEditorDocuments _documents;
-    private readonly ICSharpLanguageService _language;
+    private readonly ILinqEditorServices _services;
 
-    public LinqCompletionProvider(ILinqEditorDocuments documents, ICSharpLanguageService language)
+    public LinqCompletionProvider(ILinqEditorServices services)
     {
-        _documents = documents;
-        _language = language;
+        _services = services;
     }
 
     /// <summary>
@@ -34,8 +31,8 @@ public sealed class LinqCompletionProvider : ICompletionProvider
         if (language != SyntaxLanguage.Linq)
             return;
 
-        var document = await _documents.GetAsync(string.Empty, connection, database: null, [], cancellationToken);
-        await _language.WarmUpAsync(document, cancellationToken);
+        var service = await _services.GetAsync(connection, database: null, [], cancellationToken);
+        await service.WarmUpAsync(cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default)
@@ -45,7 +42,7 @@ public sealed class LinqCompletionProvider : ICompletionProvider
         if (request.Language != SyntaxLanguage.Linq)
             return [];
 
-        var document = await _documents.GetAsync(request.Text, request.Connection, request.Database, request.Parameters, cancellationToken);
-        return (await _language.GetCompletionsAsync(document, request.CaretOffset, cancellationToken)).Items;
+        var service = await _services.GetAsync(request.Connection, request.Database, request.Parameters, cancellationToken);
+        return (await service.GetCompletionsAsync(request.Text, request.CaretOffset, cancellationToken)).Items;
     }
 }

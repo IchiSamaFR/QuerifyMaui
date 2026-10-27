@@ -4,7 +4,6 @@ using Querify.Core.Models.Editors.Analysis;
 using Querify.Languages.Commons.Editors.Analysis;
 using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Analysis;
-using Quill.Code.CSharp;
 
 namespace Querify.Languages.Linq.Analysis;
 
@@ -12,13 +11,11 @@ namespace Querify.Languages.Linq.Analysis;
 [AutoRegister(As = typeof(IHoverProvider))]
 public sealed class LinqHoverProvider : IHoverProvider
 {
-    private readonly ILinqEditorDocuments _documents;
-    private readonly ICSharpLanguageService _language;
+    private readonly ILinqEditorServices _services;
 
-    public LinqHoverProvider(ILinqEditorDocuments documents, ICSharpLanguageService language)
+    public LinqHoverProvider(ILinqEditorServices services)
     {
-        _documents = documents;
-        _language = language;
+        _services = services;
     }
 
     public async Task<HoverInfo?> GetHoverAsync(CodeAnalysisRequest request, CancellationToken cancellationToken = default)
@@ -28,7 +25,7 @@ public sealed class LinqHoverProvider : IHoverProvider
         if (request.Language != SyntaxLanguage.Linq)
             return null;
 
-        var document = await _documents.GetAsync(request.Text, request.Connection, request.Database, request.Parameters, cancellationToken);
-        return await _language.GetHoverAsync(document, request.Offset, cancellationToken);
+        var service = await _services.GetAsync(request.Connection, request.Database, request.Parameters, cancellationToken);
+        return await service.GetHoverAsync(request.Text, request.Offset, cancellationToken);
     }
 }
