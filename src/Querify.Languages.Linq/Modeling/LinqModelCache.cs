@@ -43,5 +43,5 @@ public sealed class LinqModelCache : ILinqModelCache
     }
 
     private Task<LinqModelAssembly> Compile(DatabaseSchemaSnapshot snapshot)
-        => Task.Run(() => _compiler.CompileModel(_generator.Generate(snapshot)));
+        => Task.Run(() => _compiler.CompileModelAsync(_generator.Generate(snapshot)));
 }

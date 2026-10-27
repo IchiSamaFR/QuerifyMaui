@@ -11,7 +11,7 @@ namespace Querify.Languages.Linq.Compilation;
 public interface ILinqCompiler
 {
     /// <summary>Compile et charge le modele genere ; leve <see cref="LinqCompilationException"/> en cas d'echec.</summary>
-    LinqModelAssembly CompileModel(EfGeneratedModel model);
+    Task<LinqModelAssembly> CompileModelAsync(EfGeneratedModel model, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Compile une expression LINQ depuis le document du workspace (celui que l'editeur analyse) ; les erreurs
