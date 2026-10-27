@@ -1,6 +1,7 @@
 ﻿using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Analysis;
 using Querify.Languages.Commons.Editors.Analysis;
+using Quill.Code.Analysis;
 
 namespace Querify.Services.Editors.Analysis;
 

@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Quill.Code.Completion;
 
 namespace Querify.Core.Models.Editors.Completion;
 

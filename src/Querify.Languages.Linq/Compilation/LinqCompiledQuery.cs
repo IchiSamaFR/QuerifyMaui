@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Querify.Core.Models.Editors.Analysis;
+using Quill.Code.Analysis;
 using System.Runtime.Loader;
 
 namespace Querify.Languages.Linq.Compilation;

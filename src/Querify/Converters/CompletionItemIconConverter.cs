@@ -1,6 +1,6 @@
 ﻿using MauiIcons.Fluent.Filled;
-using Querify.Core.Enums.Editors.Completion;
 using Querify.UI.Tools;
+using Quill.Code.Completion;
 using System.Globalization;
 
 namespace Querify.Converters;
@@ -29,10 +29,11 @@ public sealed class CompletionItemIconConverter : IValueConverter
             CompletionItemKind.Function => FluentFilledIcons.MathFormula16Filled,
             CompletionItemKind.DataType => FluentFilledIcons.NumberSymbol16Filled,
             CompletionItemKind.Snippet or CompletionItemKind.Namespace => FluentFilledIcons.Braces16Filled,
-            CompletionItemKind.Property or CompletionItemKind.Field => FluentFilledIcons.Textbox16Filled,
-            CompletionItemKind.Method => FluentFilledIcons.Cube16Filled,
-            CompletionItemKind.Variable => FluentFilledIcons.DocumentText16Filled,
-            CompletionItemKind.Type => FluentFilledIcons.Shapes16Filled,
+            CompletionItemKind.Property or CompletionItemKind.Field or CompletionItemKind.Event
+                or CompletionItemKind.Constant or CompletionItemKind.EnumMember => FluentFilledIcons.Textbox16Filled,
+            CompletionItemKind.Method or CompletionItemKind.ExtensionMethod => FluentFilledIcons.Cube16Filled,
+            CompletionItemKind.Variable or CompletionItemKind.Parameter => FluentFilledIcons.DocumentText16Filled,
+            _ when kind.IsType() => FluentFilledIcons.Shapes16Filled,
             CompletionItemKind.Text => FluentFilledIcons.TextT20Filled,
             _ => FluentFilledIcons.TextFont16Filled,
         });

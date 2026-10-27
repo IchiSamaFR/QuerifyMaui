@@ -9,6 +9,7 @@ using Querify.Databases.Models.Schemas;
 using Querify.Databases.Schemas;
 using Querify.Languages.Commons.Editors.Analysis;
 using Querify.Languages.Sql.Completion;
+using Quill.Code.Analysis;
 using System.Data.Common;
 using System.Text;
 

@@ -4,6 +4,7 @@ using Querify.Core.Models.Editors.Analysis;
 using Querify.Languages.Commons.Editors.Analysis;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
+using Quill.Code.Analysis;
 
 namespace Querify.Languages.Linq.Analysis;
 

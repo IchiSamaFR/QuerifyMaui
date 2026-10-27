@@ -2,7 +2,7 @@
 using Querify.Languages.Linq.Completion;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
-using Querify.Languages.Linq.Workspaces;
+using Quill.Code.Completion;
 using Xunit;
 
 namespace Querify.Tests;
@@ -10,16 +10,16 @@ namespace Querify.Tests;
 /// <summary>Le caractere | marque le curseur ; Roslyn complete dans le contexte genere.</summary>
 public class LinqCompletionEngineTests
 {
-    private static readonly LinqCompletionEngine Engine = new(new LinqWorkspace());
+    private static readonly LinqCompletionEngine Engine = new(TestLinq.Workspace, TestLinq.Language);
 
-    private static readonly Lazy<LinqModelAssembly> Model = new(() => new LinqCompiler(new LinqWorkspace()).CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
+    private static readonly Lazy<LinqModelAssembly> Model = new(() => new LinqCompiler(TestLinq.Workspace).CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
 
     [Fact]
     public async Task Context_ListsTables()
     {
         var items = await CompleteAsync("RaveOnDb.|");
 
-        Assert.Contains(items, i => i.InsertText == "AspNetUsers" && i.Kind == "Property");
+        Assert.Contains(items, i => i.InsertText == "AspNetUsers" && i.Kind == CompletionItemKind.Property);
         Assert.Contains(items, i => i.InsertText == "Sales_Orders");
     }
 
@@ -29,9 +29,9 @@ public class LinqCompletionEngineTests
         const string query = "RaveOnDb.AspNetUsers.Where(u => u.AccessFailedCount > |)";
         var caret = query.IndexOf('|', StringComparison.Ordinal);
 
-        var items = await Engine.GetCompletionsAsync(Model.Value, query.Remove(caret, 1), caret, [new LinqParameter("MaxFailures", typeof(int?), null)]);
+        var items = (await Engine.GetCompletionsAsync(Model.Value, query.Remove(caret, 1), caret, [new LinqParameter("MaxFailures", typeof(int?), null)])).Items;
 
-        Assert.Contains(items, i => i.InsertText == "MaxFailures" && i.Kind == "Local");
+        Assert.Contains(items, i => i.InsertText == "MaxFailures" && i.Kind == CompletionItemKind.Variable);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class LinqCompletionEngineTests
     {
         var items = await CompleteAsync("RaveOnDb.AspNetUsers.Where(u => u.|)");
 
-        Assert.Contains(items, i => i.InsertText == "Email" && i.Kind == "Property");
+        Assert.Contains(items, i => i.InsertText == "Email" && i.Kind == CompletionItemKind.Property);
         Assert.Contains(items, i => i.InsertText == "EmailConfirmed");
     }
 
@@ -48,7 +48,7 @@ public class LinqCompletionEngineTests
     {
         var items = await CompleteAsync("RaveOnDb.AspNetUsers.Wh|");
 
-        Assert.Contains(items, i => i.InsertText == "Where" && i.Kind is "Method" or "ExtensionMethod");
+        Assert.Contains(items, i => i.InsertText == "Where" && i.Kind is CompletionItemKind.Method or CompletionItemKind.ExtensionMethod);
     }
 
     [Fact]
@@ -79,14 +79,14 @@ public class LinqCompletionEngineTests
     public async Task WithoutModel_StillCompletesCSharp()
     {
         var caret = "DateTime.".Length;
-        var items = await Engine.GetCompletionsAsync(null, "DateTime.", caret);
+        var items = (await Engine.GetCompletionsAsync(null, "DateTime.", caret)).Items;
 
         Assert.Contains(items, i => i.InsertText == "Now");
     }
 
-    private static Task<IReadOnlyList<LinqCompletionCandidate>> CompleteAsync(string queryWithCaret)
+    private static async Task<IReadOnlyList<CompletionItem>> CompleteAsync(string queryWithCaret)
     {
         var caret = queryWithCaret.IndexOf('|', StringComparison.Ordinal);
-        return Engine.GetCompletionsAsync(Model.Value, queryWithCaret.Remove(caret, 1), caret);
+        return (await Engine.GetCompletionsAsync(Model.Value, queryWithCaret.Remove(caret, 1), caret)).Items;
     }
 }

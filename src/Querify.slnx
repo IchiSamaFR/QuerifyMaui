@@ -30,6 +30,10 @@
     <Project Path="Querify.Languages.Sql/Querify.Languages.Sql.csproj" />
     <Project Path="Querify.Languages/Querify.Languages.csproj" />
   </Folder>
+  <Folder Name="/Quill/">
+    <Project Path="../../Quill.Code/src/Quill.Code/Quill.Code.csproj" />
+    <Project Path="../../Quill.Code/src/Quill.Code.CSharp/Quill.Code.CSharp.csproj" />
+  </Folder>
   <Project Path="Querify.Core/Querify.Core.csproj" Id="20581ecd-a9bd-40f1-b6f2-a5b075ddf732" />
   <Project Path="Querify.Helpers/Querify.Helpers.csproj" Id="641a0d0c-2ec1-4dea-928a-d0e9521c2936" />
   <Project Path="Querify.UI/Querify.UI.csproj" Id="a2828b3a-0de5-41ce-8065-a2932b7b2f25" />

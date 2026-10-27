@@ -1,6 +1,6 @@
 ﻿using CodeEdit.Maui;
+using Quill.Code.Completion;
 using RichEdit.Maui;
-using Querify.Core.Enums.Editors.Completion;
 using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Models.Editors.Completion;
 using Querify.Databases.Models.Connections;

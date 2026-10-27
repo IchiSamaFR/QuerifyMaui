@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis.Tags;
-using Querify.Core.Enums.Editors.Completion;
-using Querify.Core.Enums.Editors.Highlighting;
+﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Completion;
 using Querify.Databases.Models.Connections;
@@ -8,6 +6,7 @@ using Querify.Languages.Commons.Editors.Completion;
 using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
+using Quill.Code.Completion;
 
 namespace Querify.Languages.Linq.Completion;
 
@@ -53,27 +52,7 @@ public sealed class LinqCompletionProvider : ICompletionProvider
         var model = await LinqRequestResolver.TryGetModelAsync(_models, request.Connection, request.Database, cancellationToken);
         var parameters = LinqRequestResolver.ToParameters(request.Parameters);
 
-        var candidates = await _engine.GetCompletionsAsync(model, request.Text, request.CaretOffset, parameters, cancellationToken);
-
-        return candidates.Select(c => new CompletionItem
-        {
-            Label = c.Label,
-            InsertText = c.InsertText,
-            Kind = ToKind(c.Kind),
-            Detail = c.Detail
-        }).ToArray();
+        var list = await _engine.GetCompletionsAsync(model, request.Text, request.CaretOffset, parameters, cancellationToken);
+        return list.Items;
     }
-
-    private static CompletionItemKind ToKind(string roslynKind) => roslynKind switch
-    {
-        WellKnownTags.Method or WellKnownTags.ExtensionMethod => CompletionItemKind.Method,
-        WellKnownTags.Property => CompletionItemKind.Property,
-        WellKnownTags.Field or WellKnownTags.EnumMember or WellKnownTags.Event => CompletionItemKind.Field,
-        WellKnownTags.Local or WellKnownTags.Parameter or WellKnownTags.RangeVariable => CompletionItemKind.Variable,
-        WellKnownTags.Class or WellKnownTags.Structure or WellKnownTags.Interface or WellKnownTags.Enum or WellKnownTags.Delegate => CompletionItemKind.Type,
-        WellKnownTags.Namespace => CompletionItemKind.Namespace,
-        WellKnownTags.Keyword => CompletionItemKind.Keyword,
-        WellKnownTags.Snippet => CompletionItemKind.Snippet,
-        _ => CompletionItemKind.Text
-    };
 }

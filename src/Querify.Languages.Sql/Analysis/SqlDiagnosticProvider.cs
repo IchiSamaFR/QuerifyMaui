@@ -1,10 +1,10 @@
 ﻿using Microsoft.SqlServer.TransactSql.ScriptDom;
-using Querify.Core.Enums.Editors.Analysis;
 using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Analysis;
 using Querify.Languages.Commons.Editors.Analysis;
 using Querify.Languages.Sql.Completion;
+using Quill.Code.Analysis;
 using System.Globalization;
 
 namespace Querify.Languages.Sql.Analysis;

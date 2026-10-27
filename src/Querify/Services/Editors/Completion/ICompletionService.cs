@@ -1,6 +1,7 @@
 ﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Models.Editors.Completion;
 using Querify.Databases.Models.Connections;
+using Quill.Code.Completion;
 
 namespace Querify.Services.Editors.Completion;
 

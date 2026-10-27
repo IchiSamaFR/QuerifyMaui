@@ -1,4 +1,4 @@
-﻿using Querify.Core.Enums.Editors.Completion;
+﻿using Quill.Code.Completion;
 using System.Globalization;
 
 namespace Querify.Converters;
@@ -28,9 +28,10 @@ public sealed class CompletionItemIconColorConverter : IValueConverter
             CompletionItemKind.Database => DatabaseName,
             CompletionItemKind.Function or CompletionItemKind.Procedure => Callable,
             CompletionItemKind.Text => PlainText,
-            CompletionItemKind.Property or CompletionItemKind.Field or CompletionItemKind.Variable => Identifier,
-            CompletionItemKind.Method => MethodName,
-            CompletionItemKind.Type => TypeName,
+            CompletionItemKind.Property or CompletionItemKind.Field or CompletionItemKind.Variable or CompletionItemKind.Parameter
+                or CompletionItemKind.Event or CompletionItemKind.Constant or CompletionItemKind.EnumMember => Identifier,
+            CompletionItemKind.Method or CompletionItemKind.ExtensionMethod => MethodName,
+            _ when kind.IsType() => TypeName,
             CompletionItemKind.Namespace => NamespaceName,
             _ => Keyword,
         };
