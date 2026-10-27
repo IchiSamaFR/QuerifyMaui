@@ -15,6 +15,10 @@ public partial class UserPreferences : ObservableObject
     [ObservableProperty]
     public partial List<string> TrustedDashboards { get; set; } = [];
 
+    /// <summary>Derniere connexion de chaque fichier, la plus recente en tete ; remplacee (jamais modifiee) pour notifier les vues.</summary>
+    [ObservableProperty]
+    public partial List<FileConnection> FileConnections { get; set; } = [];
+
     /// <summary>Rouvrir au demarrage les onglets laisses ouverts a la fermeture (modifications des onglets sans titre comprises).</summary>
     [ObservableProperty]
     public partial bool RestoreOpenTabs { get; set; } = true;

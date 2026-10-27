@@ -23,6 +23,9 @@ public sealed class WorkspaceTab
     /// <summary>Texte en cours d'edition ; null quand le fichier est a relire.</summary>
     public string? EditorText { get; set; }
 
+    /// <summary>Connexion de l'onglet ; reprise a la restauration si elle existe encore.</summary>
+    public Guid? ConnectionId { get; set; }
+
     public int SelectionAnchor { get; set; }
 
     public int SelectionActive { get; set; }

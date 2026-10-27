@@ -70,6 +70,9 @@ public partial class MainVM : AbstractVM
         Preferences = preferences.Preferences;
         MainMenuBar = mainMenuBar;
 
+        // Changement de connexion par l'utilisateur : retenue pour le fichier de l'onglet.
+        _connection.SelectedConnectionChanged += (_, _) => RememberConnection(SelectedSession);
+
         WeakReferenceMessenger.Default.Register<MainVM, InsertQueryMessage>(this, static (vm, message) => vm.InsertQuery(message));
     }
 
