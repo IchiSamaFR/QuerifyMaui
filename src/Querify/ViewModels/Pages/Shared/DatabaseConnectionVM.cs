@@ -55,6 +55,9 @@ public partial class DatabaseConnectionVM : ObservableObject
 
     public Task RefreshAsync(CancellationToken token) => _connectionStore.RefreshAsync(token);
 
+    /// <summary>Vrai si la connexion existe (encore) dans la liste.</summary>
+    public bool Exists(Guid? connectionId) => connectionId is { } id && Connections.Any(c => c.Id == id);
+
     /// <summary>Selectionne la connexion du meme identifiant, si elle existe encore.</summary>
     public void Select(Guid connectionId)
         => SelectedConnection = Connections.FirstOrDefault(c => c.Id == connectionId) ?? SelectedConnection;
@@ -92,9 +95,17 @@ public partial class DatabaseConnectionVM : ObservableObject
 
         // Liste chargee apres la restauration des onglets, ou connexion supprimee : l'onglet retrouve la sienne.
         if (_session is not null)
+        {
             AttachSession(_session);
+
+            // La connexion de l'onglet affiche vient d'apparaitre (ou de disparaitre) : son contenu suit (cartes relues).
+            if (SelectedConnection?.Id != selectedConnectionId)
+                SelectedConnectionChanged?.Invoke(this, EventArgs.Empty);
+        }
         else if (selectedConnectionId is { } id)
+        {
             Select(id);
+        }
     }
 
     /// <summary>Reinitialise la selection du Picker (aucune connexion).</summary>

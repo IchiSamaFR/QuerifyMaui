@@ -36,6 +36,10 @@ public partial class MainVM
     /// <summary>Memorise les onglets ouverts ; synchrone car appele pendant la fermeture de la fenetre.</summary>
     public void SaveWorkspace()
     {
+        // Connexion de chaque fichier ouvert, retenue avant l'ecriture des preferences.
+        foreach (var session in Sessions)
+            RememberConnection(session);
+
         // Une modification de preference encore en attente d'ecriture serait perdue.
         _preferencesStore.Flush();
 
@@ -82,6 +86,7 @@ public partial class MainVM
             Language = document.Language,
             FileText = keepText ? document.FileText : null,
             EditorText = keepText ? document.EditorText : null,
+            ConnectionId = session.ConnectionId,
             SelectionAnchor = document.Selection.Anchor,
             SelectionActive = document.Selection.Active,
         };
@@ -164,6 +169,9 @@ public partial class MainVM
         AbstractSession session = tab.Kind == WorkspaceTabKind.Dashboard
             ? new DashboardSession(document)
             : new CodeEditorSession(document);
+
+        // Connexion de l'onglet a la fermeture, a defaut celle retenue pour le fichier.
+        ApplyRememberedConnection(session, tab.ConnectionId);
         return session;
     }
 }

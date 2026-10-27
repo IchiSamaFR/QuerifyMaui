@@ -132,7 +132,9 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
         // La connexion du fichier est choisie AVANT d'ouvrir la page : sinon les cartes etaient lues
         // une premiere fois sans connexion (ou sur la precedente), puis relues apres le changement.
         // Aucune page n'est ouverte a ce stade : le changement de connexion ne relit rien.
-        if (session.Definition?.Connection is { } name)
+        // Une connexion retenue (et toujours existante) prime sur celle nommee dans le fichier.
+        var keepsRemembered = session.HasRememberedConnection && Connection.Exists(session.ConnectionId);
+        if (!keepsRemembered && session.Definition?.Connection is { } name)
         {
             using var _ = PerfTrace.Measure($"Open > SelectByName({name})");
             Connection.SelectByName(name);

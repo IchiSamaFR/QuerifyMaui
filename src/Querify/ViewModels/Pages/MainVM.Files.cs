@@ -104,12 +104,16 @@ public partial class MainVM
             _status.Set($"{fileName} ouvert.");
             PerfTrace.Mark($"Ouverture du dashboard {fileName}");
             using var _ = PerfTrace.Measure("MainVM : Add(DashboardSession)");
-            Add(new DashboardSession(new EditorDocument(fileName, content.FilePath, content.Text, SyntaxLanguage.None)));
+            var dashboard = new DashboardSession(new EditorDocument(fileName, content.FilePath, content.Text, SyntaxLanguage.None));
+            ApplyRememberedConnection(dashboard);
+            Add(dashboard);
             return;
         }
 
         var language = await _syntaxConfigurations.FindLanguageAsync(content.FilePath, token) ?? SyntaxLanguage.Sql;
-        Add(new CodeEditorSession(new EditorDocument(fileName, content.FilePath, content.Text, language)));
+        var session = new CodeEditorSession(new EditorDocument(fileName, content.FilePath, content.Text, language));
+        ApplyRememberedConnection(session);
+        Add(session);
         _status.Set($"{fileName} ouvert.");
     }
 
@@ -146,6 +150,7 @@ public partial class MainVM
 
                 document.FilePath = path;
                 AddRecentFile(path);
+                RememberConnection(session);
                 NotifyTabPathChanged();
             }
 
@@ -197,6 +202,7 @@ public partial class MainVM
 
         var wasSelected = SelectedSession == session;
 
+        RememberConnection(session);
         Sessions.Remove(session);
 
         if (wasSelected)
@@ -301,6 +307,7 @@ public partial class MainVM
         {
             var newPath = await _files.RenameAsync(oldPath, fileName, token);
             document.FilePath = newPath;
+            MoveRememberedConnection(oldPath, newPath);
 
             if (Preferences.RecentFiles.Any(p => IsSamePath(p, oldPath)))
                 Preferences.RecentFiles = [.. Preferences.RecentFiles.Select(p => IsSamePath(p, oldPath) ? newPath : p)];

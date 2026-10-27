@@ -18,6 +18,9 @@ public sealed partial class DashboardSession : AbstractSession
     {
     }
 
+    /// <summary>Connexion reprise de la derniere utilisation du fichier : elle prime sur celle nommee dans le .schx.</summary>
+    public bool HasRememberedConnection { get; set; }
+
     /// <summary>Un bouton ou une ligne de tableau demande l'ouverture d'une page.</summary>
     public event EventHandler<DashboardNavigationRequest>? NavigationRequested;
 
