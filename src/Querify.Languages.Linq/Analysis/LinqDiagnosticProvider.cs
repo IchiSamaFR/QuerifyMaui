@@ -2,23 +2,23 @@
 using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Analysis;
 using Querify.Languages.Commons.Editors.Analysis;
-using Querify.Languages.Linq.Modeling;
-using Querify.Languages.Linq.Queries;
+using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Analysis;
+using Quill.Code.CSharp;
 
 namespace Querify.Languages.Linq.Analysis;
 
-/// <summary>Erreurs de compilation d'un onglet LINQ, telles que l'execution les leverait.</summary>
+/// <summary>Erreurs de compilation d'un onglet LINQ, telles que l'execution les leverait ; sans DbContext, seules les fautes de syntaxe.</summary>
 [AutoRegister(As = typeof(IDiagnosticProvider))]
 public sealed class LinqDiagnosticProvider : IDiagnosticProvider
 {
-    private readonly ILinqModelCache _models;
-    private readonly ILinqAnalysisEngine _engine;
+    private readonly ILinqEditorDocuments _documents;
+    private readonly ICSharpLanguageService _language;
 
-    public LinqDiagnosticProvider(ILinqModelCache models, ILinqAnalysisEngine engine)
+    public LinqDiagnosticProvider(ILinqEditorDocuments documents, ICSharpLanguageService language)
     {
-        _models = models;
-        _engine = engine;
+        _documents = documents;
+        _language = language;
     }
 
     public async Task<IReadOnlyList<CodeDiagnostic>> GetDiagnosticsAsync(CodeAnalysisRequest request, CancellationToken cancellationToken = default)
@@ -28,7 +28,10 @@ public sealed class LinqDiagnosticProvider : IDiagnosticProvider
         if (request.Language != SyntaxLanguage.Linq)
             return [];
 
-        var model = await LinqRequestResolver.TryGetModelAsync(_models, request.Connection, request.Database, cancellationToken);
-        return await _engine.GetDiagnosticsAsync(model, request.Text, LinqRequestResolver.ToParameters(request.Parameters), cancellationToken);
+        var document = await _documents.GetAsync(request.Text, request.Connection, request.Database, request.Parameters, cancellationToken);
+        var diagnostics = await _language.GetDiagnosticsAsync(document, cancellationToken);
+
+        // Les informations (suggestions) ne sont pas soulignees dans un onglet LINQ.
+        return diagnostics.Where(d => d.Severity != CodeDiagnosticSeverity.Info).ToArray();
     }
 }

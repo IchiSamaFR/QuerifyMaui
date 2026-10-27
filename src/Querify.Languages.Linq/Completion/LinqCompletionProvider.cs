@@ -3,27 +3,26 @@ using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Completion;
 using Querify.Databases.Models.Connections;
 using Querify.Languages.Commons.Editors.Completion;
-using Querify.Languages.Linq.Compilation;
-using Querify.Languages.Linq.Modeling;
-using Querify.Languages.Linq.Queries;
+using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Completion;
+using Quill.Code.CSharp;
 
 namespace Querify.Languages.Linq.Completion;
 
 /// <summary>
-/// IntelliSense C# des onglets LINQ : Roslyn analyse la requete dans le contexte genere
+/// IntelliSense C# des onglets LINQ (Quill) : Roslyn analyse la requete dans le contexte genere
 /// (RaveOnDb. -> tables, u. -> colonnes, .Wh -> Where), mots-cles C# compris.
 /// </summary>
 [AutoRegister(As = typeof(ICompletionProvider))]
 public sealed class LinqCompletionProvider : ICompletionProvider
 {
-    private readonly ILinqModelCache _models;
-    private readonly ILinqCompletionEngine _engine;
+    private readonly ILinqEditorDocuments _documents;
+    private readonly ICSharpLanguageService _language;
 
-    public LinqCompletionProvider(ILinqModelCache models, ILinqCompletionEngine engine)
+    public LinqCompletionProvider(ILinqEditorDocuments documents, ICSharpLanguageService language)
     {
-        _models = models;
-        _engine = engine;
+        _documents = documents;
+        _language = language;
     }
 
     /// <summary>
@@ -35,11 +34,8 @@ public sealed class LinqCompletionProvider : ICompletionProvider
         if (language != SyntaxLanguage.Linq)
             return;
 
-        LinqModelAssembly? model = null;
-        if (connection is { IsConnected: true })
-            model = await _models.GetModelAsync(connection, database: null, cancellationToken);
-
-        await _engine.GetCompletionsAsync(model, string.Empty, 0, cancellationToken: cancellationToken);
+        var document = await _documents.GetAsync(string.Empty, connection, database: null, [], cancellationToken);
+        await _language.WarmUpAsync(document, cancellationToken);
     }
 
     public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default)
@@ -49,10 +45,7 @@ public sealed class LinqCompletionProvider : ICompletionProvider
         if (request.Language != SyntaxLanguage.Linq)
             return [];
 
-        var model = await LinqRequestResolver.TryGetModelAsync(_models, request.Connection, request.Database, cancellationToken);
-        var parameters = LinqRequestResolver.ToParameters(request.Parameters);
-
-        var list = await _engine.GetCompletionsAsync(model, request.Text, request.CaretOffset, parameters, cancellationToken);
-        return list.Items;
+        var document = await _documents.GetAsync(request.Text, request.Connection, request.Database, request.Parameters, cancellationToken);
+        return (await _language.GetCompletionsAsync(document, request.CaretOffset, cancellationToken)).Items;
     }
 }

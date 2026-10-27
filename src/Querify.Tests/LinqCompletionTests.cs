@@ -1,5 +1,4 @@
 ﻿using Querify.Languages.Linq.Compilation;
-using Querify.Languages.Linq.Completion;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Quill.Code.Completion;
@@ -8,10 +7,8 @@ using Xunit;
 namespace Querify.Tests;
 
 /// <summary>Le caractere | marque le curseur ; Roslyn complete dans le contexte genere.</summary>
-public class LinqCompletionEngineTests
+public class LinqCompletionTests
 {
-    private static readonly LinqCompletionEngine Engine = new(TestLinq.Workspace, TestLinq.Language);
-
     private static readonly Lazy<LinqModelAssembly> Model = new(() => new LinqCompiler(TestLinq.Workspace).CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
 
     [Fact]
@@ -29,7 +26,7 @@ public class LinqCompletionEngineTests
         const string query = "RaveOnDb.AspNetUsers.Where(u => u.AccessFailedCount > |)";
         var caret = query.IndexOf('|', StringComparison.Ordinal);
 
-        var items = (await Engine.GetCompletionsAsync(Model.Value, query.Remove(caret, 1), caret, [new LinqParameter("MaxFailures", typeof(int?), null)])).Items;
+        var items = await TestLinq.CompleteAsync(Model.Value, query.Remove(caret, 1), caret, [new LinqParameter("MaxFailures", typeof(int?), null)]);
 
         Assert.Contains(items, i => i.InsertText == "MaxFailures" && i.Kind == CompletionItemKind.Variable);
     }
@@ -79,7 +76,7 @@ public class LinqCompletionEngineTests
     public async Task WithoutModel_StillCompletesCSharp()
     {
         var caret = "DateTime.".Length;
-        var items = (await Engine.GetCompletionsAsync(null, "DateTime.", caret)).Items;
+        var items = await TestLinq.CompleteAsync(null, "DateTime.", caret);
 
         Assert.Contains(items, i => i.InsertText == "Now");
     }
@@ -87,6 +84,6 @@ public class LinqCompletionEngineTests
     private static async Task<IReadOnlyList<CompletionItem>> CompleteAsync(string queryWithCaret)
     {
         var caret = queryWithCaret.IndexOf('|', StringComparison.Ordinal);
-        return (await Engine.GetCompletionsAsync(Model.Value, queryWithCaret.Remove(caret, 1), caret)).Items;
+        return await TestLinq.CompleteAsync(Model.Value, queryWithCaret.Remove(caret, 1), caret);
     }
 }
