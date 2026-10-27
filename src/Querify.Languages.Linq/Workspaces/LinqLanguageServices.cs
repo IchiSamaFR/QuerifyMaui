@@ -38,6 +38,13 @@ public sealed class LinqLanguageServices : ILinqLanguageServices
             ParseOptions = LinqCompiler.ParseOptions,
             DocumentName = "requete.cs",
 
+            // Usings et Dump/Console : fixes, Roslyn ne les reanalyse pas a chaque frappe.
+            AdditionalDocuments = new Dictionary<string, string>
+            {
+                ["GlobalUsings.cs"] = LinqCompiler.BuildGlobalUsings(model?.Model),
+                ["QueryRuntime.cs"] = LinqCompiler.QueryRuntimeSource,
+            },
+
             // La requete devient le corps d'une methode ou la variable de la base et les parametres sont declares.
             SourceTransform = query =>
             {

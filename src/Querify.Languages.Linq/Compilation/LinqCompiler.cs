@@ -5,12 +5,13 @@ using Querify.Core.Ioc;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Querify.Languages.Linq.Workspaces;
+using Quill.Code.Analysis;
+using Quill.Code.CSharp;
 using Quill.Code.CSharp.Compilation;
 using Quill.Code.CSharp.Workspaces;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Text;
 
 namespace Querify.Languages.Linq.Compilation;
@@ -59,25 +60,34 @@ public sealed class LinqCompiler : ILinqCompiler
         _services = services;
     }
 
-    public LinqModelAssembly CompileModel(EfGeneratedModel model)
+    public async Task<LinqModelAssembly> CompileModelAsync(EfGeneratedModel model, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        var compilation = CSharpCompilation.Create($"EfModel_{Guid.NewGuid():N}", [CSharpSyntaxTree.ParseText(model.Source, ParseOptions)], PlatformReferences, CompilationOptions);
-        var image = Emit(compilation, out var errors);
-        if (image is null)
-            throw new LinqCompilationException($"Le modele genere pour {model.ContextVariableName} ne compile pas.", errors.Select(e => e.ToString()).ToArray());
+        // Projet a part, sans editeur : le modele est compile seul, une fois par schema.
+        using var service = new CSharpLanguageService($"EfModel_{model.ContextVariableName}", () => new CSharpProjectOptions
+        {
+            References = PlatformReferences,
+            CompilationOptions = CompilationOptions,
+            ParseOptions = ParseOptions,
+        });
 
-        // Contexte non collectable : le modele vit tant que l'application, et EF garde ses types en cache.
-        var context = new AssemblyLoadContext($"EfModel:{model.ContextVariableName}", isCollectible: false);
-        var assembly = context.LoadFromStream(new MemoryStream(image));
+        // Non collectable : le modele vit tant que l'application, et EF garde ses types en cache.
+        var compiled = await service.CompileAsync(model.Source, new CSharpCompileOptions
+        {
+            AssemblyName = $"EfModel_{Guid.NewGuid():N}",
+            Collectible = false,
+        }, cancellationToken);
+
+        if (compiled.Assembly is not { } assembly)
+            throw new LinqCompilationException($"Le modele genere pour {model.ContextVariableName} ne compile pas.", compiled.Errors.Select(e => e.Describe(model.Source)).ToArray());
 
         return new LinqModelAssembly
         {
             Model = model,
             Assembly = assembly,
             ContextType = assembly.GetType($"{model.Namespace}.{model.ContextClassName}", throwOnError: true)!,
-            Reference = MetadataReference.CreateFromImage(image)
+            Reference = compiled.Reference!
         };
     }
 
@@ -128,52 +138,66 @@ public sealed class LinqCompiler : ILinqCompiler
     }
 
     /// <summary>
+    /// Dump() facon LINQPad et Console de la requete, document fixe du projet (<see cref="QueryRuntimeSource"/>).
+    /// Dump affiche une valeur dans son propre onglet et la rend telle quelle. Console masque System.Console dans le
+    /// namespace de la requete : la sortie va dans l'onglet Messages, sans Console.SetOut global (plusieurs requetes
+    /// peuvent tourner en meme temps). Les collecteurs sont statiques : chaque requete est compilee dans sa propre assembly.
+    /// </summary>
+    internal static string QueryRuntimeSource { get; } = $$"""
+        namespace {{QueryNamespace}};
+
+        public static class {{DumpClass}}
+        {
+            internal static Action<object, string> __sink;
+
+            public static T Dump<T>(this T value, string title = null)
+            {
+                __sink?.Invoke(value, title);
+                return value;
+            }
+        }
+
+        public static class {{ConsoleClass}}
+        {
+            internal static Action<string> __sink;
+
+            public static void Write(string value) => __sink?.Invoke(value);
+            public static void Write(object value) => __sink?.Invoke(Convert.ToString(value));
+            public static void Write(string format, params object[] args) => __sink?.Invoke(string.Format(format, args));
+            public static void WriteLine() => __sink?.Invoke(Environment.NewLine);
+            public static void WriteLine(string value) => __sink?.Invoke(value + Environment.NewLine);
+            public static void WriteLine(object value) => __sink?.Invoke(Convert.ToString(value) + Environment.NewLine);
+            public static void WriteLine(string format, params object[] args) => __sink?.Invoke(string.Format(format, args) + Environment.NewLine);
+        }
+        """;
+
+    /// <summary>Usings de la requete, document fixe du projet : la requete ne peut pas en declarer.</summary>
+    internal static string BuildGlobalUsings(EfGeneratedModel? model)
+    {
+        var code = new StringBuilder();
+        code.AppendLine("global using System;");
+        code.AppendLine("global using System.Collections.Generic;");
+        code.AppendLine("global using System.Linq;");
+        code.AppendLine("global using Microsoft.EntityFrameworkCore;");
+        if (model is not null)
+            code.AppendLine($"global using {model.Namespace};");
+
+        return code.ToString();
+    }
+
+    /// <summary>
     /// La requete devient le corps d'une methode ou une variable porte le nom de la base :
     /// une expression seule est retournee telle quelle (le ";" final est tolere), des
     /// instructions avec "return" forment le corps lui-meme (voir <see cref="IsStatementBlock"/>).
     /// #line recale les diagnostics sur le texte de l'onglet.
     /// Sans modele (pas de connexion), le source reste valide pour l'autocompletion C#.
+    /// Usings et Dump/Console sont des documents fixes du projet (<see cref="BuildGlobalUsings"/>, <see cref="QueryRuntimeSource"/>).
     /// </summary>
     /// <returns>Le source et la position du texte de la requete dans ce source.</returns>
     internal static (string Source, int QueryStart) BuildQuerySource(EfGeneratedModel? model, string query, IReadOnlyList<LinqParameter>? parameters = null)
     {
         var code = new StringBuilder();
-        code.AppendLine("using System;");
-        code.AppendLine("using System.Collections.Generic;");
-        code.AppendLine("using System.Linq;");
-        code.AppendLine("using Microsoft.EntityFrameworkCore;");
-        if (model is not null)
-            code.AppendLine($"using {model.Namespace};");
-        code.AppendLine();
         code.AppendLine($"namespace {QueryNamespace};");
-        code.AppendLine();
-        // Dump() facon LINQPad : affiche une valeur dans son propre onglet et la rend telle quelle.
-        // Le collecteur est statique : chaque requete est compilee dans sa propre assembly.
-        code.AppendLine($"public static class {DumpClass}");
-        code.AppendLine("{");
-        code.AppendLine("    internal static Action<object, string> __sink;");
-        code.AppendLine();
-        code.AppendLine("    public static T Dump<T>(this T value, string title = null)");
-        code.AppendLine("    {");
-        code.AppendLine("        __sink?.Invoke(value, title);");
-        code.AppendLine("        return value;");
-        code.AppendLine("    }");
-        code.AppendLine("}");
-        code.AppendLine();
-        // Masque System.Console dans le namespace de la requete : la sortie va dans l'onglet Messages,
-        // sans Console.SetOut global (plusieurs requetes peuvent tourner en meme temps).
-        code.AppendLine($"public static class {ConsoleClass}");
-        code.AppendLine("{");
-        code.AppendLine("    internal static Action<string> __sink;");
-        code.AppendLine();
-        code.AppendLine("    public static void Write(string value) => __sink?.Invoke(value);");
-        code.AppendLine("    public static void Write(object value) => __sink?.Invoke(Convert.ToString(value));");
-        code.AppendLine("    public static void Write(string format, params object[] args) => __sink?.Invoke(string.Format(format, args));");
-        code.AppendLine("    public static void WriteLine() => __sink?.Invoke(Environment.NewLine);");
-        code.AppendLine("    public static void WriteLine(string value) => __sink?.Invoke(value + Environment.NewLine);");
-        code.AppendLine("    public static void WriteLine(object value) => __sink?.Invoke(Convert.ToString(value) + Environment.NewLine);");
-        code.AppendLine("    public static void WriteLine(string format, params object[] args) => __sink?.Invoke(string.Format(format, args) + Environment.NewLine);");
-        code.AppendLine("}");
         code.AppendLine();
         code.AppendLine($"public static class {QueryClass}");
         code.AppendLine("{");
@@ -240,19 +264,6 @@ public sealed class LinqCompiler : ILinqCompiler
         => Nullable.GetUnderlyingType(type) is { } underlying
             ? TypeName(underlying) + "?"
             : "global::" + (type.FullName ?? type.Name).Replace('+', '.');
-
-    /// <summary>Modele genere (hors editeur) : image de l'assembly, ou null et ses erreurs.</summary>
-    private static byte[]? Emit(Microsoft.CodeAnalysis.Compilation compilation, out IReadOnlyList<Diagnostic> errors)
-    {
-        using var image = new MemoryStream();
-        var result = compilation.Emit(image);
-
-        errors = result.Diagnostics
-            .Where(d => d.Severity == DiagnosticSeverity.Error)
-            .ToArray();
-
-        return result.Success ? image.ToArray() : null;
-    }
 
     private static IReadOnlyList<MetadataReference> LoadPlatformReferences()
     {

@@ -15,7 +15,7 @@ public class LinqCompilerTests
 
     private static readonly LinqCompiler Compiler = new(TestLinq.Services);
 
-    private static readonly Lazy<LinqModelAssembly> Model = new(() => Compiler.CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
+    private static readonly Lazy<LinqModelAssembly> Model = new(() => Compiler.CompileModelAsync(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())).GetAwaiter().GetResult());
 
     [Fact]
     public async Task MethodSyntax_TranslatesToSql()
