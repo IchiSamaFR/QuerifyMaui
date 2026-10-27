@@ -11,20 +11,21 @@ namespace Querify.Languages.Linq.Workspaces;
 public sealed class LinqWorkspace : ILinqWorkspace
 {
     private readonly CSharpWorkspace _workspace;
-    private readonly ConditionalWeakTable<LinqModelAssembly, Lazy<CSharpProject>> _projects = new();
-    private readonly Lazy<CSharpProject> _projectWithoutModel;
+    private readonly ConditionalWeakTable<LinqModelAssembly, CSharpProject> _projects = new();
+    private readonly CSharpProject _projectWithoutModel;
 
     public LinqWorkspace(CSharpWorkspace workspace)
     {
         _workspace = workspace;
-        _projectWithoutModel = new Lazy<CSharpProject>(() => AddProject(null));
+        _projectWithoutModel = AddProject(null);
     }
 
     public CSharpDocument GetDocument(LinqModelAssembly? model, string query, IReadOnlyList<LinqParameter>? parameters = null)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var project = model is null ? _projectWithoutModel.Value : _projects.GetValue(model, m => new Lazy<CSharpProject>(() => AddProject(m))).Value;
+        // Projets crees par Quill a leur premiere utilisation : les declarer ne coute rien.
+        var project = model is null ? _projectWithoutModel : _projects.GetValue(model, AddProject);
         var (source, queryStart) = LinqCompiler.BuildQuerySource(model?.Model, query, parameters);
 
         // Sans DbContext, la variable de la base n'existe pas : seules les fautes de syntaxe ont un sens.
