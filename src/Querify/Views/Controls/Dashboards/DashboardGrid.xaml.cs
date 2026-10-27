@@ -5,6 +5,11 @@ using Querify.Core.Models.Editors.Highlighting;
 using Querify.Core.Models.Settings;
 using Querify.Databases.Models.Connections;
 using System.Windows.Input;
+using Querify.Diagnostics;
+using Querify.UI.Extensions;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace Querify.Views.Controls.Dashboards;
 
@@ -18,8 +23,14 @@ public partial class DashboardGrid : ContentView
     /// <summary>Rendus proposes pour une carte.</summary>
     public static DashboardCardKind[] CardKinds { get; } = Enum.GetValues<DashboardCardKind>();
 
-    [BindableProperty]
+    [BindableProperty(PropertyChangedMethodName = nameof(OnSessionChanged))]
     public partial DashboardSession? Session { get; set; }
+
+    /// <summary>
+    /// Cartes de la page courante reellement affichees : ajoutees une par une, en rendant la main au thread UI
+    /// entre deux (creer toutes les cartes d'un bloc figeait l'application a l'ouverture d'un dashboard).
+    /// </summary>
+    public ObservableCollection<DashboardCardState> DisplayedCards { get; } = [];
 
     [BindableProperty]
     public partial SyntaxConfiguration? SyntaxConfiguration { get; set; }
@@ -129,6 +140,13 @@ public partial class DashboardGrid : ContentView
         GlyphColor = ResourceColor("TextFillColorTertiary", Colors.Gray),
     };
 
+    private DashboardSession? _observedSession;
+    private ObservableCollection<DashboardCardState>? _sourceCards;
+
+    /// <summary>Incremente a chaque changement de page : un remplissage en cours d'une page quittee s'arrete.</summary>
+    private int _fillVersion;
+    private bool _isFilling;
+
     /// <summary>Case visee par la carte glissee, pour ne relayer que les changements de case.</summary>
     private DashboardCell? _dragCell;
 
@@ -144,6 +162,90 @@ public partial class DashboardGrid : ContentView
 
     private static void OnGridSizeChanged(BindableObject bindable, object oldValue, object newValue)
         => ((DashboardGrid)bindable).ApplyGridSize();
+
+    // ---------- Affichage progressif des cartes ----------
+
+    private static void OnSessionChanged(BindableObject bindable, object oldValue, object newValue)
+        => ((DashboardGrid)bindable).ObserveSession(newValue as DashboardSession);
+
+    private void ObserveSession(DashboardSession? session)
+    {
+        if (_observedSession is not null)
+            _observedSession.PropertyChanged -= OnObservedSessionPropertyChanged;
+
+        _observedSession = session;
+        if (session is not null)
+            session.PropertyChanged += OnObservedSessionPropertyChanged;
+
+        ShowCards(session?.Current?.Cards);
+    }
+
+    private void OnObservedSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(DashboardSession.Current))
+            ShowCards(_observedSession?.Current?.Cards);
+    }
+
+    /// <summary>Change de jeu de cartes : la grille est videe puis remplie progressivement.</summary>
+    private void ShowCards(ObservableCollection<DashboardCardState>? cards, bool force = false)
+    {
+        if (!force && ReferenceEquals(cards, _sourceCards))
+            return;
+
+        if (_sourceCards is not null)
+            _sourceCards.CollectionChanged -= OnSourceCardsChanged;
+
+        _sourceCards = cards;
+        if (cards is not null)
+            cards.CollectionChanged += OnSourceCardsChanged;
+
+        DisplayedCards.Clear();
+        FillCardsAsync(++_fillVersion).FireAndForget("Affichage des cartes du dashboard en échec.");
+    }
+
+    private async Task FillCardsAsync(int version)
+    {
+        _isFilling = true;
+        try
+        {
+            while (version == _fillVersion && _sourceCards?.FirstOrDefault(c => !DisplayedCards.Contains(c)) is { } card)
+            {
+                using (PerfTrace.Measure($"Carte '{card.Definition.Title}' : ajout a la grille"))
+                    DisplayedCards.Add(card);
+
+                // Rend la main : le thread UI dessine et traite les clics entre deux cartes.
+                await Task.Delay(1);
+            }
+        }
+        finally
+        {
+            if (version == _fillVersion)
+                _isFilling = false;
+        }
+    }
+
+    /// <summary>Concepteur : cartes ajoutees ou supprimees sur la page affichee.</summary>
+    private void OnSourceCardsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        switch (e.Action)
+        {
+            case NotifyCollectionChangedAction.Add:
+                // Pendant le remplissage, la boucle prend aussi les nouvelles cartes.
+                if (!_isFilling)
+                {
+                    foreach (DashboardCardState card in e.NewItems!)
+                        DisplayedCards.Add(card);
+                }
+                break;
+            case NotifyCollectionChangedAction.Remove:
+                foreach (DashboardCardState card in e.OldItems!)
+                    DisplayedCards.Remove(card);
+                break;
+            default:
+                ShowCards(_sourceCards, force: true);
+                break;
+        }
+    }
 
     private static void OnSelectedCardChanged(BindableObject bindable, object oldValue, object newValue)
     {

@@ -8,6 +8,7 @@ using SkiaSharp;
 using Querify.Core.Enums.Dashboards;
 using Querify.Databases.Models.Queries;
 using System.Globalization;
+using Querify.Diagnostics;
 
 namespace Querify.Views.Controls.Dashboards;
 
@@ -67,6 +68,7 @@ public sealed partial class DashboardChartView : ContentView
         Dispatcher.Dispatch(() =>
         {
             _isRenderScheduled = false;
+            using var _ = PerfTrace.Measure($"Graphique {View} : rendu ({ResultSet?.Rows.Count ?? 0} lignes)");
             Show(Render());
         });
     }

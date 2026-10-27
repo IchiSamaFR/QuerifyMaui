@@ -4,6 +4,8 @@ using Querify.Core.Models.Dashboards;
 using Querify.Databases.Models.Queries;
 using Querify.UI.Views.Controls.DataGrids;
 using System.ComponentModel;
+using Querify.Diagnostics;
+using Querify.UI.Extensions;
 
 namespace Querify.Views.Controls.Dashboards;
 
@@ -11,6 +13,9 @@ namespace Querify.Views.Controls.Dashboards;
 public partial class DashboardCardView : ContentView
 {
     private static readonly QueryResultColumnsConverter ColumnsConverter = new();
+
+    /// <summary>Incremente a chaque mise a jour : seule la derniere creation differee s'applique.</summary>
+    private int _resultVersion;
 
     [BindableProperty(PropertyChangedMethodName = nameof(OnCardPropertyChanged))]
     public partial DashboardCardState? Card { get; set; }
@@ -43,20 +48,42 @@ public partial class DashboardCardView : ContentView
             UpdateResultView();
     }
 
-    /// <summary>Cree le seul rendu lourd dont la carte a besoin, et le garde tant que son type ne change pas.</summary>
+    /// <summary>
+    /// Cree le seul rendu lourd dont la carte a besoin, et le garde tant que son type ne change pas.
+    /// Le rendu est cree un tour plus tard : la carte (titre, indicateur de chargement) s'affiche d'abord.
+    /// </summary>
     private void UpdateResultView()
     {
+        var version = ++_resultVersion;
         switch (Card)
         {
-            case { IsGrid: true } card when ResultHost.Content is not DataGrid:
-                ResultHost.Content = CreateGrid(card);
-                break;
-            case { IsChart: true } card when ResultHost.Content is not DashboardChartView:
-                ResultHost.Content = CreateChart(card);
+            case { IsGrid: true } when ResultHost.Content is not DataGrid:
+            case { IsChart: true } when ResultHost.Content is not DashboardChartView:
+                CreateResultViewLaterAsync(version).FireAndForget("Rendu de la carte non créé.");
                 break;
             case { IsGrid: false, IsChart: false } or null:
                 ResultHost.Content = null;
                 break;
+        }
+    }
+
+    private async Task CreateResultViewLaterAsync(int version)
+    {
+        await Task.Delay(1);
+
+        // Carte changee ou rendu change entre-temps : une creation plus recente est prevue (ou plus rien).
+        if (version != _resultVersion || Card is not { } card)
+            return;
+
+        if (card.IsGrid && ResultHost.Content is not DataGrid)
+        {
+            using (PerfTrace.Measure($"Carte '{card.Definition.Title}' : creation DataGrid"))
+                ResultHost.Content = CreateGrid(card);
+        }
+        else if (card.IsChart && ResultHost.Content is not DashboardChartView)
+        {
+            using (PerfTrace.Measure($"Carte '{card.Definition.Title}' : creation graphique"))
+                ResultHost.Content = CreateChart(card);
         }
     }
 

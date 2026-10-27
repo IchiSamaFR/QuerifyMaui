@@ -232,7 +232,7 @@
                               CascadeInputTransparent="False"
                               ColumnSpacing="8"
                               RowSpacing="8"
-                              BindableLayout.ItemsSource="{Binding Session.Current.Cards}">
+                              BindableLayout.ItemsSource="{Binding DisplayedCards}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="m:DashboardCardState">
                                     <Grid>
@@ -245,119 +245,134 @@
                                         <c:DashboardCardView Card="{Binding .}" />
 
                                         <!-- Concepteur : clic = selection, glisser = deplacement -->
-                                        <inp:ButtonView Style="{StaticResource TextButtonViewStyle}"
-                                                        HeightRequest="-1"
-                                                        HorizontalOptions="Fill"
-                                                        VerticalOptions="Fill"
-                                                        IsVisible="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=Session.IsDesigning, FallbackValue=False, x:DataType=c:DashboardGrid}"
-                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=SelectCardCommand, x:DataType=c:DashboardGrid}"
-                                                        CommandParameter="{Binding .}"
-                                                        ToolTipProperties.Text="Cliquer pour modifier, glisser pour déplacer, tirer un bord pour redimensionner">
-                                            <inp:ButtonView.GestureRecognizers>
-                                                <DragGestureRecognizer CanDrag="True"
-                                                                       DragStarting="OnCardDragStarting"
-                                                                       DragStartingCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=StartDragCommand, x:DataType=c:DashboardGrid}"
-                                                                       DragStartingCommandParameter="{Binding .}"
-                                                                       DropCompletedCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=EndDragCommand, x:DataType=c:DashboardGrid}" />
-                                            </inp:ButtonView.GestureRecognizers>
-                                        </inp:ButtonView>
+                                        <c:LazyView IsActive="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=Session.IsDesigning, FallbackValue=False, x:DataType=c:DashboardGrid}">
+                                            <c:LazyView.ContentTemplate>
+                                                <DataTemplate x:DataType="m:DashboardCardState">
+                                                    <inp:ButtonView Style="{StaticResource TextButtonViewStyle}"
+                                                                    HeightRequest="-1"
+                                                                    HorizontalOptions="Fill"
+                                                                    VerticalOptions="Fill"
+                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=SelectCardCommand, x:DataType=c:DashboardGrid}"
+                                                                    CommandParameter="{Binding .}"
+                                                                    ToolTipProperties.Text="Cliquer pour modifier, glisser pour déplacer, tirer un bord pour redimensionner">
+                                                        <inp:ButtonView.GestureRecognizers>
+                                                            <DragGestureRecognizer CanDrag="True"
+                                                                                   DragStarting="OnCardDragStarting"
+                                                                                   DragStartingCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=StartDragCommand, x:DataType=c:DashboardGrid}"
+                                                                                   DragStartingCommandParameter="{Binding .}"
+                                                                                   DropCompletedCommand="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=EndDragCommand, x:DataType=c:DashboardGrid}" />
+                                                        </inp:ButtonView.GestureRecognizers>
+                                                    </inp:ButtonView>
+                                                </DataTemplate>
+                                            </c:LazyView.ContentTemplate>
+                                        </c:LazyView>
 
                                         <!-- Concepteur : bords et coins de la carte selectionnee (espacements = ceux du calque) -->
-                                        <v:GridSpanResizer Column="{Binding Column}"
-                                                           Row="{Binding Row}"
-                                                           ColumnSpan="{Binding ColumnSpan}"
-                                                           RowSpan="{Binding RowSpan}"
-                                                           ColumnCount="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=ColumnCount, x:DataType=c:DashboardGrid}"
-                                                           ColumnSpacing="8"
-                                                           RowSpacing="8"
-                                                           IsVisible="{Binding IsSelected}" />
+                                        <c:LazyView IsActive="{Binding IsSelected}" InputTransparent="True" CascadeInputTransparent="False">
+                                            <c:LazyView.ContentTemplate>
+                                                <DataTemplate x:DataType="m:DashboardCardState">
+                                                    <v:GridSpanResizer Column="{Binding Column}"
+                                                                       Row="{Binding Row}"
+                                                                       ColumnSpan="{Binding ColumnSpan}"
+                                                                       RowSpan="{Binding RowSpan}"
+                                                                       ColumnCount="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=ColumnCount, x:DataType=c:DashboardGrid}"
+                                                                       ColumnSpacing="8"
+                                                                       RowSpacing="8" />
+                                                </DataTemplate>
+                                            </c:LazyView.ContentTemplate>
+                                        </c:LazyView>
 
-                                        <Grid RowDefinitions="Auto,*"
-                                              Padding="{DynamicResource DefaultContentPadding}"
-                                              IsVisible="{Binding IsSelected}"
-                                              InputTransparent="True"
-                                              CascadeInputTransparent="False">
-                                            <!-- Masquee pendant le glisser : ses champs de texte captent le survol -->
-                                            <Grid.Triggers>
-                                                <DataTrigger TargetType="Grid"
-                                                             Binding="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=Session.IsDraggingCard, FallbackValue=False, x:DataType=c:DashboardGrid}"
-                                                             Value="True">
-                                                    <Setter Property="IsVisible"
-                                                            Value="False" />
-                                                </DataTrigger>
-                                            </Grid.Triggers>
+                                        <c:LazyView IsActive="{Binding IsSelected}" InputTransparent="True" CascadeInputTransparent="False">
+                                            <c:LazyView.ContentTemplate>
+                                                <DataTemplate x:DataType="m:DashboardCardState">
+                                                    <Grid RowDefinitions="Auto,*"
+                                                          Padding="{DynamicResource DefaultContentPadding}"
+                                                          InputTransparent="True"
+                                                          CascadeInputTransparent="False">
+                                                        <!-- Masquee pendant le glisser : ses champs de texte captent le survol -->
+                                                        <Grid.Triggers>
+                                                            <DataTrigger TargetType="Grid"
+                                                                         Binding="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=Session.IsDraggingCard, FallbackValue=False, x:DataType=c:DashboardGrid}"
+                                                                         Value="True">
+                                                                <Setter Property="IsVisible"
+                                                                        Value="False" />
+                                                            </DataTrigger>
+                                                        </Grid.Triggers>
 
-                                            <inp:TextField Grid.Row="1"
-                                                           VerticalOptions="Center"
-                                                           Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
-                                                           Background="{DynamicResource CardBackground}"
-                                                           IsVisible="{Binding IsText}"
-                                                           Placeholder="Texte saisi..." />
+                                                        <inp:TextField Grid.Row="1"
+                                                                       VerticalOptions="Center"
+                                                                       Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
+                                                                       Background="{DynamicResource CardBackground}"
+                                                                       IsVisible="{Binding IsText}"
+                                                                       Placeholder="Texte saisi..." />
 
-                                            <Grid ColumnDefinitions="*,Auto"
-                                                  ColumnSpacing="4">
-                                                <inp:TextField Text="{Binding Title}"
-                                                               Background="{DynamicResource CardBackground}"
-                                                               Placeholder="Titre de la carte..."
-                                                               IsVisible="{Binding IsSelected}" />
+                                                        <Grid ColumnDefinitions="*,Auto"
+                                                              ColumnSpacing="4">
+                                                            <inp:TextField Text="{Binding Title}"
+                                                                           Background="{DynamicResource CardBackground}"
+                                                                           Placeholder="Titre de la carte..."
+                                                                           IsVisible="{Binding IsSelected}" />
 
-                                                <Button Grid.Column="1"
-                                                        Style="{StaticResource PrimaryIconButtonStyle}"
-                                                        ImageSource="{mk:FluentFilledImage Icon=Flowchart20Filled}"
-                                                        IsVisible="{Binding IsSelected}"
-                                                        Clicked="OnFlowchartButtonClicked">
-                                                    <FlyoutBase.ContextFlyout>
-                                                        <MenuFlyout>
-                                                            <MenuFlyoutItem Text="Grid"
-                                                                            Command="{Binding SetCardKindCommand}"
-                                                                            CommandParameter="{x:Static en:DashboardCardKind.Grid}" />
-                                                            <MenuFlyoutItem Text="Value"
-                                                                            Command="{Binding SetCardKindCommand}"
-                                                                            CommandParameter="{x:Static en:DashboardCardKind.Value}" />
-                                                            <MenuFlyoutItem Text="BarChart"
-                                                                            Command="{Binding SetCardKindCommand}"
-                                                                            CommandParameter="{x:Static en:DashboardCardKind.BarChart}" />
-                                                            <MenuFlyoutItem Text="LineChart"
-                                                                            Command="{Binding SetCardKindCommand}"
-                                                                            CommandParameter="{x:Static en:DashboardCardKind.LineChart}" />
-                                                            <MenuFlyoutItem Text="PieChart"
-                                                                            Command="{Binding SetCardKindCommand}"
-                                                                            CommandParameter="{x:Static en:DashboardCardKind.PieChart}" />
-                                                            <MenuFlyoutItem Text="Text"
-                                                                            Command="{Binding SetCardKindCommand}"
-                                                                            CommandParameter="{x:Static en:DashboardCardKind.Text}" />
-                                                            <MenuFlyoutItem Text="Button"
-                                                                            Command="{Binding SetCardKindCommand}"
-                                                                            CommandParameter="{x:Static en:DashboardCardKind.Button}" />
-                                                        </MenuFlyout>
-                                                    </FlyoutBase.ContextFlyout>
-                                                </Button>
-                                            </Grid>
+                                                            <Button Grid.Column="1"
+                                                                    Style="{StaticResource PrimaryIconButtonStyle}"
+                                                                    ImageSource="{mk:FluentFilledImage Icon=Flowchart20Filled}"
+                                                                    IsVisible="{Binding IsSelected}"
+                                                                    Clicked="OnFlowchartButtonClicked">
+                                                                <FlyoutBase.ContextFlyout>
+                                                                    <MenuFlyout>
+                                                                        <MenuFlyoutItem Text="Grid"
+                                                                                        Command="{Binding SetCardKindCommand}"
+                                                                                        CommandParameter="{x:Static en:DashboardCardKind.Grid}" />
+                                                                        <MenuFlyoutItem Text="Value"
+                                                                                        Command="{Binding SetCardKindCommand}"
+                                                                                        CommandParameter="{x:Static en:DashboardCardKind.Value}" />
+                                                                        <MenuFlyoutItem Text="BarChart"
+                                                                                        Command="{Binding SetCardKindCommand}"
+                                                                                        CommandParameter="{x:Static en:DashboardCardKind.BarChart}" />
+                                                                        <MenuFlyoutItem Text="LineChart"
+                                                                                        Command="{Binding SetCardKindCommand}"
+                                                                                        CommandParameter="{x:Static en:DashboardCardKind.LineChart}" />
+                                                                        <MenuFlyoutItem Text="PieChart"
+                                                                                        Command="{Binding SetCardKindCommand}"
+                                                                                        CommandParameter="{x:Static en:DashboardCardKind.PieChart}" />
+                                                                        <MenuFlyoutItem Text="Text"
+                                                                                        Command="{Binding SetCardKindCommand}"
+                                                                                        CommandParameter="{x:Static en:DashboardCardKind.Text}" />
+                                                                        <MenuFlyoutItem Text="Button"
+                                                                                        Command="{Binding SetCardKindCommand}"
+                                                                                        CommandParameter="{x:Static en:DashboardCardKind.Button}" />
+                                                                    </MenuFlyout>
+                                                                </FlyoutBase.ContextFlyout>
+                                                            </Button>
+                                                        </Grid>
 
-                                            <VerticalStackLayout Grid.Row="1"
-                                                                 VerticalOptions="Center"
-                                                                 IsVisible="{Binding IsButton}"
-                                                                 Spacing="{DynamicResource DefaultCollectionSpacing}">
+                                                        <VerticalStackLayout Grid.Row="1"
+                                                                             VerticalOptions="Center"
+                                                                             IsVisible="{Binding IsButton}"
+                                                                             Spacing="{DynamicResource DefaultCollectionSpacing}">
 
-                                                <inp:TextField Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
-                                                               Background="{DynamicResource CardBackground}"
-                                                               Placeholder="Texte du bouton..." />
+                                                            <inp:TextField Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
+                                                                           Background="{DynamicResource CardBackground}"
+                                                                           Placeholder="Texte du bouton..." />
 
-                                                <Grid>
-                                                    <Image Source="{mk:FluentFilledImage Icon=Link16Filled}"
-                                                           VerticalOptions="Fill"
-                                                           HorizontalOptions="Start"
-                                                           WidthRequest="16"
-                                                           HeightRequest="16"
-                                                           Margin="6" />
+                                                            <Grid>
+                                                                <Image Source="{mk:FluentFilledImage Icon=Link16Filled}"
+                                                                       VerticalOptions="Fill"
+                                                                       HorizontalOptions="Start"
+                                                                       WidthRequest="16"
+                                                                       HeightRequest="16"
+                                                                       Margin="6" />
 
-                                                    <!-- Navigation : bouton, ou clic sur une ligne du tableau -->
-                                                    <inp:PickerField ContentPadding="18,0,0,2"
-                                                                     ItemsSource="{Binding Session.PageIds, Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, x:DataType=c:DashboardGrid}"
-                                                                     SelectedItem="{Binding NavigationPage, Mode=TwoWay}" />
-                                                </Grid>
-                                            </VerticalStackLayout>
-                                        </Grid>
+                                                                <!-- Navigation : bouton, ou clic sur une ligne du tableau -->
+                                                                <inp:PickerField ContentPadding="18,0,0,2"
+                                                                                 ItemsSource="{Binding Session.PageIds, Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, x:DataType=c:DashboardGrid}"
+                                                                                 SelectedItem="{Binding NavigationPage, Mode=TwoWay}" />
+                                                            </Grid>
+                                                        </VerticalStackLayout>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </c:LazyView.ContentTemplate>
+                                        </c:LazyView>
                                     </Grid>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
