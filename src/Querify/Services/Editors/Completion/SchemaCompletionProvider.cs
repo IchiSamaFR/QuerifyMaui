@@ -8,6 +8,7 @@ using Querify.Databases.Models.Schemas;
 using Querify.Databases.Schemas;
 using Querify.Languages.Commons.Editors.Completion;
 using Querify.Services.Editors.Highlighting;
+using Quill.Code.Completion;
 using System.Data.Common;
 using System.Text.RegularExpressions;
 

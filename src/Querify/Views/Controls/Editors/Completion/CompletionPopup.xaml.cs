@@ -1,4 +1,5 @@
 ﻿using Querify.Core.Models.Editors.Completion;
+using Quill.Code.Completion;
 
 namespace Querify.Views.Controls.Editors.Completion;
 

@@ -57,15 +57,14 @@
                     <v:WrapLayout HorizontalSpacing="12"
                                   HorizontalOptions="Start">
                         <v:WrapLayout HorizontalSpacing="12"
-                                      IsVisible="{Binding Session.HasParameters, FallbackValue=False}"
+                                      IsVisible="{Binding Session.HasParameters}"
                                       BindableLayout.ItemsSource="{Binding Session.Parameters}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="m:DashboardParameterValue">
                                     <VerticalStackLayout Spacing="2">
                                         <Grid ColumnDefinitions="Auto,Auto"
                                               ColumnSpacing="4"
-                                              HeightRequest="{DynamicResource InputHeight}"
-                                              MinimumHeightRequest="-1">
+                                              HeightRequest="{DynamicResource InputHeight}">
                                             <Label Text="{Binding DisplayName}"
                                                    VerticalOptions="Center" />
                                             <inp:TextField Grid.Column="1"
@@ -75,7 +74,7 @@
                                                            WidthRequest="120" />
                                             <v:MenuButton Grid.Column="1"
                                                           ImageSource="{mk:FluentFilledImage Icon=MoreHorizontal16Filled}"
-                                                          IsVisible="{Binding Session.IsDesigning, Source={x:Reference Root}, FallbackValue=False, x:DataType=c:DashboardGrid}"
+                                                          IsVisible="{Binding Session.IsDesigning, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
                                                           VerticalOptions="Center"
                                                           HorizontalOptions="End"
                                                           Margin="0,4,4,0"
@@ -105,7 +104,7 @@
                                 Text="Ajouter"
                                 ImageSource="{mk:FluentFilledImage Icon=Add20Filled, IconSize=14}"
                                 Command="{Binding AddParameterCommand}"
-                                IsVisible="{Binding Session.IsDesigning, FallbackValue=False}" />
+                                IsVisible="{Binding Session.IsDesigning}" />
                     </v:WrapLayout>
                 </Border>
 

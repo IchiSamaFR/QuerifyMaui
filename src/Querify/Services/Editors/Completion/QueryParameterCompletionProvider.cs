@@ -3,6 +3,7 @@ using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Completion;
 using Querify.Languages.Commons.Editors.Completion;
+using Quill.Code.Completion;
 
 namespace Querify.Services.Editors.Completion;
 

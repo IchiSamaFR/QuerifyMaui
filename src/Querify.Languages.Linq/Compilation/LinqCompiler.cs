@@ -1,12 +1,13 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
-using Querify.Core.Enums.Editors.Analysis;
 using Querify.Core.Ioc;
-using Querify.Core.Models.Editors.Analysis;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Querify.Languages.Linq.Workspaces;
+using Quill.Code.Analysis;
+using Quill.Code.CSharp.Analysis;
+using Quill.Code.CSharp.Workspaces;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
@@ -96,7 +97,7 @@ public sealed class LinqCompiler : ILinqCompiler
         // Nom unique : chaque requete est chargee dans son propre contexte collectable.
         var image = Emit(compilation.WithAssemblyName($"LinqQuery_{Guid.NewGuid():N}"), out var errors, cancellationToken);
         if (image is null)
-            return new LinqCompiledQuery { Errors = await QueryErrorsAsync(linq, query, errors, cancellationToken) };
+            return new LinqCompiledQuery { Errors = await QueryErrorsAsync(linq, errors, cancellationToken) };
 
         var loadContext = new QueryLoadContext(model.Assembly);
         var assembly = loadContext.LoadFromStream(new MemoryStream(image));
@@ -251,11 +252,9 @@ public sealed class LinqCompiler : ILinqCompiler
     }
 
     /// <summary>Erreurs ramenees au texte de l'onglet, comme les soulignements de l'editeur.</summary>
-    private static async Task<IReadOnlyList<CodeDiagnostic>> QueryErrorsAsync(LinqDocument linq, string query, IReadOnlyList<Diagnostic> errors, CancellationToken cancellationToken)
+    private static async Task<IReadOnlyList<CodeDiagnostic>> QueryErrorsAsync(CSharpDocument linq, IReadOnlyList<Diagnostic> errors, CancellationToken cancellationToken)
     {
-        var tree = await linq.Document.GetSyntaxTreeAsync(cancellationToken);
-        var syntax = tree?.GetDiagnostics(cancellationToken).ToHashSet() ?? [];
-        var mapped = LinqDiagnosticMapper.ToQuery(errors, syntax, linq, query).Where(e => e.IsError).ToArray();
+        var mapped = (await CSharpDiagnosticMapper.MapAsync(linq, errors, cancellationToken)).Where(e => e.IsError).ToArray();
 
         // Erreur dans le code genere autour de la requete : sans position utile, mais jamais silencieuse.
         return mapped.Length > 0

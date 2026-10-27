@@ -1,4 +1,5 @@
 ﻿using CodeEdit.Maui;
+using Quill.Code.Analysis;
 using RichEdit.Maui;
 using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Models.Editors.Analysis;

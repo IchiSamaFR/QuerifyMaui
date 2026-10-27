@@ -14,6 +14,8 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Querify.Helpers\Querify.Helpers.csproj" />
 		<ProjectReference Include="..\Querify.Databases\Querify.Databases.csproj" />
+		<!-- Modeles communs des editeurs de code (depot Quill.Code, en attendant le paquet NuGet). -->
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code\Quill.Code.csproj" />
 	</ItemGroup>
 
 </Project>

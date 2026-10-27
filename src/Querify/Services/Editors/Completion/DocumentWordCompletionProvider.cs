@@ -5,6 +5,7 @@ using Querify.Core.Models.Editors.Completion;
 using Querify.Languages.Commons.Editors.Completion;
 using Querify.Languages.Sql.Completion;
 using Querify.Services.Editors.Highlighting;
+using Quill.Code.Completion;
 using System.Collections.Concurrent;
 
 namespace Querify.Services.Editors.Completion;

@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Maui;
-using Querify.Core.Models.Editors.Analysis;
+using Quill.Code.Analysis;
 
 namespace Querify.Views.Controls.Editors.Analysis;
 

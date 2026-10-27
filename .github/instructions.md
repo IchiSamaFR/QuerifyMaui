@@ -56,7 +56,7 @@ Querify (nom affiché : **Querify**) est une application **desktop Windows** .NE
 
 **Langages** :
 * `Languages.Commons` : `IQueryExecutor` (un par `SyntaxLanguage`), `ICompletionContextAnalyzer`, `ICompletionProvider`, `QueryExecutionLimits`.
-* `Languages.[Nom]` : un projet par langage, ne référence que `Languages.Commons`. `Languages.Sql` : `Queries/` (`SqlQueryExecutor` → `ISqlProviderExecutor` du moteur), `SqlServer/` (exécuteur, `SqlBatchSplitter`), `Completion/`. `Languages.Linq` : `Modeling/` (générateur de modèle EF, cache des modèles compilés), `Compilation/` (compilateur Roslyn, requête compilée), `Workspaces/` (workspace Roslyn), `Analysis/` (diagnostics, survol, aide à la signature), `Completion/` (complétion C#), `Queries/` (exécuteur, paramètres) — EF Core et Roslyn restent confinés ici.
+* `Languages.[Nom]` : un projet par langage, ne référence que `Languages.Commons`. `Languages.Sql` : `Queries/` (`SqlQueryExecutor` → `ISqlProviderExecutor` du moteur), `SqlServer/` (exécuteur, `SqlBatchSplitter`), `Completion/`. `Languages.Linq` : `Modeling/` (générateur de modèle EF, cache des modèles compilés), `Compilation/` (compilateur Roslyn, requête compilée), `Workspaces/` (`LinqWorkspace` : un projet Quill par modèle, document `CSharpDocument` de la requête dans son source généré), `Analysis/` et `Completion/` (relais vers `ICSharpLanguageService` de Quill), `Queries/` (exécuteur, paramètres) — EF Core et Roslyn restent confinés ici.
 * `Languages` : seul projet de langage référencé par l'application ; `IQueryExecutorResolver`, `LanguageAssemblies.All`, `InsertQueryMessage`.
 
 **Autres** : `Helpers` (extensions, `Tools/` : `JsonFile`, `TextFileEncoding`, `CorruptFileHelper`, `ConnectionStringPasswordHelper`), `Tests` (xUnit, référence les projets de langage, donc `Core`, `Databases` et `Helpers`).
@@ -118,6 +118,7 @@ Querify/
 * **CodeEdit.Maui** (préversion) — éditeur de code (`.UseCodeEditor()`). Exige `Microsoft.Maui.Controls` >= 10.0.101 et la projection Windows forcée par `WindowsSdkPackageVersion`.
 * **AathifMahir.Maui.MauiIcons.Fluent** — icônes Fluent. **LiveChartsCore.SkiaSharpView.Maui** — graphiques des dashboards.
 * **Microsoft.Data.SqlClient** — SQL Server. **EF Core + Roslyn** — langage LINQ.
+* **Quill.Code / Quill.Code.CSharp** (bibliothèque maison, dépôt voisin `..\..\Quill.Code`, en `ProjectReference` en attendant le paquet NuGet) — modèles des éditeurs (`CompletionItem`, `CompletionItemKind`, `CodeDiagnostic`, `HoverInfo`, `SignatureHelpInfo`…) référencés par `Core`, moteur C# Roslyn (`CSharpWorkspace`, `ICSharpLanguageService`, `CSharpDiagnosticMapper`, enregistrés par `AddQuillCSharp()`) utilisé par `Languages.Linq`.
 * **Newtonsoft.Json** — fichiers JSON de l'application (`JsonFile`) ; **System.Text.Json** (source-gen) — fichiers `.schx`.
 
 Toutes les versions sont dans `src/Directory.Packages.props` : un `PackageReference` n'indique jamais de `Version`.

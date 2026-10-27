@@ -2,6 +2,7 @@
 using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Models.Editors.Completion;
 using Querify.Languages.Sql.Completion;
+using Quill.Code.Completion;
 using Xunit;
 
 namespace Querify.Tests;

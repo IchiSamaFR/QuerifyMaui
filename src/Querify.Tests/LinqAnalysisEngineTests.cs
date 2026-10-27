@@ -1,8 +1,8 @@
-﻿using Querify.Core.Enums.Editors.Analysis;
-using Querify.Languages.Linq.Analysis;
+﻿using Querify.Languages.Linq.Analysis;
 using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Workspaces;
+using Quill.Code.Analysis;
 using Xunit;
 
 namespace Querify.Tests;
@@ -10,9 +10,9 @@ namespace Querify.Tests;
 /// <summary>Le caractere | marque la position (souris ou curseur) ; Roslyn analyse dans le contexte genere.</summary>
 public class LinqAnalysisEngineTests
 {
-    private static readonly LinqAnalysisEngine Engine = new(new LinqWorkspace());
+    private static readonly LinqAnalysisEngine Engine = new(TestLinq.Workspace, TestLinq.Language);
 
-    private static readonly Lazy<LinqModelAssembly> Model = new(() => new LinqCompiler(new LinqWorkspace()).CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
+    private static readonly Lazy<LinqModelAssembly> Model = new(() => new LinqCompiler(TestLinq.Workspace).CompileModel(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())));
 
     [Fact]
     public async Task Hover_PropertyShowsTypeAndColumn()

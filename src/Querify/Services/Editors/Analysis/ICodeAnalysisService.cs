@@ -1,4 +1,5 @@
 ﻿using Querify.Core.Models.Editors.Analysis;
+using Quill.Code.Analysis;
 
 namespace Querify.Services.Editors.Analysis;
 

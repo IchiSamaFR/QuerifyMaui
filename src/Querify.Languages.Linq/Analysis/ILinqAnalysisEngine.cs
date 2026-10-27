@@ -1,10 +1,10 @@
-﻿using Querify.Core.Models.Editors.Analysis;
-using Querify.Languages.Linq.Compilation;
+﻿using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Queries;
+using Quill.Code.Analysis;
 
 namespace Querify.Languages.Linq.Analysis;
 
-/// <summary>Survol, signatures et erreurs d'une requete LINQ, calcules par Roslyn dans le contexte genere.</summary>
+/// <summary>Survol, signatures et erreurs d'une requete LINQ, calcules par Roslyn (Quill) dans le contexte genere.</summary>
 /// <remarks>Les positions recues et rendues sont celles du texte de la requete, pas du source genere.</remarks>
 public interface ILinqAnalysisEngine
 {

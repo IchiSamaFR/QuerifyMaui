@@ -14,6 +14,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Querify.Languages.Commons\Querify.Languages.Commons.csproj" />
+		<!-- Autocompletion, survol, signatures et erreurs C# (depot Quill.Code, en attendant le paquet NuGet). -->
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.CSharp\Quill.Code.CSharp.csproj" />
 	</ItemGroup>
 
 	<!-- Les tests exercent les helpers internes du compilateur. -->
