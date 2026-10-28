@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
-using Querify.Core.Enums.Queries;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Quill.Code.CSharp.Workspaces;
@@ -11,8 +10,8 @@ using System.Text;
 namespace Querify.Languages.Linq.Compilation;
 
 /// <summary>
-/// Source C# d'une requete LINQ (sans etat) : methode generee autour de la requete, documents fixes (usings,
-/// Dump/Log), references et options de compilation. Partage par l'editeur et l'execution.
+/// Source C# d'une requete LINQ (sans etat) : methode generee autour de la requete, usings, references et options
+/// de compilation. Partage par l'editeur et l'execution.
 /// </summary>
 [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "App non publiee en trimmed : compilation assumee.")]
 internal static class LinqQuerySource
@@ -44,55 +43,6 @@ internal static class LinqQuerySource
     /// <inheritdoc cref="ParseOptions"/>
     internal static CSharpCompilationOptions CompilationOptions { get; } = new(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Disable);
 
-    /// <summary>
-    /// Dump() facon LINQPad et Log de la requete, document fixe du projet. Dump affiche une valeur dans son propre
-    /// onglet et la rend telle quelle ; Log ecrit dans l'onglet Messages avec un niveau (enum LogLevel, genere depuis
-    /// <see cref="QueryLogLevel"/>). Les sorties sont statiques et branchees une seule fois par QueryRuntime.Attach :
-    /// chaque requete est compilee dans sa propre assembly, plusieurs peuvent tourner en meme temps.
-    /// </summary>
-    internal static string QueryRuntimeSource { get; } = $$"""
-        namespace {{QueryNamespace}};
-
-        internal static class QueryRuntime
-        {
-            internal static Action<object, string> DumpSink;
-            internal static Action<int, string> LogSink;
-
-            internal static void Attach(Action<object, string> dump, Action<int, string> log)
-            {
-                DumpSink = dump;
-                LogSink = log;
-            }
-        }
-
-        public static class QueryExtensions
-        {
-            public static T Dump<T>(this T value, string title = null)
-            {
-                QueryRuntime.DumpSink?.Invoke(value, title);
-                return value;
-            }
-        }
-
-        public enum LogLevel { {{string.Join(", ", Enum.GetNames<QueryLogLevel>())}} }
-
-        public static class Log
-        {
-            public static void Trace(object value) => Write(LogLevel.Trace, value);
-            public static void Debug(object value) => Write(LogLevel.Debug, value);
-            public static void Information(object value) => Write(LogLevel.Information, value);
-            public static void Warning(object value) => Write(LogLevel.Warning, value);
-            public static void Error(object value) => Write(LogLevel.Error, value);
-            public static void Critical(object value) => Write(LogLevel.Critical, value);
-
-            public static void Write(LogLevel level, object value)
-            {
-                if (level is >= LogLevel.Trace and < LogLevel.None)
-                    QueryRuntime.LogSink?.Invoke((int)level, Convert.ToString(value));
-            }
-        }
-        """;
-
     /// <summary>Usings de la requete, document fixe du projet : la requete ne peut pas en declarer.</summary>
     internal static string BuildGlobalUsings(EfGeneratedModel? model)
     {
@@ -113,7 +63,7 @@ internal static class LinqQuerySource
     /// instructions avec "return" forment le corps lui-meme (voir <see cref="IsStatementBlock"/>).
     /// #line recale les diagnostics sur le texte de l'onglet.
     /// Sans modele (pas de connexion), le source reste valide pour l'autocompletion C#.
-    /// Usings et Dump/Log sont des documents fixes du projet (<see cref="BuildGlobalUsings"/>, <see cref="QueryRuntimeSource"/>).
+    /// Usings : document fixe du projet (<see cref="BuildGlobalUsings"/>) ; Dump et le contexte viennent du modele, Log de Quill.
     /// </summary>
     /// <returns>Le source et la position du texte de la requete dans ce source.</returns>
     internal static (string Source, int QueryStart) Build(EfGeneratedModel? model, string query, IReadOnlyList<LinqParameter>? parameters = null)
@@ -123,11 +73,10 @@ internal static class LinqQuerySource
         code.AppendLine();
         code.AppendLine($"public static class {QueryClass}");
         code.AppendLine("{");
-        code.AppendLine($"    public static object {QueryMethod}(DbContext __context, Action<object, string> __dump, Action<int, string> __log, object[] __args)");
+        code.AppendLine($"    public static object {QueryMethod}(object[] __args)");
         code.AppendLine("    {");
-        code.AppendLine("        QueryRuntime.Attach(__dump, __log);");
         if (model is not null)
-            code.AppendLine($"        var {model.ContextVariableName} = ({model.ContextClassName})__context;");
+            code.AppendLine($"        var {model.ContextVariableName} = global::{model.Namespace}.{model.ContextClassName}.{EfModelGenerator.ContextPropertyName};");
 
         // Prefixe @ : un nom de parametre peut etre un mot cle C#, et la requete peut ecrire @Nom comme en SQL.
         for (var i = 0; i < (parameters?.Count ?? 0); i++)

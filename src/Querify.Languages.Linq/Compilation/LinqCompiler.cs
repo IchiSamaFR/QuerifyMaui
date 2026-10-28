@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Querify.Core.Enums.Queries;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Quill.Code.Analysis;
 using Quill.Code.CSharp;
 using Quill.Code.CSharp.Compilation;
 using Quill.Code.CSharp.Workspaces;
+using Quill.Code.Scripting;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -67,11 +67,16 @@ public static class LinqCompiler
         if (compiled.Assembly is not { } assembly)
             throw new LinqCompilationException($"Le modele genere pour {model.ContextVariableName} ne compile pas.", compiled.Errors.Select(e => e.Describe(model.Source)).ToArray());
 
+        var contextType = assembly.GetType($"{model.Namespace}.{model.ContextClassName}", throwOnError: true)!;
+        var extensionsType = assembly.GetType($"{model.Namespace}.{EfModelGenerator.ExtensionsClassName}", throwOnError: true)!;
+
         return new LinqModelAssembly
         {
             Model = model,
             Assembly = assembly,
-            ContextType = assembly.GetType($"{model.Namespace}.{model.ContextClassName}", throwOnError: true)!,
+            ContextType = contextType,
+            ContextProperty = contextType.GetProperty(EfModelGenerator.ContextPropertyName, BindingFlags.Public | BindingFlags.Static)!,
+            DumpSinkProperty = extensionsType.GetProperty(EfModelGenerator.DumpSinkPropertyName, BindingFlags.NonPublic | BindingFlags.Static)!,
             Reference = compiled.Reference!
         };
     }
@@ -80,7 +85,8 @@ public static class LinqCompiler
     /// Compile une requete depuis le projet que l'editeur analyse ; les erreurs sont rapportees, pas levees.
     /// Les <paramref name="parameters"/> sont declares en variables avant la requete, leurs valeurs fixees pour l'execution.
     /// </summary>
-    public static async Task<LinqCompiledQuery> CompileQueryAsync(LinqModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default)
+    /// <param name="log">Recoit les Log.* de la requete (runtime de script de Quill).</param>
+    public static async Task<LinqCompiledQuery> CompileQueryAsync(LinqModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null, Action<LogLevel, string>? log = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(model);
         ArgumentNullException.ThrowIfNull(query);
@@ -94,6 +100,7 @@ public static class LinqCompiler
 
             // Le modele est servi tel quel (EF garde ses types en cache), le reste vient du runtime.
             ResolveAssembly = name => AssemblyName.ReferenceMatchesDefinition(name, model.Assembly.GetName()) ? model.Assembly : null,
+            Log = log,
         }, cancellationToken);
 
         if (compiled.Assembly is not { } assembly)
@@ -103,13 +110,18 @@ public static class LinqCompiler
         }
 
         var method = assembly.GetType($"{LinqQuerySource.QueryNamespace}.{LinqQuerySource.QueryClass}", throwOnError: true)!.GetMethod(LinqQuerySource.QueryMethod)!;
-        var run = method.CreateDelegate<Func<DbContext, Action<object?, string?>?, Action<int, string?>?, object?[], object?>>();
+        var run = method.CreateDelegate<Func<object?[], object?>>();
         var values = parameters.Select(p => p.Value).ToArray();
 
         return new LinqCompiledQuery
         {
-            // LogLevel de la requete : memes valeurs que QueryLogLevel, dont il est genere.
-            Execute = (context, dump, log) => run(context, dump, log is null ? null : (level, text) => log((QueryLogLevel)level, text), values),
+            // Proprietes du modele en AsyncLocal : propres a cette execution, meme si d'autres tournent sur le meme modele.
+            Execute = (context, dump) =>
+            {
+                model.ContextProperty.SetValue(null, context);
+                model.DumpSinkProperty.SetValue(null, dump);
+                return run(values);
+            },
             ReturnsValue = LinqQuerySource.ReturnsValue(query),
             Compilation = compiled,
         };
@@ -137,12 +149,9 @@ public static class LinqCompiler
             ParseOptions = LinqQuerySource.ParseOptions,
             DocumentName = "requete.cs",
 
-            // Usings et Dump/Log : fixes, Roslyn ne les reanalyse pas a chaque frappe.
-            AdditionalDocuments = new Dictionary<string, string>
-            {
-                ["GlobalUsings.cs"] = LinqQuerySource.BuildGlobalUsings(model?.Model),
-                ["QueryRuntime.cs"] = LinqQuerySource.QueryRuntimeSource,
-            },
+            // Usings fixes : Roslyn ne les reanalyse pas a chaque frappe. Dump vient du modele, Log et Script de Quill.
+            AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = LinqQuerySource.BuildGlobalUsings(model?.Model) },
+            IncludeScriptRuntime = true,
 
             // La requete devient le corps d'une methode ou la variable de la base et les parametres sont declares.
             SourceTransform = query =>

@@ -10,6 +10,8 @@ using Querify.Languages.Commons.Queries;
 using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Analysis;
+using Quill.Code.CSharp.Compilation;
+using Quill.Code.Scripting;
 using System.Collections;
 using System.Data.Common;
 using System.Diagnostics;
@@ -61,16 +63,15 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             messages.Add(new QueryMessage($"Contexte {model.Model.ContextVariableName} ({model.Model.ContextClassName}) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
             logIndex = messages.Count;
 
-            var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(model, query, cancellationToken: cancellationToken), cancellationToken);
+            using var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(model, query, log: log.Write, cancellationToken: cancellationToken), cancellationToken);
             if (!compiled.Success)
             {
-                compiled.Dispose();
                 hasErrors = true;
                 messages.AddRange(compiled.Errors.Select(e => new QueryMessage(e.Describe(query), QueryMessageKind.Error)));
             }
             else
             {
-                var outputs = await RunAsync(model, compiled, connection.ConnectionString!, MaxRows, log, cancellationToken);
+                var outputs = await RunAsync(model, compiled, connection.ConnectionString!, MaxRows, cancellationToken);
 
                 foreach (var output in outputs)
                 {
@@ -88,10 +89,10 @@ public sealed class LinqQueryExecutor : IQueryExecutor
                     messages.Add(new QueryMessage("Aucun résultat : terminez par return ou affichez une valeur avec .Dump()."));
             }
         }
-        catch (LinqRunAbandonedException ex)
+        catch (CSharpRunAbandonedException)
         {
             wasCancelled = true;
-            messages.Add(new QueryMessage(ex.Message, QueryMessageKind.Error));
+            messages.Add(new QueryMessage("Le code LINQ ne peut pas être interrompu : il se termine en arrière-plan et garde sa connexion ouverte jusque-là.", QueryMessageKind.Error));
         }
         catch (OperationCanceledException)
         {
@@ -142,14 +143,13 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         var model = await _contexts.GetModelAsync(connection, database, cancellationToken);
         var variables = parameters.Select(LinqParameter.From).ToArray();
 
-        var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(model, query, variables, cancellationToken), cancellationToken);
+        using var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(model, query, variables, cancellationToken: cancellationToken), cancellationToken);
         if (!compiled.Success)
         {
-            compiled.Dispose();
             throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5).Select(e => e.Describe(query))));
         }
 
-        var outputs = await RunAsync(model, compiled, connectionString, Math.Max(1, maxRows), log: null, cancellationToken);
+        var outputs = await RunAsync(model, compiled, connectionString, Math.Max(1, maxRows), cancellationToken);
 
         // Une carte n'affiche qu'un jeu : la valeur rendue, a defaut le dernier Dump().
         return outputs.Count > 0
@@ -162,36 +162,14 @@ public sealed class LinqQueryExecutor : IQueryExecutor
     private sealed record Output(QueryResultSet ResultSet, string? Sql);
 
     /// <summary>
-    /// Execute puis decharge <paramref name="compiled"/>. L'annulation rend la main tout de suite, mais le code de
-    /// l'utilisateur ne peut pas etre interrompu dans le processus (boucle infinie...) : l'assembly n'est alors
-    /// dechargee qu'a sa fin reelle, et <see cref="LinqRunAbandonedException"/> le signale.
+    /// Execution par Quill : l'annulation rend la main tout de suite, mais le code de l'utilisateur ne peut pas etre
+    /// interrompu dans le processus (boucle infinie...) ; il se termine en arriere-plan
+    /// (<see cref="CSharpRunAbandonedException"/>) et son assembly n'est dechargee qu'a sa fin reelle.
     /// </summary>
-    private Task<List<Output>> RunAsync(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, LogOutput? log, CancellationToken cancellationToken)
-    {
-        var run = Task.Run(() => Run(model, compiled, connectionString, maxRows, log, cancellationToken), CancellationToken.None);
-        return WaitAsync(run, compiled, cancellationToken);
-    }
+    private Task<List<Output>> RunAsync(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, CancellationToken cancellationToken)
+        => compiled.Compilation!.RunAsync(_ => Run(model, compiled, connectionString, maxRows, cancellationToken), cancellationToken);
 
-    private static async Task<List<Output>> WaitAsync(Task<List<Output>> run, LinqCompiledQuery compiled, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await run.WaitAsync(cancellationToken);
-        }
-        catch (OperationCanceledException) when (!run.IsCompleted)
-        {
-            // Exception eventuelle observee ici : le resultat n'interesse plus personne.
-            _ = run.ContinueWith(t => { _ = t.Exception; compiled.Dispose(); }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-            throw new LinqRunAbandonedException(cancellationToken);
-        }
-        finally
-        {
-            if (run.IsCompleted)
-                compiled.Dispose();
-        }
-    }
-
-    private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, LogOutput? log, CancellationToken cancellationToken)
+    private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, CancellationToken cancellationToken)
     {
         using var context = LinqCompiler.CreateContext(model, connectionString);
 
@@ -203,7 +181,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         {
             lastDumped = dumped;
             outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken));
-        }, log is null ? null : log.Write);
+        });
 
         // return x.Dump() : la valeur est deja affichee, pas de second onglet identique.
         var isAlreadyDumped = outputs.Count > 0 && Equals(value, lastDumped);
@@ -224,10 +202,8 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         private int _length;
         private bool _isTruncated;
 
-        public void Write(QueryLogLevel level, string? text)
+        public void Write(LogLevel level, string text)
         {
-            text ??= string.Empty;
-
             lock (_lock)
             {
                 if (_isTruncated)

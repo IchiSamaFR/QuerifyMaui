@@ -1,5 +1,6 @@
 ﻿using Querify.Core.Enums.Queries;
 using Querify.Core.Models.Queries;
+using Quill.Code.Scripting;
 using System.Globalization;
 
 namespace Querify.Converters;
@@ -47,10 +48,10 @@ public sealed class QueryMessagesConverter : IValueConverter
         QueryMessageKind.Error => ErrorStyle,
         QueryMessageKind.Output => message.Level switch
         {
-            QueryLogLevel.Error or QueryLogLevel.Critical => ErrorStyle,
-            QueryLogLevel.Warning => WarningStyle,
+            LogLevel.Error or LogLevel.Critical => ErrorStyle,
+            LogLevel.Warning => WarningStyle,
             // Trace et Debug en retrait, comme les messages du moteur.
-            QueryLogLevel.Trace or QueryLogLevel.Debug => InfoStyle,
+            LogLevel.Trace or LogLevel.Debug => InfoStyle,
             _ => OutputStyle,
         },
         _ => InfoStyle,

@@ -13,11 +13,20 @@ public sealed class EfModelGenerator : IEfModelGenerator
 {
     public const string GeneratedNamespace = "Querify.Generated";
 
+    /// <summary>Propriete statique du DbContext genere : le contexte de la requete en cours.</summary>
+    public const string ContextPropertyName = "Context";
+
+    /// <summary>Classe generee portant Dump() ; sa propriete privee <see cref="DumpSinkPropertyName"/> recoit les valeurs.</summary>
+    public const string ExtensionsClassName = "QueryExtensions";
+
+    /// <inheritdoc cref="ExtensionsClassName"/>
+    public const string DumpSinkPropertyName = "DumpSink";
+
     /// <summary>Noms que l'entite ne peut pas prendre : ils masqueraient les types utilises par le code genere.</summary>
     private static readonly HashSet<string> ReservedTypeNames = new(StringComparer.Ordinal)
     {
         "DbContext", "DbSet", "DbContextOptions", "ModelBuilder", "System", "Microsoft", "String", "DateTime",
-        "DateOnly", "TimeSpan", "DateTimeOffset", "Guid", "Decimal", "Object"
+        "DateOnly", "TimeSpan", "DateTimeOffset", "Guid", "Decimal", "Object", ContextPropertyName, ExtensionsClassName
     };
 
     public EfGeneratedModel Generate(DatabaseSchemaSnapshot snapshot)
@@ -149,6 +158,16 @@ public sealed class EfModelGenerator : IEfModelGenerator
         code.AppendLine(CultureInfo.InvariantCulture, $"    public {contextClass}(DbContextOptions<{contextClass}> options) : base(options) {{ }}");
         code.AppendLine();
 
+        // Fixe par l'hote avant chaque requete ; AsyncLocal : des requetes simultanees partagent ce modele.
+        code.AppendLine(CultureInfo.InvariantCulture, $"    private static readonly global::System.Threading.AsyncLocal<{contextClass}?> __context = new();");
+        code.AppendLine();
+        code.AppendLine(CultureInfo.InvariantCulture, $"    public static {contextClass} {ContextPropertyName}");
+        code.AppendLine("    {");
+        code.AppendLine("        get => __context.Value ?? throw new InvalidOperationException(\"Aucune requete en cours.\");");
+        code.AppendLine("        private set => __context.Value = value;");
+        code.AppendLine("    }");
+        code.AppendLine();
+
         foreach (var entity in entities)
             // base. : une table nommee Set, Model ou Database masquerait le membre herite.
             code.AppendLine(CultureInfo.InvariantCulture, $"    public DbSet<{entity.ClassName}> {entity.ClassName} => base.Set<{entity.ClassName}>();");
@@ -162,8 +181,27 @@ public sealed class EfModelGenerator : IEfModelGenerator
 
         code.AppendLine("    }");
         code.AppendLine("}");
+        code.AppendLine();
+        WriteExtensions(code);
 
         return code.ToString();
+    }
+
+    /// <summary>Dump() facon LINQPad : affiche une valeur dans son propre onglet et la rend telle quelle.</summary>
+    private static void WriteExtensions(StringBuilder code)
+    {
+        code.AppendLine(CultureInfo.InvariantCulture, $"public static class {ExtensionsClassName}");
+        code.AppendLine("{");
+        code.AppendLine("    private static readonly global::System.Threading.AsyncLocal<Action<object?, string?>?> __dumpSink = new();");
+        code.AppendLine();
+        code.AppendLine(CultureInfo.InvariantCulture, $"    private static Action<object?, string?>? {DumpSinkPropertyName} {{ get => __dumpSink.Value; set => __dumpSink.Value = value; }}");
+        code.AppendLine();
+        code.AppendLine("    public static T Dump<T>(this T value, string? title = null)");
+        code.AppendLine("    {");
+        code.AppendLine(CultureInfo.InvariantCulture, $"        {DumpSinkPropertyName}?.Invoke(value, title);");
+        code.AppendLine("        return value;");
+        code.AppendLine("    }");
+        code.AppendLine("}");
     }
 
     private static void WriteEntity(StringBuilder code, EntityModel entity)
