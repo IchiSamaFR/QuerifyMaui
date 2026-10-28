@@ -29,19 +29,35 @@ public static class ServiceCollectionExtensions
     {
         foreach (Type type in assemblies.SelectMany(a => a.GetTypes()).Where(t => t is { IsClass: true, IsAbstract: false }))
         {
-            AutoRegisterAttribute? attribute = type.GetCustomAttribute<AutoRegisterAttribute>(inherit: false);
-            if (attribute is null)
+            AutoRegisterAttribute[] attributes = type.GetCustomAttributes<AutoRegisterAttribute>(inherit: false).ToArray();
+            if (attributes.Length == 0)
             {
                 continue;
             }
 
-            Type serviceType = attribute.As ?? type;
-            if (!serviceType.IsAssignableFrom(type))
+            foreach (AutoRegisterAttribute attribute in attributes)
             {
-                throw new InvalidOperationException($"{type.Name} n'est pas assignable au service {serviceType.Name} declare dans [AutoRegister].");
+                Type serviceType = attribute.As ?? type;
+                if (!serviceType.IsAssignableFrom(type))
+                {
+                    throw new InvalidOperationException($"{type.Name} n'est pas assignable au service {serviceType.Name} declare dans [AutoRegister].");
+                }
+
+                if (attributes.Length == 1)
+                {
+                    services.Add(new ServiceDescriptor(serviceType, type, attribute.Lifetime));
+                }
+                else
+                {
+                    // Plusieurs services : tous renvoient l'instance de la classe, enregistree une fois.
+                    services.Add(new ServiceDescriptor(serviceType, provider => provider.GetRequiredService(type), attribute.Lifetime));
+                }
             }
 
-            services.Add(new ServiceDescriptor(serviceType, type, attribute.Lifetime));
+            if (attributes.Length > 1)
+            {
+                services.Add(new ServiceDescriptor(type, type, attributes[0].Lifetime));
+            }
         }
 
         return services;
