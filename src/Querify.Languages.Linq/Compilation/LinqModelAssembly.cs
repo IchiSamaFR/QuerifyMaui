@@ -13,9 +13,6 @@ public sealed class LinqModelAssembly
 
     public required Type ContextType { get; init; }
 
-    /// <summary>Contexte de la requete en cours (propriete statique generee, propre a chaque execution).</summary>
-    public required PropertyInfo ContextProperty { get; init; }
-
     /// <summary>Destination des Dump() de la requete en cours (propriete statique generee, propre a chaque execution).</summary>
     public required PropertyInfo DumpSinkProperty { get; init; }
 

@@ -60,7 +60,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         try
         {
             var model = await _contexts.GetModelAsync(connection, database: null, cancellationToken);
-            messages.Add(new QueryMessage($"Contexte {model.Model.ContextVariableName} ({model.Model.ContextClassName}) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
+            messages.Add(new QueryMessage($"Contexte {model.Model.ContextClassName} (QueryDbContext) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
             logIndex = messages.Count;
 
             using var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(model, query, log: log.Write, cancellationToken: cancellationToken), cancellationToken);
@@ -86,7 +86,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
                 }
 
                 if (outputs.Count == 0)
-                    messages.Add(new QueryMessage("Aucun résultat : terminez par return ou affichez une valeur avec .Dump()."));
+                    messages.Add(new QueryMessage("Aucun résultat : Run ne renvoie rien ; renvoyez une valeur ou affichez-la avec .Dump()."));
             }
         }
         catch (CSharpRunAbandonedException)
@@ -154,7 +154,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         // Une carte n'affiche qu'un jeu : la valeur rendue, a defaut le dernier Dump().
         return outputs.Count > 0
             ? outputs[^1].ResultSet
-            : throw new InvalidOperationException("Aucun résultat : terminez la requête par une expression, un return ou .Dump().");
+            : throw new InvalidOperationException("Aucun résultat : Run doit renvoyer une valeur, ou l'afficher avec .Dump().");
     }
 
     // ---------- Execution ----------

@@ -1,6 +1,5 @@
 ﻿using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
-using Querify.Languages.Linq.Queries;
 using Quill.Code.Completion;
 using Xunit;
 
@@ -14,27 +13,44 @@ public class LinqCompletionTests
     [Fact]
     public async Task Context_ListsTables()
     {
-        var items = await CompleteAsync("RaveOnDb.|");
+        var items = await CompleteAsync(TestLinq.Expression("RaveOnDb.|"));
 
         Assert.Contains(items, i => i.InsertText == "AspNetUsers" && i.Kind == CompletionItemKind.Property);
         Assert.Contains(items, i => i.InsertText == "Sales_Orders");
     }
 
     [Fact]
-    public async Task Parameters_ListedAsVariables()
+    public async Task Parameters_OfRunAreListed()
     {
-        const string query = "RaveOnDb.AspNetUsers.Where(u => u.AccessFailedCount > |)";
-        var caret = query.IndexOf('|', StringComparison.Ordinal);
+        var items = await CompleteAsync("""
+            class UserQuery
+            {
+                object Run(QueryDbContext context, int maxFailures) => context.AspNetUsers.Where(u => u.AccessFailedCount > |);
+            }
+            """);
 
-        var items = await TestLinq.CompleteAsync(Model.Value, query.Remove(caret, 1), caret, [new LinqParameter("MaxFailures", typeof(int?), null)]);
+        Assert.Contains(items, i => i.InsertText == "maxFailures");
+    }
 
-        Assert.Contains(items, i => i.InsertText == "MaxFailures" && i.Kind == CompletionItemKind.Variable);
+    [Fact]
+    public async Task Usings_DeclaredByTheQuery()
+    {
+        var items = await CompleteAsync("""
+            using System.Text;
+
+            class UserQuery
+            {
+                object Run(QueryDbContext context) => new StringBu|
+            }
+            """);
+
+        Assert.Contains(items, i => i.InsertText == "StringBuilder");
     }
 
     [Fact]
     public async Task Lambda_ListsColumns()
     {
-        var items = await CompleteAsync("RaveOnDb.AspNetUsers.Where(u => u.|)");
+        var items = await CompleteAsync(TestLinq.Expression("RaveOnDb.AspNetUsers.Where(u => u.|)"));
 
         Assert.Contains(items, i => i.InsertText == "Email" && i.Kind == CompletionItemKind.Property);
         Assert.Contains(items, i => i.InsertText == "EmailConfirmed");
@@ -43,7 +59,7 @@ public class LinqCompletionTests
     [Fact]
     public async Task Queryable_ListsLinqOperators()
     {
-        var items = await CompleteAsync("RaveOnDb.AspNetUsers.Wh|");
+        var items = await CompleteAsync(TestLinq.Expression("RaveOnDb.AspNetUsers.Wh|"));
 
         Assert.Contains(items, i => i.InsertText == "Where" && i.Kind is CompletionItemKind.Method or CompletionItemKind.ExtensionMethod);
     }
@@ -51,7 +67,7 @@ public class LinqCompletionTests
     [Fact]
     public async Task QuerySyntax_RangeVariableMembers()
     {
-        var items = await CompleteAsync("from u in RaveOnDb.AspNetUsers where u.|");
+        var items = await CompleteAsync(TestLinq.Expression("from u in RaveOnDb.AspNetUsers where u.|"));
 
         Assert.Contains(items, i => i.InsertText == "AccessFailedCount");
     }
@@ -59,7 +75,7 @@ public class LinqCompletionTests
     [Fact]
     public async Task Statements_LocalVariableMembers()
     {
-        var items = await CompleteAsync("var ids = RaveOnDb.AspNetUsers.Select(u => u.Id);\nreturn ids.Wh|");
+        var items = await CompleteAsync(TestLinq.Statements("var ids = RaveOnDb.AspNetUsers.Select(u => u.Id);\nreturn ids.Wh|"));
 
         Assert.Contains(items, i => i.InsertText == "Where");
     }
@@ -67,7 +83,7 @@ public class LinqCompletionTests
     [Fact]
     public async Task Statements_DeclarationInProgress()
     {
-        var items = await CompleteAsync("var users = RaveOnDb.|");
+        var items = await CompleteAsync(TestLinq.Statements("var users = RaveOnDb.|"));
 
         Assert.Contains(items, i => i.InsertText == "AspNetUsers");
     }
@@ -75,8 +91,8 @@ public class LinqCompletionTests
     [Fact]
     public async Task WithoutModel_StillCompletesCSharp()
     {
-        var caret = "DateTime.".Length;
-        var items = await TestLinq.CompleteAsync(null, "DateTime.", caret);
+        var query = TestLinq.Expression("DateTime.");
+        var items = await TestLinq.CompleteAsync(null, query, query.IndexOf("DateTime.", StringComparison.Ordinal) + "DateTime.".Length);
 
         Assert.Contains(items, i => i.InsertText == "Now");
     }

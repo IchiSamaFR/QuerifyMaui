@@ -13,9 +13,6 @@ public sealed class EfModelGenerator : IEfModelGenerator
 {
     public const string GeneratedNamespace = "Querify.Generated";
 
-    /// <summary>Propriete statique du DbContext genere : le contexte de la requete en cours.</summary>
-    public const string ContextPropertyName = "Context";
-
     /// <summary>Classe generee portant Dump() ; sa propriete privee <see cref="DumpSinkPropertyName"/> recoit les valeurs.</summary>
     public const string ExtensionsClassName = "QueryExtensions";
 
@@ -26,20 +23,19 @@ public sealed class EfModelGenerator : IEfModelGenerator
     private static readonly HashSet<string> ReservedTypeNames = new(StringComparer.Ordinal)
     {
         "DbContext", "DbSet", "DbContextOptions", "ModelBuilder", "System", "Microsoft", "String", "DateTime",
-        "DateOnly", "TimeSpan", "DateTimeOffset", "Guid", "Decimal", "Object", ContextPropertyName, ExtensionsClassName
+        "DateOnly", "TimeSpan", "DateTimeOffset", "Guid", "Decimal", "Object", ExtensionsClassName
     };
 
     public EfGeneratedModel Generate(DatabaseSchemaSnapshot snapshot)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
-        var contextVariable = ToIdentifier(snapshot.Database);
         var contextClass = ToIdentifier(snapshot.Database.TrimStart('@') + "Context");
 
         var entities = BuildEntities(snapshot, contextClass);
         var source = WriteSource(contextClass, entities);
 
-        return new EfGeneratedModel(GeneratedNamespace, contextClass, contextVariable, source, entities.Select(e => e.ClassName).ToArray());
+        return new EfGeneratedModel(GeneratedNamespace, contextClass, source, entities.Select(e => e.ClassName).ToArray());
     }
 
     // ---------- Modele intermediaire ----------
@@ -156,16 +152,6 @@ public sealed class EfModelGenerator : IEfModelGenerator
         code.AppendLine(CultureInfo.InvariantCulture, $"public sealed class {contextClass} : DbContext");
         code.AppendLine("{");
         code.AppendLine(CultureInfo.InvariantCulture, $"    public {contextClass}(DbContextOptions<{contextClass}> options) : base(options) {{ }}");
-        code.AppendLine();
-
-        // Fixe par l'hote avant chaque requete ; AsyncLocal : des requetes simultanees partagent ce modele.
-        code.AppendLine(CultureInfo.InvariantCulture, $"    private static readonly global::System.Threading.AsyncLocal<{contextClass}?> __context = new();");
-        code.AppendLine();
-        code.AppendLine(CultureInfo.InvariantCulture, $"    public static {contextClass} {ContextPropertyName}");
-        code.AppendLine("    {");
-        code.AppendLine("        get => __context.Value ?? throw new InvalidOperationException(\"Aucune requete en cours.\");");
-        code.AppendLine("        private set => __context.Value = value;");
-        code.AppendLine("    }");
         code.AppendLine();
 
         foreach (var entity in entities)
