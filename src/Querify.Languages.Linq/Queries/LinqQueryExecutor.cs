@@ -16,7 +16,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
-using System.Text;
 
 namespace Querify.Languages.Linq.Queries;
 
@@ -52,15 +51,15 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         List<QueryMessage> messages = [];
         var hasErrors = false;
         var wasCancelled = false;
-        var console = new ConsoleOutput();
-        var consoleIndex = 0;
+        var log = new LogOutput();
+        var logIndex = 0;
         var stopwatch = Stopwatch.StartNew();
 
         try
         {
             var model = await _contexts.GetModelAsync(connection, database: null, cancellationToken);
             messages.Add(new QueryMessage($"Contexte {model.Model.ContextVariableName} ({model.Model.ContextClassName}) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
-            consoleIndex = messages.Count;
+            logIndex = messages.Count;
 
             var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(model, query, cancellationToken: cancellationToken), cancellationToken);
             if (!compiled.Success)
@@ -71,7 +70,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             }
             else
             {
-                var outputs = await RunAsync(model, compiled, connection.ConnectionString!, MaxRows, console, cancellationToken);
+                var outputs = await RunAsync(model, compiled, connection.ConnectionString!, MaxRows, log, cancellationToken);
 
                 foreach (var output in outputs)
                 {
@@ -118,8 +117,8 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
         stopwatch.Stop();
 
-        // Avant les resultats et l'eventuelle erreur : la console a ete ecrite pendant l'execution.
-        messages.InsertRange(consoleIndex, console.ToMessages());
+        // Avant les resultats et l'eventuelle erreur : le Log a ete ecrit pendant l'execution.
+        messages.InsertRange(logIndex, log.ToMessages());
 
         if (wasCancelled)
             messages.Add(new QueryMessage("Requête annulée par l'utilisateur.", QueryMessageKind.Error));
@@ -150,7 +149,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5).Select(e => e.Describe(query))));
         }
 
-        var outputs = await RunAsync(model, compiled, connectionString, Math.Max(1, maxRows), console: null, cancellationToken);
+        var outputs = await RunAsync(model, compiled, connectionString, Math.Max(1, maxRows), log: null, cancellationToken);
 
         // Une carte n'affiche qu'un jeu : la valeur rendue, a defaut le dernier Dump().
         return outputs.Count > 0
@@ -167,9 +166,9 @@ public sealed class LinqQueryExecutor : IQueryExecutor
     /// l'utilisateur ne peut pas etre interrompu dans le processus (boucle infinie...) : l'assembly n'est alors
     /// dechargee qu'a sa fin reelle, et <see cref="LinqRunAbandonedException"/> le signale.
     /// </summary>
-    private Task<List<Output>> RunAsync(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, ConsoleOutput? console, CancellationToken cancellationToken)
+    private Task<List<Output>> RunAsync(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, LogOutput? log, CancellationToken cancellationToken)
     {
-        var run = Task.Run(() => Run(model, compiled, connectionString, maxRows, console, cancellationToken), CancellationToken.None);
+        var run = Task.Run(() => Run(model, compiled, connectionString, maxRows, log, cancellationToken), CancellationToken.None);
         return WaitAsync(run, compiled, cancellationToken);
     }
 
@@ -192,7 +191,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         }
     }
 
-    private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, ConsoleOutput? console, CancellationToken cancellationToken)
+    private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, LogOutput? log, CancellationToken cancellationToken)
     {
         using var context = LinqCompiler.CreateContext(model, connectionString);
 
@@ -204,7 +203,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         {
             lastDumped = dumped;
             outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken));
-        }, console is null ? null : console.Write);
+        }, log is null ? null : log.Write);
 
         // return x.Dump() : la valeur est deja affichee, pas de second onglet identique.
         var isAlreadyDumped = outputs.Count > 0 && Equals(value, lastDumped);
@@ -214,53 +213,47 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         return outputs;
     }
 
-    /// <summary>Sortie de Console.Write* ; le script peut encore ecrire en arriere-plan apres une annulation.</summary>
-    private sealed class ConsoleOutput
+    /// <summary>Sortie de Log.* ; le script peut encore ecrire en arriere-plan apres une annulation.</summary>
+    private sealed class LogOutput
     {
         // Une boucle d'affichage ne doit pas saturer la memoire ni l'onglet Messages (un seul bloc de texte).
         private const int MaxLength = 200_000;
 
         private readonly Lock _lock = new();
-        private readonly StringBuilder _text = new();
+        private readonly List<QueryMessage> _messages = [];
+        private int _length;
         private bool _isTruncated;
 
-        public void Write(string? text)
+        public void Write(QueryLogLevel level, string? text)
         {
-            if (string.IsNullOrEmpty(text))
-                return;
+            text ??= string.Empty;
 
             lock (_lock)
             {
-                var room = MaxLength - _text.Length;
+                if (_isTruncated)
+                    return;
+
+                // Le saut de ligne compte : une boucle de messages vides reste bornee.
+                var room = MaxLength - _length - 1;
                 if (text.Length > room)
                 {
                     _isTruncated = true;
                     text = text[..Math.Max(0, room)];
                 }
 
-                _text.Append(text);
+                _length += text.Length + 1;
+                _messages.Add(new QueryMessage(text.ReplaceLineEndings(), QueryMessageKind.Output, level));
             }
         }
 
         public IReadOnlyList<QueryMessage> ToMessages()
         {
-            string text;
-            bool isTruncated;
             lock (_lock)
             {
-                text = _text.ToString();
-                isTruncated = _isTruncated;
+                return _isTruncated
+                    ? [.. _messages, new QueryMessage($"Sortie Log tronquée à {MaxLength:N0} caractères.", QueryMessageKind.Error)]
+                    : [.. _messages];
             }
-
-            if (text.Length == 0)
-                return [];
-
-            // Une ligne par message ; le saut de ligne final de WriteLine ne cree pas de ligne vide.
-            List<QueryMessage> messages = [.. text.ReplaceLineEndings("\n").TrimEnd('\n').Split('\n').Select(l => new QueryMessage(l, QueryMessageKind.Output))];
-            if (isTruncated)
-                messages.Add(new QueryMessage($"Sortie console tronquée à {MaxLength:N0} caractères.", QueryMessageKind.Error));
-
-            return messages;
         }
     }
 

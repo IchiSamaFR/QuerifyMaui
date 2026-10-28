@@ -29,6 +29,12 @@
     </Style>
 
     <Style TargetType="Span"
+           x:Key="QueryMessageWarningSpanStyle">
+        <Setter Property="TextColor"
+                Value="{DynamicResource Warning}" />
+    </Style>
+
+    <Style TargetType="Span"
            x:Key="QueryMessageErrorSpanStyle">
         <Setter Property="TextColor"
                 Value="{DynamicResource Danger}" />

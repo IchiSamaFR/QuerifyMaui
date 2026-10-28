@@ -41,7 +41,7 @@ A derouler sur le zip publie par la CI (`Querify-0.1.0-rc.N-win-x64.zip`), sur u
 ## Editeur LINQ
 
 - [ ] Requete simple, instructions avec `var` / `return`, plusieurs `.Dump()`
-- [ ] `Console.WriteLine` dans l'onglet Messages, SQL genere affiche
+- [ ] `Log.Information` / `Log.Warning` / `Log.Error` dans l'onglet Messages (couleur selon le niveau), SQL genere affiche
 - [ ] Erreur de compilation soulignee et listee
 - [ ] Annulation d'une boucle infinie : la main revient, message « se termine en arriere-plan »
 - [ ] Completion, survol et aide a la signature

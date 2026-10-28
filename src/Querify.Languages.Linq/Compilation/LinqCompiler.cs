@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Querify.Core.Enums.Queries;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Quill.Code.Analysis;
@@ -102,12 +103,13 @@ public static class LinqCompiler
         }
 
         var method = assembly.GetType($"{LinqQuerySource.QueryNamespace}.{LinqQuerySource.QueryClass}", throwOnError: true)!.GetMethod(LinqQuerySource.QueryMethod)!;
-        var run = method.CreateDelegate<Func<DbContext, Action<object?, string?>?, Action<string?>?, object?[], object?>>();
+        var run = method.CreateDelegate<Func<DbContext, Action<object?, string?>?, Action<int, string?>?, object?[], object?>>();
         var values = parameters.Select(p => p.Value).ToArray();
 
         return new LinqCompiledQuery
         {
-            Execute = (context, dump, write) => run(context, dump, write, values),
+            // LogLevel de la requete : memes valeurs que QueryLogLevel, dont il est genere.
+            Execute = (context, dump, log) => run(context, dump, log is null ? null : (level, text) => log((QueryLogLevel)level, text), values),
             ReturnsValue = LinqQuerySource.ReturnsValue(query),
             Compilation = compiled,
         };
@@ -135,7 +137,7 @@ public static class LinqCompiler
             ParseOptions = LinqQuerySource.ParseOptions,
             DocumentName = "requete.cs",
 
-            // Usings et Dump/Console : fixes, Roslyn ne les reanalyse pas a chaque frappe.
+            // Usings et Dump/Log : fixes, Roslyn ne les reanalyse pas a chaque frappe.
             AdditionalDocuments = new Dictionary<string, string>
             {
                 ["GlobalUsings.cs"] = LinqQuerySource.BuildGlobalUsings(model?.Model),

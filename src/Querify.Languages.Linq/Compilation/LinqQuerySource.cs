@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
+using Querify.Core.Enums.Queries;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Quill.Code.CSharp.Workspaces;
@@ -11,7 +12,7 @@ namespace Querify.Languages.Linq.Compilation;
 
 /// <summary>
 /// Source C# d'une requete LINQ (sans etat) : methode generee autour de la requete, documents fixes (usings,
-/// Dump/Console), references et options de compilation. Partage par l'editeur et l'execution.
+/// Dump/Log), references et options de compilation. Partage par l'editeur et l'execution.
 /// </summary>
 [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "App non publiee en trimmed : compilation assumee.")]
 internal static class LinqQuerySource
@@ -19,8 +20,6 @@ internal static class LinqQuerySource
     internal const string QueryNamespace = "Querify.UserQueries";
     internal const string QueryClass = "UserQuery";
     internal const string QueryMethod = "Run";
-    private const string DumpClass = "QueryExtensions";
-    private const string ConsoleClass = "Console";
 
     /// <summary>Nom de fichier virtuel des diagnostics : les positions sont celles du texte de l'onglet.</summary>
     private const string QueryFileName = "requete";
@@ -46,36 +45,51 @@ internal static class LinqQuerySource
     internal static CSharpCompilationOptions CompilationOptions { get; } = new(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Disable);
 
     /// <summary>
-    /// Dump() facon LINQPad et Console de la requete, document fixe du projet (<see cref="QueryRuntimeSource"/>).
-    /// Dump affiche une valeur dans son propre onglet et la rend telle quelle. Console masque System.Console dans le
-    /// namespace de la requete : la sortie va dans l'onglet Messages, sans Console.SetOut global (plusieurs requetes
-    /// peuvent tourner en meme temps). Les collecteurs sont statiques : chaque requete est compilee dans sa propre assembly.
+    /// Dump() facon LINQPad et Log de la requete, document fixe du projet. Dump affiche une valeur dans son propre
+    /// onglet et la rend telle quelle ; Log ecrit dans l'onglet Messages avec un niveau (enum LogLevel, genere depuis
+    /// <see cref="QueryLogLevel"/>). Les sorties sont statiques et branchees une seule fois par QueryRuntime.Attach :
+    /// chaque requete est compilee dans sa propre assembly, plusieurs peuvent tourner en meme temps.
     /// </summary>
     internal static string QueryRuntimeSource { get; } = $$"""
         namespace {{QueryNamespace}};
 
-        public static class {{DumpClass}}
+        internal static class QueryRuntime
         {
-            internal static Action<object, string> __sink;
+            internal static Action<object, string> DumpSink;
+            internal static Action<int, string> LogSink;
 
+            internal static void Attach(Action<object, string> dump, Action<int, string> log)
+            {
+                DumpSink = dump;
+                LogSink = log;
+            }
+        }
+
+        public static class QueryExtensions
+        {
             public static T Dump<T>(this T value, string title = null)
             {
-                __sink?.Invoke(value, title);
+                QueryRuntime.DumpSink?.Invoke(value, title);
                 return value;
             }
         }
 
-        public static class {{ConsoleClass}}
-        {
-            internal static Action<string> __sink;
+        public enum LogLevel { {{string.Join(", ", Enum.GetNames<QueryLogLevel>())}} }
 
-            public static void Write(string value) => __sink?.Invoke(value);
-            public static void Write(object value) => __sink?.Invoke(Convert.ToString(value));
-            public static void Write(string format, params object[] args) => __sink?.Invoke(string.Format(format, args));
-            public static void WriteLine() => __sink?.Invoke(Environment.NewLine);
-            public static void WriteLine(string value) => __sink?.Invoke(value + Environment.NewLine);
-            public static void WriteLine(object value) => __sink?.Invoke(Convert.ToString(value) + Environment.NewLine);
-            public static void WriteLine(string format, params object[] args) => __sink?.Invoke(string.Format(format, args) + Environment.NewLine);
+        public static class Log
+        {
+            public static void Trace(object value) => Write(LogLevel.Trace, value);
+            public static void Debug(object value) => Write(LogLevel.Debug, value);
+            public static void Information(object value) => Write(LogLevel.Information, value);
+            public static void Warning(object value) => Write(LogLevel.Warning, value);
+            public static void Error(object value) => Write(LogLevel.Error, value);
+            public static void Critical(object value) => Write(LogLevel.Critical, value);
+
+            public static void Write(LogLevel level, object value)
+            {
+                if (level is >= LogLevel.Trace and < LogLevel.None)
+                    QueryRuntime.LogSink?.Invoke((int)level, Convert.ToString(value));
+            }
         }
         """;
 
@@ -99,7 +113,7 @@ internal static class LinqQuerySource
     /// instructions avec "return" forment le corps lui-meme (voir <see cref="IsStatementBlock"/>).
     /// #line recale les diagnostics sur le texte de l'onglet.
     /// Sans modele (pas de connexion), le source reste valide pour l'autocompletion C#.
-    /// Usings et Dump/Console sont des documents fixes du projet (<see cref="BuildGlobalUsings"/>, <see cref="QueryRuntimeSource"/>).
+    /// Usings et Dump/Log sont des documents fixes du projet (<see cref="BuildGlobalUsings"/>, <see cref="QueryRuntimeSource"/>).
     /// </summary>
     /// <returns>Le source et la position du texte de la requete dans ce source.</returns>
     internal static (string Source, int QueryStart) Build(EfGeneratedModel? model, string query, IReadOnlyList<LinqParameter>? parameters = null)
@@ -109,10 +123,9 @@ internal static class LinqQuerySource
         code.AppendLine();
         code.AppendLine($"public static class {QueryClass}");
         code.AppendLine("{");
-        code.AppendLine($"    public static object {QueryMethod}(DbContext __context, Action<object, string> __dump, Action<string> __write, object[] __args)");
+        code.AppendLine($"    public static object {QueryMethod}(DbContext __context, Action<object, string> __dump, Action<int, string> __log, object[] __args)");
         code.AppendLine("    {");
-        code.AppendLine($"        {DumpClass}.__sink = __dump;");
-        code.AppendLine($"        {ConsoleClass}.__sink = __write;");
+        code.AppendLine("        QueryRuntime.Attach(__dump, __log);");
         if (model is not null)
             code.AppendLine($"        var {model.ContextVariableName} = ({model.ContextClassName})__context;");
 

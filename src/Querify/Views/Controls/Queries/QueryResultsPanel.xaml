@@ -8,6 +8,7 @@
         <appconv:QueryMessagesConverter x:Key="QueryMessagesConverter"
                                         InfoStyle="{StaticResource QueryMessageInfoSpanStyle}"
                                         ErrorStyle="{StaticResource QueryMessageErrorSpanStyle}"
+                                        WarningStyle="{StaticResource QueryMessageWarningSpanStyle}"
                                         OutputStyle="{StaticResource QueryMessageOutputSpanStyle}" />
     </ContentView.Resources>
 

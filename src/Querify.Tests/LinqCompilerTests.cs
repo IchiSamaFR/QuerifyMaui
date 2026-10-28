@@ -1,8 +1,8 @@
-﻿using Querify.Languages.Linq.Compilation;
+﻿using Querify.Core.Enums.Queries;
+using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Quill.Code.Analysis;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -178,20 +178,21 @@ public class LinqCompilerTests
     }
 
     [Fact]
-    public async Task Console_IsRedirectedToTheWriter()
+    public async Task Log_IsRedirectedWithItsLevel()
     {
         var compiled = await CompileAsync("""
-            Console.Write("a");
-            Console.WriteLine("{b}");
-            Console.WriteLine("{0}+{1}", 1, 2);
+            Log.Information("a");
+            Log.Warning($"{1}+{2}");
+            Log.Write(LogLevel.Error, "{b}");
+            Log.Write(LogLevel.None, "ignore");
             return 0;
             """);
 
-        var output = new StringBuilder();
+        List<(QueryLogLevel Level, string? Text)> output = [];
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
-        compiled.Execute!(context, null, text => output.Append(text));
+        compiled.Execute!(context, null, (level, text) => output.Add((level, text)));
 
-        Assert.Equal($"a{{b}}{Environment.NewLine}1+2{Environment.NewLine}", output.ToString());
+        Assert.Equal(new (QueryLogLevel, string?)[] { (QueryLogLevel.Information, "a"), (QueryLogLevel.Warning, "1+2"), (QueryLogLevel.Error, "{b}") }, output);
     }
 
     [Theory]
