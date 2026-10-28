@@ -6,6 +6,6 @@ public enum QueryMessageKind
     /// <summary>Message du moteur ou de l'application : duree, lignes affectees, SQL genere...</summary>
     Info,
     Error,
-    /// <summary>Sortie ecrite par le script lui-meme (Console.WriteLine, PRINT).</summary>
+    /// <summary>Sortie ecrite par le script lui-meme (Log.*, PRINT).</summary>
     Output,
 }

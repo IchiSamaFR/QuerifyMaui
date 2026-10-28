@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Querify.Core.Enums.Queries;
 using Quill.Code.Analysis;
 using Quill.Code.CSharp.Compilation;
 
@@ -13,10 +14,10 @@ public sealed class LinqCompiledQuery : IDisposable
     /// <summary>Assembly de la requete chargee par Quill (contexte collectable) ; null en cas d'erreur de compilation.</summary>
     public CSharpCompilationResult? Compilation { get; init; }
 
-    /// <summary>Execute la requete ; Dump(valeur, titre) est transmis au second parametre, Console.Write* au troisieme.</summary>
-    public Func<DbContext, Action<object?, string?>?, Action<string?>?, object?>? Execute { get; init; }
+    /// <summary>Execute la requete ; Dump(valeur, titre) est transmis au second parametre, Log.* (niveau, texte) au troisieme.</summary>
+    public Func<DbContext, Action<object?, string?>?, Action<QueryLogLevel, string?>?, object?>? Execute { get; init; }
 
-    /// <summary>Execution sans recuperation des Dump() ni de la console.</summary>
+    /// <summary>Execution sans recuperation des Dump() ni du Log.</summary>
     public Func<DbContext, object?>? Run => Execute is { } execute ? context => execute(context, null, null) : null;
 
     /// <summary>Faux pour des instructions sans return : la valeur rendue (null) n'est pas un resultat.</summary>
