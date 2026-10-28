@@ -9,7 +9,7 @@ namespace Querify.Tests;
 /// <summary>Le caractere | marque le curseur ; Roslyn complete dans le contexte genere.</summary>
 public class LinqCompletionTests
 {
-    private static readonly Lazy<LinqModelAssembly> Model = new(() => new LinqCompiler(TestLinq.Services).CompileModelAsync(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())).GetAwaiter().GetResult());
+    private static readonly Lazy<LinqModelAssembly> Model = new(() => LinqCompiler.CompileModelAsync(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())).GetAwaiter().GetResult());
 
     [Fact]
     public async Task Context_ListsTables()

@@ -13,9 +13,7 @@ public class LinqCompilerTests
 {
     private const string ConnectionString = "Server=localhost;Database=RaveOnDb;Trusted_Connection=True;TrustServerCertificate=True";
 
-    private static readonly LinqCompiler Compiler = new(TestLinq.Services);
-
-    private static readonly Lazy<LinqModelAssembly> Model = new(() => Compiler.CompileModelAsync(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())).GetAwaiter().GetResult());
+    private static readonly Lazy<LinqModelAssembly> Model = new(() => LinqCompiler.CompileModelAsync(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())).GetAwaiter().GetResult());
 
     [Fact]
     public async Task MethodSyntax_TranslatesToSql()
@@ -58,7 +56,7 @@ public class LinqCompilerTests
     {
         var compiled = await CompileAsync("40 + 2");
 
-        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
         Assert.Equal(42, compiled.Run!(context));
     }
 
@@ -66,21 +64,21 @@ public class LinqCompilerTests
     public async Task Parameters_DeclaredAsTypedVariables()
     {
         // Nom seul ou @Nom (identifiant verbatim) : meme variable, comme un parametre SQL.
-        using var compiled = await Compiler.CompileQueryAsync(Model.Value, "UserId + @UserId", [new LinqParameter("UserId", typeof(int?), 21)]);
+        using var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, "UserId + @UserId", [new LinqParameter("UserId", typeof(int?), 21)]);
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
-        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
         Assert.Equal(42, compiled.Run!(context));
     }
 
     [Fact]
     public async Task Parameters_SentAsSqlParameters()
     {
-        using var compiled = await Compiler.CompileQueryAsync(Model.Value, "RaveOnDb.AspNetUsers.Where(u => u.Email == @Email)",
+        using var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, "RaveOnDb.AspNetUsers.Where(u => u.Email == @Email)",
             [new LinqParameter("Email", typeof(string), "a@b.fr")]);
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
-        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
         var sql = Assert.IsAssignableFrom<IQueryable>(compiled.Run!(context)).ToQueryString();
 
         // ToQueryString declare la valeur en tete, mais le WHERE compare bien a un parametre.
@@ -114,7 +112,7 @@ public class LinqCompilerTests
     {
         var compiled = await CompileAsync("var ids = RaveOnDb.AspNetUsers.Select(u => u.Id);");
 
-        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
         Assert.Null(compiled.Run!(context));
     }
 
@@ -122,7 +120,7 @@ public class LinqCompilerTests
     public async Task Statements_ErrorsPointToQueryText()
     {
         const string query = "var users = RaveOnDb.AspNetUsers;\nreturn users.Wher(u => true);";
-        var compiled = await Compiler.CompileQueryAsync(Model.Value, query);
+        var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, query);
 
         Assert.False(compiled.Success);
         Assert.Equal(query.IndexOf("Wher", StringComparison.Ordinal), compiled.Errors[0].Start);
@@ -136,13 +134,13 @@ public class LinqCompilerTests
     [InlineData("var ids = RaveOnDb.AspNetUsers", true)]
     [InlineData("var a = 1; a", true)]
     public void StatementDetection(string query, bool expected)
-        => Assert.Equal(expected, LinqCompiler.IsStatementBlock(query));
+        => Assert.Equal(expected, LinqQuerySource.IsStatementBlock(query));
 
     [Fact]
     public async Task Errors_PointToQueryText()
     {
         const string query = "RaveOnDb.AspNetUsers\n    .Wher(u => true)";
-        var compiled = await Compiler.CompileQueryAsync(Model.Value, query);
+        var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, query);
 
         Assert.False(compiled.Success);
         var error = compiled.Errors[0];
@@ -153,7 +151,7 @@ public class LinqCompilerTests
     [Fact]
     public async Task Errors_UnknownContext()
     {
-        var compiled = await Compiler.CompileQueryAsync(Model.Value, "Northwind.Orders");
+        var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, "Northwind.Orders");
 
         Assert.Contains(compiled.Errors, e => e.Code == "CS0103" && e.Start == 0);
     }
@@ -168,7 +166,7 @@ public class LinqCompilerTests
             """);
 
         List<(object? Value, string? Title)> dumps = [];
-        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
         var result = compiled.Execute!(context, (value, title) => dumps.Add((value, title)), null);
 
         Assert.Equal(42, result);
@@ -190,7 +188,7 @@ public class LinqCompilerTests
             """);
 
         var output = new StringBuilder();
-        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
         compiled.Execute!(context, null, text => output.Append(text));
 
         Assert.Equal($"a{{b}}{Environment.NewLine}1+2{Environment.NewLine}", output.ToString());
@@ -202,20 +200,20 @@ public class LinqCompilerTests
     [InlineData("RaveOnDb.AspNetUsers.Dump();\nRaveOnDb.AspNetRoles.Dump();", false)]
     [InlineData("var ids = RaveOnDb.AspNetUsers.Dump();\nreturn ids;", true)]
     public void ReturnsValueDetection(string query, bool expected)
-        => Assert.Equal(expected, LinqCompiler.ReturnsValue(query));
+        => Assert.Equal(expected, LinqQuerySource.ReturnsValue(query));
 
     private static async Task<string> TranslateAsync(string query)
     {
         var compiled = await CompileAsync(query);
 
-        using var context = Compiler.CreateContext(Model.Value, ConnectionString);
+        using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
         var queryable = Assert.IsAssignableFrom<IQueryable>(compiled.Run!(context));
         return queryable.ToQueryString();
     }
 
     private static async Task<LinqCompiledQuery> CompileAsync(string query)
     {
-        var compiled = await Compiler.CompileQueryAsync(Model.Value, query);
+        var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, query);
         Assert.True(compiled.Success, string.Join(Environment.NewLine, compiled.Errors));
         return compiled;
     }

@@ -8,7 +8,7 @@ using Querify.Databases.Models.Connections;
 using Querify.Databases.Models.Queries;
 using Querify.Languages.Commons.Queries;
 using Querify.Languages.Linq.Compilation;
-using Querify.Languages.Linq.Modeling;
+using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Analysis;
 using System.Collections;
 using System.Data.Common;
@@ -34,13 +34,11 @@ public sealed class LinqQueryExecutor : IQueryExecutor
     private static readonly MethodInfo QueryableTake = typeof(Queryable).GetMethods()
         .Single(m => m.Name == nameof(Queryable.Take) && m.GetParameters()[1].ParameterType == typeof(int));
 
-    private readonly ILinqModelCache _models;
-    private readonly ILinqCompiler _compiler;
+    private readonly ILinqContexts _contexts;
 
-    public LinqQueryExecutor(ILinqModelCache models, ILinqCompiler compiler)
+    public LinqQueryExecutor(ILinqContexts contexts)
     {
-        _models = models;
-        _compiler = compiler;
+        _contexts = contexts;
     }
 
     public SyntaxLanguage Language => SyntaxLanguage.Linq;
@@ -60,11 +58,11 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
         try
         {
-            var model = await _models.GetModelAsync(connection, database: null, cancellationToken);
+            var model = await _contexts.GetModelAsync(connection, database: null, cancellationToken);
             messages.Add(new QueryMessage($"Contexte {model.Model.ContextVariableName} ({model.Model.ContextClassName}) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
             consoleIndex = messages.Count;
 
-            var compiled = await Task.Run(() => _compiler.CompileQueryAsync(model, query, cancellationToken: cancellationToken), cancellationToken);
+            var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(model, query, cancellationToken: cancellationToken), cancellationToken);
             if (!compiled.Success)
             {
                 compiled.Dispose();
@@ -142,10 +140,10 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         if (!string.IsNullOrWhiteSpace(database))
             connectionString = new SqlConnectionStringBuilder(connectionString) { InitialCatalog = database }.ConnectionString;
 
-        var model = await _models.GetModelAsync(connection, string.IsNullOrWhiteSpace(database) ? null : database, cancellationToken);
+        var model = await _contexts.GetModelAsync(connection, database, cancellationToken);
         var variables = parameters.Select(LinqParameter.From).ToArray();
 
-        var compiled = await Task.Run(() => _compiler.CompileQueryAsync(model, query, variables, cancellationToken), cancellationToken);
+        var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(model, query, variables, cancellationToken), cancellationToken);
         if (!compiled.Success)
         {
             compiled.Dispose();
@@ -196,7 +194,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
     private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, ConsoleOutput? console, CancellationToken cancellationToken)
     {
-        using var context = _compiler.CreateContext(model, connectionString);
+        using var context = LinqCompiler.CreateContext(model, connectionString);
 
         List<Output> outputs = [];
         object? lastDumped = null;
