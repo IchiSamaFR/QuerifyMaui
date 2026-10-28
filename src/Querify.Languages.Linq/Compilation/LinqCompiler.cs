@@ -106,25 +106,17 @@ public static class LinqCompiler
         if (compiled.Assembly is not { } assembly)
         {
             compiled.Dispose();
-            return new LinqCompiledQuery { Errors = compiled.Errors };
+            return new LinqCompiledQuery(compiled.Errors);
         }
 
         var method = assembly.GetType($"{LinqQuerySource.QueryNamespace}.{LinqQuerySource.QueryClass}", throwOnError: true)!.GetMethod(LinqQuerySource.QueryMethod)!;
         var run = method.CreateDelegate<Func<object?[], object?>>();
         var values = parameters.Select(p => p.Value).ToArray();
 
-        return new LinqCompiledQuery
-        {
-            // Proprietes du modele en AsyncLocal : propres a cette execution, meme si d'autres tournent sur le meme modele.
-            Execute = (context, dump) =>
-            {
-                model.ContextProperty.SetValue(null, context);
-                model.DumpSinkProperty.SetValue(null, dump);
-                return run(values);
-            },
-            ReturnsValue = LinqQuerySource.ReturnsValue(query),
-            Compilation = compiled,
-        };
+        return new LinqCompiledQuery(model,
+            compiled,
+            () => run(values),
+            LinqQuerySource.ReturnsValue(query));
     }
 
     /// <summary>Contexte EF du modele sur une chaine de connexion SQL Server.</summary>

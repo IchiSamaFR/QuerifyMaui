@@ -176,12 +176,16 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         List<Output> outputs = [];
         object? lastDumped = null;
 
+        compiled.Context = context;
+
         // Capture immediate : un Dump() montre la valeur a cet instant, meme si le script la modifie ensuite.
-        var value = compiled.Execute!(context, (dumped, title) =>
+        compiled.Dump = (dumped, title) =>
         {
             lastDumped = dumped;
             outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken));
-        });
+        };
+
+        var value = compiled.Run();
 
         // return x.Dump() : la valeur est deja affichee, pas de second onglet identique.
         var isAlreadyDumped = outputs.Count > 0 && Equals(value, lastDumped);
