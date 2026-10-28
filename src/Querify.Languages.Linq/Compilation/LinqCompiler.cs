@@ -6,7 +6,6 @@ using Quill.Code.CSharp;
 using Quill.Code.CSharp.Compilation;
 using Quill.Code.CSharp.Workspaces;
 using Quill.Code.Scripting;
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -23,26 +22,15 @@ namespace Querify.Languages.Linq.Compilation;
 [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "App non publiee en AOT : compilation et reflexion assumees.")]
 public static class LinqCompiler
 {
-    // Un service par modele (libere avec lui) puis par jeu de parametres : references et contexte genere ne changent
-    // pas d'une frappe a l'autre, Roslyn reutilise sa compilation.
-    private static readonly ConditionalWeakTable<LinqModelAssembly, ConcurrentDictionary<string, ICSharpLanguageService>> ByModel = new();
-    private static readonly ConcurrentDictionary<string, ICSharpLanguageService> WithoutModel = new(StringComparer.Ordinal);
+    // Un service par modele (libere avec lui) : references et contexte genere ne changent pas d'une frappe a l'autre,
+    // Roslyn reutilise sa compilation.
+    private static readonly ConditionalWeakTable<LinqModelAssembly, ICSharpLanguageService> ByModel = new();
+    private static readonly Lazy<ICSharpLanguageService> WithoutModel = new(() => CreateLanguageService(null));
 
-    /// <summary>
-    /// Service C# (Quill) partage par l'editeur et l'execution : son projet place la requete dans le contexte genere.
-    /// </summary>
+    /// <summary>Service C# (Quill) partage par l'editeur et l'execution : la requete est un fichier C# complet.</summary>
     /// <param name="model">DbContext compile de la connexion, ou null : C# seul (fautes de syntaxe uniquement).</param>
-    /// <param name="parameters">Variables declarees avant la requete (parametres du dashboard).</param>
-    public static ICSharpLanguageService GetLanguageService(LinqModelAssembly? model, IReadOnlyList<LinqParameter>? parameters = null)
-    {
-        parameters ??= [];
-
-        var services = model is null ? WithoutModel : ByModel.GetValue(model, static _ => new(StringComparer.Ordinal));
-
-        // Seules les declarations comptent dans le source genere : les valeurs ne sont fournies qu'a l'execution.
-        var key = string.Join('|', parameters.Select(p => $"{p.Name}:{p.Type.FullName}"));
-        return services.GetOrAdd(key, _ => CreateLanguageService(model, parameters));
-    }
+    public static ICSharpLanguageService GetLanguageService(LinqModelAssembly? model)
+        => model is null ? WithoutModel.Value : ByModel.GetValue(model, static m => CreateLanguageService(m));
 
     /// <summary>Compile et charge le modele genere ; leve <see cref="LinqCompilationException"/> en cas d'echec.</summary>
     public static async Task<LinqModelAssembly> CompileModelAsync(EfGeneratedModel model, CancellationToken cancellationToken = default)
@@ -50,7 +38,7 @@ public static class LinqCompiler
         ArgumentNullException.ThrowIfNull(model);
 
         // Projet a part, sans editeur : le modele est compile seul, une fois par schema.
-        using var service = new CSharpLanguageService($"EfModel_{model.ContextVariableName}", () => new CSharpProjectOptions
+        using var service = new CSharpLanguageService($"EfModel_{model.ContextClassName}", () => new CSharpProjectOptions
         {
             References = LinqQuerySource.PlatformReferences,
             CompilationOptions = LinqQuerySource.CompilationOptions,
@@ -65,7 +53,7 @@ public static class LinqCompiler
         }, cancellationToken);
 
         if (compiled.Assembly is not { } assembly)
-            throw new LinqCompilationException($"Le modele genere pour {model.ContextVariableName} ne compile pas.", compiled.Errors.Select(e => e.Describe(model.Source)).ToArray());
+            throw new LinqCompilationException($"Le modele genere {model.ContextClassName} ne compile pas.", compiled.Errors.Select(e => e.Describe(model.Source)).ToArray());
 
         var contextType = assembly.GetType($"{model.Namespace}.{model.ContextClassName}", throwOnError: true)!;
         var extensionsType = assembly.GetType($"{model.Namespace}.{EfModelGenerator.ExtensionsClassName}", throwOnError: true)!;
@@ -75,15 +63,14 @@ public static class LinqCompiler
             Model = model,
             Assembly = assembly,
             ContextType = contextType,
-            ContextProperty = contextType.GetProperty(EfModelGenerator.ContextPropertyName, BindingFlags.Public | BindingFlags.Static)!,
             DumpSinkProperty = extensionsType.GetProperty(EfModelGenerator.DumpSinkPropertyName, BindingFlags.NonPublic | BindingFlags.Static)!,
             Reference = compiled.Reference!
         };
     }
 
     /// <summary>
-    /// Compile une requete depuis le projet que l'editeur analyse ; les erreurs sont rapportees, pas levees.
-    /// Les <paramref name="parameters"/> sont declares en variables avant la requete, leurs valeurs fixees pour l'execution.
+    /// Compile une requete (classe UserQuery complete) depuis le projet que l'editeur analyse ; les erreurs sont
+    /// rapportees, pas levees. Les <paramref name="parameters"/> sont passes par leur nom aux parametres de Run.
     /// </summary>
     /// <param name="log">Recoit les Log.* de la requete (runtime de script de Quill).</param>
     public static async Task<LinqCompiledQuery> CompileQueryAsync(LinqModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null, Action<LogLevel, string>? log = null, CancellationToken cancellationToken = default)
@@ -91,10 +78,8 @@ public static class LinqCompiler
         ArgumentNullException.ThrowIfNull(model);
         ArgumentNullException.ThrowIfNull(query);
 
-        parameters ??= [];
-
         // Projet meme de l'editeur (references, contexte genere) : ce qui est souligne est ce qui echoue.
-        var compiled = await GetLanguageService(model, parameters).CompileAsync(query, new CSharpCompileOptions
+        var compiled = await GetLanguageService(model).CompileAsync(query, new CSharpCompileOptions
         {
             AssemblyName = $"LinqQuery_{Guid.NewGuid():N}",
 
@@ -109,14 +94,14 @@ public static class LinqCompiler
             return new LinqCompiledQuery(compiled.Errors);
         }
 
-        var method = assembly.GetType($"{LinqQuerySource.QueryNamespace}.{LinqQuerySource.QueryClass}", throwOnError: true)!.GetMethod(LinqQuerySource.QueryMethod)!;
-        var run = method.CreateDelegate<Func<object?[], object?>>();
-        var values = parameters.Select(p => p.Value).ToArray();
+        // Point d'entree absent ou parametre sans valeur : rapporte comme une erreur de compilation, en tete du texte.
+        if (!LinqEntryPoint.TryBind(assembly, model.ContextType, parameters ?? [], out var entryPoint, out var error))
+        {
+            compiled.Dispose();
+            return new LinqCompiledQuery([new CodeDiagnostic(0, 0, CodeDiagnosticSeverity.Error, error, LinqEntryPoint.DiagnosticCode)]);
+        }
 
-        return new LinqCompiledQuery(model,
-            compiled,
-            () => run(values),
-            LinqQuerySource.ReturnsValue(query));
+        return new LinqCompiledQuery(model, compiled, entryPoint);
     }
 
     /// <summary>Contexte EF du modele sur une chaine de connexion SQL Server.</summary>
@@ -133,29 +118,20 @@ public static class LinqCompiler
     }
 
     /// <summary>Projet cree par Quill a sa premiere utilisation : le declarer ne coute rien.</summary>
-    private static CSharpLanguageService CreateLanguageService(LinqModelAssembly? model, IReadOnlyList<LinqParameter> parameters)
-        => new($"Linq_{model?.Model.ContextVariableName ?? "SansConnexion"}", () => new CSharpProjectOptions
+    private static CSharpLanguageService CreateLanguageService(LinqModelAssembly? model)
+        => new($"Linq_{model?.Model.ContextClassName ?? "SansConnexion"}", () => new CSharpProjectOptions
         {
             References = model is null ? LinqQuerySource.PlatformReferences : [.. LinqQuerySource.PlatformReferences, model.Reference],
             CompilationOptions = LinqQuerySource.CompilationOptions,
             ParseOptions = LinqQuerySource.ParseOptions,
             DocumentName = "requete.cs",
 
-            // Usings fixes : Roslyn ne les reanalyse pas a chaque frappe. Dump vient du modele, Log et Script de Quill.
+            // Usings implicites et alias QueryDbContext : fixes, Roslyn ne les reanalyse pas a chaque frappe.
+            // Dump vient du modele, Log et Script du runtime de Quill.
             AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = LinqQuerySource.BuildGlobalUsings(model?.Model) },
             IncludeScriptRuntime = true,
 
-            // La requete devient le corps d'une methode ou la variable de la base et les parametres sont declares.
-            SourceTransform = query =>
-            {
-                var (source, queryStart) = LinqQuerySource.Build(model?.Model, query, parameters);
-                return new CSharpSource(source, queryStart);
-            },
-
-            // Sans DbContext, la variable de la base n'existe pas : seules les fautes de syntaxe ont un sens.
+            // Sans DbContext, les tables n'existent pas : seules les fautes de syntaxe ont un sens.
             IncludeSemanticDiagnostics = model is not null,
-
-            // La requete ne peut pas declarer de using : un type non importe s'insere avec son nom complet.
-            AllowImports = false,
         });
 }

@@ -13,7 +13,7 @@ using Quill.Code.CSharp;
 namespace Querify.Languages.Linq.Editors;
 
 /// <summary>
-/// Editeur des onglets LINQ (Quill) : Roslyn analyse la requete dans le contexte genere (RaveOnDb. -> tables,
+/// Editeur des onglets LINQ (Quill) : Roslyn analyse la requete, classe UserQuery complete, contre le contexte genere (context. -> tables,
 /// u. -> colonnes, .Wh -> Where). Autocompletion, erreurs (telles que l'execution les leverait ; sans DbContext,
 /// seules les fautes de syntaxe), survol (type et origine du nom) et surcharges de la methode appelee.
 /// </summary>
@@ -39,7 +39,7 @@ public sealed class LinqEditorProvider : ICompletionProvider, IDiagnosticProvide
         if (language != SyntaxLanguage.Linq)
             return;
 
-        var service = await _contexts.GetLanguageServiceAsync(connection, database: null, [], cancellationToken);
+        var service = await _contexts.GetLanguageServiceAsync(connection, database: null, cancellationToken);
         await service.WarmUpAsync(cancellationToken: cancellationToken);
     }
 
@@ -50,7 +50,7 @@ public sealed class LinqEditorProvider : ICompletionProvider, IDiagnosticProvide
         if (request.Language != SyntaxLanguage.Linq)
             return [];
 
-        var service = await _contexts.GetLanguageServiceAsync(request.Connection, request.Database, request.Parameters, cancellationToken);
+        var service = await _contexts.GetLanguageServiceAsync(request.Connection, request.Database, cancellationToken);
         return (await service.GetCompletionsAsync(request.Text, request.CaretOffset, cancellationToken)).Items;
     }
 
@@ -80,7 +80,7 @@ public sealed class LinqEditorProvider : ICompletionProvider, IDiagnosticProvide
         ArgumentNullException.ThrowIfNull(request);
 
         return request.Language == SyntaxLanguage.Linq
-            ? await _contexts.GetLanguageServiceAsync(request.Connection, request.Database, request.Parameters, cancellationToken)
+            ? await _contexts.GetLanguageServiceAsync(request.Connection, request.Database, cancellationToken)
             : null;
     }
 }

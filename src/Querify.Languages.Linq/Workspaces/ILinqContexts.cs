@@ -1,5 +1,4 @@
 ﻿using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Queries;
 using Querify.Languages.Linq.Compilation;
 using Quill.Code.CSharp;
 
@@ -19,6 +18,5 @@ public interface ILinqContexts
     /// (pas de connexion, base injoignable, modele invalide).
     /// </summary>
     /// <param name="database">Base interrogee ; null = base de la connexion.</param>
-    /// <param name="parameters">Parametres du dashboard, declares en variables avant la requete.</param>
-    Task<ICSharpLanguageService> GetLanguageServiceAsync(DatabaseConnectionInfo? connection, string? database, IReadOnlyList<QueryParameter> parameters, CancellationToken cancellationToken = default);
+    Task<ICSharpLanguageService> GetLanguageServiceAsync(DatabaseConnectionInfo? connection, string? database, CancellationToken cancellationToken = default);
 }

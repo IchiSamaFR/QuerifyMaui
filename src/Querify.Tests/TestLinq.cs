@@ -1,5 +1,4 @@
 ﻿using Querify.Languages.Linq.Compilation;
-using Querify.Languages.Linq.Queries;
 using Quill.Code.Analysis;
 using Quill.Code.Completion;
 
@@ -11,9 +10,16 @@ namespace Querify.Tests;
 /// </summary>
 internal static class TestLinq
 {
+    /// <summary>Requete complete renvoyant <paramref name="expression"/> ; le contexte s'appelle RaveOnDb, comme la base de test.</summary>
+    public static string Expression(string expression)
+        => $"class UserQuery\n{{\n    object Run(QueryDbContext RaveOnDb) =>\n        {expression};\n}}\n";
 
-    public static async Task<IReadOnlyList<CompletionItem>> CompleteAsync(LinqModelAssembly? model, string query, int caret, IReadOnlyList<LinqParameter>? parameters = null)
-        => (await LinqCompiler.GetLanguageService(model, parameters).GetCompletionsAsync(query, caret)).Items;
+    /// <summary>Requete complete dont <paramref name="statements"/> forment le corps de Run.</summary>
+    public static string Statements(string statements)
+        => $"class UserQuery\n{{\n    object Run(QueryDbContext RaveOnDb)\n    {{\n        {statements}\n    }}\n}}\n";
+
+    public static async Task<IReadOnlyList<CompletionItem>> CompleteAsync(LinqModelAssembly? model, string query, int caret)
+        => (await LinqCompiler.GetLanguageService(model).GetCompletionsAsync(query, caret)).Items;
 
     public static Task<HoverInfo?> HoverAsync(LinqModelAssembly? model, string query, int offset)
         => LinqCompiler.GetLanguageService(model).GetHoverAsync(query, offset);

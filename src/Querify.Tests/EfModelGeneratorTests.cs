@@ -23,7 +23,6 @@ public class EfModelGeneratorTests
     {
         var model = Generated.Value.Model;
 
-        Assert.Equal("RaveOnDb", model.ContextVariableName);
         Assert.Equal("RaveOnDbContext", model.ContextClassName);
     }
 

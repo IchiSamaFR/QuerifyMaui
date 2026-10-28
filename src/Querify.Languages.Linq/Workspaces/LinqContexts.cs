@@ -1,12 +1,9 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
-using Querify.Core.Ioc;
+﻿using Querify.Core.Ioc;
 using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Queries;
 using Querify.Databases.Models.Schemas;
 using Querify.Databases.Schemas;
 using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
-using Querify.Languages.Linq.Queries;
 using Quill.Code.CSharp;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
@@ -46,20 +43,8 @@ public sealed class LinqContexts : ILinqContexts
         return await task.WaitAsync(cancellationToken);
     }
 
-    public async Task<ICSharpLanguageService> GetLanguageServiceAsync(DatabaseConnectionInfo? connection, string? database, IReadOnlyList<QueryParameter> parameters, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        var model = await TryGetModelAsync(connection, database, cancellationToken);
-
-        // Parametres du dashboard en variables C# ; un nom invalide en C# est ignore, l'execution le signalera.
-        var variables = parameters
-            .Where(p => SyntaxFacts.IsValidIdentifier(p.Name))
-            .Select(LinqParameter.From)
-            .ToArray();
-
-        return LinqCompiler.GetLanguageService(model, variables);
-    }
+    public async Task<ICSharpLanguageService> GetLanguageServiceAsync(DatabaseConnectionInfo? connection, string? database, CancellationToken cancellationToken = default)
+        => LinqCompiler.GetLanguageService(await TryGetModelAsync(connection, database, cancellationToken));
 
     /// <summary>DbContext de la base, ou null : l'analyse se rabat sur le C# seul.</summary>
     private async Task<LinqModelAssembly?> TryGetModelAsync(DatabaseConnectionInfo? connection, string? database, CancellationToken cancellationToken)
