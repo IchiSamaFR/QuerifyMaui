@@ -1,8 +1,8 @@
-﻿using Querify.Core.Enums.Queries;
-using Querify.Languages.Linq.Compilation;
+﻿using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Quill.Code.Analysis;
+using Quill.Code.Scripting;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -167,7 +167,7 @@ public class LinqCompilerTests
 
         List<(object? Value, string? Title)> dumps = [];
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
-        var result = compiled.Execute!(context, (value, title) => dumps.Add((value, title)), null);
+        var result = compiled.Execute!(context, (value, title) => dumps.Add((value, title)));
 
         Assert.Equal(42, result);
         Assert.Equal(2, dumps.Count);
@@ -180,19 +180,19 @@ public class LinqCompilerTests
     [Fact]
     public async Task Log_IsRedirectedWithItsLevel()
     {
+        List<(LogLevel Level, string Text)> output = [];
         var compiled = await CompileAsync("""
             Log.Information("a");
             Log.Warning($"{1}+{2}");
             Log.Write(LogLevel.Error, "{b}");
             Log.Write(LogLevel.None, "ignore");
             return 0;
-            """);
+            """, (level, text) => output.Add((level, text)));
 
-        List<(QueryLogLevel Level, string? Text)> output = [];
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
-        compiled.Execute!(context, null, (level, text) => output.Add((level, text)));
+        compiled.Run!(context);
 
-        Assert.Equal(new (QueryLogLevel, string?)[] { (QueryLogLevel.Information, "a"), (QueryLogLevel.Warning, "1+2"), (QueryLogLevel.Error, "{b}") }, output);
+        Assert.Equal(new[] { (LogLevel.Information, "a"), (LogLevel.Warning, "1+2"), (LogLevel.Error, "{b}") }, output);
     }
 
     [Theory]
@@ -212,9 +212,9 @@ public class LinqCompilerTests
         return queryable.ToQueryString();
     }
 
-    private static async Task<LinqCompiledQuery> CompileAsync(string query)
+    private static async Task<LinqCompiledQuery> CompileAsync(string query, Action<LogLevel, string>? log = null)
     {
-        var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, query);
+        var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, query, log: log);
         Assert.True(compiled.Success, string.Join(Environment.NewLine, compiled.Errors));
         return compiled;
     }
