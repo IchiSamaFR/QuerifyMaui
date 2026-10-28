@@ -57,7 +57,7 @@ public class LinqCompilerTests
         var compiled = await CompileAsync("40 + 2");
 
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
-        Assert.Equal(42, compiled.Run!(context));
+        Assert.Equal(42, Run(compiled, context));
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class LinqCompilerTests
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
-        Assert.Equal(42, compiled.Run!(context));
+        Assert.Equal(42, Run(compiled, context));
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class LinqCompilerTests
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
-        var sql = Assert.IsAssignableFrom<IQueryable>(compiled.Run!(context)).ToQueryString();
+        var sql = Assert.IsAssignableFrom<IQueryable>(Run(compiled, context)).ToQueryString();
 
         // ToQueryString declare la valeur en tete, mais le WHERE compare bien a un parametre.
         Assert.Contains("= @", sql, StringComparison.Ordinal);
@@ -113,7 +113,7 @@ public class LinqCompilerTests
         var compiled = await CompileAsync("var ids = RaveOnDb.AspNetUsers.Select(u => u.Id);");
 
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
-        Assert.Null(compiled.Run!(context));
+        Assert.Null(Run(compiled, context));
     }
 
     [Fact]
@@ -167,7 +167,9 @@ public class LinqCompilerTests
 
         List<(object? Value, string? Title)> dumps = [];
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
-        var result = compiled.Execute!(context, (value, title) => dumps.Add((value, title)));
+        compiled.Context = context;
+        compiled.Dump = (value, title) => dumps.Add((value, title));
+        var result = compiled.Run();
 
         Assert.Equal(42, result);
         Assert.Equal(2, dumps.Count);
@@ -190,7 +192,7 @@ public class LinqCompilerTests
             """, (level, text) => output.Add((level, text)));
 
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
-        compiled.Run!(context);
+        Run(compiled, context);
 
         Assert.Equal(new[] { (LogLevel.Information, "a"), (LogLevel.Warning, "1+2"), (LogLevel.Error, "{b}") }, output);
     }
@@ -208,8 +210,14 @@ public class LinqCompilerTests
         var compiled = await CompileAsync(query);
 
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
-        var queryable = Assert.IsAssignableFrom<IQueryable>(compiled.Run!(context));
+        var queryable = Assert.IsAssignableFrom<IQueryable>(Run(compiled, context));
         return queryable.ToQueryString();
+    }
+
+    private static object? Run(LinqCompiledQuery compiled, DbContext context)
+    {
+        compiled.Context = context;
+        return compiled.Run();
     }
 
     private static async Task<LinqCompiledQuery> CompileAsync(string query, Action<LogLevel, string>? log = null)
