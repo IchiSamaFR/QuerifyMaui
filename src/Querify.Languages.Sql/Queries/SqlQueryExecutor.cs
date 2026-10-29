@@ -3,6 +3,7 @@ using Querify.Core.Ioc;
 using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
 using Querify.Languages.Commons.Queries;
+using Quill.Code.Sql;
 using Quill.Code.Sql.Execution;
 
 namespace Querify.Languages.Sql.Queries;
