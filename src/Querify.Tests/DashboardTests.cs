@@ -2,8 +2,8 @@
 using Querify.Core.Models.Dashboards;
 using Querify.Core.Models.Editors;
 using Querify.Core.Serialization;
-using Querify.Databases.Models.Queries;
 using Xunit;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.Tests;
 

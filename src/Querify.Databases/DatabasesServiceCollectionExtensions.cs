@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Querify.Databases.Connections;
 using Querify.Databases.Enums;
-using Querify.Databases.Queries;
 using Querify.Databases.Schemas;
 using Querify.Databases.SqlServer;
 using Quill.Data.Sql.SqlServer;
@@ -21,14 +20,11 @@ public static class DatabasesServiceCollectionExtensions
         services.AddSingleton<IConnectionTesterResolver, ConnectionTesterResolver>();
         services.AddSingleton<IDatabaseSchemaReaderResolver, DatabaseSchemaReaderResolver>();
         services.AddSingleton<IDatabaseSchemaCache, DatabaseSchemaCache>();
-        services.AddSingleton<IQueryReaderResolver, QueryReaderResolver>();
-        services.AddSingleton<IQueryDataService, QueryDataService>();
 
         // Un moteur = une implementation de chaque contrat ; les resolveurs les recoivent toutes.
         services.AddSingleton<IConnectionTester, SqlServerConnectionTester>();
         // Lecture du catalogue : celle de Quill.Data.Sql, associee ici au moteur qu'elle sait lire.
         services.AddSingleton(new DatabaseSchemaReaderRegistration(DatabaseProvider.SqlServer, new SqlServerSchemaReader()));
-        services.AddSingleton<IQueryReader, SqlServerQueryReader>();
 
         return services;
     }

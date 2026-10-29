@@ -2,10 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
-using Querify.Core.Enums.Queries;
-using Querify.Core.Models.Queries;
 using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Queries;
 using Querify.Languages.Commons.Queries;
 using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Workspaces;
@@ -18,6 +15,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.Languages.Linq.Queries;
 

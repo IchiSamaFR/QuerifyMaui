@@ -1,6 +1,6 @@
-﻿using Querify.Databases.Models.Queries;
-using Querify.UI.Views.Controls.DataGrids;
+﻿using Querify.UI.Views.Controls.DataGrids;
 using System.Globalization;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.Converters;
 

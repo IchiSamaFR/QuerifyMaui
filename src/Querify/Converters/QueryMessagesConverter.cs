@@ -1,7 +1,6 @@
-﻿using Querify.Core.Enums.Queries;
-using Querify.Core.Models.Queries;
-using Quill.Code.Scripting;
+﻿using Quill.Code.Scripting;
 using System.Globalization;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.Converters;
 

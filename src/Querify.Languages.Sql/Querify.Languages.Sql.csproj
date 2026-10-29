@@ -6,10 +6,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Data.SqlClient" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\Querify.Languages.Commons\Querify.Languages.Commons.csproj" />
 	</ItemGroup>
 

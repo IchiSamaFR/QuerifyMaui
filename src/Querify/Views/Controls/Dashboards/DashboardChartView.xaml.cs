@@ -6,9 +6,9 @@ using LiveChartsCore.SkiaSharpView.Maui;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using Querify.Core.Enums.Dashboards;
-using Querify.Databases.Models.Queries;
 using System.Globalization;
 using Querify.Diagnostics;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.Views.Controls.Dashboards;
 

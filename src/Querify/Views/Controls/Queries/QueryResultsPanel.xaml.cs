@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using Querify.Core.Models.Queries;
 using System.Windows.Input;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.Views.Controls.Queries;
 

@@ -1,5 +1,4 @@
-﻿using Querify.Databases.Enums;
-using Querify.Databases.Models.Queries;
+﻿using Quill.Code.Sql.Execution;
 
 namespace Querify.Languages.Linq.Queries;
 

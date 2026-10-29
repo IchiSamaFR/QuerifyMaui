@@ -2,9 +2,9 @@
 using CommunityToolkit.Mvvm.Input;
 using Querify.Core.Enums.Dashboards;
 using Querify.Core.Enums.Editors.Highlighting;
-using Querify.Databases.Models.Queries;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.Core.Models.Dashboards;
 
