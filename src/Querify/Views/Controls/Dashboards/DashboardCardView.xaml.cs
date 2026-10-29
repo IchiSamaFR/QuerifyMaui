@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Maui;
 using Querify.Converters;
 using Querify.Core.Models.Dashboards;
-using Querify.Databases.Models.Queries;
 using Querify.UI.Views.Controls.DataGrids;
 using System.ComponentModel;
 using Querify.Diagnostics;
 using Querify.UI.Extensions;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.Views.Controls.Dashboards;
 

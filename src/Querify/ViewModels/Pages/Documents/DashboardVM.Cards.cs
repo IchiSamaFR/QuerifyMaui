@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Querify.Core.Models.Dashboards;
 using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Queries;
 using Querify.UI.Extensions;
 using Querify.Diagnostics;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.ViewModels.Pages.Documents;
 

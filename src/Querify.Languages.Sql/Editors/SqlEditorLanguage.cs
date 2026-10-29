@@ -1,12 +1,11 @@
-using Querify.Core.Enums.Editors.Highlighting;
+﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
-using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Queries;
 using Querify.Databases.Schemas;
 using Querify.Languages.Commons.Editors;
 using Quill.Code;
 using Quill.Code.Sql;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.Languages.Sql.Editors;
 

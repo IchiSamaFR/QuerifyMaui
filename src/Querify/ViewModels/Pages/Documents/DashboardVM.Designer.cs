@@ -7,8 +7,6 @@ using Querify.Core.Models.Dashboards;
 using Querify.Core.Models.Editors.Highlighting;
 using Querify.Core.Serialization;
 using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Queries;
-using Querify.Databases.Queries;
 using Querify.Services.Databases;
 using Querify.Services.Editors.Highlighting;
 using Querify.Services.Settings;

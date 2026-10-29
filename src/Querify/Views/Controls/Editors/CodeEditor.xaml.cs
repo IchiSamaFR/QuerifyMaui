@@ -5,7 +5,6 @@ using Querify.Core.Models.Editors;
 using Querify.Core.Models.Editors.Highlighting;
 using Querify.Core.Models.Settings;
 using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Queries;
 using Querify.Languages.Commons.Editors;
 using Querify.Languages.Editors;
 using Querify.Services.Editors.Highlighting;
@@ -19,6 +18,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.Views.Controls.Editors;
 

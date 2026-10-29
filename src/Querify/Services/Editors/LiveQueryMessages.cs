@@ -1,4 +1,4 @@
-﻿using Querify.Core.Models.Queries;
+﻿using Quill.Code.Sql.Execution;
 
 namespace Querify.Services.Editors;
 

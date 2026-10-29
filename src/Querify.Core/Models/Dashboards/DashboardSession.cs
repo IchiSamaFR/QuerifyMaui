@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Querify.Core.Enums.Dashboards;
 using Querify.Core.Models.Editors;
-using Querify.Databases.Models.Queries;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using Quill.Code.Sql.Execution;
 
 namespace Querify.Core.Models.Dashboards;
 
