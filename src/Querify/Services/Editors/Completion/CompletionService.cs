@@ -1,10 +1,11 @@
-﻿using Querify.Core.Enums.Editors.Completion;
-using Querify.Core.Enums.Editors.Highlighting;
+﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Completion;
 using Querify.Databases.Models.Connections;
 using Querify.Languages.Commons.Editors.Completion;
 using Quill.Code.Completion;
+using Quill.Code.Sql;
+using Quill.Code.Sql.Completion;
 
 namespace Querify.Services.Editors.Completion;
 
@@ -34,9 +35,9 @@ public sealed class CompletionService : ICompletionService
         // Langage sans analyseur : on propose tout, comme avant l'analyse de contexte.
         var context = _analyzers.TryGetValue(request.Language, out var analyzer)
             ? await Task.Run(() => analyzer.Analyze(request), cancellationToken)
-            : CompletionContext.General;
+            : SqlContext.General;
 
-        if (context.Kind == CompletionContextKind.None)
+        if (context.Kind == SqlContextKind.None)
             return [];
 
         // Chaque fournisseur hors du thread UI : Roslyn ou un catalogue volumineux ont une partie synchrone

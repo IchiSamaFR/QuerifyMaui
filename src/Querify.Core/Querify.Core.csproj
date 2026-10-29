@@ -16,6 +16,8 @@
 		<ProjectReference Include="..\Querify.Databases\Querify.Databases.csproj" />
 		<!-- Modeles communs des editeurs de code (depot Quill.Code, en attendant le paquet NuGet). -->
 		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code\Quill.Code.csproj" />
+		<!-- Contexte de saisie T-SQL (SqlContext), partage par tous les fournisseurs d'autocompletion. -->
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.Sql\Quill.Code.Sql.csproj" />
 	</ItemGroup>
 
 </Project>

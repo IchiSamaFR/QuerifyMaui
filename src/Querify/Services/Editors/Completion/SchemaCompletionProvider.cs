@@ -1,5 +1,4 @@
-﻿using Querify.Core.Enums.Editors.Completion;
-using Querify.Core.Enums.Editors.Highlighting;
+﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Completion;
 using Querify.Databases.Enums;
@@ -11,6 +10,8 @@ using Querify.Services.Editors.Highlighting;
 using Quill.Code.Completion;
 using System.Data.Common;
 using System.Text.RegularExpressions;
+using Quill.Code.Sql;
+using Quill.Code.Sql.Completion;
 
 namespace Querify.Services.Editors.Completion;
 
@@ -36,7 +37,7 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
     [GeneratedRegex(@"^[\p{L}_][\p{L}\p{Nd}_@#$]*$", RegexOptions.CultureInvariant)]
     private static partial Regex RegularIdentifierRegex();
 
-    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, SqlContext context, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
@@ -51,11 +52,11 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
         {
             return context.Kind switch
             {
-                CompletionContextKind.Database => await GetDatabaseItemsAsync(connection, cancellationToken),
-                CompletionContextKind.TableSource => await GetSourceItemsAsync(connection, context.Database, DataSourceKinds, cancellationToken),
-                CompletionContextKind.Procedure => await GetSourceItemsAsync(connection, context.Database, ProcedureKinds, cancellationToken),
-                CompletionContextKind.Column => await GetQueryColumnItemsAsync(connection, context, cancellationToken),
-                CompletionContextKind.MemberAccess => await GetMemberItemsAsync(connection, context, cancellationToken),
+                SqlContextKind.Database => await GetDatabaseItemsAsync(connection, cancellationToken),
+                SqlContextKind.TableSource => await GetSourceItemsAsync(connection, context.Database, DataSourceKinds, cancellationToken),
+                SqlContextKind.Procedure => await GetSourceItemsAsync(connection, context.Database, ProcedureKinds, cancellationToken),
+                SqlContextKind.Column => await GetQueryColumnItemsAsync(connection, context, cancellationToken),
+                SqlContextKind.MemberAccess => await GetMemberItemsAsync(connection, context, cancellationToken),
                 _ => []
             };
         }
@@ -140,7 +141,7 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
     }
 
     /// <summary>Colonnes de toutes les tables citees dans la requete (SELECT, WHERE, ON...).</summary>
-    private async Task<IReadOnlyList<CompletionItem>> GetQueryColumnItemsAsync(DatabaseConnectionInfo connection, CompletionContext context, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<CompletionItem>> GetQueryColumnItemsAsync(DatabaseConnectionInfo connection, SqlContext context, CancellationToken cancellationToken)
     {
         List<CompletionItem> items = [];
 
@@ -159,10 +160,10 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
     /// Apres un point : alias ou table -> colonnes, schema -> objets, base -> schemas,
     /// base.schema -> objets, [base.]schema.table -> colonnes.
     /// </summary>
-    private async Task<IReadOnlyList<CompletionItem>> GetMemberItemsAsync(DatabaseConnectionInfo connection, CompletionContext context, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<CompletionItem>> GetMemberItemsAsync(DatabaseConnectionInfo connection, SqlContext context, CancellationToken cancellationToken)
     {
         var qualifier = context.Qualifier;
-        var kinds = context.MemberParentKind == CompletionContextKind.Procedure ? ProcedureKinds : DataSourceKinds;
+        var kinds = context.MemberParentKind == SqlContextKind.Procedure ? ProcedureKinds : DataSourceKinds;
 
         switch (qualifier.Count)
         {
@@ -212,7 +213,7 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
     // ---------- Resolution ----------
 
     /// <summary>Objet du catalogue designe par une reference de la requete ; null pour une table temporaire ou inconnue.</summary>
-    private async Task<DatabaseSchemaObject?> ResolveAsync(DatabaseConnectionInfo connection, CompletionContext context, SqlTableReference table, CancellationToken cancellationToken)
+    private async Task<DatabaseSchemaObject?> ResolveAsync(DatabaseConnectionInfo connection, SqlContext context, SqlTableReference table, CancellationToken cancellationToken)
     {
         if (table.Name.StartsWith('#'))
             return null;

@@ -1,12 +1,13 @@
-﻿using Querify.Core.Enums.Editors.Completion;
-using Querify.Core.Enums.Editors.Highlighting;
+﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Completion;
 using Querify.Languages.Commons.Editors.Completion;
-using Querify.Languages.Sql.Completion;
 using Querify.Services.Editors.Highlighting;
 using Quill.Code.Completion;
 using System.Collections.Concurrent;
+using Quill.Code.Sql;
+using Quill.Code.Sql.Completion;
+using Quill.Code.Sql.Lexing;
 
 namespace Querify.Services.Editors.Completion;
 
@@ -27,12 +28,12 @@ public sealed class DocumentWordCompletionProvider : ICompletionProvider
         _configurations = configurations;
     }
 
-    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, SqlContext context, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
 
-        if (request.Language != SyntaxLanguage.Sql || context.Kind is CompletionContextKind.None or CompletionContextKind.DataType or CompletionContextKind.AfterTableName)
+        if (request.Language != SyntaxLanguage.Sql || context.Kind is SqlContextKind.None or SqlContextKind.DataType or SqlContextKind.AfterTableName)
             return [];
 
         var keywords = await GetKeywordsAsync(request.Language, cancellationToken);

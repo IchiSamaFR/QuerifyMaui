@@ -12,6 +12,8 @@ using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Analysis;
 using Quill.Code.Completion;
 using Quill.Code.CSharp;
+using Quill.Code.Sql;
+using Quill.Code.Sql.Completion;
 
 namespace Querify.Languages.Linq.Editors;
 
@@ -46,7 +48,7 @@ public sealed class LinqEditorProvider : ICompletionProvider, IDiagnosticProvide
         await service.WarmUpAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, SqlContext context, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
