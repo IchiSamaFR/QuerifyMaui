@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Querify.Core.Enums.Databases;
-using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
 using System.Collections.ObjectModel;
+using Quill.Data.Sql;
 
 namespace Querify.Core.Models.Databases;
 
@@ -71,11 +71,11 @@ public sealed partial class ExplorerNode : ObservableObject
     public bool IsConnection => Kind == ExplorerNodeKind.Connection;
 
     /// <summary>Famille d'objets chargee par un dossier, ou null pour les autres noeuds.</summary>
-    public DatabaseObjectKind? FolderObjectKind => Kind switch
+    public SqlSchemaObjectKind? FolderObjectKind => Kind switch
     {
-        ExplorerNodeKind.TablesFolder => DatabaseObjectKind.Table,
-        ExplorerNodeKind.ViewsFolder => DatabaseObjectKind.View,
-        ExplorerNodeKind.StoredProceduresFolder => DatabaseObjectKind.StoredProcedure,
+        ExplorerNodeKind.TablesFolder => SqlSchemaObjectKind.Table,
+        ExplorerNodeKind.ViewsFolder => SqlSchemaObjectKind.View,
+        ExplorerNodeKind.StoredProceduresFolder => SqlSchemaObjectKind.Procedure,
         _ => null,
     };
 }

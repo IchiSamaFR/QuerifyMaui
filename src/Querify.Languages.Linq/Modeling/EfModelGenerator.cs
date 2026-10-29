@@ -1,9 +1,8 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 using Querify.Core.Ioc;
-using Querify.Databases.Enums;
-using Querify.Databases.Models.Schemas;
 using System.Globalization;
 using System.Text;
+using Quill.Data.Sql;
 
 namespace Querify.Languages.Linq.Modeling;
 
@@ -26,11 +25,11 @@ public sealed class EfModelGenerator : IEfModelGenerator
         "DateOnly", "TimeSpan", "DateTimeOffset", "Guid", "Decimal", "Object", ExtensionsClassName
     };
 
-    public EfGeneratedModel Generate(DatabaseSchemaSnapshot snapshot)
+    public EfGeneratedModel Generate(SqlDatabaseSchema snapshot)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
-        var contextClass = ToIdentifier(snapshot.Database.TrimStart('@') + "Context");
+        var contextClass = ToIdentifier(snapshot.Name.TrimStart('@') + "Context");
 
         var entities = BuildEntities(snapshot, contextClass);
         var source = WriteSource(contextClass, entities);
@@ -40,14 +39,14 @@ public sealed class EfModelGenerator : IEfModelGenerator
 
     // ---------- Modele intermediaire ----------
 
-    private sealed record EntityModel(DatabaseSchemaObject Source, string ClassName, IReadOnlyList<PropertyModel> Properties);
+    private sealed record EntityModel(SqlSchemaObject Source, string ClassName, IReadOnlyList<PropertyModel> Properties);
 
-    private sealed record PropertyModel(DatabaseSchemaColumn Source, string Name, string ClrType);
+    private sealed record PropertyModel(SqlColumn Source, string Name, string ClrType);
 
-    private static List<EntityModel> BuildEntities(DatabaseSchemaSnapshot snapshot, string contextClass)
+    private static List<EntityModel> BuildEntities(SqlDatabaseSchema snapshot, string contextClass)
     {
         var dataSources = snapshot.Objects
-            .Where(o => o.Kind is DatabaseObjectKind.Table or DatabaseObjectKind.View)
+            .Where(o => o.Kind is SqlSchemaObjectKind.Table or SqlSchemaObjectKind.View)
             .OrderBy(o => o.Schema, StringComparer.OrdinalIgnoreCase)
             .ThenBy(o => o.Name, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -81,7 +80,7 @@ public sealed class EfModelGenerator : IEfModelGenerator
         return entities;
     }
 
-    private static List<PropertyModel> BuildProperties(DatabaseSchemaObject source, string className)
+    private static List<PropertyModel> BuildProperties(SqlSchemaObject source, string className)
     {
         // Le nom de la classe est reserve : une propriete homonyme est interdite en C# (CS0542).
         var usedNames = new HashSet<string>(StringComparer.Ordinal) { className };
@@ -100,7 +99,7 @@ public sealed class EfModelGenerator : IEfModelGenerator
     }
 
     /// <summary>Type .NET du mapping EF Core SQL Server par defaut ; null si le type n'est pas mappable.</summary>
-    private static string? ToClrType(DatabaseSchemaColumn column)
+    private static string? ToClrType(SqlColumn column)
     {
         var sqlType = (string.IsNullOrEmpty(column.SqlType) ? column.DataType : column.SqlType).ToLowerInvariant();
         var parenthesis = sqlType.IndexOf('(', StringComparison.Ordinal);
@@ -216,7 +215,7 @@ public sealed class EfModelGenerator : IEfModelGenerator
         code.AppendLine(CultureInfo.InvariantCulture, $"        modelBuilder.Entity<{entity.ClassName}>(e =>");
         code.AppendLine("        {");
 
-        code.AppendLine(source.Kind == DatabaseObjectKind.View
+        code.AppendLine(source.Kind == SqlSchemaObjectKind.View
             ? $"            e.ToView({Literal(source.Name)}, {Literal(source.Schema)});"
             : $"            e.ToTable({Literal(source.Name)}, {Literal(source.Schema)});");
 
@@ -282,11 +281,11 @@ public sealed class EfModelGenerator : IEfModelGenerator
     }
 
     /// <summary>Ex. "Table dbo.Student".</summary>
-    private static string DescribeSource(DatabaseSchemaObject source)
-        => $"{(source.Kind == DatabaseObjectKind.View ? "Vue" : "Table")} {source.Schema}.{source.Name}";
+    private static string DescribeSource(SqlSchemaObject source)
+        => $"{(source.Kind == SqlSchemaObjectKind.View ? "Vue" : "Table")} {source.Schema}.{source.Name}";
 
     /// <summary>Ex. "Colonne dbo.Student.Name · nvarchar(50) · not null · clé primaire".</summary>
-    private static string DescribeColumn(DatabaseSchemaObject source, DatabaseSchemaColumn column)
+    private static string DescribeColumn(SqlSchemaObject source, SqlColumn column)
     {
         var description = $"Colonne {source.Schema}.{source.Name}.{column.Name} · {column.DataType} · {(column.IsNullable ? "null" : "not null")}";
         return column.IsPrimaryKey ? description + " · clé primaire" : description;

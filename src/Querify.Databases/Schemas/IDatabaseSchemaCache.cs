@@ -1,6 +1,5 @@
-﻿
-using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Schemas;
+﻿using Querify.Databases.Models.Connections;
+using Quill.Data.Sql;
 
 namespace Querify.Databases.Schemas;
 
@@ -11,9 +10,9 @@ namespace Querify.Databases.Schemas;
 public interface IDatabaseSchemaCache
 {
     /// <summary>Catalogue d'une base ; null = base de la connexion.</summary>
-    Task<DatabaseSchemaSnapshot> GetSchemaAsync(DatabaseConnectionInfo connection, string? database, CancellationToken cancellationToken = default);
+    Task<SqlDatabaseSchema> GetSchemaAsync(DatabaseConnectionInfo connection, string? database, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<DatabaseCatalogEntry>> GetDatabasesAsync(DatabaseConnectionInfo connection, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SqlDatabaseInfo>> GetDatabasesAsync(DatabaseConnectionInfo connection, CancellationToken cancellationToken = default);
 
     /// <summary>Oublie tout ce qui a ete charge pour cette connexion.</summary>
     void Invalidate(DatabaseConnectionInfo connection);

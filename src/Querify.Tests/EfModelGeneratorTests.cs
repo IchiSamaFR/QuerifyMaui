@@ -2,11 +2,10 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Querify.Databases.Enums;
-using Querify.Databases.Models.Schemas;
 using Querify.Languages.Linq.Modeling;
 using System.Reflection;
 using Xunit;
+using Quill.Data.Sql;
 
 namespace Querify.Tests;
 
@@ -139,10 +138,7 @@ public class EfModelGeneratorTests
     }
 
     /// <summary>Catalogue de test, partage avec <see cref="LinqCompilerTests"/>.</summary>
-    internal static DatabaseSchemaSnapshot SampleSnapshot() => new()
-    {
-        Database = "RaveOnDb",
-        Objects =
+    internal static SqlDatabaseSchema SampleSnapshot() => new("RaveOnDb",
         [
             Table("dbo", "AspNetUsers",
                 Column("Id", "nvarchar", nullable: false, key: 1),
@@ -162,14 +158,13 @@ public class EfModelGeneratorTests
                 Column("Location", "geography")),
             Table("dbo", "1stTable", Column("Code", "char", nullable: false, key: 1), Column("CreatedOn", "date"), Column("Duration", "time")),
             Table("dbo", "Variants", Column("Value", "sql_variant")),
-            new DatabaseSchemaObject("dbo", "vActiveUsers", DatabaseObjectKind.View, [Column("Id", "nvarchar", nullable: false), Column("Email", "nvarchar")]),
-            new DatabaseSchemaObject("dbo", "usp_Purge", DatabaseObjectKind.StoredProcedure, []),
-        ]
-    };
+            new SqlSchemaObject("dbo", "vActiveUsers", SqlSchemaObjectKind.View, [Column("Id", "nvarchar", nullable: false), Column("Email", "nvarchar")]),
+            new SqlSchemaObject("dbo", "usp_Purge", SqlSchemaObjectKind.Procedure, []),
+        ]);
 
-    private static DatabaseSchemaObject Table(string schema, string name, params DatabaseSchemaColumn[] columns)
-        => new(schema, name, DatabaseObjectKind.Table, columns);
+    private static SqlSchemaObject Table(string schema, string name, params SqlColumn[] columns)
+        => new(schema, name, SqlSchemaObjectKind.Table, columns);
 
-    private static DatabaseSchemaColumn Column(string name, string sqlType, bool nullable = true, int key = 0, byte precision = 0, byte scale = 0)
-        => new(name, sqlType, sqlType, nullable, key, precision, scale);
+    private static SqlColumn Column(string name, string sqlType, bool nullable = true, int key = 0, byte precision = 0, byte scale = 0)
+        => new(name, sqlType) { SqlType = sqlType, IsNullable = nullable, PrimaryKeyOrdinal = key, Precision = precision, Scale = scale };
 }

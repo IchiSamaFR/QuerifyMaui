@@ -1,5 +1,5 @@
 ﻿using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Schemas;
+using Quill.Data.Sql;
 using System.Collections.Concurrent;
 
 namespace Querify.Databases.Schemas;
@@ -15,12 +15,12 @@ public sealed class DatabaseSchemaCache : IDatabaseSchemaCache
         _readers = readers;
     }
 
-    public async Task<DatabaseSchemaSnapshot> GetSchemaAsync(DatabaseConnectionInfo connection, string? database, CancellationToken cancellationToken = default)
-        => (DatabaseSchemaSnapshot)await GetOrLoadAsync(connection, database ?? string.Empty,
-            (reader, connectionString) => reader.GetSchemaSnapshotAsync(connectionString, database, CancellationToken.None), cancellationToken);
+    public async Task<SqlDatabaseSchema> GetSchemaAsync(DatabaseConnectionInfo connection, string? database, CancellationToken cancellationToken = default)
+        => (SqlDatabaseSchema)await GetOrLoadAsync(connection, database ?? string.Empty,
+            (reader, connectionString) => reader.GetSchemaAsync(connectionString, database, CancellationToken.None), cancellationToken);
 
-    public async Task<IReadOnlyList<DatabaseCatalogEntry>> GetDatabasesAsync(DatabaseConnectionInfo connection, CancellationToken cancellationToken = default)
-        => (IReadOnlyList<DatabaseCatalogEntry>)await GetOrLoadAsync(connection, DatabasesKey,
+    public async Task<IReadOnlyList<SqlDatabaseInfo>> GetDatabasesAsync(DatabaseConnectionInfo connection, CancellationToken cancellationToken = default)
+        => (IReadOnlyList<SqlDatabaseInfo>)await GetOrLoadAsync(connection, DatabasesKey,
             (reader, connectionString) => reader.GetDatabasesAsync(connectionString, CancellationToken.None), cancellationToken);
 
     public void Invalidate(DatabaseConnectionInfo connection)
@@ -38,7 +38,7 @@ public sealed class DatabaseSchemaCache : IDatabaseSchemaCache
     /// Le chargement n'est pas annule avec l'appelant : une frappe qui relance la completion
     /// doit retrouver le meme chargement en cours, pas en redemarrer un.
     /// </summary>
-    private async Task<object> GetOrLoadAsync<T>(DatabaseConnectionInfo connection, string scope, Func<IDatabaseSchemaReader, string, Task<T>> load, CancellationToken cancellationToken)
+    private async Task<object> GetOrLoadAsync<T>(DatabaseConnectionInfo connection, string scope, Func<ISqlSchemaReader, string, Task<T>> load, CancellationToken cancellationToken)
         where T : class
     {
         ArgumentNullException.ThrowIfNull(connection);
