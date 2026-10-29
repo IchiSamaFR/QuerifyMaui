@@ -1,6 +1,6 @@
 ﻿namespace Querify.Languages.Linq.Compilation;
 
-/// <summary>Le code genere ne compile pas : bug du generateur ou cas de schema non prevu.</summary>
+/// <summary>Le code genere ne compile pas (bug du generateur, cas de schema non prevu), ou un parametre ne convient pas a son type.</summary>
 public sealed class LinqCompilationException : Exception
 {
     public LinqCompilationException(string message, IReadOnlyList<string> errors)
@@ -9,6 +9,6 @@ public sealed class LinqCompilationException : Exception
         Errors = errors;
     }
 
-    /// <summary>Messages Roslyn, positions dans le source genere.</summary>
+    /// <summary>Messages Roslyn, positions dans le source genere ; vide pour un parametre.</summary>
     public IReadOnlyList<string> Errors { get; }
 }

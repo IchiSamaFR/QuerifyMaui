@@ -14,7 +14,7 @@ public class LinqAnalysisTests
     [Fact]
     public async Task Hover_PropertyShowsTypeAndColumn()
     {
-        var hover = await HoverAsync(TestLinq.Expression("RaveOnDb.AspNetUsers.Where(u => u.Em|ail != null)"));
+        var hover = await HoverAsync(TestLinq.Expression("Db.AspNetUsers.Where(u => u.Em|ail != null)"));
 
         Assert.NotNull(hover);
         Assert.Contains("string", hover.Signature, StringComparison.Ordinal);
@@ -25,7 +25,7 @@ public class LinqAnalysisTests
     [Fact]
     public async Task Hover_LambdaParameterShowsEntity()
     {
-        var query = TestLinq.Expression("RaveOnDb.AspNetUsers.Where(u => u.Email != null)");
+        var query = TestLinq.Expression("Db.AspNetUsers.Where(u => u.Email != null)");
         var hover = await TestLinq.HoverAsync(Model.Value, query, query.IndexOf("u =>", StringComparison.Ordinal));
 
         Assert.NotNull(hover);
@@ -36,7 +36,7 @@ public class LinqAnalysisTests
     [Fact]
     public async Task Hover_LocalVariableShowsInferredType()
     {
-        var hover = await HoverAsync(TestLinq.Statements("var us|ers = RaveOnDb.AspNetUsers.Where(u => u.EmailConfirmed);\nreturn users;"));
+        var hover = await HoverAsync(TestLinq.Statements("var us|ers = Db.AspNetUsers.Where(u => u.EmailConfirmed);\nusers.Dump();"));
 
         Assert.NotNull(hover);
         Assert.Contains("IQueryable<AspNetUsers> users", hover.Signature, StringComparison.Ordinal);
@@ -45,7 +45,7 @@ public class LinqAnalysisTests
     [Fact]
     public async Task Hover_RangeMapsToQueryText()
     {
-        var query = TestLinq.Expression("RaveOnDb.AspNetUsers");
+        var query = TestLinq.Expression("Db.AspNetUsers");
         var hover = await TestLinq.HoverAsync(Model.Value, query, query.IndexOf("AspNetUsers", StringComparison.Ordinal) + "AspNetUsers".Length - 2);
 
         Assert.NotNull(hover);
@@ -55,12 +55,12 @@ public class LinqAnalysisTests
 
     [Fact]
     public async Task Hover_NothingOnPunctuation()
-        => Assert.Null(await HoverAsync(TestLinq.Expression("RaveOnDb.AspNetUsers.Where(u => u.EmailConfirmed |)")));
+        => Assert.Null(await HoverAsync(TestLinq.Expression("Db.AspNetUsers.Where(u => u.EmailConfirmed |)")));
 
     [Fact]
     public async Task Diagnostics_UnknownMemberIsAnError()
     {
-        var query = TestLinq.Expression("RaveOnDb.AspNetUsers.Where(u => u.Mail != null)");
+        var query = TestLinq.Expression("Db.AspNetUsers.Where(u => u.Mail != null)");
         var diagnostics = await TestLinq.DiagnosticsAsync(Model.Value, query);
 
         var error = Assert.Single(diagnostics);
@@ -70,12 +70,12 @@ public class LinqAnalysisTests
 
     [Fact]
     public async Task Diagnostics_ValidQueryHasNone()
-        => Assert.Empty(await TestLinq.DiagnosticsAsync(Model.Value, TestLinq.Expression("RaveOnDb.AspNetUsers.Where(u => u.EmailConfirmed).Select(u => u.Email)")));
+        => Assert.Empty(await TestLinq.DiagnosticsAsync(Model.Value, TestLinq.Expression("Db.AspNetUsers.Where(u => u.EmailConfirmed).Select(u => u.Email)")));
 
     [Fact]
     public async Task Diagnostics_MissingParenthesis()
     {
-        var diagnostics = await TestLinq.DiagnosticsAsync(Model.Value, TestLinq.Expression("RaveOnDb.AspNetUsers.Where(u => u.EmailConfirmed"));
+        var diagnostics = await TestLinq.DiagnosticsAsync(Model.Value, TestLinq.Expression("Db.AspNetUsers.Where(u => u.EmailConfirmed"));
 
         Assert.Contains(diagnostics, d => d.IsError);
     }
@@ -83,14 +83,14 @@ public class LinqAnalysisTests
     [Fact]
     public async Task Diagnostics_WithoutModelOnlySyntax()
     {
-        Assert.Empty(await TestLinq.DiagnosticsAsync(null, TestLinq.Expression("RaveOnDb.AspNetUsers.Where(u => u.EmailConfirmed)")));
-        Assert.NotEmpty(await TestLinq.DiagnosticsAsync(null, TestLinq.Expression("RaveOnDb.AspNetUsers.Where(u => )")));
+        Assert.Empty(await TestLinq.DiagnosticsAsync(null, TestLinq.Expression("Db.AspNetUsers.Where(u => u.EmailConfirmed)")));
+        Assert.NotEmpty(await TestLinq.DiagnosticsAsync(null, TestLinq.Expression("Db.AspNetUsers.Where(u => )")));
     }
 
     [Fact]
     public async Task Signature_WhereWithActiveParameter()
     {
-        var help = await SignatureAsync(TestLinq.Expression("RaveOnDb.AspNetUsers.Where(|"));
+        var help = await SignatureAsync(TestLinq.Expression("Db.AspNetUsers.Where(|"));
 
         Assert.NotNull(help);
         Assert.Equal(0, help.ActiveParameter);
@@ -100,12 +100,12 @@ public class LinqAnalysisTests
     [Fact]
     public async Task Signature_SecondArgument()
     {
-        var help = await SignatureAsync(TestLinq.Expression("RaveOnDb.AspNetUsers.Select(u => u.Email).Take(10).Skip(|"));
+        var help = await SignatureAsync(TestLinq.Expression("Db.AspNetUsers.Select(u => u.Email).Take(10).Skip(|"));
 
         Assert.NotNull(help);
         Assert.Contains(help.Signatures, s => s.Prefix.Contains("Skip", StringComparison.Ordinal));
 
-        var second = await SignatureAsync(TestLinq.Expression("RaveOnDb.AspNetUsers.Where(u => u.Email.StartsWith(\"a\", |"));
+        var second = await SignatureAsync(TestLinq.Expression("Db.AspNetUsers.Where(u => u.Email.StartsWith(\"a\", |"));
         Assert.NotNull(second);
         Assert.Equal(1, second.ActiveParameter);
         Assert.Contains(second.Signatures, s => s.Prefix.Contains("StartsWith", StringComparison.Ordinal));
@@ -113,7 +113,7 @@ public class LinqAnalysisTests
 
     [Fact]
     public async Task Signature_NoneOutsideArguments()
-        => Assert.Null(await SignatureAsync(TestLinq.Expression("RaveOnDb.AspNetUsers.Count()|")));
+        => Assert.Null(await SignatureAsync(TestLinq.Expression("Db.AspNetUsers.Count()|")));
 
     private static Task<HoverInfo?> HoverAsync(string queryWithMarker)
     {

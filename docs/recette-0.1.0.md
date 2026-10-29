@@ -1,4 +1,4 @@
-# Recette 0.1.0
+﻿# Recette 0.1.0
 
 A derouler sur le zip publie par la CI (`Querify-0.1.0-rc.N-win-x64.zip`), sur un poste **sans** SDK .NET ni Windows App SDK installes.
 
@@ -40,9 +40,9 @@ A derouler sur le zip publie par la CI (`Querify-0.1.0-rc.N-win-x64.zip`), sur u
 
 ## Editeur LINQ
 
-- [ ] Classe `UserQuery` complete avec usings : `object Run(QueryDbContext context)` affiche son retour, `void Run` seulement ses `.Dump()`, `async Task<T> Run` attendu
-- [ ] Parametres de dashboard passes a `Run` par leur nom ; parametre inconnu ou classe absente signales en erreur
-- [ ] Explorateur ▸ lire une table dans un onglet LINQ : classe `UserQuery` inseree
+- [ ] Instructions C# directes avec usings (types apres les instructions) : seuls les `.Dump()` affichent des donnees, `await` accepte
+- [ ] Parametres de dashboard utilisables par leur nom sans `@` (types `int?`, `string`...) ; texte sans instruction signale en erreur
+- [ ] Explorateur ▸ lire une table dans un onglet LINQ : instruction `Db.Table.Take(n).Dump();` inseree
 - [ ] `Log.Information` / `Log.Warning` / `Log.Error` dans l'onglet Messages (couleur selon le niveau), SQL genere affiche
 - [ ] Erreur de compilation soulignee et listee
 - [ ] Annulation d'une boucle infinie : la main revient, message « se termine en arriere-plan »

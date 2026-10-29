@@ -4,7 +4,7 @@ using Querify.Databases.Models.Queries;
 namespace Querify.Languages.Linq.Queries;
 
 /// <summary>
-/// Parametre du dashboard, passe par son nom (sans casse ni @) au parametre homonyme de Run, converti a son type.
+/// Parametre du dashboard, expose au script par son nom sans @ : propriete de QueryGlobals, de ce type, initialisee a cette valeur.
 /// Capture par la requete, EF l'envoie comme parametre SQL, jamais concatene au texte.
 /// </summary>
 /// <param name="Type">Type C# de la variable (int?, string, DateTime?...) ; <paramref name="Value"/> doit lui etre affectable.</param>
