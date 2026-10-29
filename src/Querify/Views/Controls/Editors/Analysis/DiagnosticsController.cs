@@ -1,11 +1,7 @@
 ﻿using CodeEdit.Maui;
+using Quill.Code;
 using Quill.Code.Analysis;
 using RichEdit.Maui;
-using Querify.Core.Enums.Editors.Highlighting;
-using Querify.Core.Models.Editors.Analysis;
-using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Queries;
-using Querify.Services.Editors.Analysis;
 using Querify.UI.Extensions;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
@@ -21,11 +17,7 @@ public sealed class DiagnosticsController : IDisposable
     private static readonly TimeSpan TypingDelay = TimeSpan.FromMilliseconds(600);
 
     private readonly NativeCodeEditor _editor;
-    private readonly ICodeAnalysisService _service;
-    private readonly SyntaxLanguage _language;
-    private readonly Func<DatabaseConnectionInfo?> _connection;
-    private readonly Func<string?> _database;
-    private readonly Func<IReadOnlyList<QueryParameter>?> _parameters;
+    private readonly Func<ICodeLanguageService?> _service;
     private readonly RichTextDecorationLayer _layer;
     private readonly Color _errorColor;
     private readonly Color _warningColor;
@@ -35,18 +27,13 @@ public sealed class DiagnosticsController : IDisposable
     private CancellationTokenSource? _pending;
     private bool _isDisposed;
 
-    /// <param name="connection">Lue a chaque analyse : l'onglet peut changer de connexion entre deux.</param>
-    public DiagnosticsController(NativeCodeEditor editor, ICodeAnalysisService service, SyntaxLanguage language,
-        Func<DatabaseConnectionInfo?> connection, Func<string?> database, Func<IReadOnlyList<QueryParameter>?> parameters)
+    /// <param name="service">Service Quill du contexte de l'editeur, lu a chaque analyse ; null : pas d'erreur soulignee.</param>
+    public DiagnosticsController(NativeCodeEditor editor, Func<ICodeLanguageService?> service)
     {
         ArgumentNullException.ThrowIfNull(editor);
 
         _editor = editor;
         _service = service;
-        _language = language;
-        _connection = connection;
-        _database = database;
-        _parameters = parameters;
         _layer = editor.Decorations.CreateLayer();
         _errorColor = ResourceColor("Danger", Colors.Red);
         _warningColor = ResourceColor("Warning", Colors.Gold);
@@ -66,7 +53,7 @@ public sealed class DiagnosticsController : IDisposable
         return _diagnostics.Where(d => d.Start <= offset && offset <= d.End).ToArray();
     }
 
-    /// <summary>Relance l'analyse : texte modifie, ou contexte change (connexion ouverte, base, parametres).</summary>
+    /// <summary>Relance l'analyse : texte modifie, ou contexte change (service recree, connexion ouverte).</summary>
     public void Refresh()
     {
         if (_isDisposed)
@@ -90,16 +77,9 @@ public sealed class DiagnosticsController : IDisposable
         {
             await Task.Delay(TypingDelay, cancellationToken);
 
-            var request = new CodeAnalysisRequest
-            {
-                Language = _language,
-                Text = snapshot.Text,
-                Connection = _connection(),
-                Database = _database(),
-                Parameters = _parameters() ?? [],
-            };
-
-            var diagnostics = await _service.GetDiagnosticsAsync(request, cancellationToken);
+            IReadOnlyList<CodeDiagnostic> diagnostics = _service() is { } service
+                ? await Task.Run(() => service.GetDiagnosticsAsync(snapshot.Text, cancellationToken), cancellationToken)
+                : [];
             var decorations = BuildDecorations(diagnostics, snapshot.Text.Length);
 
             _editor.Dispatcher.Dispatch(() =>

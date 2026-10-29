@@ -1,11 +1,7 @@
 ﻿using CodeEdit.Maui;
+using Quill.Code;
 using Quill.Code.Analysis;
 using RichEdit.Maui;
-using Querify.Core.Enums.Editors.Highlighting;
-using Querify.Core.Models.Editors.Analysis;
-using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Queries;
-using Querify.Services.Editors.Analysis;
 using Querify.UI.Extensions;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
@@ -26,11 +22,7 @@ public sealed class HoverController : IDisposable
     private readonly NativeCodeEditor _editor;
     private readonly CodeTooltipPopup _popup;
     private readonly View _host;
-    private readonly ICodeAnalysisService _service;
-    private readonly SyntaxLanguage _language;
-    private readonly Func<DatabaseConnectionInfo?> _connection;
-    private readonly Func<string?> _database;
-    private readonly Func<IReadOnlyList<QueryParameter>?> _parameters;
+    private readonly Func<ICodeLanguageService?> _service;
     private readonly DiagnosticsController? _diagnostics;
     private readonly Func<bool> _isSuspended;
     private readonly RichTextLayout _layout;
@@ -44,8 +36,8 @@ public sealed class HoverController : IDisposable
     /// <param name="host">Conteneur commun a l'editeur et a l'infobulle : repere des coordonnees de l'infobulle.</param>
     /// <param name="diagnostics">Erreurs soulignees, rappelees dans l'infobulle ; null si l'editeur n'en affiche pas.</param>
     /// <param name="isSuspended">Vrai quand une autre liste est ouverte (autocompletion) : pas d'infobulle par-dessus.</param>
-    public HoverController(NativeCodeEditor editor, CodeTooltipPopup popup, View host, ICodeAnalysisService service, SyntaxLanguage language,
-        Func<DatabaseConnectionInfo?> connection, Func<string?> database, Func<IReadOnlyList<QueryParameter>?> parameters,
+    /// <param name="service">Service Quill du contexte de l'editeur, lu a chaque survol ; null : erreurs seules.</param>
+    public HoverController(NativeCodeEditor editor, CodeTooltipPopup popup, View host, Func<ICodeLanguageService?> service,
         DiagnosticsController? diagnostics, Func<bool> isSuspended)
     {
         ArgumentNullException.ThrowIfNull(editor);
@@ -54,10 +46,6 @@ public sealed class HoverController : IDisposable
         _popup = popup;
         _host = host;
         _service = service;
-        _language = language;
-        _connection = connection;
-        _database = database;
-        _parameters = parameters;
         _diagnostics = diagnostics;
         _isSuspended = isSuspended;
         _layout = editor.TextLayout.CreateRelativeTo(host);
@@ -163,17 +151,10 @@ public sealed class HoverController : IDisposable
 
             var revision = _editor.Document.Revision;
             var diagnostics = _diagnostics?.FindAt(offset) ?? [];
-            var request = new CodeAnalysisRequest
-            {
-                Language = _language,
-                Text = _editor.Document.Text,
-                Offset = offset,
-                Connection = _connection(),
-                Database = _database(),
-                Parameters = _parameters() ?? [],
-            };
-
-            var hover = await _service.GetHoverAsync(request, cancellationToken);
+            var text = _editor.Document.Text;
+            var hover = _service() is { } service
+                ? await Task.Run(() => service.GetHoverAsync(text, offset, cancellationToken), cancellationToken)
+                : null;
 
             // Frappe pendant l'analyse : les positions ne correspondent plus au texte.
             if (cancellationToken.IsCancellationRequested || _isDisposed || _editor.Document.Revision != revision)

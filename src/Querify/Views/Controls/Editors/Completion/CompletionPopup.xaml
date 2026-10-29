@@ -9,7 +9,7 @@
              IsVisible="False">
 
     <!-- Pas de CollectionView : la liste ne doit jamais prendre le focus a l'editeur.
-         Lignes en nombre fixe (VisibleRows), creees une fois et recyclees par le code-behind. -->
+         Lignes en nombre fixe (VisibleRows), creees une fois : le code-behind change la proposition qu'elles affichent. -->
     <Border x:Name="Surface"
             BackgroundColor="{DynamicResource FlyoutBackground}"
             Stroke="{DynamicResource SurfaceStrokeColorDefault}"
@@ -26,46 +26,12 @@
         <Grid>
             <VerticalStackLayout x:Name="Rows">
                 <BindableLayout.ItemTemplate>
-                    <DataTemplate x:DataType="m:CompletionEntry">
-                        <Grid ColumnDefinitions="20,*,Auto"
-                              Style="{StaticResource GridSpacingStyle}"
-                              Padding="6,0,10,0"
-                              IsVisible="{Binding HasItem}"
-                              HeightRequest="{x:Static c:CompletionPopup.RowHeight}">
-                            <Grid.GestureRecognizers>
+                    <DataTemplate>
+                        <c:CompletionRow>
+                            <c:CompletionRow.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnRowTapped" />
-                            </Grid.GestureRecognizers>
-                            <Grid.Triggers>
-                                <DataTrigger TargetType="Grid"
-                                             Binding="{Binding IsSelected}"
-                                             Value="True">
-                                    <Setter Property="BackgroundColor"
-                                            Value="{DynamicResource SubtleFillColorSecondary}" />
-                                </DataTrigger>
-                            </Grid.Triggers>
-
-                            <!-- Glyphe dans un Label : se met a jour a coup sur quand la ligne est recyclee -->
-                            <Label Grid.Column="0"
-                                   Text="{Binding Item.Kind, Converter={StaticResource CompletionItemIconConverter}}"
-                                   TextColor="{Binding Item.Kind, Converter={StaticResource CompletionItemIconColorConverter}}"
-                                   FontFamily="FluentFilledIcons"
-                                   FontSize="16"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center" />
-
-                            <Label Grid.Column="1"
-                                   Text="{Binding Item.Label}"
-                                   TextColor="{DynamicResource LabelPrimary}"
-                                   FontSize="{StaticResource FontSize_Normal}"
-                                   LineBreakMode="TailTruncation"
-                                   VerticalOptions="Center" />
-
-                            <Label Grid.Column="2"
-                                   Text="{Binding Item.Detail}"
-                                   TextColor="{DynamicResource LabelTertiary}"
-                                   FontSize="{StaticResource FontSize_Small}"
-                                   VerticalOptions="Center" />
-                        </Grid>
+                            </c:CompletionRow.GestureRecognizers>
+                        </c:CompletionRow>
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>

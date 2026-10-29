@@ -1,52 +1,42 @@
-﻿using Querify.Core.Enums.Editors.Highlighting;
-using Querify.Core.Ioc;
-using Querify.Core.Models.Editors.Completion;
-using Querify.Databases.Enums;
+﻿using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
 using Querify.Databases.Models.Schemas;
 using Querify.Databases.Schemas;
-using Querify.Languages.Commons.Editors.Completion;
-using Querify.Services.Editors.Highlighting;
 using Quill.Code.Completion;
+using Quill.Code.Sql.Completion;
 using System.Data.Common;
 using System.Text.RegularExpressions;
-using Quill.Code.Sql;
-using Quill.Code.Sql.Completion;
 
-namespace Querify.Services.Editors.Completion;
+namespace Querify.Languages.Sql.Completion;
 
 /// <summary>
-/// Bases, schemas, tables, vues, procedures et colonnes de la connexion de l'onglet,
-/// selon le contexte : FROM -> tables, alias. -> colonnes, USE -> bases, EXEC -> procedures.
+/// Bases, schemas, tables, vues, procedures et colonnes d'une connexion, selon le contexte :
+/// FROM -> tables, alias. -> colonnes, USE -> bases, EXEC -> procedures.
 /// </summary>
-[AutoRegister(As = typeof(ICompletionProvider))]
-public sealed partial class SchemaCompletionProvider : ICompletionProvider
+internal sealed partial class SqlSchemaCompletion
 {
     private const string DefaultSchema = "dbo";
 
-    private readonly IDatabaseSchemaCache _cache;
-    private readonly ISyntaxConfigurationStore _configurations;
-    private HashSet<string>? _reservedWords;
+    private static readonly DatabaseObjectKind[] DataSourceKinds = [DatabaseObjectKind.Table, DatabaseObjectKind.View];
 
-    public SchemaCompletionProvider(IDatabaseSchemaCache cache, ISyntaxConfigurationStore configurations)
+    private static readonly DatabaseObjectKind[] ProcedureKinds = [DatabaseObjectKind.StoredProcedure];
+
+    private readonly IDatabaseSchemaCache _cache;
+    private readonly SqlKeywordCatalog _keywords;
+    private IReadOnlySet<string> _reservedWords = new HashSet<string>();
+
+    public SqlSchemaCompletion(IDatabaseSchemaCache cache, SqlKeywordCatalog keywords)
     {
         _cache = cache;
-        _configurations = configurations;
+        _keywords = keywords;
     }
 
     [GeneratedRegex(@"^[\p{L}_][\p{L}\p{Nd}_@#$]*$", RegexOptions.CultureInvariant)]
     private static partial Regex RegularIdentifierRegex();
 
-    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, SqlContext context, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(DatabaseConnectionInfo connection, SqlContext context, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
-        ArgumentNullException.ThrowIfNull(context);
-
-        // Le schema SQL n'a pas de sens en LINQ : c'est le DbContext genere qui y repondra.
-        if (request.Language != SyntaxLanguage.Sql || request.Connection is not { IsConnected: true } connection)
-            return [];
-
-        _reservedWords ??= await LoadReservedWordsAsync(request.Language, cancellationToken);
+        _reservedWords = await _keywords.GetReservedWordsAsync(cancellationToken);
 
         try
         {
@@ -66,22 +56,6 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
             return [];
         }
     }
-
-    /// <summary>Catalogue de la base par defaut et liste des bases charges des la connexion, pas a la premiere frappe.</summary>
-    public async Task WarmUpAsync(SyntaxLanguage language, DatabaseConnectionInfo? connection, CancellationToken cancellationToken = default)
-    {
-        if (language != SyntaxLanguage.Sql || connection is not { IsConnected: true })
-            return;
-
-        _reservedWords ??= await LoadReservedWordsAsync(language, cancellationToken);
-        await Task.WhenAll(
-            _cache.GetSchemaAsync(connection, null, cancellationToken),
-            _cache.GetDatabasesAsync(connection, cancellationToken));
-    }
-
-    private static readonly DatabaseObjectKind[] DataSourceKinds = [DatabaseObjectKind.Table, DatabaseObjectKind.View];
-
-    private static readonly DatabaseObjectKind[] ProcedureKinds = [DatabaseObjectKind.StoredProcedure];
 
     // ---------- Par contexte ----------
 
@@ -129,15 +103,7 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
         if (!withSchemas)
             return objects.ToArray();
 
-        var schemas = snapshot.Schemas.Select(s => new CompletionItem
-        {
-            Label = s,
-            Kind = CompletionItemKind.Schema,
-            InsertText = Quote(s),
-            Detail = snapshot.Database
-        });
-
-        return objects.Concat(schemas).ToArray();
+        return objects.Concat(SchemaItems(snapshot)).ToArray();
     }
 
     /// <summary>Colonnes de toutes les tables citees dans la requete (SELECT, WHERE, ON...).</summary>
@@ -258,14 +224,7 @@ public sealed partial class SchemaCompletionProvider : ICompletionProvider
 
     /// <summary>Crochets pour un nom irregulier (espace, tiret...) ou reserve (Order, User).</summary>
     private string Quote(string name)
-        => RegularIdentifierRegex().IsMatch(name) && _reservedWords?.Contains(name) != true
+        => RegularIdentifierRegex().IsMatch(name) && !_reservedWords.Contains(name)
             ? name
             : $"[{name.Replace("]", "]]", StringComparison.Ordinal)}]";
-
-    /// <summary>Seuls les mots-cles reserves : une colonne Year ou Date n'a pas besoin de crochets.</summary>
-    private async Task<HashSet<string>> LoadReservedWordsAsync(SyntaxLanguage language, CancellationToken cancellationToken)
-    {
-        var configuration = await _configurations.GetAsync(language, cancellationToken);
-        return new HashSet<string>(configuration?.Definition.Keywords.Where(k => k.Category == "Keyword").Select(k => k.Word) ?? [], StringComparer.OrdinalIgnoreCase);
-    }
 }

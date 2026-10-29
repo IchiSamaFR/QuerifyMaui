@@ -6,14 +6,15 @@ using Querify.Core.Models.Editors.Highlighting;
 using Querify.Core.Models.Settings;
 using Querify.Databases.Models.Connections;
 using Querify.Databases.Models.Queries;
-using Querify.Services.Editors.Analysis;
-using Querify.Services.Editors.Completion;
+using Querify.Languages.Commons.Editors;
+using Querify.Languages.Editors;
 using Querify.Services.Editors.Highlighting;
 using Querify.UI.Extensions;
 using Querify.Views.Controls.Editors.Analysis;
 using Querify.Views.Controls.Editors.Completion;
 using Querify.Views.Controls.Editors.Editing;
 using Querify.Views.Controls.Editors.Search;
+using Quill.Code;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -118,6 +119,8 @@ public partial class CodeEditor : ContentView
 
     private CodeDocument _document = null!;
     private SyntaxHighlightingController? _highlighting;
+    private IEditorLanguage? _language;
+    private ICodeLanguageService? _languageService;
     private CompletionController? _completion;
     private DiagnosticsController? _diagnostics;
     private HoverController? _hover;
@@ -174,6 +177,7 @@ public partial class CodeEditor : ContentView
         Loaded += (_, _) =>
         {
             StartHighlighting();
+            UpdateLanguageService();
             StartCompletion();
             StartAnalysis();
             StartEditing();
@@ -201,8 +205,7 @@ public partial class CodeEditor : ContentView
         if (newValue is DatabaseConnectionInfo newConnection)
             newConnection.PropertyChanged += editor.OnConnectionStateChanged;
 
-        editor._completion?.WarmUp();
-        editor._diagnostics?.Refresh();
+        editor.OnAnalysisContextChanged();
     }
 
     private void OnConnectionStateChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -210,9 +213,8 @@ public partial class CodeEditor : ContentView
         if (e.PropertyName != nameof(DatabaseConnectionInfo.IsConnected))
             return;
 
-        _completion?.WarmUp();
-
-        // Connexion ouverte : le DbContext ou le schema donnent un sens aux noms, les erreurs sont recalculees.
+        // Connexion ouverte : le service relit son etat a chaque demande, seuls le prechargement et les erreurs sont relances.
+        WarmUpLanguage();
         _diagnostics?.Refresh();
     }
 
@@ -228,7 +230,16 @@ public partial class CodeEditor : ContentView
 
     /// <summary>Autre base ou autres parametres : les noms valides ne sont plus les memes.</summary>
     private static void OnAnalysisContextPropertyChanged(BindableObject bindable, object oldValue, object newValue)
-        => ((CodeEditor)bindable)._diagnostics?.Refresh();
+        => ((CodeEditor)bindable).OnAnalysisContextChanged();
+
+    private void OnAnalysisContextChanged()
+    {
+        if (!IsLoaded)
+            return;
+
+        UpdateLanguageService();
+        _diagnostics?.Refresh();
+    }
 
     /// <summary>Repercute les commandes natives sur les proprietes bindables dediees.</summary>
     private static void OnCommandsPropertyChanged(BindableObject bindable, object oldValue, object newValue)
@@ -494,6 +505,7 @@ public partial class CodeEditor : ContentView
         if (IsLoaded)
         {
             StartHighlighting();
+            UpdateLanguageService();
             StartCompletion();
             StartAnalysis();
         }
@@ -504,7 +516,6 @@ public partial class CodeEditor : ContentView
         if (_highlighting is not null || SyntaxConfiguration is null)
             return;
 
-        // Un controle ne recoit pas ses dependances par constructeur : c'est le cas prevu pour Ioc.
         _highlighting = new SyntaxHighlightingController(Native);
         _highlighting.Start(SyntaxConfiguration.Definition);
     }
@@ -515,6 +526,20 @@ public partial class CodeEditor : ContentView
         _highlighting = null;
     }
 
+    // ---------- Services du langage (Quill) ----------
+
+    /// <summary>Service Quill du langage, lie a la connexion, a la base et aux parametres : recree quand l'un d'eux change.</summary>
+    private void UpdateLanguageService()
+    {
+        // Un controle ne recoit pas ses dependances par constructeur : c'est le cas prevu pour Ioc.
+        _language = SyntaxConfiguration is { } configuration ? Ioc.GetRequiredService<IEditorLanguageResolver>().Find(configuration.Language) : null;
+        _languageService = _language?.CreateService(Connection, Database, QueryParameters ?? []);
+        WarmUpLanguage();
+    }
+
+    /// <summary>Catalogue, Roslyn... precharges en arriere-plan : la premiere frappe ne les attend pas.</summary>
+    private void WarmUpLanguage() => _language?.WarmUpAsync(Connection).FireAndForget();
+
     // ---------- Autocompletion ----------
 
     private void StartCompletion()
@@ -522,8 +547,7 @@ public partial class CodeEditor : ContentView
         if (_completion is not null || SyntaxConfiguration is null)
             return;
 
-        _completion = new CompletionController(Native, CompletionList, this, Ioc.GetRequiredService<ICompletionService>(), SyntaxConfiguration.Language,
-            () => Connection, () => Database, () => QueryParameters);
+        _completion = new CompletionController(Native, CompletionList, this, () => _languageService);
     }
 
     private void StopCompletion()
@@ -539,16 +563,11 @@ public partial class CodeEditor : ContentView
         if (_hover is not null || SyntaxConfiguration is null)
             return;
 
-        var service = Ioc.GetRequiredService<ICodeAnalysisService>();
-        var language = SyntaxConfiguration.Language;
-
         if (IsDiagnosticsEnabled)
-            _diagnostics = new DiagnosticsController(Native, service, language, () => Connection, () => Database, () => QueryParameters);
+            _diagnostics = new DiagnosticsController(Native, () => _languageService);
 
-        _hover = new HoverController(Native, Tooltip, this, service, language, () => Connection, () => Database, () => QueryParameters,
-            _diagnostics, () => CompletionList.IsVisible);
-        _signatureHelp = new SignatureHelpController(Native, SignatureHelp, this, service, language, () => Connection, () => Database, () => QueryParameters,
-            () => CompletionList.IsVisible);
+        _hover = new HoverController(Native, Tooltip, this, () => _languageService, _diagnostics, () => CompletionList.IsVisible);
+        _signatureHelp = new SignatureHelpController(Native, SignatureHelp, this, () => _languageService, () => CompletionList.IsVisible);
     }
 
     private void StopAnalysis()

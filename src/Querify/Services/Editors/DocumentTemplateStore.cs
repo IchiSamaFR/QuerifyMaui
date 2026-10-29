@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+﻿using Querify.Core.Services.Editors.Highlighting;
+using CommunityToolkit.Mvvm.Messaging;
 using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Services.Editors.Highlighting;

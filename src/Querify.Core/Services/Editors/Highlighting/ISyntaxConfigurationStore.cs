@@ -1,7 +1,7 @@
 ﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Models.Editors.Highlighting;
 
-namespace Querify.Services.Editors.Highlighting;
+namespace Querify.Core.Services.Editors.Highlighting;
 
 /// <summary>
 /// Acces aux configurations de coloration livrees avec l'application.

@@ -28,4 +28,7 @@ public sealed class KeyedServiceMap<TKey, TService>
         => _services.TryGetValue(key, out var service)
             ? service
             : throw new NotSupportedException($"Aucun {_serviceLabel} enregistré pour {key}.");
+
+    public bool TryResolve(TKey key, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TService service)
+        => _services.TryGetValue(key, out service);
 }

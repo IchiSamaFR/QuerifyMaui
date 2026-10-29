@@ -1,4 +1,5 @@
-﻿using Querify.Core.Enums.Editors.Highlighting;
+﻿using Querify.Core.Services.Editors.Highlighting;
+using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Highlighting;
 using Quill.Code.Highlighting;
