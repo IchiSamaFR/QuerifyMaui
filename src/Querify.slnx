@@ -34,6 +34,8 @@
     <Project Path="../../Quill.Code/src/Quill.Code.Sql/Quill.Code.Sql.csproj" />
     <Project Path="../../Quill.Code/src/Quill.Code/Quill.Code.csproj" />
     <Project Path="../../Quill.Code/src/Quill.Code.CSharp/Quill.Code.CSharp.csproj" />
+    <Project Path="../../Quill.Code/src/Quill.Data.Sql/Quill.Data.Sql.csproj" />
+    <Project Path="../../Quill.Code/src/Quill.Data.Sql.SqlServer/Quill.Data.Sql.SqlServer.csproj" />
   </Folder>
   <Project Path="Querify.Core/Querify.Core.csproj" Id="20581ecd-a9bd-40f1-b6f2-a5b075ddf732" />
   <Project Path="Querify.Helpers/Querify.Helpers.csproj" Id="641a0d0c-2ec1-4dea-928a-d0e9521c2936" />

@@ -1,4 +1,4 @@
-﻿using Querify.Databases.Models.Schemas;
+﻿using Quill.Data.Sql;
 
 namespace Querify.Languages.Linq.Modeling;
 
@@ -8,5 +8,5 @@ namespace Querify.Languages.Linq.Modeling;
 /// </summary>
 public interface IEfModelGenerator
 {
-    EfGeneratedModel Generate(DatabaseSchemaSnapshot snapshot);
+    EfGeneratedModel Generate(SqlDatabaseSchema snapshot);
 }

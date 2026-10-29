@@ -1,10 +1,10 @@
-﻿
-using Querify.Databases.Enums;
+﻿using Querify.Databases.Enums;
+using Quill.Data.Sql;
 
 namespace Querify.Databases.Schemas;
 
-/// <summary>Resout le lecteur de catalogue d'un moteur.</summary>
+/// <summary>Resout le lecteur de catalogue (Quill.Data.Sql) d'un moteur.</summary>
 public interface IDatabaseSchemaReaderResolver
 {
-    IDatabaseSchemaReader Resolve(DatabaseProvider provider);
+    ISqlSchemaReader Resolve(DatabaseProvider provider);
 }

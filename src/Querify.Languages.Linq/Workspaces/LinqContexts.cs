@@ -1,6 +1,5 @@
 ﻿using Querify.Core.Ioc;
 using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Schemas;
 using Querify.Databases.Schemas;
 using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
@@ -8,6 +7,7 @@ using Querify.Languages.Linq.Queries;
 using Quill.Code.CSharp;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
+using Quill.Data.Sql;
 
 namespace Querify.Languages.Linq.Workspaces;
 
@@ -19,7 +19,7 @@ public sealed class LinqContexts : ILinqContexts
     private readonly IEfModelGenerator _generator;
 
     /// <summary>Un modele par catalogue charge : recharger le catalogue recompile le modele.</summary>
-    private readonly ConditionalWeakTable<DatabaseSchemaSnapshot, Task<LinqGeneratedModelAssembly>> _models = new();
+    private readonly ConditionalWeakTable<SqlDatabaseSchema, Task<LinqGeneratedModelAssembly>> _models = new();
 
     public LinqContexts(IDatabaseSchemaCache schemas, IEfModelGenerator generator)
     {
@@ -63,6 +63,6 @@ public sealed class LinqContexts : ILinqContexts
         }
     }
 
-    private Task<LinqGeneratedModelAssembly> Compile(DatabaseSchemaSnapshot snapshot)
+    private Task<LinqGeneratedModelAssembly> Compile(SqlDatabaseSchema snapshot)
         => Task.Run(() => LinqCompiler.CompileModelAsync(_generator.Generate(snapshot)));
 }

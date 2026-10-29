@@ -5,7 +5,6 @@ using Querify.Core.Enums.Databases;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Databases;
 using Querify.Databases.Connections;
-using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
 using Querify.Databases.Schemas;
 using Querify.Helpers.Extensions;
@@ -15,6 +14,7 @@ using Querify.Services.Dialogs;
 using Querify.UI.Extensions;
 using Querify.UI.ViewModels;
 using System.Collections.ObjectModel;
+using Quill.Data.Sql;
 
 namespace Querify.ViewModels.Pages.Connections;
 
@@ -328,7 +328,7 @@ public partial class ConnectionExplorerVM : AbstractVM
         new(ExplorerNodeKind.StoredProceduresFolder, "Procedures stockees", database.Connection, database),
     ];
 
-    private async Task<IReadOnlyList<ExplorerNode>> LoadObjectsAsync(ExplorerNode folder, DatabaseObjectKind kind)
+    private async Task<IReadOnlyList<ExplorerNode>> LoadObjectsAsync(ExplorerNode folder, SqlSchemaObjectKind kind)
     {
         var connectionString = folder.Connection.ConnectionString;
         if (string.IsNullOrWhiteSpace(connectionString) || folder.Database is null)
@@ -343,8 +343,8 @@ public partial class ConnectionExplorerVM : AbstractVM
 
         var nodeKind = kind switch
         {
-            DatabaseObjectKind.Table => ExplorerNodeKind.Table,
-            DatabaseObjectKind.View => ExplorerNodeKind.View,
+            SqlSchemaObjectKind.Table => ExplorerNodeKind.Table,
+            SqlSchemaObjectKind.View => ExplorerNodeKind.View,
             _ => ExplorerNodeKind.StoredProcedure,
         };
 

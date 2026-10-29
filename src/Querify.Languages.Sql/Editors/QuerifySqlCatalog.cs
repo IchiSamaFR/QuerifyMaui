@@ -1,10 +1,8 @@
-using Querify.Databases.Enums;
-using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Schemas;
+﻿using Querify.Databases.Models.Connections;
 using Querify.Databases.Schemas;
 using Quill.Code.Sql.Schema;
+using Quill.Data.Sql;
 using System.Data.Common;
-using System.Runtime.CompilerServices;
 
 namespace Querify.Languages.Sql.Editors;
 
@@ -14,9 +12,6 @@ namespace Querify.Languages.Sql.Editors;
 /// </summary>
 internal sealed class QuerifySqlCatalog : ISqlCatalog
 {
-    // Une conversion par catalogue charge : le meme instantane sert a toutes les frappes et a tous les onglets.
-    private static readonly ConditionalWeakTable<DatabaseSchemaSnapshot, SqlDatabaseSchema> Converted = new();
-
     private readonly IDatabaseSchemaCache _cache;
     private readonly DatabaseConnectionInfo? _connection;
 
@@ -33,8 +28,7 @@ internal sealed class QuerifySqlCatalog : ISqlCatalog
 
         try
         {
-            var databases = await _cache.GetDatabasesAsync(connection, cancellationToken);
-            return databases.Select(d => new SqlDatabaseInfo(d.Name, d.IsSystem)).ToArray();
+            return await _cache.GetDatabasesAsync(connection, cancellationToken);
         }
         catch (Exception ex) when (ex is DbException or InvalidOperationException or TimeoutException)
         {
@@ -49,26 +43,11 @@ internal sealed class QuerifySqlCatalog : ISqlCatalog
 
         try
         {
-            var snapshot = await _cache.GetSchemaAsync(connection, database, cancellationToken);
-            return Converted.GetValue(snapshot, Convert);
+            return await _cache.GetSchemaAsync(connection, database, cancellationToken);
         }
         catch (Exception ex) when (ex is DbException or InvalidOperationException or TimeoutException)
         {
             return null;
         }
     }
-
-    private static SqlDatabaseSchema Convert(DatabaseSchemaSnapshot snapshot)
-        => new(snapshot.Database, snapshot.Objects
-            .Select(o => new SqlSchemaObject(
-                o.Schema,
-                o.Name,
-                o.Kind switch
-                {
-                    DatabaseObjectKind.View => SqlSchemaObjectKind.View,
-                    DatabaseObjectKind.StoredProcedure => SqlSchemaObjectKind.Procedure,
-                    _ => SqlSchemaObjectKind.Table,
-                },
-                o.Columns.Select(c => new SqlColumn(c.Name, c.DataType, c.IsNullable, c.IsPrimaryKey)).ToArray()))
-            .ToArray());
 }

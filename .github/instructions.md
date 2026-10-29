@@ -48,11 +48,11 @@ Querify (nom affiché : **Querify**) est une application **desktop Windows** .NE
 
 **Noyau (`Querify.Core`)** : modèles et énumérations de l'application par domaine (`Dashboards/`, `Databases/`, `Editors/`, `Queries/`, `Settings/`), `Serialization/` (`DashboardSerializer`, System.Text.Json source-gen), `Ioc/AutoRegisterAttribute`. Aucun service.
 
-**Bases de données (`Querify.Databases`)** : librairie **indépendante** (aucune référence de projet). Tout ce qui parle à un moteur, indépendamment du langage et des dashboards. Services enregistrés par `services.AddDatabases()`, pas par `[AutoRegister]`.
-* `Models/`, `Enums/` : `DatabaseConnectionInfo`, `ConnectionTestResult`, catalogue, `DatabaseSchemaSnapshot`, `QueryResultSet`, `QueryParameter`, `DatabaseProvider`...
-* `Connections/`, `Queries/`, `Schemas/` : contrats par moteur (`IConnectionTester`, `IQueryReader`, `IDatabaseSchemaReader`) et leurs résolveurs, `IQueryDataService`, `IDatabaseSchemaCache`.
+**Bases de données (`Querify.Databases`)** : librairie **indépendante** (aucun projet de l'appli ; référence `Quill.Data.Sql` et `Quill.Data.Sql.SqlServer`, qui portent la structure d'une base — `SqlDatabaseSchema`, `SqlSchemaObject`, `SqlColumn`, `SqlDatabaseInfo` — et sa lecture, `ISqlSchemaReader`). Tout ce qui parle à un moteur, indépendamment du langage et des dashboards. Services enregistrés par `services.AddDatabases()`, pas par `[AutoRegister]`.
+* `Models/`, `Enums/` : `DatabaseConnectionInfo`, `ConnectionTestResult`, `QueryResultSet`, `QueryParameter`, `DatabaseProvider`...
+* `Connections/`, `Queries/`, `Schemas/` : contrats par moteur (`IConnectionTester`, `IQueryReader`) et leurs résolveurs, `IDatabaseSchemaReaderResolver` (rend l'`ISqlSchemaReader` de Quill d'un moteur, déclaré par `DatabaseSchemaReaderRegistration`), `IQueryDataService`, `IDatabaseSchemaCache`.
 * `Common/KeyedServiceMap<TKey, TService>` : base de tous les résolveurs (une implémentation par clé, doublon signalé au démarrage).
-* `SqlServer/` : `SqlServerConnectionTester`, `SqlServerSchemaReader`, `SqlServerQueryReader`.
+* `SqlServer/` : `SqlServerConnectionTester`, `SqlServerQueryReader` (le lecteur de catalogue est `SqlServerSchemaReader` de `Quill.Data.Sql.SqlServer`).
 
 **Langages** :
 * `Languages.Commons` : `IQueryExecutor` et `IEditorLanguage` (un de chaque par `SyntaxLanguage`), `QueryExecutionLimits`. `IEditorLanguage.CreateService(connexion, base, paramètres)` rend l'`ICodeLanguageService` de Quill d'un éditeur : autocomplétion, erreurs, survol et signatures passent uniquement par les contrats de Quill (texte + position), sans modèle de requête propre à Querify.
@@ -264,7 +264,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * Stockage mixte : métadonnées dans `connections.json` (`AppDataDirectory`, `JsonFile`), chaîne complète chiffrée dans le `SecureStorage` (`connectionstring:{id}`). `DatabaseConnectionInfo.ConnectionString` n'est renseignée qu'**en mémoire** (connexion ouverte) et n'est jamais sérialisée.
 * Fichier corrompu : copie `.corrupt-date` puis liste vide. Fichier illisible : rien n'est mis en cache et toute écriture est refusée, pour ne pas écraser les connexions.
 * Abonnement : `IConnectionStore.Subscribe` (appelé tout de suite puis à chaque ajout / modification / suppression) ; `DatabaseConnectionVM` et `ConnectionExplorerVM` s'y abonnent.
-* **Ajouter un moteur** = une implémentation de `IConnectionTester` et de `IDatabaseSchemaReader` dans `Databases/[Moteur]/`, enregistrées dans `AddDatabases()`.
+* **Ajouter un moteur** = une implémentation de `IConnectionTester` dans `Databases/[Moteur]/` et un `ISqlSchemaReader` dans `Quill.Data.Sql.[Moteur]`, enregistrés dans `AddDatabases()` (le lecteur par `DatabaseSchemaReaderRegistration`).
 * La popup « Se connecter » (`ConnectionEditorPopup` + `ConnectionEditorVM`, transient) travaille sur un `DatabaseConnectionDraft` (clone) ; le mot de passe y est masqué (`ConnectionStringPasswordHelper`) et réinjecté tant que le masque n'est pas remplacé.
 * **Explorateur** : `ConnectionExplorerVM` garde l'arbre, affiché par le contrôle générique `v:TreeView` (chargement paresseux par `ExpandingCommand`). Aucun `ExplorerNode` ne porte la chaîne. Suppression confirmée par `IDialogService.ConfirmAsync`.
 

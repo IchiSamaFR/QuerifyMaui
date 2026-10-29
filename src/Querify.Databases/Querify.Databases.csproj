@@ -12,6 +12,10 @@
 		<PackageReference Include="Newtonsoft.Json" />
 	</ItemGroup>
 
-	<!-- Librairie independante : aucune reference de projet (Core la reference, pas l'inverse). -->
+	<!-- Librairie independante : aucun projet de l'application (Core la reference, pas l'inverse) ; structure et lecture du catalogue par Quill (depot Quill.Code, en attendant le paquet NuGet). -->
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Data.Sql\Quill.Data.Sql.csproj" />
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Data.Sql.SqlServer\Quill.Data.Sql.SqlServer.csproj" />
+	</ItemGroup>
 
 </Project>
