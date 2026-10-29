@@ -6,7 +6,7 @@ using Quill.Code;
 using Quill.Code.Analysis;
 using Quill.Code.Completion;
 using Quill.Code.CSharp;
-using Quill.Code.Languages;
+using Quill.Code.Constants;
 
 namespace Querify.Languages.Linq.Editors;
 

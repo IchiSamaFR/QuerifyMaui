@@ -16,6 +16,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using Quill.Code.Sql.Execution;
+using Quill.Code.Sql.Constants;
 
 namespace Querify.Languages.Linq.Queries;
 
