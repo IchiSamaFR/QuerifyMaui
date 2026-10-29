@@ -13,7 +13,6 @@
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/enums", "Querify.Core.Enums.Databases", AssemblyName = "Querify.Core")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/enums", "Querify.Core.Enums.Dialogs", AssemblyName = "Querify.Core")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/enums", "Querify.Core.Enums.Editors", AssemblyName = "Querify.Core")]
-[assembly: XmlnsDefinition("http://querify.app/dotnet/maui/enums", "Querify.Core.Enums.Editors.Completion", AssemblyName = "Querify.Core")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/enums", "Querify.Core.Enums.Editors.Highlighting", AssemblyName = "Querify.Core")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/enums", "Querify.Core.Enums.Queries", AssemblyName = "Querify.Core")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/enums", "Querify.Core.Enums.Settings", AssemblyName = "Querify.Core")]

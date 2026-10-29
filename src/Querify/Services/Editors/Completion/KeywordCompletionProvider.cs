@@ -1,5 +1,4 @@
-﻿using Querify.Core.Enums.Editors.Completion;
-using Querify.Core.Enums.Editors.Highlighting;
+﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Completion;
 using Querify.Core.Models.Editors.Highlighting;
@@ -9,6 +8,8 @@ using Querify.Services.Editors.Highlighting;
 using Quill.Code.Completion;
 using Quill.Code.Highlighting;
 using System.Collections.Concurrent;
+using Quill.Code.Sql;
+using Quill.Code.Sql.Completion;
 
 namespace Querify.Services.Editors.Completion;
 
@@ -32,7 +33,7 @@ public sealed class KeywordCompletionProvider : ICompletionProvider
         _configurations = configurations;
     }
 
-    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, SqlContext context, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -44,10 +45,10 @@ public sealed class KeywordCompletionProvider : ICompletionProvider
         // Table, base, membre ou procedure : place reservee aux objets du schema.
         Func<CompletionItem, bool>? accepts = context.Kind switch
         {
-            CompletionContextKind.General => static _ => true,
-            CompletionContextKind.Column => static item => item.Kind != CompletionItemKind.DataType,
-            CompletionContextKind.DataType => static item => item.Kind == CompletionItemKind.DataType,
-            CompletionContextKind.AfterTableName => static item => FollowTableName.Contains(item.Label),
+            SqlContextKind.General => static _ => true,
+            SqlContextKind.Column => static item => item.Kind != CompletionItemKind.DataType,
+            SqlContextKind.DataType => static item => item.Kind == CompletionItemKind.DataType,
+            SqlContextKind.AfterTableName => static item => FollowTableName.Contains(item.Label),
             _ => null
         };
 

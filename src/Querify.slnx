@@ -31,6 +31,7 @@
     <Project Path="Querify.Languages/Querify.Languages.csproj" />
   </Folder>
   <Folder Name="/Quill/">
+    <Project Path="../../Quill.Code/src/Quill.Code.Sql/Quill.Code.Sql.csproj" />
     <Project Path="../../Quill.Code/src/Quill.Code/Quill.Code.csproj" />
     <Project Path="../../Quill.Code/src/Quill.Code.CSharp/Quill.Code.CSharp.csproj" />
   </Folder>

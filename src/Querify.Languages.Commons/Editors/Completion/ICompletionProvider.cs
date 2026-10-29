@@ -2,6 +2,7 @@
 using Querify.Core.Models.Editors.Completion;
 using Querify.Databases.Models.Connections;
 using Quill.Code.Completion;
+using Quill.Code.Sql.Completion;
 
 namespace Querify.Languages.Commons.Editors.Completion;
 
@@ -11,7 +12,7 @@ namespace Querify.Languages.Commons.Editors.Completion;
 /// </summary>
 public interface ICompletionProvider
 {
-    Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, CompletionContext context, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CompletionItem>> GetItemsAsync(CompletionRequest request, SqlContext context, CancellationToken cancellationToken = default);
 
     /// <summary>Precharge ce dont la premiere demande aura besoin (a l'ouverture d'un onglet, au changement de connexion).</summary>
     Task WarmUpAsync(SyntaxLanguage language, DatabaseConnectionInfo? connection, CancellationToken cancellationToken = default)

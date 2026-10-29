@@ -8,10 +8,13 @@ using Querify.Databases.Models.Queries;
 using Querify.Databases.Models.Schemas;
 using Querify.Databases.Schemas;
 using Querify.Languages.Commons.Editors.Analysis;
-using Querify.Languages.Sql.Completion;
 using Quill.Code.Analysis;
+using Quill.Code;
 using System.Data.Common;
 using System.Text;
+using Quill.Code.Sql;
+using Quill.Code.Sql.Lexing;
+using Quill.Code.Sql.Completion;
 
 namespace Querify.Languages.Sql.Analysis;
 
@@ -65,8 +68,8 @@ public sealed class SqlHoverProvider : IHoverProvider
 
         try
         {
-            var scope = SqlCompletionContextAnalyzer.AnalyzeScope(text, token.Start, request.Database);
-            var name = SqlCompletionContextAnalyzer.Unquote(token.GetText(text));
+            var scope = SqlContextAnalyzer.AnalyzeScope(text, token.Start, request.Database);
+            var name = SqlContextAnalyzer.Unquote(token.GetText(text));
             var described = await DescribeNameAsync(connection, scope, ReadQualifier(text, tokens, index), name, cancellationToken);
 
             return described is { } hover ? new HoverInfo(token.Start, token.Length, hover.Signature, hover.Description) : null;
@@ -83,14 +86,14 @@ public sealed class SqlHoverProvider : IHoverProvider
     {
         List<string> parts = [];
         for (var i = index - 1; i >= 1 && tokens[i].Kind == SqlTokenKind.Dot && tokens[i - 1].Kind is SqlTokenKind.Word or SqlTokenKind.QuotedIdentifier; i -= 2)
-            parts.Insert(0, SqlCompletionContextAnalyzer.Unquote(tokens[i - 1].GetText(text)));
+            parts.Insert(0, SqlContextAnalyzer.Unquote(tokens[i - 1].GetText(text)));
 
         return parts;
     }
 
     // ---------- Noms du schema ----------
 
-    private async Task<(string Signature, string? Description)?> DescribeNameAsync(DatabaseConnectionInfo connection, CompletionContext scope,
+    private async Task<(string Signature, string? Description)?> DescribeNameAsync(DatabaseConnectionInfo connection, SqlContext scope,
         List<string> qualifier, string name, CancellationToken cancellationToken)
     {
         switch (qualifier.Count)
@@ -167,7 +170,7 @@ public sealed class SqlHoverProvider : IHoverProvider
     }
 
     /// <summary>Objet du catalogue designe par une table du lot ; null pour une table temporaire ou inconnue.</summary>
-    private async Task<DatabaseSchemaObject?> FindAsync(DatabaseConnectionInfo connection, CompletionContext scope, SqlTableReference table, CancellationToken cancellationToken)
+    private async Task<DatabaseSchemaObject?> FindAsync(DatabaseConnectionInfo connection, SqlContext scope, SqlTableReference table, CancellationToken cancellationToken)
     {
         if (table.Name.StartsWith('#'))
             return null;

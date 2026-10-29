@@ -7,7 +7,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Data.SqlClient" />
-		<PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" />
 	</ItemGroup>
 
 	<ItemGroup>

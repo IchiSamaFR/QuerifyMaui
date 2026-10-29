@@ -1,5 +1,6 @@
 ﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Models.Editors.Completion;
+using Quill.Code.Sql.Completion;
 
 namespace Querify.Languages.Commons.Editors.Completion;
 
@@ -8,5 +9,5 @@ public interface ICompletionContextAnalyzer
 {
     SyntaxLanguage Language { get; }
 
-    CompletionContext Analyze(CompletionRequest request);
+    SqlContext Analyze(CompletionRequest request);
 }
