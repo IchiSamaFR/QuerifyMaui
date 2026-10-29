@@ -13,11 +13,11 @@ public sealed record InsertQueryMessage(DatabaseConnectionInfo Connection, strin
     public string ToSql() => $"SELECT TOP ({RowCount}) *\nFROM {Quote(Database)}.{Quote(Schema)}.{Quote(Table)};";
 
     /// <summary>
-    /// Requete complete sur le contexte (alias QueryDbContext), entite nommee d'apres la table comme le DbContext genere.
+    /// Instruction sur le contexte (Db) qui affiche les premieres lignes, entite nommee d'apres la table comme le DbContext genere.
     /// Une table homonyme dans un autre schema y est prefixee du schema : le nom est alors a ajuster.
     /// </summary>
     public string ToLinq()
-        => $"class UserQuery\n{{\n    object Run(QueryDbContext context) => context.{EfModelGenerator.ToIdentifier(Table)}.Take({RowCount});\n}}";
+        => $"Db.{EfModelGenerator.ToIdentifier(Table)}.Take({RowCount}).Dump();";
 
     private static string Quote(string identifier) => $"[{identifier.Replace("]", "]]", StringComparison.Ordinal)}]";
 }

@@ -151,7 +151,7 @@ public sealed class EfModelGenerator : IEfModelGenerator
 
         code.AppendLine(CultureInfo.InvariantCulture, $"public sealed class {contextClass} : DbContext");
         code.AppendLine("{");
-        code.AppendLine(CultureInfo.InvariantCulture, $"    public {contextClass}(DbContextOptions<{contextClass}> options) : base(options) {{ }}");
+        code.AppendLine(CultureInfo.InvariantCulture, $"    public {contextClass}(DbContextOptions<{contextClass}> options = null) : base(options) {{ }}");
         code.AppendLine();
 
         foreach (var entity in entities)

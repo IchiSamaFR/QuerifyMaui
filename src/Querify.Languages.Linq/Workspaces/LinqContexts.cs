@@ -4,6 +4,7 @@ using Querify.Databases.Models.Schemas;
 using Querify.Databases.Schemas;
 using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
+using Querify.Languages.Linq.Queries;
 using Quill.Code.CSharp;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
@@ -43,8 +44,8 @@ public sealed class LinqContexts : ILinqContexts
         return await task.WaitAsync(cancellationToken);
     }
 
-    public async Task<ICSharpLanguageService> GetLanguageServiceAsync(DatabaseConnectionInfo? connection, string? database, CancellationToken cancellationToken = default)
-        => LinqCompiler.GetLanguageService(await TryGetModelAsync(connection, database, cancellationToken));
+    public async Task<ICSharpLanguageService> GetLanguageServiceAsync(DatabaseConnectionInfo? connection, string? database, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default)
+        => LinqCompiler.GetLanguageService(await TryGetModelAsync(connection, database, cancellationToken), parameters);
 
     /// <summary>DbContext de la base, ou null : l'analyse se rabat sur le C# seul.</summary>
     private async Task<LinqModelAssembly?> TryGetModelAsync(DatabaseConnectionInfo? connection, string? database, CancellationToken cancellationToken)

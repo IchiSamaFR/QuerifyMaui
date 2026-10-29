@@ -86,7 +86,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
                 }
 
                 if (outputs.Count == 0)
-                    messages.Add(new QueryMessage("Aucun résultat : Run ne renvoie rien ; renvoyez une valeur ou affichez-la avec .Dump()."));
+                    messages.Add(new QueryMessage("Aucun résultat : affichez les données avec .Dump()."));
             }
         }
         catch (CSharpRunAbandonedException)
@@ -151,10 +151,10 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
         var outputs = await RunAsync(model, compiled, connectionString, Math.Max(1, maxRows), cancellationToken);
 
-        // Une carte n'affiche qu'un jeu : la valeur rendue, a defaut le dernier Dump().
+        // Une carte n'affiche qu'un jeu : le dernier Dump().
         return outputs.Count > 0
             ? outputs[^1].ResultSet
-            : throw new InvalidOperationException("Aucun résultat : Run doit renvoyer une valeur, ou l'afficher avec .Dump().");
+            : throw new InvalidOperationException("Aucun résultat : le script doit afficher les données avec .Dump().");
     }
 
     // ---------- Execution ----------
@@ -166,31 +166,28 @@ public sealed class LinqQueryExecutor : IQueryExecutor
     /// interrompu dans le processus (boucle infinie...) ; il se termine en arriere-plan
     /// (<see cref="CSharpRunAbandonedException"/>) et son assembly n'est dechargee qu'a sa fin reelle.
     /// </summary>
-    private Task<List<Output>> RunAsync(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, CancellationToken cancellationToken)
-        => compiled.Compilation!.RunAsync(_ => Run(model, compiled, connectionString, maxRows, cancellationToken), cancellationToken);
-
-    private List<Output> Run(LinqModelAssembly model, LinqCompiledQuery compiled, string connectionString, int maxRows, CancellationToken cancellationToken)
+    private static async Task<List<Output>> RunAsync(LinqModelAssembly model, CSharpCompilationResult compiled, string connectionString, int maxRows, CancellationToken cancellationToken)
     {
-        using var context = LinqCompiler.CreateContext(model, connectionString);
-
+        var context = LinqCompiler.CreateContext(model, connectionString);
         List<Output> outputs = [];
-        object? lastDumped = null;
+        var isAbandoned = false;
 
-        compiled.Context = context;
-
-        // Capture immediate : un Dump() montre la valeur a cet instant, meme si le script la modifie ensuite.
-        compiled.Dump = (dumped, title) =>
+        try
         {
-            lastDumped = dumped;
-            outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken));
-        };
-
-        var value = compiled.Run();
-
-        // return x.Dump() : la valeur est deja affichee, pas de second onglet identique.
-        var isAlreadyDumped = outputs.Count > 0 && Equals(value, lastDumped);
-        if (compiled.ReturnsValue && !isAlreadyDumped)
-            outputs.Add(Capture(value, outputs.Count + 1, title: null, maxRows, cancellationToken));
+            // Capture immediate : un Dump() montre la valeur a cet instant, meme si le script la modifie ensuite.
+            await LinqCompiler.RunAsync(model, compiled, context, (dumped, title) => outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken)), cancellationToken);
+        }
+        catch (CSharpRunAbandonedException)
+        {
+            // Le script tourne encore sur ce contexte : il le garde (et sa connexion) jusqu'a sa fin.
+            isAbandoned = true;
+            throw;
+        }
+        finally
+        {
+            if (!isAbandoned)
+                context.Dispose();
+        }
 
         return outputs;
     }

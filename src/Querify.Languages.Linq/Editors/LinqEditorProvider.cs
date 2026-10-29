@@ -3,8 +3,11 @@ using Querify.Core.Ioc;
 using Querify.Core.Models.Editors.Analysis;
 using Querify.Core.Models.Editors.Completion;
 using Querify.Databases.Models.Connections;
+using Querify.Databases.Models.Queries;
 using Querify.Languages.Commons.Editors.Analysis;
 using Querify.Languages.Commons.Editors.Completion;
+using Querify.Languages.Linq.Compilation;
+using Querify.Languages.Linq.Queries;
 using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Analysis;
 using Quill.Code.Completion;
@@ -13,7 +16,7 @@ using Quill.Code.CSharp;
 namespace Querify.Languages.Linq.Editors;
 
 /// <summary>
-/// Editeur des onglets LINQ (Quill) : Roslyn analyse la requete, classe UserQuery complete, contre le contexte genere (context. -> tables,
+/// Editeur des onglets LINQ (Quill) : Roslyn analyse la requete, C# natif, contre le contexte genere (context. -> tables,
 /// u. -> colonnes, .Wh -> Where). Autocompletion, erreurs (telles que l'execution les leverait ; sans DbContext,
 /// seules les fautes de syntaxe), survol (type et origine du nom) et surcharges de la methode appelee.
 /// </summary>
@@ -39,7 +42,7 @@ public sealed class LinqEditorProvider : ICompletionProvider, IDiagnosticProvide
         if (language != SyntaxLanguage.Linq)
             return;
 
-        var service = await _contexts.GetLanguageServiceAsync(connection, database: null, cancellationToken);
+        var service = await _contexts.GetLanguageServiceAsync(connection, database: null, cancellationToken: cancellationToken);
         await service.WarmUpAsync(cancellationToken: cancellationToken);
     }
 
@@ -50,7 +53,7 @@ public sealed class LinqEditorProvider : ICompletionProvider, IDiagnosticProvide
         if (request.Language != SyntaxLanguage.Linq)
             return [];
 
-        var service = await _contexts.GetLanguageServiceAsync(request.Connection, request.Database, cancellationToken);
+        var service = await _contexts.GetLanguageServiceAsync(request.Connection, request.Database, ToVariables(request.Parameters), cancellationToken);
         return (await service.GetCompletionsAsync(request.Text, request.CaretOffset, cancellationToken)).Items;
     }
 
@@ -61,7 +64,7 @@ public sealed class LinqEditorProvider : ICompletionProvider, IDiagnosticProvide
 
         // Les informations (suggestions) ne sont pas soulignees dans un onglet LINQ.
         var diagnostics = await service.GetDiagnosticsAsync(request.Text, cancellationToken);
-        return diagnostics.Where(d => d.Severity != CodeDiagnosticSeverity.Info).ToArray();
+        return diagnostics.Where(d => d.Severity != CodeDiagnosticSeverity.Info && d.Code != LinqQuerySource.NoEntryPointCode).ToArray();
     }
 
     public async Task<HoverInfo?> GetHoverAsync(CodeAnalysisRequest request, CancellationToken cancellationToken = default)
@@ -80,7 +83,10 @@ public sealed class LinqEditorProvider : ICompletionProvider, IDiagnosticProvide
         ArgumentNullException.ThrowIfNull(request);
 
         return request.Language == SyntaxLanguage.Linq
-            ? await _contexts.GetLanguageServiceAsync(request.Connection, request.Database, cancellationToken)
+            ? await _contexts.GetLanguageServiceAsync(request.Connection, request.Database, ToVariables(request.Parameters), cancellationToken)
             : null;
     }
+
+    /// <summary>Parametres du dashboard vus du script : memes noms et types qu'a l'execution, sans les valeurs (le service de l'editeur reste stable).</summary>
+    private static LinqParameter[] ToVariables(IReadOnlyList<QueryParameter> parameters) => [.. parameters.Select(p => LinqParameter.From(p) with { Value = null })];
 }
