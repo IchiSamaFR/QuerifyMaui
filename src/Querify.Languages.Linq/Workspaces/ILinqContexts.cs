@@ -20,5 +20,5 @@ public interface ILinqContexts
     /// </summary>
     /// <param name="database">Base interrogee ; null = base de la connexion.</param>
     /// <param name="parameters">Parametres du dashboard, que le script utilise comme variables ; null : aucun.</param>
-    Task<ICSharpLanguageService> GetLanguageServiceAsync(DatabaseConnectionInfo? connection, string? database, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default);
+    Task<CSharpLanguageService> GetLanguageServiceAsync(DatabaseConnectionInfo? connection, string? database, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default);
 }

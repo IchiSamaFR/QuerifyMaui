@@ -80,7 +80,7 @@ public sealed class LinqEditorProvider : ICompletionProvider, IDiagnosticProvide
             : null;
 
     /// <summary>Service de la demande, ou null si elle ne concerne pas un onglet LINQ.</summary>
-    private async Task<ICSharpLanguageService?> GetLanguageServiceAsync(CodeAnalysisRequest request, CancellationToken cancellationToken)
+    private async Task<CSharpLanguageService?> GetLanguageServiceAsync(CodeAnalysisRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
