@@ -28,13 +28,13 @@
 
                 <ScrollView IsVisible="{Binding SelectedTab.IsMessages, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}"
                             Padding="12,4">
-                    <Label FormattedText="{Binding Result.Messages, Source={x:Reference root}, Converter={StaticResource QueryMessagesConverter}, x:DataType=c:QueryResultsPanel}"
+                    <Label FormattedText="{Binding DisplayedMessages, Source={x:Reference root}, Converter={StaticResource QueryMessagesConverter}, x:DataType=c:QueryResultsPanel}"
                            Style="{StaticResource QueryMessageStyle}"
                            VerticalTextAlignment="Start"
                            beh:TextSelection.IsEnabled="True" />
                 </ScrollView>
 
-                <HorizontalStackLayout IsVisible="{Binding IsExecuting, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+                <HorizontalStackLayout IsVisible="{Binding IsWaiting, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
                                        Spacing="12"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center">

@@ -15,8 +15,10 @@ public interface IQueryExecutor
     /// <summary>
     /// Execute le script sur la connexion ouverte et collecte resultats et messages. Les erreurs du
     /// langage ne levent pas d'exception : elles sont rapportees dans <see cref="QueryExecutionResult.Messages"/>.
+    /// <paramref name="liveMessages"/> recoit en plus certains messages (ex. Log du script) des leur emission, depuis
+    /// n'importe quel thread ; ils figurent aussi dans le resultat final.
     /// </summary>
-    Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, CancellationToken cancellationToken = default);
+    Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, IProgress<QueryMessage>? liveMessages = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lit un seul jeu de resultats avec des parametres types (cartes du dashboard) ; <paramref name="database"/>

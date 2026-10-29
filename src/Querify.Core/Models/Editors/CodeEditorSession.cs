@@ -21,6 +21,10 @@ public sealed partial class CodeEditorSession : AbstractSession
     [NotifyPropertyChangedFor(nameof(HasResultsPanel))]
     public partial bool IsExecuting { get; set; }
 
+    /// <summary>Messages recus pendant l'execution en cours (Log du script) ; vides une fois le resultat disponible.</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<QueryMessage> LiveMessages { get; set; } = [];
+
     /// <summary>Le panneau de resultats n'apparait qu'apres une premiere execution.</summary>
     public bool HasResultsPanel => IsExecuting || LastResult is not null;
 }

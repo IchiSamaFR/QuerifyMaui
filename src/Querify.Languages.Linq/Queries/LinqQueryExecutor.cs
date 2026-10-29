@@ -44,7 +44,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
     public SyntaxLanguage Language => SyntaxLanguage.Linq;
 
-    public async Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string query, CancellationToken cancellationToken = default)
+    public async Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string query, IProgress<QueryMessage>? liveMessages = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);
         ArgumentNullException.ThrowIfNull(query);
@@ -53,7 +53,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         List<QueryMessage> messages = [];
         var hasErrors = false;
         var wasCancelled = false;
-        var log = new LogOutput();
+        var log = new LogOutput(liveMessages);
         var logIndex = 0;
         var stopwatch = Stopwatch.StartNew();
 
@@ -200,11 +200,18 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
         private readonly Lock _lock = new();
         private readonly List<QueryMessage> _messages = [];
+        private readonly IProgress<QueryMessage>? _live;
         private int _length;
         private bool _isTruncated;
 
+        public LogOutput(IProgress<QueryMessage>? live)
+        {
+            _live = live;
+        }
+
         public void Write(LogLevel level, string text)
         {
+            QueryMessage message;
             lock (_lock)
             {
                 if (_isTruncated)
@@ -219,8 +226,12 @@ public sealed class LinqQueryExecutor : IQueryExecutor
                 }
 
                 _length += text.Length + 1;
-                _messages.Add(new QueryMessage(text.ReplaceLineEndings(), QueryMessageKind.Output, level));
+                message = new QueryMessage(text.ReplaceLineEndings(), QueryMessageKind.Output, level);
+                _messages.Add(message);
             }
+
+            // Hors verrou : le rapporteur ne doit pas bloquer les autres ecritures du script.
+            _live?.Report(message);
         }
 
         public IReadOnlyList<QueryMessage> ToMessages()
