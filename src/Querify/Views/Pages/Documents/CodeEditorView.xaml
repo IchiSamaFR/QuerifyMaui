@@ -67,6 +67,7 @@
                   HeightRequest="300"
                   IsVisible="{Binding Session.HasResultsPanel, FallbackValue=False}">
                 <c:QueryResultsPanel Result="{Binding Session.LastResult}"
+                                     LiveMessages="{Binding Session.LiveMessages, FallbackValue={x:Null}}"
                                      IsExecuting="{Binding Session.IsExecuting, FallbackValue=False}"
                                      CloseCommand="{Binding CloseResultsCommand}" />
 

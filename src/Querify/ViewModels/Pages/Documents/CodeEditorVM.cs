@@ -7,6 +7,7 @@ using Querify.Core.Models.Editors;
 using Querify.Core.Models.Editors.Highlighting;
 using Querify.Databases.Connections;
 using Querify.Languages.Queries;
+using Querify.Services.Editors;
 using Querify.Services.Editors.Highlighting;
 using Querify.Services.Settings;
 using Querify.UI.Extensions;
@@ -123,6 +124,7 @@ public partial class CodeEditorVM : DocumentVM<CodeEditorSession>
         }
 
         session.LastResult = null;
+        session.LiveMessages = [];
         session.IsExecuting = true;
         Status.Set(isSelection
             ? $"Exécution de la sélection sur {connection.Name}..."
@@ -130,6 +132,9 @@ public partial class CodeEditorVM : DocumentVM<CodeEditorSession>
 
         // Fermer l'onglet arrete aussi l'execution.
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(token, session.LifetimeToken);
+
+        // Cree sur le thread UI : le script ecrit depuis le sien, l'affichage suit par lots.
+        var liveMessages = new LiveQueryMessages(Dispatcher.GetForCurrentThread()!, messages => session.LiveMessages = messages);
         try
         {
             // Ouverture a la demande : la connexion est partagee avec l'explorateur.
@@ -140,8 +145,10 @@ public partial class CodeEditorVM : DocumentVM<CodeEditorSession>
             }
 
             // LINQ : la premiere execution sur une base genere et compile son DbContext (quelques secondes).
-            var result = await _executors.Resolve(document.Language).ExecuteAsync(connection, script, cancellation.Token);
+            var result = await _executors.Resolve(document.Language).ExecuteAsync(connection, script, liveMessages, cancellation.Token);
+            liveMessages.Close();
             session.LastResult = result;
+            session.LiveMessages = [];
             Status.Set(result.StatusLabel, isError: result.HasErrors || result.WasCancelled);
         }
         catch (OperationCanceledException)
@@ -154,6 +161,7 @@ public partial class CodeEditorVM : DocumentVM<CodeEditorSession>
         }
         finally
         {
+            liveMessages.Close();
             session.IsExecuting = false;
         }
     }

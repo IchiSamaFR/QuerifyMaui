@@ -25,7 +25,7 @@ public sealed class SqlQueryExecutor : IQueryExecutor
 
     public SyntaxLanguage Language => SyntaxLanguage.Sql;
 
-    public Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, CancellationToken cancellationToken = default)
+    public Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, IProgress<QueryMessage>? liveMessages = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);
 
