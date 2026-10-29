@@ -19,7 +19,7 @@ public sealed class LinqContexts : ILinqContexts
     private readonly IEfModelGenerator _generator;
 
     /// <summary>Un modele par catalogue charge : recharger le catalogue recompile le modele.</summary>
-    private readonly ConditionalWeakTable<DatabaseSchemaSnapshot, Task<LinqModelAssembly>> _models = new();
+    private readonly ConditionalWeakTable<DatabaseSchemaSnapshot, Task<LinqGeneratedModelAssembly>> _models = new();
 
     public LinqContexts(IDatabaseSchemaCache schemas, IEfModelGenerator generator)
     {
@@ -27,7 +27,7 @@ public sealed class LinqContexts : ILinqContexts
         _generator = generator;
     }
 
-    public async Task<LinqModelAssembly> GetModelAsync(DatabaseConnectionInfo connection, string? database, CancellationToken cancellationToken = default)
+    public async Task<LinqGeneratedModelAssembly> GetModelAsync(DatabaseConnectionInfo connection, string? database, CancellationToken cancellationToken = default)
     {
         // La base lue donne son nom au contexte.
         var snapshot = await _schemas.GetSchemaAsync(connection, string.IsNullOrWhiteSpace(database) ? null : database, cancellationToken);
@@ -48,7 +48,7 @@ public sealed class LinqContexts : ILinqContexts
         => LinqCompiler.GetLanguageService(await TryGetModelAsync(connection, database, cancellationToken), parameters);
 
     /// <summary>DbContext de la base, ou null : l'analyse se rabat sur le C# seul.</summary>
-    private async Task<LinqModelAssembly?> TryGetModelAsync(DatabaseConnectionInfo? connection, string? database, CancellationToken cancellationToken)
+    private async Task<LinqGeneratedModelAssembly?> TryGetModelAsync(DatabaseConnectionInfo? connection, string? database, CancellationToken cancellationToken)
     {
         if (connection is not { IsConnected: true })
             return null;
@@ -63,6 +63,6 @@ public sealed class LinqContexts : ILinqContexts
         }
     }
 
-    private Task<LinqModelAssembly> Compile(DatabaseSchemaSnapshot snapshot)
+    private Task<LinqGeneratedModelAssembly> Compile(DatabaseSchemaSnapshot snapshot)
         => Task.Run(() => LinqCompiler.CompileModelAsync(_generator.Generate(snapshot)));
 }

@@ -17,15 +17,15 @@ internal static class TestLinq
     /// <summary>Requete C# native faite des instructions <paramref name="statements"/>.</summary>
     public static string Statements(string statements) => statements + "\n";
 
-    public static async Task<IReadOnlyList<CompletionItem>> CompleteAsync(LinqModelAssembly? model, string query, int caret, IReadOnlyList<LinqParameter>? parameters = null)
+    public static async Task<IReadOnlyList<CompletionItem>> CompleteAsync(LinqGeneratedModelAssembly? model, string query, int caret, IReadOnlyList<LinqParameter>? parameters = null)
         => (await LinqCompiler.GetLanguageService(model, parameters).GetCompletionsAsync(query, caret)).Items;
 
-    public static Task<HoverInfo?> HoverAsync(LinqModelAssembly? model, string query, int offset)
+    public static Task<HoverInfo?> HoverAsync(LinqGeneratedModelAssembly? model, string query, int offset)
         => LinqCompiler.GetLanguageService(model).GetHoverAsync(query, offset);
 
-    public static Task<IReadOnlyList<CodeDiagnostic>> DiagnosticsAsync(LinqModelAssembly? model, string query)
+    public static Task<IReadOnlyList<CodeDiagnostic>> DiagnosticsAsync(LinqGeneratedModelAssembly? model, string query)
         => LinqCompiler.GetLanguageService(model).GetDiagnosticsAsync(query);
 
-    public static Task<SignatureHelpInfo?> SignatureHelpAsync(LinqModelAssembly? model, string query, int offset)
+    public static Task<SignatureHelpInfo?> SignatureHelpAsync(LinqGeneratedModelAssembly? model, string query, int offset)
         => LinqCompiler.GetLanguageService(model).GetSignatureHelpAsync(query, offset);
 }

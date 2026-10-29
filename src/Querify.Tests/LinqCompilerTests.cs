@@ -14,7 +14,7 @@ public class LinqCompilerTests
 {
     private const string ConnectionString = "Server=localhost;Database=RaveOnDb;Trusted_Connection=True;TrustServerCertificate=True";
 
-    private static readonly Lazy<LinqModelAssembly> Model = new(() => LinqCompiler.CompileModelAsync(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())).GetAwaiter().GetResult());
+    private static readonly Lazy<LinqGeneratedModelAssembly> Model = new(() => LinqCompiler.CompileModelAsync(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())).GetAwaiter().GetResult());
 
     [Fact]
     public async Task MethodSyntax_TranslatesToSql()

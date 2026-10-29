@@ -9,7 +9,7 @@ namespace Querify.Tests;
 /// <summary>Le caractere | marque la position (souris ou curseur) ; Roslyn analyse dans le contexte genere.</summary>
 public class LinqAnalysisTests
 {
-    private static readonly Lazy<LinqModelAssembly> Model = new(() => LinqCompiler.CompileModelAsync(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())).GetAwaiter().GetResult());
+    private static readonly Lazy<LinqGeneratedModelAssembly> Model = new(() => LinqCompiler.CompileModelAsync(new EfModelGenerator().Generate(EfModelGeneratorTests.SampleSnapshot())).GetAwaiter().GetResult());
 
     [Fact]
     public async Task Hover_PropertyShowsTypeAndColumn()

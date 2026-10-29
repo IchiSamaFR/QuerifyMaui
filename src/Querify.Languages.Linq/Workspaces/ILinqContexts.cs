@@ -12,7 +12,7 @@ namespace Querify.Languages.Linq.Workspaces;
 public interface ILinqContexts
 {
     /// <summary>Modele de <paramref name="database"/> (null = base par defaut de la connexion) ; leve en cas d'echec.</summary>
-    Task<LinqModelAssembly> GetModelAsync(DatabaseConnectionInfo connection, string? database, CancellationToken cancellationToken = default);
+    Task<LinqGeneratedModelAssembly> GetModelAsync(DatabaseConnectionInfo connection, string? database, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Service C# d'une demande de l'editeur : avec le DbContext de la base s'il est disponible, sinon C# seul
