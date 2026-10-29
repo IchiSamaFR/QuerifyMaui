@@ -20,8 +20,6 @@
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/models", "Querify.Core.Models.Databases", AssemblyName = "Querify.Core")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/models", "Querify.Core.Models.Databases.Connections", AssemblyName = "Querify.Core")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/models", "Querify.Core.Models.Editors", AssemblyName = "Querify.Core")]
-[assembly: XmlnsDefinition("http://querify.app/dotnet/maui/models", "Querify.Core.Models.Editors.Analysis", AssemblyName = "Querify.Core")]
-[assembly: XmlnsDefinition("http://querify.app/dotnet/maui/models", "Querify.Core.Models.Editors.Completion", AssemblyName = "Querify.Core")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/models", "Querify.Core.Models.Editors.Highlighting", AssemblyName = "Querify.Core")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/models", "Querify.Core.Models.Queries", AssemblyName = "Querify.Core")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/models", "Querify.Core.Models.Settings", AssemblyName = "Querify.Core")]

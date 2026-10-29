@@ -1,11 +1,7 @@
 ﻿using CodeEdit.Maui;
+using Quill.Code;
 using Quill.Code.Analysis;
 using RichEdit.Maui;
-using Querify.Core.Enums.Editors.Highlighting;
-using Querify.Core.Models.Editors.Analysis;
-using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Queries;
-using Querify.Services.Editors.Analysis;
 using Querify.UI.Extensions;
 using System.Globalization;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
@@ -27,11 +23,7 @@ public sealed class SignatureHelpController : IDisposable
     private readonly NativeCodeEditor _editor;
     private readonly SignatureHelpPopup _popup;
     private readonly View _host;
-    private readonly ICodeAnalysisService _service;
-    private readonly SyntaxLanguage _language;
-    private readonly Func<DatabaseConnectionInfo?> _connection;
-    private readonly Func<string?> _database;
-    private readonly Func<IReadOnlyList<QueryParameter>?> _parameters;
+    private readonly Func<ICodeLanguageService?> _service;
     private readonly Func<bool> _isCompletionOpen;
     private readonly RichTextLayout _layout;
     private readonly RichEditor? _focusTarget;
@@ -44,8 +36,8 @@ public sealed class SignatureHelpController : IDisposable
 
     /// <param name="host">Conteneur commun a l'editeur et au popup : repere des coordonnees du popup.</param>
     /// <param name="isCompletionOpen">Vrai quand la liste d'autocompletion est ouverte : Haut / Bas lui reviennent.</param>
-    public SignatureHelpController(NativeCodeEditor editor, SignatureHelpPopup popup, View host, ICodeAnalysisService service, SyntaxLanguage language,
-        Func<DatabaseConnectionInfo?> connection, Func<string?> database, Func<IReadOnlyList<QueryParameter>?> parameters, Func<bool> isCompletionOpen)
+    /// <param name="service">Service Quill du contexte de l'editeur, lu a chaque demande ; null : pas d'aide.</param>
+    public SignatureHelpController(NativeCodeEditor editor, SignatureHelpPopup popup, View host, Func<ICodeLanguageService?> service, Func<bool> isCompletionOpen)
     {
         ArgumentNullException.ThrowIfNull(editor);
 
@@ -53,10 +45,6 @@ public sealed class SignatureHelpController : IDisposable
         _popup = popup;
         _host = host;
         _service = service;
-        _language = language;
-        _connection = connection;
-        _database = database;
-        _parameters = parameters;
         _isCompletionOpen = isCompletionOpen;
         _layout = editor.TextLayout.CreateRelativeTo(host);
 
@@ -207,15 +195,9 @@ public sealed class SignatureHelpController : IDisposable
         {
             await Task.Delay(TypingDelay, cancellationToken);
 
-            help = await _service.GetSignatureHelpAsync(new CodeAnalysisRequest
-            {
-                Language = _language,
-                Text = text,
-                Offset = caret,
-                Connection = _connection(),
-                Database = _database(),
-                Parameters = _parameters() ?? [],
-            }, cancellationToken);
+            help = _service() is { } service
+                ? await Task.Run(() => service.GetSignatureHelpAsync(text, caret, cancellationToken), cancellationToken)
+                : null;
         }
         catch (OperationCanceledException)
         {

@@ -1,11 +1,7 @@
 ﻿using CodeEdit.Maui;
+using Quill.Code;
 using Quill.Code.Completion;
 using RichEdit.Maui;
-using Querify.Core.Enums.Editors.Highlighting;
-using Querify.Core.Models.Editors.Completion;
-using Querify.Databases.Models.Connections;
-using Querify.Databases.Models.Queries;
-using Querify.Services.Editors.Completion;
 using Querify.UI.Extensions;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
 
@@ -28,11 +24,7 @@ public sealed class CompletionController : IDisposable
     private readonly NativeCodeEditor _editor;
     private readonly CompletionPopup _popup;
     private readonly View _host;
-    private readonly ICompletionService _service;
-    private readonly SyntaxLanguage _language;
-    private readonly Func<DatabaseConnectionInfo?> _connection;
-    private readonly Func<string?> _database;
-    private readonly Func<IReadOnlyList<QueryParameter>?> _parameters;
+    private readonly Func<ICodeLanguageService?> _service;
     private readonly RichTextLayout _layout;
     private readonly RichEditor? _focusTarget;
 
@@ -44,20 +36,13 @@ public sealed class CompletionController : IDisposable
     private bool _isDisposed;
 
     /// <param name="host">Conteneur commun a l'editeur et au popup : repere des coordonnees du popup.</param>
-    /// <param name="connection">Lue a chaque ouverture : l'onglet peut changer de connexion entre deux.</param>
-    /// <param name="database">Base interrogee (null = celle de la connexion), lue a chaque ouverture.</param>
-    /// <param name="parameters">Parametres fournis a l'execution (dashboard), lus a chaque ouverture.</param>
-    public CompletionController(NativeCodeEditor editor, CompletionPopup popup, View host, ICompletionService service, SyntaxLanguage language,
-        Func<DatabaseConnectionInfo?> connection, Func<string?> database, Func<IReadOnlyList<QueryParameter>?> parameters)
+    /// <param name="service">Service Quill du contexte de l'editeur, lu a chaque ouverture (connexion, base, parametres) ; null : pas de liste.</param>
+    public CompletionController(NativeCodeEditor editor, CompletionPopup popup, View host, Func<ICodeLanguageService?> service)
     {
         _editor = editor;
         _popup = popup;
         _host = host;
         _service = service;
-        _language = language;
-        _connection = connection;
-        _database = database;
-        _parameters = parameters;
         _layout = editor.TextLayout.CreateRelativeTo(host);
 
         // Le focus est porte par le RichEditor interne, pas par le conteneur CodeEdit.
@@ -72,18 +57,6 @@ public sealed class CompletionController : IDisposable
 
         if (_focusTarget is not null)
             _focusTarget.Unfocused += OnUnfocused;
-
-        WarmUp();
-    }
-
-    /// <summary>
-    /// Precharge en arriere-plan ce que la premiere liste demanderait (catalogue, Roslyn...) :
-    /// la premiere frappe n'attend plus ces chargements. Rappele quand la connexion change.
-    /// </summary>
-    public void WarmUp()
-    {
-        if (!_isDisposed)
-            _service.WarmUpAsync(_language, _connection()).FireAndForget();
     }
 
     public void Dispose()
@@ -175,7 +148,7 @@ public sealed class CompletionController : IDisposable
             return;
         }
 
-        if (CompletionRequest.IsIdentifierChar(inserted[0]))
+        if (IsIdentifierChar(inserted[0]))
         {
             if (_session is null)
                 _pendingTrigger ??= CompletionTrigger.Typing;
@@ -233,7 +206,7 @@ public sealed class CompletionController : IDisposable
 
         var text = _editor.Document.Text;
         var caret = _editor.SelectionState.Active;
-        StartSessionAsync(CompletionTrigger.Explicit, text, caret, CompletionRequest.FindWordStart(text, caret), false).FireAndForget("Autocomplétion indisponible.");
+        StartSessionAsync(CompletionTrigger.Explicit, text, caret, FindWordStart(text, caret), false).FireAndForget("Autocomplétion indisponible.");
     }
 
     /// <summary>TextChanged et SelectionChanged arrivent ensemble a chaque frappe : un seul recalcul.</summary>
@@ -261,7 +234,7 @@ public sealed class CompletionController : IDisposable
 
         var text = _editor.Document.Text;
         var caret = selection.Active;
-        var wordStart = CompletionRequest.FindWordStart(text, caret);
+        var wordStart = FindWordStart(text, caret);
 
         if (_session is null)
         {
@@ -285,26 +258,17 @@ public sealed class CompletionController : IDisposable
             return;
         }
 
-        Show(_service.Filter(_session.Candidates, text[wordStart..caret]));
+        Show(CompletionFilter.Filter(_session.Candidates, text[wordStart..caret]));
     }
 
     private async Task StartSessionAsync(CompletionTrigger trigger, string text, int caret, int wordStart, bool isDelay = true)
     {
         CancelPending();
+        if (_service() is not { } service)
+            return;
+
         var cancellation = new CancellationTokenSource();
         _pending = cancellation;
-
-        var request = new CompletionRequest
-        {
-            Language = _language,
-            Text = text,
-            CaretOffset = caret,
-            WordStart = wordStart,
-            Trigger = trigger,
-            Connection = _connection(),
-            Database = _database(),
-            Parameters = _parameters() ?? [],
-        };
 
         IReadOnlyList<CompletionItem> candidates;
         try
@@ -313,7 +277,8 @@ public sealed class CompletionController : IDisposable
             if (isDelay)
                 await Task.Delay(TypingDelay, cancellation.Token);
 
-            candidates = await _service.GetCandidatesAsync(request, cancellation.Token);
+            // Hors du thread UI : Roslyn ou l'analyse T-SQL ont une partie synchrone qui figerait la frappe.
+            candidates = (await Task.Run(() => service.GetCompletionsAsync(text, caret, cancellation.Token), cancellation.Token)).Items;
         }
         catch (OperationCanceledException)
         {
@@ -411,6 +376,18 @@ public sealed class CompletionController : IDisposable
         _popup.TranslationX = Math.Clamp(caret.Left, 0, Math.Max(0, _host.Width - _popup.PopupWidth));
         _popup.TranslationY = y;
         _popup.IsVisible = true;
+    }
+
+    /// <summary>@ et # pour les variables et tables temporaires T-SQL.</summary>
+    private static bool IsIdentifierChar(char c) => char.IsLetterOrDigit(c) || c is '_' or '@' or '#' or '$';
+
+    private static int FindWordStart(string text, int caret)
+    {
+        var start = Math.Clamp(caret, 0, text.Length);
+        while (start > 0 && IsIdentifierChar(text[start - 1]))
+            start--;
+
+        return start;
     }
 
     private sealed record CompletionSession(int WordStart, CompletionTrigger Trigger, IReadOnlyList<CompletionItem> Candidates);

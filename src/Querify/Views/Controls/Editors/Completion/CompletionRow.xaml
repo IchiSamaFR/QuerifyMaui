@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Querify.Views.Controls.Editors.Completion.CompletionRow"
+             x:Name="Root">
+
+    <Grid ColumnDefinitions="20,*,Auto"
+          Style="{StaticResource GridSpacingStyle}"
+          Padding="6,0,10,0"
+          HeightRequest="{x:Static c:CompletionPopup.RowHeight}"
+          BindingContext="{Binding Source={x:Reference Root}, x:DataType=c:CompletionRow}"
+          x:DataType="c:CompletionRow">
+        <Grid.Triggers>
+            <DataTrigger TargetType="Grid"
+                         Binding="{Binding Item}"
+                         Value="{x:Null}">
+                <Setter Property="IsVisible"
+                        Value="False" />
+            </DataTrigger>
+            <DataTrigger TargetType="Grid"
+                         Binding="{Binding IsSelected}"
+                         Value="True">
+                <Setter Property="BackgroundColor"
+                        Value="{DynamicResource SubtleFillColorSecondary}" />
+            </DataTrigger>
+        </Grid.Triggers>
+
+        <!-- Glyphe dans un Label : se met a jour a coup sur quand la ligne est recyclee -->
+        <Label Grid.Column="0"
+               Text="{Binding Item.Kind, Converter={StaticResource CompletionItemIconConverter}, FallbackValue=''}"
+               TextColor="{Binding Item.Kind, Converter={StaticResource CompletionItemIconColorConverter}, FallbackValue={x:Null}}"
+               FontFamily="FluentFilledIcons"
+               FontSize="16"
+               HorizontalOptions="Center"
+               VerticalOptions="Center" />
+
+        <Label Grid.Column="1"
+               Text="{Binding Item.Label, FallbackValue=''}"
+               TextColor="{DynamicResource LabelPrimary}"
+               FontSize="{StaticResource FontSize_Normal}"
+               LineBreakMode="TailTruncation"
+               VerticalOptions="Center" />
+
+        <Label Grid.Column="2"
+               Text="{Binding Item.Detail, FallbackValue=''}"
+               TextColor="{DynamicResource LabelTertiary}"
+               FontSize="{StaticResource FontSize_Small}"
+               VerticalOptions="Center" />
+    </Grid>
+
+</ContentView>

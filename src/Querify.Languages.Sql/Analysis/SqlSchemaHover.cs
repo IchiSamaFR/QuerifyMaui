@@ -1,13 +1,8 @@
-﻿using Querify.Core.Enums.Editors.Highlighting;
-using Querify.Core.Ioc;
-using Querify.Core.Models.Editors.Analysis;
-using Querify.Core.Models.Editors.Completion;
-using Querify.Databases.Enums;
+﻿using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
 using Querify.Databases.Models.Queries;
 using Querify.Databases.Models.Schemas;
 using Querify.Databases.Schemas;
-using Querify.Languages.Commons.Editors.Analysis;
 using Quill.Code.Analysis;
 using Quill.Code;
 using System.Data.Common;
@@ -22,8 +17,7 @@ namespace Querify.Languages.Sql.Analysis;
 /// Infobulle d'un onglet SQL : type d'une colonne, colonnes d'une table ou d'un alias, type d'une variable
 /// declaree ou d'un parametre du dashboard. Le schema vient du catalogue deja charge pour l'autocompletion.
 /// </summary>
-[AutoRegister(As = typeof(IHoverProvider))]
-public sealed class SqlHoverProvider : IHoverProvider
+internal sealed class SqlSchemaHover : ICodeHover
 {
     /// <summary>Colonnes listees dans l'infobulle d'une table : au-dela, elle deborderait de l'editeur.</summary>
     private const int MaxListedColumns = 12;
@@ -36,39 +30,42 @@ public sealed class SqlHoverProvider : IHoverProvider
     };
 
     private readonly IDatabaseSchemaCache _cache;
+    private readonly DatabaseConnectionInfo? _connection;
+    private readonly string? _database;
+    private readonly IReadOnlyList<QueryParameter> _parameters;
 
-    public SqlHoverProvider(IDatabaseSchemaCache cache)
+    public SqlSchemaHover(IDatabaseSchemaCache cache, DatabaseConnectionInfo? connection, string? database, IReadOnlyList<QueryParameter> parameters)
     {
         _cache = cache;
+        _connection = connection;
+        _database = database;
+        _parameters = parameters;
     }
 
-    public async Task<HoverInfo?> GetHoverAsync(CodeAnalysisRequest request, CancellationToken cancellationToken = default)
+    public async Task<HoverInfo?> GetHoverAsync(string code, int position, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
-        if (request.Language != SyntaxLanguage.Sql)
-            return null;
+        ArgumentNullException.ThrowIfNull(code);
 
         // Commentaires ecartes : rien a expliquer dedans, et ils casseraient le qualificatif (a./*x*/b).
-        var text = request.Text;
+        var text = code;
         var tokens = SqlLexer.Tokenize(text).Where(t => !t.IsComment).ToArray();
         // Le caractere survole, ou celui qui le precede (souris posee juste apres la fin du nom).
-        var index = Array.FindIndex(tokens, t => t.Start <= request.Offset && request.Offset < t.End);
+        var index = Array.FindIndex(tokens, t => t.Start <= position && position < t.End);
         if (index < 0)
-            index = Array.FindIndex(tokens, t => t.Start < request.Offset && request.Offset == t.End);
+            index = Array.FindIndex(tokens, t => t.Start < position && position == t.End);
         if (index < 0)
             return null;
 
         var token = tokens[index];
         if (token.Kind == SqlTokenKind.Variable)
-            return DescribeVariable(text, tokens, token, request.Parameters);
+            return DescribeVariable(text, tokens, token, _parameters);
 
-        if (token.Kind is not (SqlTokenKind.Word or SqlTokenKind.QuotedIdentifier) || request.Connection is not { IsConnected: true } connection)
+        if (token.Kind is not (SqlTokenKind.Word or SqlTokenKind.QuotedIdentifier) || _connection is not { IsConnected: true } connection)
             return null;
 
         try
         {
-            var scope = SqlContextAnalyzer.AnalyzeScope(text, token.Start, request.Database);
+            var scope = SqlContextAnalyzer.AnalyzeScope(text, token.Start, _database);
             var name = SqlContextAnalyzer.Unquote(token.GetText(text));
             var described = await DescribeNameAsync(connection, scope, ReadQualifier(text, tokens, index), name, cancellationToken);
 

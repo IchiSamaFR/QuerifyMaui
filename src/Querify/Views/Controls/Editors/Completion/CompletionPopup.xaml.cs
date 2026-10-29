@@ -1,5 +1,4 @@
-﻿using Querify.Core.Models.Editors.Completion;
-using Quill.Code.Completion;
+﻿using Quill.Code.Completion;
 
 namespace Querify.Views.Controls.Editors.Completion;
 
@@ -24,7 +23,6 @@ public partial class CompletionPopup : ContentView
     /// <summary>Lignes defilees par cran de molette.</summary>
     private const int WheelRows = 3;
 
-    private readonly CompletionEntry[] _rows = new CompletionEntry[VisibleRows];
     private IReadOnlyList<CompletionItem> _items = [];
     private int _selectedIndex = -1;
 
@@ -38,10 +36,8 @@ public partial class CompletionPopup : ContentView
     {
         InitializeComponent();
 
-        for (var i = 0; i < _rows.Length; i++)
-            _rows[i] = new CompletionEntry();
-
-        BindableLayout.SetItemsSource(Rows, _rows);
+        // Seul le nombre compte : chaque ligne recoit sa proposition de Render.
+        BindableLayout.SetItemsSource(Rows, Enumerable.Range(0, VisibleRows).ToArray());
 
 #if WINDOWS
         Surface.HandlerChanged += (_, _) => AttachWheel();
@@ -127,10 +123,10 @@ public partial class CompletionPopup : ContentView
     /// <summary>Seules les proprietes qui changent sont reecrites : les bindings ne se relancent que pour elles.</summary>
     private void Render()
     {
-        for (var i = 0; i < _rows.Length; i++)
+        for (var i = 0; i < Rows.Children.Count; i++)
         {
             var index = _offset + i;
-            var row = _rows[i];
+            var row = (CompletionRow)Rows.Children[i];
             var item = index < _items.Count ? _items[index] : null;
 
             if (!ReferenceEquals(row.Item, item))
@@ -172,7 +168,7 @@ public partial class CompletionPopup : ContentView
 
     private void OnRowTapped(object? sender, TappedEventArgs e)
     {
-        if ((sender as BindableObject)?.BindingContext is CompletionEntry { Item: { } item })
+        if (sender is CompletionRow { Item: { } item })
             ItemInvoked?.Invoke(this, item);
     }
 
