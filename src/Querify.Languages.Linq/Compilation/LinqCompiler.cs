@@ -4,7 +4,6 @@ using Querify.Languages.Linq.Queries;
 using Quill.Code.Analysis;
 using Quill.Code.CSharp;
 using Quill.Code.CSharp.Compilation;
-using Quill.Code.CSharp.Workspaces;
 using Quill.Code.Scripting;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
@@ -25,7 +24,7 @@ public static class LinqCompiler
 {
     // Un service par modele (libere avec lui) et par jeu de parametres (noms et types, pas les valeurs) : references,
     // contexte genere et parametres ne changent pas d'une frappe a l'autre, Roslyn reutilise sa compilation.
-    private static readonly ConditionalWeakTable<LinqModelAssembly, ConcurrentDictionary<string, Lazy<CSharpLanguageService>>> ByModel = new();
+    private static readonly ConditionalWeakTable<LinqGeneratedModelAssembly, ConcurrentDictionary<string, Lazy<CSharpLanguageService>>> ByModel = new();
     private static readonly ConcurrentDictionary<string, Lazy<CSharpLanguageService>> WithoutModel = new();
 
     private const int MaxServicesPerModel = 16;
@@ -33,7 +32,7 @@ public static class LinqCompiler
     /// <summary>Service C# (Quill) partage par l'editeur et l'execution : la requete est du C# natif.</summary>
     /// <param name="model">DbContext compile de la connexion, ou null : C# seul (fautes de syntaxe uniquement).</param>
     /// <param name="parameters">Parametres du dashboard : exposes au script (QueryGlobals), avec leurs valeurs ; l'editeur les donne sans valeur.</param>
-    public static CSharpLanguageService GetLanguageService(LinqModelAssembly? model, IReadOnlyList<LinqParameter>? parameters = null)
+    public static CSharpLanguageService GetLanguageService(LinqGeneratedModelAssembly? model, IReadOnlyList<LinqParameter>? parameters = null)
     {
         // Le source genere sert de cle : memes noms, types et valeurs, meme service. L'editeur donne des parametres sans
         // valeur (son service ne bouge pas) ; une execution a ses valeurs, d'ou la borne : trop de jeux, on repart de zero.
@@ -46,13 +45,14 @@ public static class LinqCompiler
     }
 
     /// <summary>Compile et charge le modele genere ; leve <see cref="LinqCompilationException"/> en cas d'echec.</summary>
-    public static async Task<LinqModelAssembly> CompileModelAsync(EfGeneratedModel model, CancellationToken cancellationToken = default)
+    public static async Task<LinqGeneratedModelAssembly> CompileModelAsync(EfGeneratedModel model, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(model);
 
         // Projet a part, sans editeur : le modele est compile seul, une fois par schema.
-        using var service = new CSharpLanguageService($"EfModel_{model.ContextClassName}", () => new CSharpProjectOptions
+        var service = new CSharpLanguageService(() => new CSharpLanguageOptions
         {
+            Name = $"EfModel_{model.ContextClassName}",
             References = LinqQuerySource.PlatformReferences,
             CompilationOptions = LinqQuerySource.ModelCompilationOptions,
             ParseOptions = LinqQuerySource.ParseOptions,
@@ -71,11 +71,12 @@ public static class LinqCompiler
         var contextType = assembly.GetType($"{model.Namespace}.{model.ContextClassName}", throwOnError: true)!;
         var extensionsType = assembly.GetType($"{model.Namespace}.{EfModelGenerator.ExtensionsClassName}", throwOnError: true)!;
 
-        return new LinqModelAssembly
+        return new LinqGeneratedModelAssembly
         {
             Model = model,
             Assembly = assembly,
             ContextType = contextType,
+            //DbContextProperty = extensionsType.GetProperty(EfModelGenerator.DbContextPropertyName, BindingFlags.NonPublic | BindingFlags.Static)!,
             DumpSinkProperty = extensionsType.GetProperty(EfModelGenerator.DumpSinkPropertyName, BindingFlags.NonPublic | BindingFlags.Static)!,
             Reference = compiled.Reference!
         };
@@ -86,7 +87,7 @@ public static class LinqCompiler
     /// sont dans le resultat, pas levees. Les <paramref name="parameters"/> sont exposes au script par leur nom (QueryGlobals).
     /// </summary>
     /// <param name="log">Recoit les Log.* de la requete (runtime de script de Quill).</param>
-    public static async Task<CSharpCompilationResult> CompileQueryAsync(LinqModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null, Action<LogLevel, string>? log = null, CancellationToken cancellationToken = default)
+    public static async Task<CSharpCompilationResult> CompileQueryAsync(LinqGeneratedModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null, Action<LogLevel, string>? log = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(model);
         ArgumentNullException.ThrowIfNull(query);
@@ -119,7 +120,7 @@ public static class LinqCompiler
     /// relevee telle quelle ; l'annulation rend la main tout de suite (<see cref="CSharpRunAbandonedException"/>), le script
     /// se terminant en arriere-plan.
     /// </summary>
-    public static async Task RunAsync(LinqModelAssembly model, CSharpCompilationResult query, DbContext context, Action<object?, string?>? dump, CancellationToken cancellationToken = default)
+    public static async Task RunAsync(LinqGeneratedModelAssembly model, CSharpCompilationResult query, DbContext context, Action<object?, string?>? dump, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(model);
         ArgumentNullException.ThrowIfNull(query);
@@ -127,15 +128,16 @@ public static class LinqCompiler
 
         // Dump (AsyncLocal, propre a ce flux) puis Db (propre a l'assembly de la requete) : poses avant le depart du script.
         model.DumpSinkProperty.SetValue(null, dump);
-        query.Assembly!.GetType(LinqQuerySource.GlobalsClass)!
-            .GetProperty(LinqQuerySource.ContextGlobal, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly)!
-            .SetValue(null, context);
+
+        var dbProperty = query.Assembly!.GetType(LinqQuerySource.GlobalsClass)!
+            .GetProperty(LinqQuerySource.ContextGlobal, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly)!;
+        dbProperty.SetValue(null, context);
 
         await query.RunEntryPointAsync(cancellationToken: cancellationToken);
     }
 
     /// <summary>Contexte EF du modele sur une chaine de connexion SQL Server.</summary>
-    public static DbContext CreateContext(LinqModelAssembly model, string connectionString)
+    public static DbContext CreateContext(LinqGeneratedModelAssembly model, string connectionString)
     {
         ArgumentNullException.ThrowIfNull(model);
 
@@ -148,9 +150,10 @@ public static class LinqCompiler
     }
 
     /// <summary>Projet cree par Quill a sa premiere utilisation : le declarer ne coute rien.</summary>
-    private static CSharpLanguageService CreateLanguageService(LinqModelAssembly? model, string globals)
-        => new($"Linq_{model?.Model.ContextClassName ?? "SansConnexion"}", () => new CSharpProjectOptions
+    private static CSharpLanguageService CreateLanguageService(LinqGeneratedModelAssembly? model, string globals)
+        => new(() => new CSharpLanguageOptions
         {
+            Name = $"Linq_{model?.Model.ContextClassName ?? "SansConnexion"}",
             References = model is null ? LinqQuerySource.PlatformReferences : [.. LinqQuerySource.PlatformReferences, model.Reference],
             CompilationOptions = LinqQuerySource.CompilationOptions,
             ParseOptions = LinqQuerySource.ParseOptions,

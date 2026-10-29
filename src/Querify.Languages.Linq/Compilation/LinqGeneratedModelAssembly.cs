@@ -5,7 +5,7 @@ using System.Reflection;
 namespace Querify.Languages.Linq.Compilation;
 
 /// <summary>Modele compile et charge, reutilisable par toutes les requetes sur ce schema.</summary>
-public sealed class LinqModelAssembly
+public sealed class LinqGeneratedModelAssembly
 {
     public required EfGeneratedModel Model { get; init; }
 

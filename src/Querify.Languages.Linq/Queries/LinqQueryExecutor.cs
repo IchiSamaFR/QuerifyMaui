@@ -166,7 +166,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
     /// interrompu dans le processus (boucle infinie...) ; il se termine en arriere-plan
     /// (<see cref="CSharpRunAbandonedException"/>) et son assembly n'est dechargee qu'a sa fin reelle.
     /// </summary>
-    private static async Task<List<Output>> RunAsync(LinqModelAssembly model, CSharpCompilationResult compiled, string connectionString, int maxRows, CancellationToken cancellationToken)
+    private static async Task<List<Output>> RunAsync(LinqGeneratedModelAssembly model, CSharpCompilationResult compiled, string connectionString, int maxRows, CancellationToken cancellationToken)
     {
         var context = LinqCompiler.CreateContext(model, connectionString);
         List<Output> outputs = [];

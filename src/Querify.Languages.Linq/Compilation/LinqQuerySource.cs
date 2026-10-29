@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
-using Quill.Code.CSharp.Workspaces;
+using Quill.Code.CSharp;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
