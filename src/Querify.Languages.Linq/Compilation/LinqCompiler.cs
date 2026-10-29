@@ -25,15 +25,15 @@ public static class LinqCompiler
 {
     // Un service par modele (libere avec lui) et par jeu de parametres (noms et types, pas les valeurs) : references,
     // contexte genere et parametres ne changent pas d'une frappe a l'autre, Roslyn reutilise sa compilation.
-    private static readonly ConditionalWeakTable<LinqModelAssembly, ConcurrentDictionary<string, Lazy<ICSharpLanguageService>>> ByModel = new();
-    private static readonly ConcurrentDictionary<string, Lazy<ICSharpLanguageService>> WithoutModel = new();
+    private static readonly ConditionalWeakTable<LinqModelAssembly, ConcurrentDictionary<string, Lazy<CSharpLanguageService>>> ByModel = new();
+    private static readonly ConcurrentDictionary<string, Lazy<CSharpLanguageService>> WithoutModel = new();
 
     private const int MaxServicesPerModel = 16;
 
     /// <summary>Service C# (Quill) partage par l'editeur et l'execution : la requete est du C# natif.</summary>
     /// <param name="model">DbContext compile de la connexion, ou null : C# seul (fautes de syntaxe uniquement).</param>
     /// <param name="parameters">Parametres du dashboard : exposes au script (QueryGlobals), avec leurs valeurs ; l'editeur les donne sans valeur.</param>
-    public static ICSharpLanguageService GetLanguageService(LinqModelAssembly? model, IReadOnlyList<LinqParameter>? parameters = null)
+    public static CSharpLanguageService GetLanguageService(LinqModelAssembly? model, IReadOnlyList<LinqParameter>? parameters = null)
     {
         // Le source genere sert de cle : memes noms, types et valeurs, meme service. L'editeur donne des parametres sans
         // valeur (son service ne bouge pas) ; une execution a ses valeurs, d'ou la borne : trop de jeux, on repart de zero.
@@ -42,7 +42,7 @@ public static class LinqCompiler
         if (services.Count >= MaxServicesPerModel && !services.ContainsKey(globals))
             services.Clear();
 
-        return services.GetOrAdd(globals, static (source, state) => new Lazy<ICSharpLanguageService>(() => CreateLanguageService(state, source)), model).Value;
+        return services.GetOrAdd(globals, static (source, state) => new Lazy<CSharpLanguageService>(() => CreateLanguageService(state, source)), model).Value;
     }
 
     /// <summary>Compile et charge le modele genere ; leve <see cref="LinqCompilationException"/> en cas d'echec.</summary>
@@ -92,7 +92,7 @@ public static class LinqCompiler
         ArgumentNullException.ThrowIfNull(query);
 
         // Projet meme de l'editeur (references, contexte genere) : ce qui est souligne est ce qui echoue.
-        ICSharpLanguageService service;
+        CSharpLanguageService service;
         try
         {
             service = GetLanguageService(model, parameters);

@@ -44,7 +44,7 @@ public sealed class LinqContexts : ILinqContexts
         return await task.WaitAsync(cancellationToken);
     }
 
-    public async Task<ICSharpLanguageService> GetLanguageServiceAsync(DatabaseConnectionInfo? connection, string? database, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default)
+    public async Task<CSharpLanguageService> GetLanguageServiceAsync(DatabaseConnectionInfo? connection, string? database, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default)
         => LinqCompiler.GetLanguageService(await TryGetModelAsync(connection, database, cancellationToken), parameters);
 
     /// <summary>DbContext de la base, ou null : l'analyse se rabat sur le C# seul.</summary>
