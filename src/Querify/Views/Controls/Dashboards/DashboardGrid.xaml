@@ -11,12 +11,13 @@
               x:DataType="c:DashboardGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <VerticalStackLayout>
                 <!-- ============ Fichier illisible / saisie invalide ============ -->
-                <Border Grid.Row="0"
+                <Border
                         BackgroundColor="{StaticResource WarningBackground}"
                         StrokeThickness="0"
                         StrokeShape="RoundRectangle 4"
@@ -28,7 +29,7 @@
                 </Border>
 
                 <!-- ============ Parametres d'entree ============ -->
-                <Border Grid.Row="1"
+                <Border
                         IsVisible="False"
                         Style="{StaticResource CardStyle}">
                     <Border.Triggers>
@@ -109,7 +110,7 @@
                 </Border>
 
                 <!-- ============ Fil d'Ariane ============ -->
-                <Grid Grid.Row="2"
+                <Grid
                       ColumnDefinitions="Auto,*"
                       Style="{StaticResource GridSpacingStyle}"
                       IsVisible="{Binding Session.HasCurrent, FallbackValue=False}">
@@ -187,7 +188,7 @@
             <!-- ============ Grille ============ -->
             <Grid RowDefinitions="*,2,260"
                   Style="{StaticResource GridSpacingStyle}"
-                  Grid.Row="3">
+                  Grid.Row="2">
                 <ScrollView x:Name="GridScroll"
                             Grid.Row="0"
                             Orientation="Vertical"
