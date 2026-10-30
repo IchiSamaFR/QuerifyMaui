@@ -77,6 +77,8 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Querify.Core\Querify.Core.csproj" />
 		<ProjectReference Include="..\Querify.Databases\Querify.Databases.csproj" />
+		<ProjectReference Include="..\Querify.Languages.Linq\Querify.Languages.Linq.csproj" />
+		<ProjectReference Include="..\Querify.Languages.Sql\Querify.Languages.Sql.csproj" />
 		<ProjectReference Include="..\Querify.Languages\Querify.Languages.csproj" />
 		<ProjectReference Include="..\Querify.UI\Querify.UI.csproj" />
 	</ItemGroup>

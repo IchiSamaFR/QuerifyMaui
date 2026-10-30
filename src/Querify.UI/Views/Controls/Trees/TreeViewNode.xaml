@@ -11,7 +11,7 @@
     </ContentView.Resources>
 
     <!-- Apparence lue sur le TreeView proprietaire (Owner) : elle est declaree une fois pour tout l'arbre -->
-    <VerticalStackLayout>
+    <VerticalStackLayout Spacing="0">
         <Border StrokeThickness="0"
                 BackgroundColor="Transparent"
                 HeightRequest="{Binding Owner.ItemHeight, Source={x:Reference Root}, x:DataType=v:TreeViewNode}"
@@ -89,6 +89,7 @@
         <!-- Enfants : meme gabarit, un niveau plus loin -->
         <VerticalStackLayout x:Name="ChildrenHost"
                              x:FieldModifier="internal"
-                             IsVisible="{Binding IsExpanded, Source={x:Reference Root}, x:DataType=v:TreeViewNode}" />
+                             IsVisible="{Binding IsExpanded, Source={x:Reference Root}, x:DataType=v:TreeViewNode}" 
+                             Spacing="0"/>
     </VerticalStackLayout>
 </ContentView>

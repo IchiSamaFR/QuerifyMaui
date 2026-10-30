@@ -1,5 +1,4 @@
 ﻿using Querify.Core.Enums.Editors.Highlighting;
-using Querify.Languages.Commons.Queries;
 
 namespace Querify.Languages.Queries;
 

@@ -1,6 +1,4 @@
-﻿using Querify.Languages.Linq.Queries;
-using Querify.Languages.Sql.Queries;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Querify.Languages;
 
@@ -9,8 +7,6 @@ public static class LanguageAssemblies
 {
     public static IReadOnlyList<Assembly> All { get; } =
     [
-        typeof(LanguageAssemblies).Assembly,
-        typeof(SqlQueryExecutor).Assembly,
-        typeof(LinqQueryExecutor).Assembly,
+        typeof(LanguageAssemblies).Assembly
     ];
 }

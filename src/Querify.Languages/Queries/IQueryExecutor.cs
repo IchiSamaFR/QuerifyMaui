@@ -5,7 +5,7 @@ using Quill.Code.SqlServer.Execution;
 using Querify.Core.Models.Queries;
 using Quill.Code.Scripting;
 
-namespace Querify.Languages.Commons.Queries;
+namespace Querify.Languages.Queries;
 
 /// <summary>
 /// Execution d'un script sur une connexion. Une implementation par langage, resolue par <see cref="Language"/>.

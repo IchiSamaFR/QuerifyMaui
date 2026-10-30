@@ -1,7 +1,6 @@
 ﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Databases.Common;
-using Querify.Languages.Commons.Editors;
 
 namespace Querify.Languages.Editors;
 

@@ -6,9 +6,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Querify.Languages.Commons\Querify.Languages.Commons.csproj" />
-		<ProjectReference Include="..\Querify.Languages.Linq\Querify.Languages.Linq.csproj" />
-		<ProjectReference Include="..\Querify.Languages.Sql\Querify.Languages.Sql.csproj" />
+	  <ProjectReference Include="..\Querify.Core\Querify.Core.csproj" />
 	</ItemGroup>
 
 </Project>
