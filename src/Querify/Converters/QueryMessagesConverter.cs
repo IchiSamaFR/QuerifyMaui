@@ -5,7 +5,7 @@ namespace Querify.Converters;
 
 /// <summary>
 /// Messages d'execution en un seul texte formate : un seul Label permet de selectionner plusieurs lignes d'un coup.
-/// Chaque niveau a son style : sortie du code (Output : PRINT, Log.Output), avertissement, erreur ; le reste en retrait.
+/// Chaque message a son style : erreur, avertissement, sortie du code (PRINT, Log.*) ; les messages de l'hote en retrait.
 /// </summary>
 public sealed class QueryMessagesConverter : IValueConverter
 {
@@ -28,7 +28,7 @@ public sealed class QueryMessagesConverter : IValueConverter
         {
             // Les sorties du code se suivent comme dans un terminal ; le reste est aere.
             var separator = previous is null ? string.Empty
-                : previous.Level == LogLevel.Information && message.Level == LogLevel.Information ? Environment.NewLine
+                : IsOutput(previous) && IsOutput(message) ? Environment.NewLine
                 : Environment.NewLine + Environment.NewLine;
 
             text.Spans.Add(new Span { Text = separator + message.Text, Style = StyleOf(message) });
@@ -41,12 +41,13 @@ public sealed class QueryMessagesConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 
-    private Style? StyleOf(LogEntry message) => message.Level switch
+    private Style? StyleOf(LogEntry message) => message switch
     {
-        LogLevel.Error or LogLevel.Critical => ErrorStyle,
-        LogLevel.Warning => WarningStyle,
-        LogLevel.Information => OutputStyle,
-        // Information, Trace et Debug en retrait : messages de l'application et du moteur.
+        { IsError: true } => ErrorStyle,
+        { Level: LogLevel.Warning } => WarningStyle,
+        _ when IsOutput(message) => OutputStyle,
         _ => InfoStyle,
     };
+
+    private static bool IsOutput(LogEntry message) => message.Source == LogSource.Code && message.Level < LogLevel.Warning;
 }

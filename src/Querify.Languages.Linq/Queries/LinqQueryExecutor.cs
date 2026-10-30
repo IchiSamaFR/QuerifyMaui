@@ -189,8 +189,9 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             _live = live;
         }
 
-        public void Write(LogLevel level, string text)
+        public void Write(LogEntry entry)
         {
+            var text = entry.Text;
             LogEntry message;
             lock (_lock)
             {
@@ -206,7 +207,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
                 }
 
                 _length += text.Length + 1;
-                message = new LogEntry(level, text.ReplaceLineEndings());
+                message = entry with { Text = text.ReplaceLineEndings() };
                 _messages.Add(message);
             }
 

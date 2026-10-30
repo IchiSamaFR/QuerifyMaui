@@ -134,7 +134,7 @@ Toutes les versions sont dans `src/Directory.Packages.props` : un `PackageRefere
 * **Lisibilité** : code clair et auto-explicatif, préférer le simple au sophistiqué. **SOLID**, injection par constructeur.
 * **Async/Await** obligatoire pour tout I/O (disque, SecureStorage, base).
 * **Magic numbers** : constantes ou tokens XAML.
-* **Réutiliser avant de créer** : avant d'ajouter une classe, un enum ou un modèle, chercher un type existant qui couvre le besoin, de Quill en priorité puis du projet, quitte à l'étendre (une valeur d'enum, une propriété) ; ne créer un type que si aucun ne convient, et jamais un doublon d'un type de Quill dans une application (ex. les messages d'exécution sont des `LogEntry` de niveau `LogLevel`, `Output` compris, pas un modèle propre).
+* **Réutiliser avant de créer** : avant d'ajouter une classe, un enum ou un modèle, chercher un type existant qui couvre le besoin, de Quill en priorité puis du projet, quitte à l'étendre (une valeur d'enum, une propriété) ; ne créer un type que si aucun ne convient, et jamais un doublon d'un type de Quill dans une application (ex. les messages d'exécution sont des `LogEntry` de Quill — gravité `LogLevel`, provenance `LogSource`, `Timestamp` — pas un modèle propre).
 * **Un type par fichier**, nommé comme lui, namespaces **file-scoped**. Seule exception : une classe **privée imbriquée**.
 * Fichiers de l'application : `JsonFile` (écriture atomique, fichier corrompu mis de côté). Fichiers de l'utilisateur : `IEditorFileService` (encodage d'origine conservé, écriture atomique).
 
