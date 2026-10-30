@@ -44,9 +44,8 @@ public sealed class SqlQueryExecutor : IQueryExecutor
 
         var options = new DataRunOptions
         {
-            Log = (level, text) =>
+            Log = message =>
             {
-                var message = new LogEntry(level, text);
                 lock (gate)
                 {
                     hasErrors |= message.IsError;

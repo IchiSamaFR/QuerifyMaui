@@ -232,15 +232,16 @@ public class LinqCompilerTests
     [Fact]
     public async Task Log_IsRedirectedWithItsLevel()
     {
-        List<(LogLevel Level, string Text)> output = [];
+        List<LogEntry> output = [];
         await DumpsAsync("""
             Log.Information("a");
             Log.Warning($"{1}+{2}");
             Log.Write(LogLevel.Error, "{b}");
             Log.Write(LogLevel.None, "ignore");
-            """, log: (level, text) => output.Add((level, text)));
+            """, log: output.Add);
 
-        Assert.Equal(new[] { (LogLevel.Information, "a"), (LogLevel.Warning, "1+2"), (LogLevel.Error, "{b}") }, output);
+        Assert.Equal(new[] { (LogLevel.Information, "a"), (LogLevel.Warning, "1+2"), (LogLevel.Error, "{b}") }, output.Select(e => (e.Level, e.Text)));
+        Assert.All(output, e => Assert.Equal(LogSource.Code, e.Source));
     }
 
     private static async Task<string> TranslateAsync(string query)
@@ -252,7 +253,7 @@ public class LinqCompilerTests
     /// Execute sans ouvrir de connexion et rend les valeurs affichees : une requete IQueryable n'est que traduite
     /// (ToQueryString), apres coup, d'ou un contexte non libere ici.
     /// </summary>
-    private static async Task<List<object?>> DumpsAsync(string query, LinqParametersAssembly? globals = null, IReadOnlyList<LinqParameter>? parameters = null, Action<LogLevel, string>? log = null)
+    private static async Task<List<object?>> DumpsAsync(string query, LinqParametersAssembly? globals = null, IReadOnlyList<LinqParameter>? parameters = null, Action<LogEntry>? log = null)
     {
         List<object?> values = [];
         await LinqCompiler.RunAsync(globals ?? TestLinq.Globals(Model.Value), query, LinqCompiler.CreateContext(Model.Value, ConnectionString), (value, _) => values.Add(value), parameters, log is null ? null : new RunOptions { Log = log });

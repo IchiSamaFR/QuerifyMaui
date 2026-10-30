@@ -121,7 +121,7 @@ public static class LinqCompiler
     /// l'executer ; les erreurs sont dans le resultat, pas levees.
     /// </summary>
     /// <param name="log">Recoit les Log.* de la requete (runtime de script de Quill).</param>
-    public static Task<CSharpCompilationResult> CompileQueryAsync(LinqParametersAssembly parameters, string query, Action<LogLevel, string>? log = null, CancellationToken cancellationToken = default)
+    public static Task<CSharpCompilationResult> CompileQueryAsync(LinqParametersAssembly parameters, string query, Action<LogEntry>? log = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(query);
@@ -148,7 +148,7 @@ public static class LinqCompiler
         {
             var (resultSet, sql) = LinqResultConverter.Capture(value, ++index, title, maxRows, cancellationToken);
             if (sql is not null)
-                options.Log?.Invoke((LogLevel)LogLevel.Information, $"{resultSet.Title} : SQL généré :{Environment.NewLine}{sql}");
+                options.Log?.Invoke(new LogEntry(LogLevel.Information, $"{resultSet.Title} : SQL généré :{Environment.NewLine}{sql}"));
 
             options.Data?.Invoke(resultSet);
         }), values, options, cancellationToken);
@@ -213,7 +213,7 @@ public static class LinqCompiler
     }
 
     /// <summary>Options d'une requete : modele et parametres servis tels quels (EF garde ses types en cache), le reste vient du runtime.</summary>
-    private static CSharpCompileOptions QueryOptions(LinqParametersAssembly parameters, Action<LogLevel, string>? log) => new()
+    private static CSharpCompileOptions QueryOptions(LinqParametersAssembly parameters, Action<LogEntry>? log) => new()
     {
         AssemblyName = $"LinqQuery_{Guid.NewGuid():N}",
         ResolveAssembly = name => AssemblyName.ReferenceMatchesDefinition(name, parameters.Assembly.GetName())
