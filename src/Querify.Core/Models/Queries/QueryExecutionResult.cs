@@ -1,5 +1,6 @@
 ﻿using Quill.Code.Execution;
 using System.Globalization;
+using Quill.Code.Scripting;
 
 namespace Querify.Core.Models.Queries;
 
@@ -8,7 +9,7 @@ public sealed class QueryExecutionResult
 {
     public IReadOnlyList<QueryResultSet> ResultSets { get; }
 
-    public IReadOnlyList<QueryMessage> Messages { get; }
+    public IReadOnlyList<LogEntry> Messages { get; }
 
     public TimeSpan Elapsed { get; }
 
@@ -28,7 +29,7 @@ public sealed class QueryExecutionResult
         _ => $"Requête exécutée avec succès ({ElapsedLabel}).",
     };
 
-    public QueryExecutionResult(IReadOnlyList<QueryResultSet> resultSets, IReadOnlyList<QueryMessage> messages, TimeSpan elapsed, bool hasErrors, bool wasCancelled)
+    public QueryExecutionResult(IReadOnlyList<QueryResultSet> resultSets, IReadOnlyList<LogEntry> messages, TimeSpan elapsed, bool hasErrors, bool wasCancelled)
     {
         ResultSets = resultSets;
         Messages = messages;

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Querify.Core.Models.Queries;
+using Quill.Code.Scripting;
 
 namespace Querify.Core.Models.Editors;
 
@@ -23,7 +24,7 @@ public sealed partial class CodeEditorSession : AbstractSession
 
     /// <summary>Messages recus pendant l'execution en cours (Log du script) ; vides une fois le resultat disponible.</summary>
     [ObservableProperty]
-    public partial IReadOnlyList<QueryMessage> LiveMessages { get; set; } = [];
+    public partial IReadOnlyList<LogEntry> LiveMessages { get; set; } = [];
 
     /// <summary>Le panneau de resultats n'apparait qu'apres une premiere execution.</summary>
     public bool HasResultsPanel => IsExecuting || LastResult is not null;

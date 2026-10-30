@@ -14,7 +14,6 @@ using Quill.Code.Execution;
 using Quill.Code.SqlServer.Execution;
 using Quill.Code.SqlServer.Constants;
 using Querify.Core.Models.Queries;
-using Querify.Core.Enums.Queries;
 
 namespace Querify.Languages.Linq.Queries;
 
@@ -33,13 +32,13 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
     public SyntaxLanguage Language => SyntaxLanguage.Linq;
 
-    public async Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string query, IProgress<QueryMessage>? liveMessages = null, CancellationToken cancellationToken = default)
+    public async Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string query, IProgress<LogEntry>? liveMessages = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);
         ArgumentNullException.ThrowIfNull(query);
 
         List<QueryResultSet> resultSets = [];
-        List<QueryMessage> messages = [];
+        List<LogEntry> messages = [];
         var hasErrors = false;
         var wasCancelled = false;
         var log = new LogOutput(liveMessages);
@@ -49,7 +48,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         try
         {
             var model = await _contexts.GetModelAsync(connection, database: null, cancellationToken);
-            messages.Add(new QueryMessage($"Contexte {model.Model.ContextClassName} (QueryDbContext) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
+            messages.Add(new LogEntry(LogLevel.Information, $"Contexte {model.Model.ContextClassName} (QueryDbContext) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
             logIndex = messages.Count;
 
             var globals = await _contexts.GetParametersAsync(model, cancellationToken: cancellationToken);
@@ -61,21 +60,21 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             {
                 // Plusieurs jeux : chaque message dit a quel onglet il se rapporte.
                 var prefix = resultSets.Count > 1 ? $"{resultSet.Title} : " : string.Empty;
-                messages.Add(new QueryMessage($"{prefix}({resultSet.Rows.Count} ligne(s))"));
+                messages.Add(new LogEntry(LogLevel.Information, $"{prefix}({resultSet.Rows.Count} ligne(s))"));
             }
 
             if (resultSets.Count == 0)
-                messages.Add(new QueryMessage("Aucun résultat : affichez les données avec .Dump()."));
+                messages.Add(new LogEntry(LogLevel.Information, "Aucun résultat : affichez les données avec .Dump()."));
         }
         catch (CSharpCompilationException ex)
         {
             hasErrors = true;
-            messages.AddRange(ex.Errors.Select(e => new QueryMessage(e.Describe(query), QueryMessageKind.Error)));
+            messages.AddRange(ex.Errors.Select(e => new LogEntry(LogLevel.Error, e.Describe(query))));
         }
         catch (CSharpRunAbandonedException)
         {
             wasCancelled = true;
-            messages.Add(new QueryMessage("Le code LINQ ne peut pas être interrompu : il se termine en arrière-plan et garde sa connexion ouverte jusque-là.", QueryMessageKind.Error));
+            messages.Add(new LogEntry(LogLevel.Error, "Le code LINQ ne peut pas être interrompu : il se termine en arrière-plan et garde sa connexion ouverte jusque-là."));
         }
         catch (OperationCanceledException)
         {
@@ -84,19 +83,19 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         catch (LinqCompilationException ex)
         {
             hasErrors = true;
-            messages.Add(new QueryMessage(ex.Message, QueryMessageKind.Error));
-            messages.AddRange(ex.Errors.Take(20).Select(e => new QueryMessage(e, QueryMessageKind.Error)));
+            messages.Add(new LogEntry(LogLevel.Error, ex.Message));
+            messages.AddRange(ex.Errors.Take(20).Select(e => new LogEntry(LogLevel.Error, e)));
         }
         catch (DbException ex)
         {
             hasErrors = true;
-            messages.Add(new QueryMessage(ex.Message, QueryMessageKind.Error));
+            messages.Add(new LogEntry(LogLevel.Error, ex.Message));
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             // Le script est du code de l'utilisateur : toute exception (traduction EF, null, division...) est un resultat.
             hasErrors = true;
-            messages.Add(new QueryMessage($"{ex.GetType().Name} : {ex.Message}", QueryMessageKind.Error));
+            messages.Add(new LogEntry(LogLevel.Error, $"{ex.GetType().Name} : {ex.Message}"));
         }
 
         stopwatch.Stop();
@@ -105,9 +104,9 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         messages.InsertRange(logIndex, log.ToMessages());
 
         if (wasCancelled)
-            messages.Add(new QueryMessage("Requête annulée par l'utilisateur.", QueryMessageKind.Error));
+            messages.Add(new LogEntry(LogLevel.Error, "Requête annulée par l'utilisateur."));
 
-        messages.Add(new QueryMessage($"Heure de fin : {DateTime.Now:yyyy-MM-dd HH:mm:ss} (durée {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff})"));
+        messages.Add(new LogEntry(LogLevel.Information, $"Heure de fin : {DateTime.Now:yyyy-MM-dd HH:mm:ss} (durée {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff})"));
 
         return new QueryExecutionResult(resultSets, messages, stopwatch.Elapsed, hasErrors, wasCancelled);
     }
@@ -180,19 +179,19 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         private const int MaxLength = 200_000;
 
         private readonly Lock _lock = new();
-        private readonly List<QueryMessage> _messages = [];
-        private readonly IProgress<QueryMessage>? _live;
+        private readonly List<LogEntry> _messages = [];
+        private readonly IProgress<LogEntry>? _live;
         private int _length;
         private bool _isTruncated;
 
-        public LogOutput(IProgress<QueryMessage>? live)
+        public LogOutput(IProgress<LogEntry>? live)
         {
             _live = live;
         }
 
         public void Write(LogLevel level, string text)
         {
-            QueryMessage message;
+            LogEntry message;
             lock (_lock)
             {
                 if (_isTruncated)
@@ -207,7 +206,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
                 }
 
                 _length += text.Length + 1;
-                message = new QueryMessage(text.ReplaceLineEndings(), QueryMessageKind.Output, level);
+                message = new LogEntry(level, text.ReplaceLineEndings());
                 _messages.Add(message);
             }
 
@@ -215,12 +214,12 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             _live?.Report(message);
         }
 
-        public IReadOnlyList<QueryMessage> ToMessages()
+        public IReadOnlyList<LogEntry> ToMessages()
         {
             lock (_lock)
             {
                 return _isTruncated
-                    ? [.. _messages, new QueryMessage($"Sortie Log tronquée à {MaxLength:N0} caractères.", QueryMessageKind.Error)]
+                    ? [.. _messages, new LogEntry(LogLevel.Error, $"Sortie Log tronquée à {MaxLength:N0} caractères.")]
                     : [.. _messages];
             }
         }

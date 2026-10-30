@@ -3,6 +3,7 @@ using Querify.Databases.Models.Connections;
 using Quill.Code.Execution;
 using Quill.Code.SqlServer.Execution;
 using Querify.Core.Models.Queries;
+using Quill.Code.Scripting;
 
 namespace Querify.Languages.Commons.Queries;
 
@@ -19,7 +20,7 @@ public interface IQueryExecutor
     /// <paramref name="liveMessages"/> recoit en plus certains messages (ex. Log du script) des leur emission, depuis
     /// n'importe quel thread ; ils figurent aussi dans le resultat final.
     /// </summary>
-    Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, IProgress<QueryMessage>? liveMessages = null, CancellationToken cancellationToken = default);
+    Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, IProgress<LogEntry>? liveMessages = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lit un seul jeu de resultats avec des parametres types (cartes du dashboard) ; <paramref name="database"/>

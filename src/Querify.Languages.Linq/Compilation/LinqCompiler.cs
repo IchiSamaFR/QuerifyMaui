@@ -144,14 +144,14 @@ public static class LinqCompiler
         ArgumentNullException.ThrowIfNull(options);
 
         var index = 0;
-        return RunAsync(parameters, query, context, (value, title) =>
+        return RunAsync(parameters, query, context, (Action<object?, string?>?)((value, title) =>
         {
             var (resultSet, sql) = LinqResultConverter.Capture(value, ++index, title, maxRows, cancellationToken);
             if (sql is not null)
-                options.Log?.Invoke(LogLevel.Information, $"{resultSet.Title} : SQL généré :{Environment.NewLine}{sql}");
+                options.Log?.Invoke((LogLevel)LogLevel.Information, $"{resultSet.Title} : SQL généré :{Environment.NewLine}{sql}");
 
             options.Data?.Invoke(resultSet);
-        }, values, options, cancellationToken);
+        }), values, options, cancellationToken);
     }
 
     /// <summary>
