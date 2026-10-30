@@ -5,7 +5,6 @@ using Querify.Core.Models.Editors;
 using Querify.Core.Models.Editors.Highlighting;
 using Querify.Core.Models.Settings;
 using Querify.Databases.Models.Connections;
-using Querify.Languages.Commons.Editors;
 using Querify.Languages.Editors;
 using Querify.Services.Editors.Highlighting;
 using Querify.UI.Extensions;

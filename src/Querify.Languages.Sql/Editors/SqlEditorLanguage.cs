@@ -2,7 +2,7 @@
 using Querify.Core.Ioc;
 using Querify.Databases.Models.Connections;
 using Querify.Databases.Schemas;
-using Querify.Languages.Commons.Editors;
+using Querify.Languages.Editors;
 using Quill.Code;
 using Quill.Code.SqlServer;
 using Quill.Code.SqlServer.Execution;

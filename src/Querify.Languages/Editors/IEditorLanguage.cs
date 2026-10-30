@@ -3,7 +3,7 @@ using Querify.Databases.Models.Connections;
 using Quill.Code;
 using Quill.Code.SqlServer.Execution;
 
-namespace Querify.Languages.Commons.Editors;
+namespace Querify.Languages.Editors;
 
 /// <summary>Services d'editeur (Quill) d'un langage ; une implementation par langage.</summary>
 public interface IEditorLanguage

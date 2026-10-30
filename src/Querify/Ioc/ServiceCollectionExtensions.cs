@@ -1,6 +1,9 @@
 ﻿using Querify.Core.Ioc;
 using Querify.Databases;
 using Querify.Languages;
+using Querify.Languages.Linq.Queries;
+using Querify.Languages.Sql.Queries;
+using Quill.Code.SqlServer;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -15,7 +18,13 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddDatabases()
-            .AddAutoRegisteredServices([typeof(ServiceCollectionExtensions).Assembly, .. LanguageAssemblies.All]);
+            .AddAutoRegisteredServices(
+            [
+                typeof(ServiceCollectionExtensions).Assembly,
+                typeof(LanguageAssemblies).Assembly,
+                typeof(SqlQueryExecutor).Assembly,
+                typeof(LinqQueryExecutor).Assembly
+            ]);
     }
 
     /// <summary>

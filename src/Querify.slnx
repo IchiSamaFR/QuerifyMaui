@@ -25,7 +25,6 @@
     <Project Path="Querify.Databases/Querify.Databases.csproj" />
   </Folder>
   <Folder Name="/Languages/">
-    <Project Path="Querify.Languages.Commons/Querify.Languages.Commons.csproj" />
     <Project Path="Querify.Languages.Linq/Querify.Languages.Linq.csproj" />
     <Project Path="Querify.Languages.Sql/Querify.Languages.Sql.csproj" />
     <Project Path="Querify.Languages/Querify.Languages.csproj" />

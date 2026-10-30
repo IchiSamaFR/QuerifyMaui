@@ -1,5 +1,4 @@
 ﻿using Querify.Databases.Models.Connections;
-using Querify.Languages.Linq.Modeling;
 
 namespace Querify.Languages.Queries;
 
@@ -17,7 +16,7 @@ public sealed record InsertQueryMessage(DatabaseConnectionInfo Connection, strin
     /// Une table homonyme dans un autre schema y est prefixee du schema : le nom est alors a ajuster.
     /// </summary>
     public string ToLinq()
-        => $"Db.{EfModelGenerator.ToIdentifier(Table)}.Take({RowCount}).Dump();";
+        => $"Db.{Table}.Take({RowCount}).Dump();";
 
     private static string Quote(string identifier) => $"[{identifier.Replace("]", "]]", StringComparison.Ordinal)}]";
 }

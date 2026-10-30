@@ -2,13 +2,13 @@
 using Querify.Core.Ioc;
 using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
-using Querify.Languages.Commons.Queries;
 using Quill.Code.SqlServer;
 using System.Diagnostics;
 using Quill.Code.Scripting;
 using Quill.Code.Execution;
 using Quill.Code.SqlServer.Execution;
 using Querify.Core.Models.Queries;
+using Querify.Languages.Queries;
 
 namespace Querify.Languages.Sql.Queries;
 

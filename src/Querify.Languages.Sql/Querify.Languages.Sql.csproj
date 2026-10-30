@@ -6,11 +6,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Querify.Languages.Commons\Querify.Languages.Commons.csproj" />
+		<InternalsVisibleTo Include="Querify.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="Querify.Tests" />
+	  <ProjectReference Include="..\Querify.Core\Querify.Core.csproj" />
+	  <ProjectReference Include="..\Querify.Languages\Querify.Languages.csproj" />
 	</ItemGroup>
 
 </Project>

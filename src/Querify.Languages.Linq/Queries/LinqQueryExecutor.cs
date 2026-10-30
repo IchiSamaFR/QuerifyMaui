@@ -2,7 +2,6 @@
 using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Databases.Models.Connections;
-using Querify.Languages.Commons.Queries;
 using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Analysis;
@@ -14,6 +13,7 @@ using Quill.Code.Execution;
 using Quill.Code.SqlServer.Execution;
 using Quill.Code.SqlServer.Constants;
 using Querify.Core.Models.Queries;
+using Querify.Languages.Queries;
 
 namespace Querify.Languages.Linq.Queries;
 
