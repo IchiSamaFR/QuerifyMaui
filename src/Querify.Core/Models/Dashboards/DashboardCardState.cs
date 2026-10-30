@@ -4,7 +4,7 @@ using Querify.Core.Enums.Dashboards;
 using Querify.Core.Enums.Editors.Highlighting;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
-using Quill.Code.Sql.Execution;
+using Quill.Code.SqlServer.Execution;
 
 namespace Querify.Core.Models.Dashboards;
 

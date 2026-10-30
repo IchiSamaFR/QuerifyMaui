@@ -4,8 +4,8 @@ using Querify.Databases.Models.Connections;
 using Querify.Databases.Schemas;
 using Querify.Languages.Commons.Editors;
 using Quill.Code;
-using Quill.Code.Sql;
-using Quill.Code.Sql.Execution;
+using Quill.Code.SqlServer;
+using Quill.Code.SqlServer.Execution;
 
 namespace Querify.Languages.Sql.Editors;
 
