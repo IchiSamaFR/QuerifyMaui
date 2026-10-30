@@ -63,31 +63,27 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             logIndex = messages.Count;
 
             var globals = await _contexts.GetParametersAsync(model, cancellationToken: cancellationToken);
-            using var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(globals, query, log.Write, cancellationToken), cancellationToken);
-            if (!compiled.Success)
+            var outputs = await RunAsync(globals, query, connection.ConnectionString!, MaxRows, values: null, log.Write, cancellationToken);
+
+            foreach (var output in outputs)
             {
-                hasErrors = true;
-                messages.AddRange(compiled.Errors.Select(e => new QueryMessage(e.Describe(query), QueryMessageKind.Error)));
+                // Plusieurs jeux : chaque message dit a quel onglet il se rapporte.
+                var prefix = outputs.Count > 1 ? $"{output.ResultSet.Title} : " : string.Empty;
+
+                if (output.Sql is not null)
+                    messages.Add(new QueryMessage($"{prefix}SQL généré :{Environment.NewLine}{output.Sql}"));
+
+                resultSets.Add(output.ResultSet);
+                messages.Add(new QueryMessage($"{prefix}({output.ResultSet.Rows.Count} ligne(s))"));
             }
-            else
-            {
-                var outputs = await RunAsync(globals, compiled, connection.ConnectionString!, MaxRows, values: null, cancellationToken);
 
-                foreach (var output in outputs)
-                {
-                    // Plusieurs jeux : chaque message dit a quel onglet il se rapporte.
-                    var prefix = outputs.Count > 1 ? $"{output.ResultSet.Title} : " : string.Empty;
-
-                    if (output.Sql is not null)
-                        messages.Add(new QueryMessage($"{prefix}SQL généré :{Environment.NewLine}{output.Sql}"));
-
-                    resultSets.Add(output.ResultSet);
-                    messages.Add(new QueryMessage($"{prefix}({output.ResultSet.Rows.Count} ligne(s))"));
-                }
-
-                if (outputs.Count == 0)
-                    messages.Add(new QueryMessage("Aucun résultat : affichez les données avec .Dump()."));
-            }
+            if (outputs.Count == 0)
+                messages.Add(new QueryMessage("Aucun résultat : affichez les données avec .Dump()."));
+        }
+        catch (CSharpCompilationException ex)
+        {
+            hasErrors = true;
+            messages.AddRange(ex.Errors.Select(e => new QueryMessage(e.Describe(query), QueryMessageKind.Error)));
         }
         catch (CSharpRunAbandonedException)
         {
@@ -144,13 +140,15 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         var variables = parameters.Select(LinqParameter.From).ToArray();
         var globals = await _contexts.GetParametersAsync(model, variables, cancellationToken);
 
-        using var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(globals, query, cancellationToken: cancellationToken), cancellationToken);
-        if (!compiled.Success)
+        List<Output> outputs;
+        try
         {
-            throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5).Select(e => e.Describe(query))));
+            outputs = await RunAsync(globals, query, connectionString, Math.Max(1, maxRows), variables, log: null, cancellationToken);
         }
-
-        var outputs = await RunAsync(globals, compiled, connectionString, Math.Max(1, maxRows), variables, cancellationToken);
+        catch (CSharpCompilationException ex)
+        {
+            throw new InvalidOperationException(string.Join(Environment.NewLine, ex.Errors.Take(5).Select(e => e.Describe(query))), ex);
+        }
 
         // Une carte n'affiche qu'un jeu : le dernier Dump().
         return outputs.Count > 0
@@ -168,7 +166,8 @@ public sealed class LinqQueryExecutor : IQueryExecutor
     /// (<see cref="CSharpRunAbandonedException"/>) et son assembly n'est dechargee qu'a sa fin reelle.
     /// </summary>
     /// <param name="values">Valeurs des parametres du dashboard, posees dans QueryGlobals ; null : aucun.</param>
-    private static async Task<List<Output>> RunAsync(LinqParametersAssembly globals, CSharpCompilationResult compiled, string connectionString, int maxRows, IReadOnlyList<LinqParameter>? values, CancellationToken cancellationToken)
+    /// <param name="log">Recoit les Log.* du script ; null : ignores.</param>
+    private static async Task<List<Output>> RunAsync(LinqParametersAssembly globals, string query, string connectionString, int maxRows, IReadOnlyList<LinqParameter>? values, Action<LogLevel, string>? log, CancellationToken cancellationToken)
     {
         var context = LinqCompiler.CreateContext(globals.Model!, connectionString);
         List<Output> outputs = [];
@@ -177,7 +176,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         try
         {
             // Capture immediate : un Dump() montre la valeur a cet instant, meme si le script la modifie ensuite.
-            await LinqCompiler.RunAsync(globals, compiled, context, (dumped, title) => outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken)), values, cancellationToken);
+            await LinqCompiler.RunAsync(globals, query, context, (dumped, title) => outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken)), values, log, cancellationToken);
         }
         catch (CSharpRunAbandonedException)
         {

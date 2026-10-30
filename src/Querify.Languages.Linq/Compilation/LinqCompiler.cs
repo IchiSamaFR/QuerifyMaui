@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Quill.Code.Analysis;
@@ -48,7 +48,6 @@ public static class LinqCompiler
             Name = $"EfModel_{model.ContextClassName}",
             References = LinqQuerySource.PlatformReferences,
             CompilationOptions = LinqQuerySource.ModelCompilationOptions,
-            ParseOptions = LinqQuerySource.ParseOptions,
         });
 
         // Non collectable : le modele vit tant que l'application, et EF garde ses types en cache.
@@ -90,7 +89,6 @@ public static class LinqCompiler
             Name = $"LinqParameters_{model?.Model.ContextClassName ?? "SansConnexion"}",
             References = model is null ? LinqQuerySource.PlatformReferences : [.. LinqQuerySource.PlatformReferences, model.Reference],
             CompilationOptions = LinqQuerySource.ModelCompilationOptions,
-            ParseOptions = LinqQuerySource.ParseOptions,
         });
 
         // Non collectable, comme le modele : les requetes (collectables) la referencent.
@@ -118,37 +116,32 @@ public static class LinqCompiler
     }
 
     /// <summary>
-    /// Compile une requete (C# natif, instructions de haut niveau) depuis le projet que l'editeur analyse ; les erreurs
-    /// sont dans le resultat, pas levees. Les parametres de <paramref name="parameters"/> sont exposes au script par leur nom.
+    /// Compile une requete (C# natif, instructions de haut niveau) depuis le projet que l'editeur analyse, sans
+    /// l'executer ; les erreurs sont dans le resultat, pas levees.
     /// </summary>
     /// <param name="log">Recoit les Log.* de la requete (runtime de script de Quill).</param>
-    public static async Task<CSharpCompilationResult> CompileQueryAsync(LinqParametersAssembly parameters, string query, Action<LogLevel, string>? log = null, CancellationToken cancellationToken = default)
+    public static Task<CSharpCompilationResult> CompileQueryAsync(LinqParametersAssembly parameters, string query, Action<LogLevel, string>? log = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(query);
 
         // Projet meme de l'editeur (references, contexte genere, parametres) : ce qui est souligne est ce qui echoue.
-        return await GetLanguageService(parameters).CompileAsync(query, new CSharpCompileOptions
-        {
-            AssemblyName = $"LinqQuery_{Guid.NewGuid():N}",
-
-            // Modele et parametres sont servis tels quels (EF garde ses types en cache), le reste vient du runtime.
-            ResolveAssembly = name => AssemblyName.ReferenceMatchesDefinition(name, parameters.Assembly.GetName())
-                ? parameters.Assembly
-                : ResolveModel(parameters.Model, name),
-            Log = log,
-        }, cancellationToken);
+        return GetLanguageService(parameters).CompileAsync(query, QueryOptions(parameters, log), cancellationToken);
     }
 
     /// <summary>
-    /// Execute la requete (<see cref="CSharpCompilationResult.RunEntryPointAsync"/> de Quill) sur <paramref name="context"/> :
-    /// seuls les Dump(valeur, titre), recus par <paramref name="dump"/>, exposent des donnees. Une valeur de parametre qui ne
-    /// convient pas a son type leve <see cref="LinqCompilationException"/> avant le depart ; une exception du script est
-    /// relevee telle quelle ; l'annulation rend la main tout de suite (<see cref="CSharpRunAbandonedException"/>), le script
-    /// se terminant en arriere-plan.
+    /// Compile et execute la requete sur <paramref name="context"/> en un appel (<see cref="CSharpLanguageService.RunAsync"/>
+    /// de Quill), depuis le projet que l'editeur analyse : seuls les Dump(valeur, titre), recus par <paramref name="dump"/>,
+    /// et les Log.*, recus par <paramref name="log"/>, exposent quelque chose.
     /// </summary>
     /// <param name="values">Valeurs des parametres, par nom ; un parametre absent vaut null.</param>
-    public static async Task RunAsync(LinqParametersAssembly parameters, CSharpCompilationResult query, DbContext context, Action<object?, string?>? dump, IReadOnlyList<LinqParameter>? values = null, CancellationToken cancellationToken = default)
+    /// <exception cref="CSharpCompilationException">La requete ne compile pas ; rien n'a ete execute.</exception>
+    /// <exception cref="LinqCompilationException">Une valeur de parametre ne convient pas a son type ; rien n'a ete execute.</exception>
+    /// <exception cref="CSharpRunAbandonedException">
+    /// Annulation : la main est rendue tout de suite, le script se termine en arriere-plan. Une exception du script est
+    /// relevee telle quelle.
+    /// </exception>
+    public static async Task RunAsync(LinqParametersAssembly parameters, string query, DbContext context, Action<object?, string?>? dump, IReadOnlyList<LinqParameter>? values = null, Action<LogLevel, string>? log = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(query);
@@ -178,7 +171,7 @@ public static class LinqCompiler
         foreach (var (property, value) in converted)
             property.SetValue(null, value);
 
-        await query.RunEntryPointAsync(cancellationToken: cancellationToken);
+        await GetLanguageService(parameters).RunAsync(query, QueryOptions(parameters, log), cancellationToken);
     }
 
     /// <summary>Contexte EF du modele sur une chaine de connexion SQL Server.</summary>
@@ -194,34 +187,39 @@ public static class LinqCompiler
         return (DbContext)Activator.CreateInstance(model.ContextType, builder.Options)!;
     }
 
+    /// <summary>Options d'une requete : modele et parametres servis tels quels (EF garde ses types en cache), le reste vient du runtime.</summary>
+    private static CSharpCompileOptions QueryOptions(LinqParametersAssembly parameters, Action<LogLevel, string>? log) => new()
+    {
+        AssemblyName = $"LinqQuery_{Guid.NewGuid():N}",
+        ResolveAssembly = name => AssemblyName.ReferenceMatchesDefinition(name, parameters.Assembly.GetName())
+            ? parameters.Assembly
+            : ResolveModel(parameters.Model, name),
+        Log = log,
+    };
+
     private static Assembly? ResolveModel(LinqGeneratedModelAssembly? model, AssemblyName name)
         => model is not null && AssemblyName.ReferenceMatchesDefinition(name, model.Assembly.GetName()) ? model.Assembly : null;
 
     /// <summary>Projet cree par Quill a sa premiere utilisation : le declarer ne coute rien.</summary>
     private static CSharpLanguageService CreateLanguageService(LinqParametersAssembly parameters)
     {
-        var model = parameters.Model;
-
         return new(() => new CSharpLanguageOptions
         {
-            Name = $"Linq_{model?.Model.ContextClassName ?? "SansConnexion"}",
-            References = model is null
+            Name = $"Linq_{parameters.Model?.Model.ContextClassName ?? "SansConnexion"}",
+            References = parameters.Model is null
                 ? [.. LinqQuerySource.PlatformReferences, parameters.Reference]
-                : [.. LinqQuerySource.PlatformReferences, model.Reference, parameters.Reference],
-            CompilationOptions = LinqQuerySource.CompilationOptions,
-            ParseOptions = LinqQuerySource.ParseOptions,
+                : [.. LinqQuerySource.PlatformReferences, parameters.Model.Reference, parameters.Reference],
             DocumentName = "requete.cs",
 
             // Usings implicites, alias QueryDbContext et import de QueryGlobals : fixes, Roslyn ne les reanalyse pas a
             // chaque frappe. Dump vient du modele, Db et les parametres de QueryGlobals, Log et Script du runtime de Quill.
             AdditionalDocuments = new Dictionary<string, string>
             {
-                [LinqQuerySource.GlobalUsings] = LinqQuerySource.BuildGlobalUsings(model?.Model),
+                [LinqQuerySource.GlobalUsings] = LinqQuerySource.BuildGlobalUsings(parameters.Model?.Model),
             },
-            IncludeScriptRuntime = true,
 
             // Sans DbContext, les tables n'existent pas : seules les fautes de syntaxe ont un sens.
-            IncludeSemanticDiagnostics = model is not null,
+            IncludeSemanticDiagnostics = parameters.Model is not null,
         });
     }
 }
