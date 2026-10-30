@@ -13,6 +13,8 @@ using System.Diagnostics;
 using Quill.Code.Execution;
 using Quill.Code.SqlServer.Execution;
 using Quill.Code.SqlServer.Constants;
+using Querify.Core.Models.Queries;
+using Querify.Core.Enums.Queries;
 
 namespace Querify.Languages.Linq.Queries;
 
