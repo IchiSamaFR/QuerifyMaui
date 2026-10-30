@@ -9,7 +9,6 @@ using Quill.Code.Scripting;
 using Quill.Code.Execution;
 using Quill.Code.SqlServer.Execution;
 using Querify.Core.Models.Queries;
-using Querify.Core.Enums.Queries;
 
 namespace Querify.Languages.Sql.Queries;
 
@@ -31,13 +30,13 @@ public sealed class SqlQueryExecutor : IQueryExecutor
     /// Bilan d'une execution, construit a partir de ce que l'executeur de Quill remet au fil de l'eau : messages
     /// (affiches aussi en direct), erreurs SQL (niveau Error) et jeux de resultats.
     /// </summary>
-    public async Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, IProgress<QueryMessage>? liveMessages = null, CancellationToken cancellationToken = default)
+    public async Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, IProgress<LogEntry>? liveMessages = null, CancellationToken cancellationToken = default)
     {
         var executor = Resolve(connection);
         var connectionString = GetConnectionString(connection);
 
         List<QueryResultSet> resultSets = [];
-        List<QueryMessage> messages = [];
+        List<LogEntry> messages = [];
         var gate = new Lock();
         var hasErrors = false;
         var wasCancelled = false;
@@ -47,11 +46,10 @@ public sealed class SqlQueryExecutor : IQueryExecutor
         {
             Log = (level, text) =>
             {
-                var isError = level >= LogLevel.Error;
-                var message = new QueryMessage(text, isError ? QueryMessageKind.Error : QueryMessageKind.Output);
+                var message = new LogEntry(level, text);
                 lock (gate)
                 {
-                    hasErrors |= isError;
+                    hasErrors |= message.IsError;
                     messages.Add(message);
                 }
 
@@ -78,9 +76,9 @@ public sealed class SqlQueryExecutor : IQueryExecutor
         lock (gate)
         {
             if (wasCancelled)
-                messages.Add(new QueryMessage("Requête annulée par l'utilisateur.", QueryMessageKind.Error));
+                messages.Add(new LogEntry(LogLevel.Error, "Requête annulée par l'utilisateur."));
 
-            messages.Add(new QueryMessage($"Heure de fin : {DateTime.Now:yyyy-MM-dd HH:mm:ss} (durée {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff})"));
+            messages.Add(new LogEntry(LogLevel.Information, $"Heure de fin : {DateTime.Now:yyyy-MM-dd HH:mm:ss} (durée {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff})"));
 
             return new QueryExecutionResult([.. resultSets], [.. messages], stopwatch.Elapsed, hasErrors, wasCancelled);
         }

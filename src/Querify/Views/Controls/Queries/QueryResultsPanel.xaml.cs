@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using Querify.Core.Models.Queries;
 using System.Windows.Input;
+using Quill.Code.Scripting;
 
 namespace Querify.Views.Controls.Queries;
 
@@ -22,11 +23,11 @@ public partial class QueryResultsPanel : ContentView
 
     /// <summary>Messages recus pendant l'execution (Log du script), affiches avant le resultat.</summary>
     [BindableProperty(PropertyChangedMethodName = nameof(OnLiveStateChanged))]
-    public partial IReadOnlyList<QueryMessage>? LiveMessages { get; set; }
+    public partial IReadOnlyList<LogEntry>? LiveMessages { get; set; }
 
     /// <summary>Messages de l'onglet Messages : ceux de l'execution en cours, puis ceux du resultat.</summary>
     [BindableProperty]
-    public partial IReadOnlyList<QueryMessage>? DisplayedMessages { get; private set; }
+    public partial IReadOnlyList<LogEntry>? DisplayedMessages { get; private set; }
 
     /// <summary>Execution en cours sans message a montrer encore : l'indicateur seul.</summary>
     [BindableProperty]

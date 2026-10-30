@@ -1,13 +1,11 @@
 ﻿using Quill.Code.Scripting;
 using System.Globalization;
-using Querify.Core.Models.Queries;
-using Querify.Core.Enums.Queries;
 
 namespace Querify.Converters;
 
 /// <summary>
 /// Messages d'execution en un seul texte formate : un seul Label permet de selectionner plusieurs lignes d'un coup.
-/// Chaque origine (moteur, erreur, sortie du script) a son style ; une sortie Log.* suit son niveau.
+/// Chaque niveau a son style : sortie du code (Output : PRINT, Log.Output), avertissement, erreur ; le reste en retrait.
 /// </summary>
 public sealed class QueryMessagesConverter : IValueConverter
 {
@@ -22,15 +20,15 @@ public sealed class QueryMessagesConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         var text = new FormattedString();
-        if (value is not IEnumerable<QueryMessage> messages)
+        if (value is not IEnumerable<LogEntry> messages)
             return text;
 
-        QueryMessage? previous = null;
+        LogEntry? previous = null;
         foreach (var message in messages)
         {
-            // Les sorties du script se suivent comme dans un terminal ; le reste est aere comme avant.
+            // Les sorties du code se suivent comme dans un terminal ; le reste est aere.
             var separator = previous is null ? string.Empty
-                : previous.Kind == QueryMessageKind.Output && message.Kind == QueryMessageKind.Output ? Environment.NewLine
+                : previous.Level == LogLevel.Information && message.Level == LogLevel.Information ? Environment.NewLine
                 : Environment.NewLine + Environment.NewLine;
 
             text.Spans.Add(new Span { Text = separator + message.Text, Style = StyleOf(message) });
@@ -43,17 +41,12 @@ public sealed class QueryMessagesConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 
-    private Style? StyleOf(QueryMessage message) => message.Kind switch
+    private Style? StyleOf(LogEntry message) => message.Level switch
     {
-        QueryMessageKind.Error => ErrorStyle,
-        QueryMessageKind.Output => message.Level switch
-        {
-            LogLevel.Error or LogLevel.Critical => ErrorStyle,
-            LogLevel.Warning => WarningStyle,
-            // Trace et Debug en retrait, comme les messages du moteur.
-            LogLevel.Trace or LogLevel.Debug => InfoStyle,
-            _ => OutputStyle,
-        },
+        LogLevel.Error or LogLevel.Critical => ErrorStyle,
+        LogLevel.Warning => WarningStyle,
+        LogLevel.Information => OutputStyle,
+        // Information, Trace et Debug en retrait : messages de l'application et du moteur.
         _ => InfoStyle,
     };
 }

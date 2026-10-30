@@ -1,4 +1,4 @@
-﻿using Querify.Core.Models.Queries;
+﻿using Quill.Code.Scripting;
 
 namespace Querify.Services.Editors;
 
@@ -6,26 +6,26 @@ namespace Querify.Services.Editors;
 /// Recoit les messages d'une execution depuis n'importe quel thread et les publie sur le thread UI par lots :
 /// une boucle de Log ne doit pas reconstruire l'affichage a chaque message.
 /// </summary>
-public sealed class LiveQueryMessages : IProgress<QueryMessage>
+public sealed class LiveQueryMessages : IProgress<LogEntry>
 {
     private static readonly TimeSpan PublishInterval = TimeSpan.FromMilliseconds(100);
 
     private readonly IDispatcher _dispatcher;
-    private readonly Action<IReadOnlyList<QueryMessage>> _publish;
+    private readonly Action<IReadOnlyList<LogEntry>> _publish;
     private readonly Lock _lock = new();
-    private readonly List<QueryMessage> _messages = [];
+    private readonly List<LogEntry> _messages = [];
     private bool _isPublishScheduled;
     private bool _isClosed;
 
     /// <param name="dispatcher">Dispatcher du thread UI.</param>
     /// <param name="publish">Recoit tous les messages recus jusque-la, sur le thread UI.</param>
-    public LiveQueryMessages(IDispatcher dispatcher, Action<IReadOnlyList<QueryMessage>> publish)
+    public LiveQueryMessages(IDispatcher dispatcher, Action<IReadOnlyList<LogEntry>> publish)
     {
         _dispatcher = dispatcher;
         _publish = publish;
     }
 
-    public void Report(QueryMessage value)
+    public void Report(LogEntry value)
     {
         lock (_lock)
         {
@@ -52,7 +52,7 @@ public sealed class LiveQueryMessages : IProgress<QueryMessage>
 
     private void Publish()
     {
-        IReadOnlyList<QueryMessage> snapshot;
+        IReadOnlyList<LogEntry> snapshot;
         lock (_lock)
         {
             _isPublishScheduled = false;
