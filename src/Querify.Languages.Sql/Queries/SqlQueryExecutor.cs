@@ -4,8 +4,12 @@ using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
 using Querify.Languages.Commons.Queries;
 using Quill.Code.SqlServer;
+using System.Diagnostics;
+using Quill.Code.Scripting;
 using Quill.Code.Execution;
 using Quill.Code.SqlServer.Execution;
+using Querify.Core.Models.Queries;
+using Querify.Core.Enums.Queries;
 
 namespace Querify.Languages.Sql.Queries;
 
@@ -23,14 +27,63 @@ public sealed class SqlQueryExecutor : IQueryExecutor
 
     public SyntaxLanguage Language => SyntaxLanguage.Sql;
 
-    public Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, IProgress<QueryMessage>? liveMessages = null, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Bilan d'une execution, construit a partir de ce que l'executeur de Quill remet au fil de l'eau : messages
+    /// (affiches aussi en direct), erreurs SQL (niveau Error) et jeux de resultats.
+    /// </summary>
+    public async Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, IProgress<QueryMessage>? liveMessages = null, CancellationToken cancellationToken = default)
     {
-        // PRINT et messages du serveur affiches des leur emission ; ils figurent aussi dans le resultat final.
-        var options = liveMessages is null
-            ? null
-            : new DataRunOptions { Log = (_, text) => liveMessages.Report(new QueryMessage(text, QueryMessageKind.Output)) };
+        var executor = Resolve(connection);
+        var connectionString = GetConnectionString(connection);
 
-        return Resolve(connection).ExecuteAsync(GetConnectionString(connection), script, options, cancellationToken);
+        List<QueryResultSet> resultSets = [];
+        List<QueryMessage> messages = [];
+        var gate = new Lock();
+        var hasErrors = false;
+        var wasCancelled = false;
+        var stopwatch = Stopwatch.StartNew();
+
+        var options = new DataRunOptions
+        {
+            Log = (level, text) =>
+            {
+                var isError = level >= LogLevel.Error;
+                var message = new QueryMessage(text, isError ? QueryMessageKind.Error : QueryMessageKind.Output);
+                lock (gate)
+                {
+                    hasErrors |= isError;
+                    messages.Add(message);
+                }
+
+                liveMessages?.Report(message);
+            },
+            Data = resultSet =>
+            {
+                lock (gate)
+                    resultSets.Add(resultSet);
+            },
+        };
+
+        try
+        {
+            await executor.RunAsync(connectionString, script, options, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            wasCancelled = true;
+        }
+
+        stopwatch.Stop();
+
+        lock (gate)
+        {
+            if (wasCancelled)
+                messages.Add(new QueryMessage("Requête annulée par l'utilisateur.", QueryMessageKind.Error));
+
+            messages.Add(new QueryMessage($"Heure de fin : {DateTime.Now:yyyy-MM-dd HH:mm:ss} (durée {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff})"));
+
+            return new QueryExecutionResult([.. resultSets], [.. messages], stopwatch.Elapsed, hasErrors, wasCancelled);
+        }
     }
 
     public Task<QueryResultSet> ReadAsync(DatabaseConnectionInfo connection, string? database, string query, IReadOnlyList<QueryParameter> parameters, int maxRows, CancellationToken cancellationToken = default)

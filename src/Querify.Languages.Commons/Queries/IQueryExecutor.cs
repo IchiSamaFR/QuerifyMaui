@@ -2,6 +2,7 @@
 using Querify.Databases.Models.Connections;
 using Quill.Code.Execution;
 using Quill.Code.SqlServer.Execution;
+using Querify.Core.Models.Queries;
 
 namespace Querify.Languages.Commons.Queries;
 

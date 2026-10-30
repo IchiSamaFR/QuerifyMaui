@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Quill.Code.SqlServer.Execution;
+using Querify.Core.Models.Queries;
 
 namespace Querify.Core.Models.Editors;
 
