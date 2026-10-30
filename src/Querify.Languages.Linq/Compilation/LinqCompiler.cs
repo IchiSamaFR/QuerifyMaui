@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
+using Quill.Code.Execution;
 using Quill.Code.Analysis;
 using Quill.Code.CSharp;
 using Quill.Code.CSharp.Compilation;
@@ -131,8 +132,32 @@ public static class LinqCompiler
 
     /// <summary>
     /// Compile et execute la requete sur <paramref name="context"/> en un appel (<see cref="CSharpLanguageService.RunAsync"/>
-    /// de Quill), depuis le projet que l'editeur analyse : seuls les Dump(valeur, titre), recus par <paramref name="dump"/>,
-    /// et les Log.*, recus par <paramref name="log"/>, exposent quelque chose.
+    /// de Quill), depuis le projet que l'editeur analyse : chaque Dump(valeur, titre) est converti en jeu de resultats
+    /// (<paramref name="maxRows"/> lignes au plus) et remis par <see cref="DataRunOptions.Data"/> ; le SQL genere d'une
+    /// requete EF et les Log.* passent par <see cref="RunOptions.Log"/>.
+    /// </summary>
+    /// <param name="values">Valeurs des parametres, par nom ; un parametre absent vaut null.</param>
+    /// <exception cref="CSharpCompilationException">La requete ne compile pas ; rien n'a ete execute.</exception>
+    /// <exception cref="LinqCompilationException">Une valeur de parametre ne convient pas a son type ; rien n'a ete execute.</exception>
+    public static Task RunAsync(LinqParametersAssembly parameters, string query, DbContext context, DataRunOptions options, int maxRows, IReadOnlyList<LinqParameter>? values = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        var index = 0;
+        return RunAsync(parameters, query, context, (value, title) =>
+        {
+            var (resultSet, sql) = LinqResultConverter.Capture(value, ++index, title, maxRows, cancellationToken);
+            if (sql is not null)
+                options.Log?.Invoke(LogLevel.Information, $"{resultSet.Title} : SQL généré :{Environment.NewLine}{sql}");
+
+            options.Data?.Invoke(resultSet);
+        }, values, options, cancellationToken);
+    }
+
+    /// <summary>
+    /// Compile et execute la requete sur <paramref name="context"/> en un appel (<see cref="CSharpLanguageService.RunAsync"/>
+    /// de Quill) : chaque Dump(valeur, titre) est remis tel quel a <paramref name="dump"/>, les Log.* par
+    /// <see cref="RunOptions.Log"/>.
     /// </summary>
     /// <param name="values">Valeurs des parametres, par nom ; un parametre absent vaut null.</param>
     /// <exception cref="CSharpCompilationException">La requete ne compile pas ; rien n'a ete execute.</exception>
@@ -141,7 +166,7 @@ public static class LinqCompiler
     /// Annulation : la main est rendue tout de suite, le script se termine en arriere-plan. Une exception du script est
     /// relevee telle quelle.
     /// </exception>
-    public static async Task RunAsync(LinqParametersAssembly parameters, string query, DbContext context, Action<object?, string?>? dump, IReadOnlyList<LinqParameter>? values = null, Action<LogLevel, string>? log = null, CancellationToken cancellationToken = default)
+    public static async Task RunAsync(LinqParametersAssembly parameters, string query, DbContext context, Action<object?, string?>? dump, IReadOnlyList<LinqParameter>? values = null, RunOptions? options = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(query);
@@ -171,7 +196,7 @@ public static class LinqCompiler
         foreach (var (property, value) in converted)
             property.SetValue(null, value);
 
-        await GetLanguageService(parameters).RunAsync(query, QueryOptions(parameters, log), cancellationToken);
+        await GetLanguageService(parameters).RunAsync(query, QueryOptions(parameters, options?.Log), cancellationToken);
     }
 
     /// <summary>Contexte EF du modele sur une chaine de connexion SQL Server.</summary>

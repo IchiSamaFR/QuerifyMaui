@@ -1,5 +1,4 @@
 ﻿using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Databases.Models.Connections;
@@ -9,12 +8,9 @@ using Querify.Languages.Linq.Workspaces;
 using Quill.Code.Analysis;
 using Quill.Code.CSharp.Compilation;
 using Quill.Code.Scripting;
-using System.Collections;
 using System.Data.Common;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Reflection;
+using Quill.Code.Execution;
 using Quill.Code.SqlServer.Execution;
 using Quill.Code.SqlServer.Constants;
 
@@ -22,17 +18,9 @@ namespace Querify.Languages.Linq.Queries;
 
 /// <summary>Execution d'une requete LINQ sur le DbContext genere a partir du catalogue de la connexion.</summary>
 [AutoRegister(As = typeof(IQueryExecutor))]
-[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "App non publiee en trimmed : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "App non publiee en trimmed : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "App non publiee en trimmed : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "App non publiee en trimmed : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("AOT", "IL3050", Justification = "App non publiee en AOT : reflexion sur les resultats assumee.")]
 public sealed class LinqQueryExecutor : IQueryExecutor
 {
     private const int MaxRows = QueryExecutionLimits.MaxRowsPerResultSet;
-
-    private static readonly MethodInfo QueryableTake = typeof(Queryable).GetMethods()
-        .Single(m => m.Name == nameof(Queryable.Take) && m.GetParameters()[1].ParameterType == typeof(int));
 
     private readonly ILinqContexts _contexts;
 
@@ -63,21 +51,18 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             logIndex = messages.Count;
 
             var globals = await _contexts.GetParametersAsync(model, cancellationToken: cancellationToken);
-            var outputs = await RunAsync(globals, query, connection.ConnectionString!, MaxRows, values: null, log.Write, cancellationToken);
+            // SQL genere et Log.* par Log (au fil de l'eau), jeux de resultats par Data.
+            var options = new DataRunOptions { Log = log.Write, Data = resultSets.Add };
+            await RunAsync(globals, query, connection.ConnectionString!, options, MaxRows, values: null, cancellationToken);
 
-            foreach (var output in outputs)
+            foreach (var resultSet in resultSets)
             {
                 // Plusieurs jeux : chaque message dit a quel onglet il se rapporte.
-                var prefix = outputs.Count > 1 ? $"{output.ResultSet.Title} : " : string.Empty;
-
-                if (output.Sql is not null)
-                    messages.Add(new QueryMessage($"{prefix}SQL généré :{Environment.NewLine}{output.Sql}"));
-
-                resultSets.Add(output.ResultSet);
-                messages.Add(new QueryMessage($"{prefix}({output.ResultSet.Rows.Count} ligne(s))"));
+                var prefix = resultSets.Count > 1 ? $"{resultSet.Title} : " : string.Empty;
+                messages.Add(new QueryMessage($"{prefix}({resultSet.Rows.Count} ligne(s))"));
             }
 
-            if (outputs.Count == 0)
+            if (resultSets.Count == 0)
                 messages.Add(new QueryMessage("Aucun résultat : affichez les données avec .Dump()."));
         }
         catch (CSharpCompilationException ex)
@@ -140,10 +125,10 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         var variables = parameters.Select(LinqParameter.From).ToArray();
         var globals = await _contexts.GetParametersAsync(model, variables, cancellationToken);
 
-        List<Output> outputs;
+        List<QueryResultSet> resultSets = [];
         try
         {
-            outputs = await RunAsync(globals, query, connectionString, Math.Max(1, maxRows), variables, log: null, cancellationToken);
+            await RunAsync(globals, query, connectionString, new DataRunOptions { Data = resultSets.Add }, Math.Max(1, maxRows), variables, cancellationToken);
         }
         catch (CSharpCompilationException ex)
         {
@@ -151,14 +136,12 @@ public sealed class LinqQueryExecutor : IQueryExecutor
         }
 
         // Une carte n'affiche qu'un jeu : le dernier Dump().
-        return outputs.Count > 0
-            ? outputs[^1].ResultSet
+        return resultSets.Count > 0
+            ? resultSets[^1]
             : throw new InvalidOperationException("Aucun résultat : le script doit afficher les données avec .Dump().");
     }
 
     // ---------- Execution ----------
-
-    private sealed record Output(QueryResultSet ResultSet, string? Sql);
 
     /// <summary>
     /// Execution par Quill : l'annulation rend la main tout de suite, mais le code de l'utilisateur ne peut pas etre
@@ -166,17 +149,14 @@ public sealed class LinqQueryExecutor : IQueryExecutor
     /// (<see cref="CSharpRunAbandonedException"/>) et son assembly n'est dechargee qu'a sa fin reelle.
     /// </summary>
     /// <param name="values">Valeurs des parametres du dashboard, posees dans QueryGlobals ; null : aucun.</param>
-    /// <param name="log">Recoit les Log.* du script ; null : ignores.</param>
-    private static async Task<List<Output>> RunAsync(LinqParametersAssembly globals, string query, string connectionString, int maxRows, IReadOnlyList<LinqParameter>? values, Action<LogLevel, string>? log, CancellationToken cancellationToken)
+    private static async Task RunAsync(LinqParametersAssembly globals, string query, string connectionString, DataRunOptions options, int maxRows, IReadOnlyList<LinqParameter>? values, CancellationToken cancellationToken)
     {
         var context = LinqCompiler.CreateContext(globals.Model!, connectionString);
-        List<Output> outputs = [];
         var isAbandoned = false;
 
         try
         {
-            // Capture immediate : un Dump() montre la valeur a cet instant, meme si le script la modifie ensuite.
-            await LinqCompiler.RunAsync(globals, query, context, (dumped, title) => outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken)), values, log, cancellationToken);
+            await LinqCompiler.RunAsync(globals, query, context, options, maxRows, values, cancellationToken);
         }
         catch (CSharpRunAbandonedException)
         {
@@ -189,8 +169,6 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             if (!isAbandoned)
                 context.Dispose();
         }
-
-        return outputs;
     }
 
     /// <summary>Sortie de Log.* ; le script peut encore ecrire en arriere-plan apres une annulation.</summary>
@@ -245,177 +223,4 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             }
         }
     }
-
-    private static Output Capture(object? value, int index, string? title, int maxRows, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        string? sql = null;
-        if (value is IQueryable queryable)
-        {
-            sql = TryGetSql(queryable);
-
-            // Plafond applique cote serveur (TOP), une ligne de plus pour savoir s'il a ete atteint.
-            value = QueryableTake.MakeGenericMethod(queryable.ElementType).Invoke(null, [queryable, maxRows + 1]);
-        }
-
-        return new Output(ToResultSet(value, index, title, maxRows, cancellationToken), sql);
-    }
-
-    private static string? TryGetSql(IQueryable queryable)
-    {
-        try
-        {
-            return queryable.ToQueryString();
-        }
-        catch (Exception ex) when (ex is InvalidOperationException or NotSupportedException)
-        {
-            // Requete evaluee cote client (LINQ to Objects) : pas de SQL a montrer.
-            return null;
-        }
-    }
-
-    // ---------- Conversion en grille ----------
-
-    private static QueryResultSet ToResultSet(object? value, int index, string? title, int maxRows, CancellationToken cancellationToken)
-    {
-        // Une valeur seule (Count(), First()...) s'affiche comme une ligne d'une colonne.
-        if (value is null or string || value is not IEnumerable items || IsScalar(value.GetType()))
-            return Build(ElementTypeOf(value?.GetType()), [value], isTruncated: false, index, title);
-
-        List<object?> rows = [];
-        var isTruncated = false;
-
-        foreach (var item in items)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (rows.Count == maxRows)
-            {
-                isTruncated = true;
-                break;
-            }
-
-            rows.Add(item);
-        }
-
-        var elementType = EnumerableElementType(value.GetType()) is { } declared && declared != typeof(object)
-            ? declared
-            : rows.FirstOrDefault(r => r is not null)?.GetType() ?? typeof(object);
-
-        return Build(elementType, rows, isTruncated, index, title);
-    }
-
-    private static QueryResultSet Build(Type elementType, IReadOnlyList<object?> items, bool isTruncated, int index, string? title)
-    {
-        if (items.Any(i => i is not null) && items.All(i => i is null || AsPairs(i) is not null))
-            return BuildFromDictionaries(items, isTruncated, index, title);
-
-        if (IsScalar(elementType))
-        {
-            var column = new QueryResultColumn("Valeur", FriendlyName(elementType));
-            var scalarRows = items.Select((item, i) => new QueryResultRow(i + 1, [Format(item)])).ToArray();
-            return new QueryResultSet(index, [column], scalarRows, isTruncated, title);
-        }
-
-        var properties = elementType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
-            .ToArray();
-
-        var columns = properties.Select(p => new QueryResultColumn(p.Name, FriendlyName(p.PropertyType))).ToArray();
-        var rows = items.Select((item, i) => new QueryResultRow(i + 1, properties.Select(p => item is null ? null : Format(p.GetValue(item))).ToArray())).ToArray();
-
-        return new QueryResultSet(index, columns, rows, isTruncated, title);
-    }
-
-    // Colonnes dynamiques : union ordonnee des cles de toutes les lignes (une cle absente = cellule vide).
-    private static QueryResultSet BuildFromDictionaries(IReadOnlyList<object?> items, bool isTruncated, int index, string? title)
-    {
-        var data = items.Select(i => (i is null ? Enumerable.Empty<KeyValuePair<string, object?>>() : AsPairs(i)!).ToList()).ToList();
-
-        var names = data.SelectMany(d => d.Select(p => p.Key)).Distinct().ToList();
-        var columns = names
-            .Select(n => new QueryResultColumn(n, FriendlyName(data.SelectMany(d => d).FirstOrDefault(p => p.Key == n && p.Value is not null).Value?.GetType() ?? typeof(object))))
-            .ToArray();
-
-        var rows = data
-            .Select((d, i) =>
-            {
-                var values = d.GroupBy(p => p.Key).ToDictionary(g => g.Key, g => g.Last().Value);
-                return new QueryResultRow(i + 1, names.Select(n => values.TryGetValue(n, out var v) ? Format(v) : null).ToArray());
-            })
-            .ToArray();
-
-        return new QueryResultSet(index, columns, rows, isTruncated, title);
-    }
-
-    private static IEnumerable<KeyValuePair<string, object?>>? AsPairs(object item) => item switch
-    {
-        IDictionary<string, object?> d => d,
-        IDictionary d => d.Cast<DictionaryEntry>().Select(e => new KeyValuePair<string, object?>(Convert.ToString(e.Key, CultureInfo.InvariantCulture) ?? string.Empty, e.Value)),
-        _ => null,
-    };
-
-    private static Type ElementTypeOf(Type? type) => type ?? typeof(object);
-
-    private static Type? EnumerableElementType(Type type)
-        => type.GetInterfaces().Append(type)
-               .FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-               ?.GetGenericArguments()[0];
-
-    private static bool IsScalar(Type type)
-    {
-        var underlying = Nullable.GetUnderlyingType(type) ?? type;
-        return underlying.IsPrimitive || underlying.IsEnum || underlying == typeof(object)
-            || underlying == typeof(string) || underlying == typeof(decimal) || underlying == typeof(byte[])
-            || underlying == typeof(DateTime) || underlying == typeof(DateTimeOffset) || underlying == typeof(DateOnly)
-            || underlying == typeof(TimeOnly) || underlying == typeof(TimeSpan) || underlying == typeof(Guid);
-    }
-
-    /// <summary>Nom C# court : int?, string, List&lt;Commande&gt;...</summary>
-    private static string FriendlyName(Type type)
-    {
-        if (Nullable.GetUnderlyingType(type) is { } underlying)
-            return FriendlyName(underlying) + "?";
-
-        if (type.IsGenericType)
-        {
-            // Un type imbrique dans un generique (Dictionary<,>.KeyCollection) n'a pas de backtick.
-            var tick = type.Name.IndexOf('`', StringComparison.Ordinal);
-            var name = tick >= 0 ? type.Name[..tick] : type.Name;
-            return $"{name}<{string.Join(", ", type.GetGenericArguments().Select(FriendlyName))}>";
-        }
-
-        return type.Name switch
-        {
-            "Int32" => "int",
-            "Int64" => "long",
-            "Int16" => "short",
-            "Byte" => "byte",
-            "Boolean" => "bool",
-            "String" => "string",
-            "Decimal" => "decimal",
-            "Double" => "double",
-            "Single" => "float",
-            "Object" => "object",
-            "Byte[]" => "byte[]",
-            _ => type.Name
-        };
-    }
-
-    /// <summary>Memes conventions d'affichage que l'execution SQL.</summary>
-    private static string? Format(object? value) => value switch
-    {
-        null => null,
-        string s => s,
-        bool b => b ? "1" : "0",
-        DateTime d => d.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture),
-        DateTimeOffset d => d.ToString("yyyy-MM-dd HH:mm:ss.fffffff zzz", CultureInfo.InvariantCulture),
-        DateOnly d => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-        byte[] bytes => "0x" + Convert.ToHexString(bytes, 0, Math.Min(bytes.Length, 64)) + (bytes.Length > 64 ? "…" : string.Empty),
-        IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
-        // Collection imbriquee (Select(u => u.Roles)...) : on en donne la taille plutot que le nom du type.
-        IEnumerable e => $"({e.Cast<object?>().Count()} élément(s))",
-        _ => value.ToString(),
-    };
 }

@@ -3,7 +3,7 @@ using Querify.Core.Models.Dashboards;
 using Querify.Core.Models.Editors;
 using Querify.Core.Serialization;
 using Xunit;
-using Quill.Code.SqlServer.Execution;
+using Quill.Code.Execution;
 
 namespace Querify.Tests;
 

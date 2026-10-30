@@ -3,6 +3,7 @@ using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Quill.Code.Analysis;
 using Quill.Code.CSharp.Compilation;
+using Quill.Code.Execution;
 using Quill.Code.Scripting;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -254,7 +255,7 @@ public class LinqCompilerTests
     private static async Task<List<object?>> DumpsAsync(string query, LinqParametersAssembly? globals = null, IReadOnlyList<LinqParameter>? parameters = null, Action<LogLevel, string>? log = null)
     {
         List<object?> values = [];
-        await LinqCompiler.RunAsync(globals ?? TestLinq.Globals(Model.Value), query, LinqCompiler.CreateContext(Model.Value, ConnectionString), (value, _) => values.Add(value), parameters, log);
+        await LinqCompiler.RunAsync(globals ?? TestLinq.Globals(Model.Value), query, LinqCompiler.CreateContext(Model.Value, ConnectionString), (value, _) => values.Add(value), parameters, log is null ? null : new RunOptions { Log = log });
         return values;
     }
 }
