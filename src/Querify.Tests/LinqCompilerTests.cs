@@ -132,7 +132,7 @@ public class LinqCompilerTests
     [InlineData("class Greeter { }")]
     public async Task WithoutStatements_IsAnError(string query)
     {
-        var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, query);
+        var compiled = await LinqCompiler.CompileQueryAsync(TestLinq.Globals(Model.Value), query);
 
         Assert.False(compiled.Success);
         Assert.Equal("CS5001", Assert.Single(compiled.Errors).Code);
@@ -142,19 +142,35 @@ public class LinqCompilerTests
     public async Task Parameters_ExposedByNameAndType()
     {
         // Nom sans @, type du dashboard (int?) : l'arithmetique reste celle du type.
-        using var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, "(UserId * 2).Dump();", [new LinqParameter("@UserId", typeof(int?), 16)]);
+        LinqParameter[] parameters = [new LinqParameter("@UserId", typeof(int?), 16)];
+        var globals = TestLinq.Globals(Model.Value, parameters);
+        using var compiled = await LinqCompiler.CompileQueryAsync(globals, "(UserId * 2).Dump();");
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
-        Assert.Equal([32], await DumpsAsync(compiled));
+        Assert.Equal([32], await DumpsAsync(compiled, globals, parameters));
+
+        // Meme requete compilee, autre valeur : posee a l'execution.
+        Assert.Equal([8], await DumpsAsync(compiled, globals, [new LinqParameter("@UserId", typeof(int?), 4)]));
+    }
+
+    [Fact]
+    public void Parameters_SameNamesAndTypesShareTheirAssembly()
+    {
+        // Les valeurs ne font pas partie du source : un seul QueryGlobals par jeu de noms et de types.
+        Assert.Equal(
+            LinqQuerySource.BuildGlobals(Model.Value.Model, [new LinqParameter("UserId", typeof(int?), 16)]),
+            LinqQuerySource.BuildGlobals(Model.Value.Model, [new LinqParameter("UserId", typeof(int?), 4)]));
     }
 
     [Fact]
     public async Task Parameters_SentAsSqlParameters()
     {
-        using var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, "Db.AspNetUsers.Where(u => u.Email == Email).Dump();", [new LinqParameter("Email", typeof(string), "a@b.fr")]);
+        LinqParameter[] parameters = [new LinqParameter("Email", typeof(string), "a@b.fr")];
+        var globals = TestLinq.Globals(Model.Value, parameters);
+        using var compiled = await LinqCompiler.CompileQueryAsync(globals, "Db.AspNetUsers.Where(u => u.Email == Email).Dump();");
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
-        var sql = Assert.IsAssignableFrom<IQueryable>(Assert.Single(await DumpsAsync(compiled))).ToQueryString();
+        var sql = Assert.IsAssignableFrom<IQueryable>(Assert.Single(await DumpsAsync(compiled, globals, parameters))).ToQueryString();
 
         // ToQueryString declare la valeur en tete, mais le WHERE compare bien a un parametre.
         Assert.Contains("= @", sql, StringComparison.Ordinal);
@@ -163,7 +179,11 @@ public class LinqCompilerTests
     [Fact]
     public async Task Parameters_UnconvertibleValueIsAnError()
     {
-        var ex = await Assert.ThrowsAsync<LinqCompilationException>(() => LinqCompiler.CompileQueryAsync(Model.Value, "Count.Dump();", [new LinqParameter("@Count", typeof(int?), "abc")]));
+        LinqParameter[] parameters = [new LinqParameter("@Count", typeof(int?), "abc")];
+        var globals = TestLinq.Globals(Model.Value, parameters);
+        using var compiled = await LinqCompiler.CompileQueryAsync(globals, "Count.Dump();");
+
+        var ex = await Assert.ThrowsAsync<LinqCompilationException>(() => DumpsAsync(compiled, globals, parameters));
 
         Assert.Contains("Count", ex.Message, StringComparison.Ordinal);
     }
@@ -172,7 +192,7 @@ public class LinqCompilerTests
     public async Task Errors_PointToQueryText()
     {
         const string query = "var users = Db.AspNetUsers;\nusers.Wher(u => true);";
-        var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, query);
+        var compiled = await LinqCompiler.CompileQueryAsync(TestLinq.Globals(Model.Value), query);
 
         Assert.False(compiled.Success);
         var error = compiled.Errors[0];
@@ -184,7 +204,7 @@ public class LinqCompilerTests
     public async Task Errors_UnknownContext()
     {
         const string query = "Northwind.Orders.Dump();";
-        var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, query);
+        var compiled = await LinqCompiler.CompileQueryAsync(TestLinq.Globals(Model.Value), query);
 
         Assert.Contains(compiled.Errors, e => e.Code == "CS0103" && e.Start == query.IndexOf("Northwind", StringComparison.Ordinal));
     }
@@ -200,7 +220,7 @@ public class LinqCompilerTests
 
         List<(object? Value, string? Title)> dumps = [];
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
-        await LinqCompiler.RunAsync(Model.Value, compiled, context, (value, title) => dumps.Add((value, title)));
+        await LinqCompiler.RunAsync(TestLinq.Globals(Model.Value), compiled, context, (value, title) => dumps.Add((value, title)));
 
         Assert.Equal(3, dumps.Count);
         Assert.IsAssignableFrom<IQueryable>(dumps[0].Value);
@@ -236,16 +256,16 @@ public class LinqCompilerTests
     /// Execute sans ouvrir de connexion et rend les valeurs affichees : une requete IQueryable n'est que traduite
     /// (ToQueryString), apres coup, d'ou un contexte non libere ici.
     /// </summary>
-    private static async Task<List<object?>> DumpsAsync(CSharpCompilationResult compiled)
+    private static async Task<List<object?>> DumpsAsync(CSharpCompilationResult compiled, LinqParametersAssembly? globals = null, IReadOnlyList<LinqParameter>? parameters = null)
     {
         List<object?> values = [];
-        await LinqCompiler.RunAsync(Model.Value, compiled, LinqCompiler.CreateContext(Model.Value, ConnectionString), (value, _) => values.Add(value));
+        await LinqCompiler.RunAsync(globals ?? TestLinq.Globals(Model.Value), compiled, LinqCompiler.CreateContext(Model.Value, ConnectionString), (value, _) => values.Add(value), parameters);
         return values;
     }
 
     private static async Task<CSharpCompilationResult> CompileAsync(string query, Action<LogLevel, string>? log = null)
     {
-        var compiled = await LinqCompiler.CompileQueryAsync(Model.Value, query, log: log);
+        var compiled = await LinqCompiler.CompileQueryAsync(TestLinq.Globals(Model.Value), query, log);
         Assert.True(compiled.Success, string.Join(Environment.NewLine, compiled.Errors));
         return compiled;
     }

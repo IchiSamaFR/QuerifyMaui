@@ -20,19 +20,14 @@ internal static class LinqQuerySource
     /// <summary>Alias du DbContext genere : une requete reste valable d'une base a l'autre.</summary>
     internal const string ContextAlias = "QueryDbContext";
 
-    /// <summary>Classe statique generee dans chaque requete : le contexte et les parametres du dashboard, utilisables sans les declarer.</summary>
+    /// <summary>Classe statique de <see cref="LinqParametersAssembly"/> : le contexte et les parametres du dashboard, utilisables sans les declarer.</summary>
     internal const string GlobalsClass = "QueryGlobals";
 
     /// <summary>Nom, dans <see cref="GlobalsClass"/>, du contexte de la requete.</summary>
     internal const string ContextGlobal = "Db";
 
-    /// <summary>
-    /// Nom du document fixe qui porte <see cref="GlobalsClass"/> et ses usings implicites (dont l'alias du contexte).
-    /// </summary>
+    /// <summary>Nom du document fixe des usings implicites (dont l'alias du contexte et l'import de <see cref="GlobalsClass"/>).</summary>
     internal const string GlobalUsings = "GlobalUsings.cs";
-
-    /// <summary>Nom du document fixe qui porte <see cref="GlobalsClass"/>.</summary>
-    internal const string GlobalDocuments = "GlobalDocuments.cs";
 
     private static readonly Dictionary<Type, string> TypeKeywords = new()
     {
@@ -77,21 +72,35 @@ internal static class LinqQuerySource
     /// <summary>Erreur Roslyn d'un programme sans instruction ni Main : pas une faute dans l'editeur, ou un texte vide la signalerait.</summary>
     internal const string NoEntryPointCode = "CS5001";
 
-    /// <summary>Document fixe du projet : <see cref="GlobalsClass"/> avec le contexte et un membre par parametre, imports en tete (using static global).</summary>
-    internal static string BuildGlobals(IReadOnlyList<LinqParameter> parameters)
+    /// <summary>
+    /// Source de <see cref="LinqParametersAssembly"/> : <see cref="GlobalsClass"/> avec le contexte et un membre par parametre,
+    /// sans valeur (proprietes en AsyncLocal, posees avant chaque execution). Sert aussi de cle de cache : memes noms et
+    /// types, meme assembly.
+    /// </summary>
+    internal static string BuildGlobals(EfGeneratedModel? model, IReadOnlyList<LinqParameter> parameters)
     {
+        // Type complet : ce projet n'a pas l'alias QueryDbContext, propre a celui des requetes.
+        var contextType = model is null
+            ? "global::Microsoft.EntityFrameworkCore.DbContext"
+            : $"global::{model.Namespace}.{model.ContextClassName}";
+
         var code = new StringBuilder();
-        code.AppendLine($"global using static {GlobalsClass};");
         code.AppendLine($"public static class {GlobalsClass}");
         code.AppendLine("{");
-        code.AppendLine($"    public static {ContextAlias} {ContextGlobal} {{ get; internal set; }}");
+        AppendGlobal(code, contextType, ContextGlobal);
 
-        // La valeur est donnee a la creation de la classe : rien a lier ensuite.
         foreach (var (name, parameter) in GetGlobalParameters(parameters))
-            code.AppendLine($"    public static {ToCSharpName(parameter.Type)} {name} {{ get; }}{ToInitializer(name, parameter)}");
+            AppendGlobal(code, ToCSharpName(parameter.Type), name);
 
         code.AppendLine("}");
         return code.ToString();
+    }
+
+    /// <summary>Propriete en AsyncLocal : deux executions simultanees partagent l'assembly, pas leurs valeurs.</summary>
+    private static void AppendGlobal(StringBuilder code, string type, string name)
+    {
+        code.AppendLine($"    private static readonly global::System.Threading.AsyncLocal<{type}> __{name} = new();");
+        code.AppendLine($"    public static {type} {name} {{ get => __{name}.Value; internal set => __{name}.Value = value; }}");
     }
 
     /// <summary>
@@ -113,17 +122,17 @@ internal static class LinqQuerySource
         return globals;
     }
 
-    /// <summary>Initialiseur de la propriete (" = 16;"), vide sans valeur. Une valeur qui ne convient pas au type leve <see cref="ArgumentException"/>.</summary>
-    private static string ToInitializer(string name, LinqParameter parameter)
+    /// <summary>Valeur du parametre convertie en son type, null sans valeur. Une valeur qui ne convient pas au type leve <see cref="ArgumentException"/>.</summary>
+    internal static object? ConvertValue(string name, LinqParameter parameter)
     {
         if (parameter.Value is null)
-            return string.Empty;
+            return null;
 
         var type = Nullable.GetUnderlyingType(parameter.Type) ?? parameter.Type;
 
         try
         {
-            object value = parameter.Value switch
+            return parameter.Value switch
             {
                 _ when type.IsInstanceOfType(parameter.Value) => parameter.Value,
                 string text when type == typeof(Guid) => Guid.Parse(text),
@@ -131,17 +140,6 @@ internal static class LinqQuerySource
                 _ when type.IsEnum => Enum.ToObject(type, parameter.Value),
                 _ => Convert.ChangeType(parameter.Value, type, CultureInfo.InvariantCulture),
             };
-
-            var literal = value switch
-            {
-                DateTime date => $"new global::System.DateTime({date.Ticks}L, global::System.DateTimeKind.{date.Kind})",
-                DateOnly date => $"global::System.DateOnly.FromDayNumber({date.DayNumber})",
-                Guid guid => $"global::System.Guid.Parse(\"{guid}\")",
-                _ when type.IsEnum => $"({ToCSharpName(type)}){Convert.ToInt64(value, CultureInfo.InvariantCulture)}",
-                _ => SymbolDisplay.FormatPrimitive(value, quoteStrings: true, useHexadecimalNumbers: false),
-            };
-
-            return literal is null ? throw new InvalidCastException() : $" = {literal};";
         }
         catch (Exception ex) when (ex is InvalidCastException or FormatException or OverflowException or ArgumentException)
         {
@@ -166,6 +164,7 @@ internal static class LinqQuerySource
         code.AppendLine("global using System.Linq;");
         code.AppendLine("global using System.Threading.Tasks;");
         code.AppendLine("global using Microsoft.EntityFrameworkCore;");
+        code.AppendLine($"global using static {GlobalsClass};");
 
         // Sans connexion, l'alias designe DbContext : la requete reste analysable.
         if (model is null)

@@ -1,11 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Quill.Code.Analysis;
 using Quill.Code.CSharp;
 using Quill.Code.CSharp.Compilation;
 using Quill.Code.Scripting;
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -13,8 +12,9 @@ using System.Runtime.CompilerServices;
 namespace Querify.Languages.Linq.Compilation;
 
 /// <summary>
-/// Requetes LINQ via Quill : services C# de l'editeur, DbContext genere (une fois par schema), puis chaque requete,
-/// compilee depuis le projet meme de l'editeur. Sans etat propre hormis le cache des services.
+/// Requetes LINQ via Quill : DbContext genere (une fois par schema), QueryGlobals (une fois par modele et jeu de
+/// parametres), services C# de l'editeur, puis chaque requete, compilee depuis le projet meme de l'editeur.
+/// Sans etat propre hormis le cache des services.
 /// </summary>
 [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "App non publiee en trimmed : compilation et reflexion assumees.")]
 [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "App non publiee en trimmed : compilation et reflexion assumees.")]
@@ -22,26 +22,19 @@ namespace Querify.Languages.Linq.Compilation;
 [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "App non publiee en AOT : compilation et reflexion assumees.")]
 public static class LinqCompiler
 {
-    // Un service par modele (libere avec lui) et par jeu de parametres (noms et types, pas les valeurs) : references,
-    // contexte genere et parametres ne changent pas d'une frappe a l'autre, Roslyn reutilise sa compilation.
-    private static readonly ConditionalWeakTable<LinqGeneratedModelAssembly, ConcurrentDictionary<string, Lazy<CSharpLanguageService>>> ByModel = new();
-    private static readonly ConcurrentDictionary<string, Lazy<CSharpLanguageService>> WithoutModel = new();
+    private const BindingFlags StaticMembers = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
-    private const int MaxServicesPerModel = 16;
+    // Un service par QueryGlobals compile (libere avec lui) : references, contexte et parametres ne changent pas d'une
+    // frappe a l'autre ni d'une execution a l'autre (les valeurs sont posees a l'execution), Roslyn reutilise sa compilation.
+    private static readonly ConditionalWeakTable<LinqParametersAssembly, CSharpLanguageService> Services = new();
 
     /// <summary>Service C# (Quill) partage par l'editeur et l'execution : la requete est du C# natif.</summary>
-    /// <param name="model">DbContext compile de la connexion, ou null : C# seul (fautes de syntaxe uniquement).</param>
-    /// <param name="parameters">Parametres du dashboard : exposes au script (QueryGlobals), avec leurs valeurs ; l'editeur les donne sans valeur.</param>
-    public static CSharpLanguageService GetLanguageService(LinqGeneratedModelAssembly? model, IReadOnlyList<LinqParameter>? parameters = null)
+    /// <param name="parameters">QueryGlobals compile : DbContext de la connexion (ou C# seul) et parametres du dashboard.</param>
+    public static CSharpLanguageService GetLanguageService(LinqParametersAssembly parameters)
     {
-        // Le source genere sert de cle : memes noms, types et valeurs, meme service. L'editeur donne des parametres sans
-        // valeur (son service ne bouge pas) ; une execution a ses valeurs, d'ou la borne : trop de jeux, on repart de zero.
-        var globals = LinqQuerySource.BuildGlobals(parameters ?? []);
-        var services = model is null ? WithoutModel : ByModel.GetValue(model, static _ => new());
-        if (services.Count >= MaxServicesPerModel && !services.ContainsKey(globals))
-            services.Clear();
+        ArgumentNullException.ThrowIfNull(parameters);
 
-        return services.GetOrAdd(globals, static (source, state) => new Lazy<CSharpLanguageService>(() => CreateLanguageService(state, source)), model).Value;
+        return Services.GetValue(parameters, CreateLanguageService);
     }
 
     /// <summary>Compile et charge le modele genere ; leve <see cref="LinqCompilationException"/> en cas d'echec.</summary>
@@ -76,62 +69,114 @@ public static class LinqCompiler
             Model = model,
             Assembly = assembly,
             ContextType = contextType,
-            //DbContextProperty = extensionsType.GetProperty(EfModelGenerator.DbContextPropertyName, BindingFlags.NonPublic | BindingFlags.Static)!,
             DumpSinkProperty = extensionsType.GetProperty(EfModelGenerator.DumpSinkPropertyName, BindingFlags.NonPublic | BindingFlags.Static)!,
             Reference = compiled.Reference!
         };
     }
 
     /// <summary>
+    /// Compile et charge QueryGlobals (contexte et parametres, sans valeur) contre <paramref name="model"/> ;
+    /// leve <see cref="LinqCompilationException"/> en cas d'echec.
+    /// </summary>
+    /// <param name="model">DbContext compile de la connexion, ou null : Db est un DbContext (C# seul).</param>
+    /// <param name="parameters">Parametres du dashboard ; seuls leurs noms et types comptent.</param>
+    public static async Task<LinqParametersAssembly> CompileParametersAsync(LinqGeneratedModelAssembly? model, IReadOnlyList<LinqParameter> parameters, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+
+        var source = LinqQuerySource.BuildGlobals(model?.Model, parameters);
+        var service = new CSharpLanguageService(() => new CSharpLanguageOptions
+        {
+            Name = $"LinqParameters_{model?.Model.ContextClassName ?? "SansConnexion"}",
+            References = model is null ? LinqQuerySource.PlatformReferences : [.. LinqQuerySource.PlatformReferences, model.Reference],
+            CompilationOptions = LinqQuerySource.ModelCompilationOptions,
+            ParseOptions = LinqQuerySource.ParseOptions,
+        });
+
+        // Non collectable, comme le modele : les requetes (collectables) la referencent.
+        var compiled = await service.CompileAsync(source, new CSharpCompileOptions
+        {
+            AssemblyName = $"LinqParameters_{Guid.NewGuid():N}",
+            Collectible = false,
+            ResolveAssembly = name => ResolveModel(model, name),
+        }, cancellationToken);
+
+        if (compiled.Assembly is not { } assembly)
+            throw new LinqCompilationException("Les parametres de la requete ne compilent pas.", compiled.Errors.Select(e => e.Describe(source)).ToArray());
+
+        var globalsType = assembly.GetType(LinqQuerySource.GlobalsClass, throwOnError: true)!;
+
+        return new LinqParametersAssembly
+        {
+            Model = model,
+            Assembly = assembly,
+            ContextProperty = globalsType.GetProperty(LinqQuerySource.ContextGlobal, StaticMembers)!,
+            ParameterProperties = LinqQuerySource.GetGlobalParameters(parameters)
+                .ToDictionary(p => p.Name, p => globalsType.GetProperty(p.Name, StaticMembers)!, StringComparer.Ordinal),
+            Reference = compiled.Reference!,
+        };
+    }
+
+    /// <summary>
     /// Compile une requete (C# natif, instructions de haut niveau) depuis le projet que l'editeur analyse ; les erreurs
-    /// sont dans le resultat, pas levees. Les <paramref name="parameters"/> sont exposes au script par leur nom (QueryGlobals).
+    /// sont dans le resultat, pas levees. Les parametres de <paramref name="parameters"/> sont exposes au script par leur nom.
     /// </summary>
     /// <param name="log">Recoit les Log.* de la requete (runtime de script de Quill).</param>
-    public static async Task<CSharpCompilationResult> CompileQueryAsync(LinqGeneratedModelAssembly model, string query, IReadOnlyList<LinqParameter>? parameters = null, Action<LogLevel, string>? log = null, CancellationToken cancellationToken = default)
+    public static async Task<CSharpCompilationResult> CompileQueryAsync(LinqParametersAssembly parameters, string query, Action<LogLevel, string>? log = null, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(model);
+        ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(query);
 
-        // Projet meme de l'editeur (references, contexte genere) : ce qui est souligne est ce qui echoue.
-        CSharpLanguageService service;
-        try
-        {
-            service = GetLanguageService(model, parameters);
-        }
-        catch (ArgumentException ex)
-        {
-            // Valeur de parametre inconvertible en son type.
-            throw new LinqCompilationException(ex.Message, []);
-        }
-
-        return await service.CompileAsync(query, new CSharpCompileOptions
+        // Projet meme de l'editeur (references, contexte genere, parametres) : ce qui est souligne est ce qui echoue.
+        return await GetLanguageService(parameters).CompileAsync(query, new CSharpCompileOptions
         {
             AssemblyName = $"LinqQuery_{Guid.NewGuid():N}",
 
-            // Le modele est servi tel quel (EF garde ses types en cache), le reste vient du runtime.
-            ResolveAssembly = name => AssemblyName.ReferenceMatchesDefinition(name, model.Assembly.GetName()) ? model.Assembly : null,
+            // Modele et parametres sont servis tels quels (EF garde ses types en cache), le reste vient du runtime.
+            ResolveAssembly = name => AssemblyName.ReferenceMatchesDefinition(name, parameters.Assembly.GetName())
+                ? parameters.Assembly
+                : ResolveModel(parameters.Model, name),
             Log = log,
         }, cancellationToken);
     }
 
     /// <summary>
     /// Execute la requete (<see cref="CSharpCompilationResult.RunEntryPointAsync"/> de Quill) sur <paramref name="context"/> :
-    /// seuls les Dump(valeur, titre), recus par <paramref name="dump"/>, exposent des donnees. Une exception du script est
+    /// seuls les Dump(valeur, titre), recus par <paramref name="dump"/>, exposent des donnees. Une valeur de parametre qui ne
+    /// convient pas a son type leve <see cref="LinqCompilationException"/> avant le depart ; une exception du script est
     /// relevee telle quelle ; l'annulation rend la main tout de suite (<see cref="CSharpRunAbandonedException"/>), le script
     /// se terminant en arriere-plan.
     /// </summary>
-    public static async Task RunAsync(LinqGeneratedModelAssembly model, CSharpCompilationResult query, DbContext context, Action<object?, string?>? dump, CancellationToken cancellationToken = default)
+    /// <param name="values">Valeurs des parametres, par nom ; un parametre absent vaut null.</param>
+    public static async Task RunAsync(LinqParametersAssembly parameters, CSharpCompilationResult query, DbContext context, Action<object?, string?>? dump, IReadOnlyList<LinqParameter>? values = null, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(model);
+        ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(context);
 
-        // Dump (AsyncLocal, propre a ce flux) puis Db (propre a l'assembly de la requete) : poses avant le depart du script.
-        model.DumpSinkProperty.SetValue(null, dump);
+        var model = parameters.Model
+            ?? throw new InvalidOperationException("Une requete ne s'execute que sur le modele d'une connexion.");
 
-        var dbProperty = query.Assembly!.GetType(LinqQuerySource.GlobalsClass)!
-            .GetProperty(LinqQuerySource.ContextGlobal, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly)!;
-        dbProperty.SetValue(null, context);
+        // Toutes les valeurs sont converties avant d'en poser une : une erreur n'en laisse aucune a moitie posee.
+        Dictionary<PropertyInfo, object?> converted = [];
+        try
+        {
+            foreach (var (name, parameter) in LinqQuerySource.GetGlobalParameters(values ?? []))
+            {
+                if (parameters.ParameterProperties.TryGetValue(name, out var property))
+                    converted[property] = LinqQuerySource.ConvertValue(name, parameter);
+            }
+        }
+        catch (ArgumentException ex)
+        {
+            throw new LinqCompilationException(ex.Message, []);
+        }
+
+        // Proprietes en AsyncLocal, posees dans ce flux avant le depart du script : Dump, Db puis les parametres.
+        model.DumpSinkProperty.SetValue(null, dump);
+        parameters.ContextProperty.SetValue(null, context);
+        foreach (var (property, value) in converted)
+            property.SetValue(null, value);
 
         await query.RunEntryPointAsync(cancellationToken: cancellationToken);
     }
@@ -149,27 +194,34 @@ public static class LinqCompiler
         return (DbContext)Activator.CreateInstance(model.ContextType, builder.Options)!;
     }
 
+    private static Assembly? ResolveModel(LinqGeneratedModelAssembly? model, AssemblyName name)
+        => model is not null && AssemblyName.ReferenceMatchesDefinition(name, model.Assembly.GetName()) ? model.Assembly : null;
+
     /// <summary>Projet cree par Quill a sa premiere utilisation : le declarer ne coute rien.</summary>
-    private static CSharpLanguageService CreateLanguageService(LinqGeneratedModelAssembly? model, string globals)
-        => new(() => new CSharpLanguageOptions
+    private static CSharpLanguageService CreateLanguageService(LinqParametersAssembly parameters)
+    {
+        var model = parameters.Model;
+
+        return new(() => new CSharpLanguageOptions
         {
             Name = $"Linq_{model?.Model.ContextClassName ?? "SansConnexion"}",
-            References = model is null ? LinqQuerySource.PlatformReferences : [.. LinqQuerySource.PlatformReferences, model.Reference],
+            References = model is null
+                ? [.. LinqQuerySource.PlatformReferences, parameters.Reference]
+                : [.. LinqQuerySource.PlatformReferences, model.Reference, parameters.Reference],
             CompilationOptions = LinqQuerySource.CompilationOptions,
             ParseOptions = LinqQuerySource.ParseOptions,
             DocumentName = "requete.cs",
 
-            // Usings implicites et alias QueryDbContext : fixes, Roslyn ne les reanalyse pas a chaque frappe.
-            // Dump vient du modele, Log et Script du runtime de Quill.
-            // QueryGlobals expose le contexte (Db) et les parametres du dashboard : le script les utilise tels quels.
+            // Usings implicites, alias QueryDbContext et import de QueryGlobals : fixes, Roslyn ne les reanalyse pas a
+            // chaque frappe. Dump vient du modele, Db et les parametres de QueryGlobals, Log et Script du runtime de Quill.
             AdditionalDocuments = new Dictionary<string, string>
             {
                 [LinqQuerySource.GlobalUsings] = LinqQuerySource.BuildGlobalUsings(model?.Model),
-                [LinqQuerySource.GlobalDocuments] = globals,
             },
             IncludeScriptRuntime = true,
 
             // Sans DbContext, les tables n'existent pas : seules les fautes de syntaxe ont un sens.
             IncludeSemanticDiagnostics = model is not null,
         });
+    }
 }
