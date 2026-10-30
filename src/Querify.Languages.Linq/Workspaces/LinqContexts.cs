@@ -1,13 +1,14 @@
-﻿using Querify.Core.Ioc;
+using Querify.Core.Ioc;
 using Querify.Databases.Models.Connections;
 using Querify.Databases.Schemas;
 using Querify.Languages.Linq.Compilation;
 using Querify.Languages.Linq.Modeling;
 using Querify.Languages.Linq.Queries;
 using Quill.Code.CSharp;
+using Quill.Data.Sql;
+using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
-using Quill.Data.Sql;
 
 namespace Querify.Languages.Linq.Workspaces;
 
@@ -20,6 +21,12 @@ public sealed class LinqContexts : ILinqContexts
 
     /// <summary>Un modele par catalogue charge : recharger le catalogue recompile le modele.</summary>
     private readonly ConditionalWeakTable<SqlDatabaseSchema, Task<LinqGeneratedModelAssembly>> _models = new();
+
+    /// <summary>Un QueryGlobals par modele (libere avec lui) et par jeu de parametres (source genere, sans valeur).</summary>
+    private readonly ConditionalWeakTable<LinqGeneratedModelAssembly, ConcurrentDictionary<string, Task<LinqParametersAssembly>>> _parameters = new();
+
+    /// <summary>QueryGlobals sans modele (C# seul), par jeu de parametres.</summary>
+    private readonly ConcurrentDictionary<string, Task<LinqParametersAssembly>> _parametersWithoutModel = new();
 
     public LinqContexts(IDatabaseSchemaCache schemas, IEfModelGenerator generator)
     {
@@ -44,8 +51,43 @@ public sealed class LinqContexts : ILinqContexts
         return await task.WaitAsync(cancellationToken);
     }
 
+    public async Task<LinqParametersAssembly> GetParametersAsync(LinqGeneratedModelAssembly? model, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default)
+    {
+        parameters ??= [];
+
+        // Le source genere sert de cle : memes noms et types, meme assembly, quelles que soient les valeurs.
+        var key = LinqQuerySource.BuildGlobals(model?.Model, parameters);
+        var entries = model is null ? _parametersWithoutModel : _parameters.GetValue(model, static _ => new());
+
+        var task = entries.GetOrAdd(key, _ => Compile(model, parameters));
+        if (task.IsFaulted)
+        {
+            // Un echec n'est pas garde : la prochaine demande retente la compilation.
+            entries.TryRemove(new KeyValuePair<string, Task<LinqParametersAssembly>>(key, task));
+            task = entries.GetOrAdd(key, _ => Compile(model, parameters));
+        }
+
+        // Compilation partagee : l'annulation d'un appelant ne l'interrompt pas.
+        return await task.WaitAsync(cancellationToken);
+    }
+
     public async Task<CSharpLanguageService> GetLanguageServiceAsync(DatabaseConnectionInfo? connection, string? database, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default)
-        => LinqCompiler.GetLanguageService(await TryGetModelAsync(connection, database, cancellationToken), parameters);
+    {
+        var model = await TryGetModelAsync(connection, database, cancellationToken);
+
+        LinqParametersAssembly globals;
+        try
+        {
+            globals = await GetParametersAsync(model, parameters, cancellationToken);
+        }
+        catch (LinqCompilationException)
+        {
+            // Un parametre au type inutilisable ne doit pas priver l'editeur du contexte.
+            globals = await GetParametersAsync(model, [], cancellationToken);
+        }
+
+        return LinqCompiler.GetLanguageService(globals);
+    }
 
     /// <summary>DbContext de la base, ou null : l'analyse se rabat sur le C# seul.</summary>
     private async Task<LinqGeneratedModelAssembly?> TryGetModelAsync(DatabaseConnectionInfo? connection, string? database, CancellationToken cancellationToken)
@@ -65,4 +107,7 @@ public sealed class LinqContexts : ILinqContexts
 
     private Task<LinqGeneratedModelAssembly> Compile(SqlDatabaseSchema snapshot)
         => Task.Run(() => LinqCompiler.CompileModelAsync(_generator.Generate(snapshot)));
+
+    private static Task<LinqParametersAssembly> Compile(LinqGeneratedModelAssembly? model, IReadOnlyList<LinqParameter> parameters)
+        => Task.Run(() => LinqCompiler.CompileParametersAsync(model, parameters));
 }

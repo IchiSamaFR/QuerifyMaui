@@ -62,7 +62,8 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             messages.Add(new QueryMessage($"Contexte {model.Model.ContextClassName} (QueryDbContext) : {model.Model.EntityClassNames.Count} table(s) et vue(s)."));
             logIndex = messages.Count;
 
-            using var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(model, query, log: log.Write, cancellationToken: cancellationToken), cancellationToken);
+            var globals = await _contexts.GetParametersAsync(model, cancellationToken: cancellationToken);
+            using var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(globals, query, log.Write, cancellationToken), cancellationToken);
             if (!compiled.Success)
             {
                 hasErrors = true;
@@ -70,7 +71,7 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             }
             else
             {
-                var outputs = await RunAsync(model, compiled, connection.ConnectionString!, MaxRows, cancellationToken);
+                var outputs = await RunAsync(globals, compiled, connection.ConnectionString!, MaxRows, values: null, cancellationToken);
 
                 foreach (var output in outputs)
                 {
@@ -141,14 +142,15 @@ public sealed class LinqQueryExecutor : IQueryExecutor
 
         var model = await _contexts.GetModelAsync(connection, database, cancellationToken);
         var variables = parameters.Select(LinqParameter.From).ToArray();
+        var globals = await _contexts.GetParametersAsync(model, variables, cancellationToken);
 
-        using var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(model, query, variables, cancellationToken: cancellationToken), cancellationToken);
+        using var compiled = await Task.Run(() => LinqCompiler.CompileQueryAsync(globals, query, cancellationToken: cancellationToken), cancellationToken);
         if (!compiled.Success)
         {
             throw new InvalidOperationException(string.Join(Environment.NewLine, compiled.Errors.Take(5).Select(e => e.Describe(query))));
         }
 
-        var outputs = await RunAsync(model, compiled, connectionString, Math.Max(1, maxRows), cancellationToken);
+        var outputs = await RunAsync(globals, compiled, connectionString, Math.Max(1, maxRows), variables, cancellationToken);
 
         // Une carte n'affiche qu'un jeu : le dernier Dump().
         return outputs.Count > 0
@@ -165,16 +167,17 @@ public sealed class LinqQueryExecutor : IQueryExecutor
     /// interrompu dans le processus (boucle infinie...) ; il se termine en arriere-plan
     /// (<see cref="CSharpRunAbandonedException"/>) et son assembly n'est dechargee qu'a sa fin reelle.
     /// </summary>
-    private static async Task<List<Output>> RunAsync(LinqGeneratedModelAssembly model, CSharpCompilationResult compiled, string connectionString, int maxRows, CancellationToken cancellationToken)
+    /// <param name="values">Valeurs des parametres du dashboard, posees dans QueryGlobals ; null : aucun.</param>
+    private static async Task<List<Output>> RunAsync(LinqParametersAssembly globals, CSharpCompilationResult compiled, string connectionString, int maxRows, IReadOnlyList<LinqParameter>? values, CancellationToken cancellationToken)
     {
-        var context = LinqCompiler.CreateContext(model, connectionString);
+        var context = LinqCompiler.CreateContext(globals.Model!, connectionString);
         List<Output> outputs = [];
         var isAbandoned = false;
 
         try
         {
             // Capture immediate : un Dump() montre la valeur a cet instant, meme si le script la modifie ensuite.
-            await LinqCompiler.RunAsync(model, compiled, context, (dumped, title) => outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken)), cancellationToken);
+            await LinqCompiler.RunAsync(globals, compiled, context, (dumped, title) => outputs.Add(Capture(dumped, outputs.Count + 1, title, maxRows, cancellationToken)), values, cancellationToken);
         }
         catch (CSharpRunAbandonedException)
         {
