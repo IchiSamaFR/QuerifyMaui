@@ -57,15 +57,6 @@ internal static class LinqQuerySource
         "System.", "mscorlib", "netstandard", "Microsoft.CSharp", "Microsoft.EntityFrameworkCore", "Microsoft.Extensions.", "Microsoft.Data.SqlClient"
     ];
 
-    /// <summary>Options communes au modele, aux requetes executees et au workspace de l'editeur.</summary>
-    internal static CSharpParseOptions ParseOptions { get; } = new(LanguageVersion.Latest);
-
-    /// <summary>
-    /// Une requete est un programme C# natif (instructions de haut niveau, comme Program.cs) : executable, donc un point
-    /// d'entree genere par Roslyn. Le texte est compile tel quel, sans classe ni methode ajoutee.
-    /// </summary>
-    internal static CSharpCompilationOptions CompilationOptions { get; } = new(OutputKind.ConsoleApplication, nullableContextOptions: NullableContextOptions.Disable);
-
     /// <summary>Le modele genere n'a pas de point d'entree : une bibliotheque.</summary>
     internal static CSharpCompilationOptions ModelCompilationOptions { get; } = new(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Disable);
 
