@@ -8,7 +8,7 @@ using SkiaSharp;
 using Querify.Core.Enums.Dashboards;
 using System.Globalization;
 using Querify.Diagnostics;
-using Quill.Code.SqlServer.Execution;
+using Quill.Code.Execution;
 
 namespace Querify.Views.Controls.Dashboards;
 

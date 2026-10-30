@@ -4,6 +4,7 @@ using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
 using Querify.Languages.Commons.Queries;
 using Quill.Code.SqlServer;
+using Quill.Code.Execution;
 using Quill.Code.SqlServer.Execution;
 
 namespace Querify.Languages.Sql.Queries;
@@ -23,7 +24,14 @@ public sealed class SqlQueryExecutor : IQueryExecutor
     public SyntaxLanguage Language => SyntaxLanguage.Sql;
 
     public Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string script, IProgress<QueryMessage>? liveMessages = null, CancellationToken cancellationToken = default)
-        => Resolve(connection).ExecuteAsync(GetConnectionString(connection), script, cancellationToken);
+    {
+        // PRINT et messages du serveur affiches des leur emission ; ils figurent aussi dans le resultat final.
+        var options = liveMessages is null
+            ? null
+            : new DataRunOptions { Log = (_, text) => liveMessages.Report(new QueryMessage(text, QueryMessageKind.Output)) };
+
+        return Resolve(connection).ExecuteAsync(GetConnectionString(connection), script, options, cancellationToken);
+    }
 
     public Task<QueryResultSet> ReadAsync(DatabaseConnectionInfo connection, string? database, string query, IReadOnlyList<QueryParameter> parameters, int maxRows, CancellationToken cancellationToken = default)
         => Resolve(connection).ReadAsync(GetConnectionString(connection), database, query, parameters, maxRows, cancellationToken);

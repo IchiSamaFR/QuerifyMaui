@@ -1,5 +1,6 @@
 ﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Databases.Models.Connections;
+using Quill.Code.Execution;
 using Quill.Code.SqlServer.Execution;
 
 namespace Querify.Languages.Commons.Queries;

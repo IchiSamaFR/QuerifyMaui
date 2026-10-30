@@ -1,6 +1,6 @@
 ﻿using Querify.UI.Views.Controls.DataGrids;
 using System.Globalization;
-using Quill.Code.SqlServer.Execution;
+using Quill.Code.Execution;
 
 namespace Querify.Converters;
 
