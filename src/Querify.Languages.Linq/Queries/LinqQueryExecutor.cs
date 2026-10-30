@@ -15,8 +15,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
-using Quill.Code.Sql.Execution;
-using Quill.Code.Sql.Constants;
+using Quill.Code.SqlServer.Execution;
+using Quill.Code.SqlServer.Constants;
 
 namespace Querify.Languages.Linq.Queries;
 

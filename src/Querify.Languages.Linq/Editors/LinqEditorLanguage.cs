@@ -5,7 +5,7 @@ using Querify.Languages.Commons.Editors;
 using Querify.Languages.Linq.Queries;
 using Querify.Languages.Linq.Workspaces;
 using Quill.Code;
-using Quill.Code.Sql.Execution;
+using Quill.Code.SqlServer.Execution;
 
 namespace Querify.Languages.Linq.Editors;
 

@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Querify.Core.Enums.Dashboards;
 using System.Runtime.CompilerServices;
-using Quill.Code.Sql.Execution;
+using Quill.Code.SqlServer.Execution;
 
 namespace Querify.Core.Models.Dashboards;
 

@@ -5,7 +5,7 @@ using Querify.UI.Views.Controls.DataGrids;
 using System.ComponentModel;
 using Querify.Diagnostics;
 using Querify.UI.Extensions;
-using Quill.Code.Sql.Execution;
+using Quill.Code.SqlServer.Execution;
 
 namespace Querify.Views.Controls.Dashboards;
 

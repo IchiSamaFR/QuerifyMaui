@@ -3,7 +3,7 @@ using Querify.Core.Enums.Dashboards;
 using Querify.Core.Models.Editors;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using Quill.Code.Sql.Execution;
+using Quill.Code.SqlServer.Execution;
 
 namespace Querify.Core.Models.Dashboards;
 

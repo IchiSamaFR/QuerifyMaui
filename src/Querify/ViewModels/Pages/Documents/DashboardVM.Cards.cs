@@ -3,7 +3,7 @@ using Querify.Core.Models.Dashboards;
 using Querify.Databases.Models.Connections;
 using Querify.UI.Extensions;
 using Querify.Diagnostics;
-using Quill.Code.Sql.Execution;
+using Quill.Code.SqlServer.Execution;
 
 namespace Querify.ViewModels.Pages.Documents;
 
