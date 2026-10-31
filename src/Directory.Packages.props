@@ -11,9 +11,8 @@
 		<PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
 
 		<!-- Bases de donnees et langages -->
-		<!-- 6.1.6 minimum : exige par Microsoft.EntityFrameworkCore.SqlServer 10.0.12 (sinon NU1605). -->
+		<!-- 6.1.6 minimum : exige par Microsoft.EntityFrameworkCore.SqlServer 10.0.12 de Quill.Code.CSharp.Linq (sinon NU1605). -->
 		<PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.6" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
 		<!-- Parseur T-SQL : erreurs de syntaxe soulignees dans l'editeur. -->
 		<PackageVersion Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="180.117.0" />
 
