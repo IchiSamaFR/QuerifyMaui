@@ -6,20 +6,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- LINQ : DbContext genere puis compile en memoire ; Roslyn vient de Quill.Code.CSharp. -->
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<!-- Autocompletion, survol, signatures et erreurs C# (depot Quill.Code, en attendant le paquet NuGet). -->
-		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.CSharp\Quill.Code.CSharp.csproj" />
+		<!-- Generation, compilation et execution LINQ / EF Core (depot Quill.Code, en attendant le paquet NuGet). -->
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.CSharp.Linq\Quill.Code.CSharp.Linq.csproj" />
 		<ProjectReference Include="..\Querify.Core\Querify.Core.csproj" />
 		<ProjectReference Include="..\Querify.Languages\Querify.Languages.csproj" />
-	</ItemGroup>
-
-	<!-- Les tests exercent les helpers internes du compilateur. -->
-	<ItemGroup>
-		<InternalsVisibleTo Include="Querify.Tests" />
 	</ItemGroup>
 
 </Project>

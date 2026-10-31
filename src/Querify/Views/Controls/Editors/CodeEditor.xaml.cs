@@ -17,7 +17,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using NativeCodeEditor = CodeEdit.Maui.CodeEditor;
-using Quill.Code.SqlServer.Execution;
+using Quill.Code.Execution;
 
 namespace Querify.Views.Controls.Editors;
 
