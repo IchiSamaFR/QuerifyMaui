@@ -36,6 +36,7 @@ public sealed class LinqEditorLanguage : IEditorLanguage
     /// <summary>Structure relue a chaque demande : une connexion qui s'ouvre donne le DbContext sans recreer le service.</summary>
     private LinqLanguageOptions Options(DatabaseConnectionInfo? connection, string? database, IReadOnlyList<QueryParameter> parameters) => new()
     {
+        Provider = connection is null ? null : LinqDatabaseProviders.Find(connection),
         Schema = connection is null ? null : cancellationToken => GetSchemaAsync(connection, database, cancellationToken),
         Parameters = parameters,
     };

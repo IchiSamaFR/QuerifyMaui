@@ -113,7 +113,7 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 
 ### Ajouter un moteur SQL
 1. Dans `Databases/[Moteur]/` : implémentation de `IConnectionTester` ; lecture du catalogue par un `ISqlSchemaReader` de `Quill.Data.Sql.[Moteur]` (dépôt Quill.Code), associé au moteur par `DatabaseSchemaReaderRegistration` ; le tout enregistré dans `DatabasesServiceCollectionExtensions.AddDatabases()` (pas d'`[AutoRegister]` dans cette librairie ; les résolveurs les découvrent seuls)
-2. Exécution : un `ISqlQueryExecutor` dans `Quill.Code.SqlServer` (dépôt Quill.Code), ajouté à la table `Executors` de `Languages.Sql/Queries/SqlQueryExecutor`
+2. Exécution : un `ISqlQueryExecutor` dans `Quill.Code.SqlServer` (dépôt Quill.Code), ajouté à la table `Executors` de `Languages.Sql/Queries/SqlQueryExecutor` ; LINQ : un `ILinqDatabaseProvider` dans `Quill.Code.CSharp.Linq.[Moteur]` (dépôt Quill.Code), ajouté à `Languages.Linq/LinqDatabaseProviders`
 3. Ajouter la valeur à `DatabaseProvider` (`Databases/Enums`)
 
 ### Ajouter un langage
