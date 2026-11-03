@@ -17,10 +17,6 @@ namespace Querify.Languages.Linq.Queries;
 [AutoRegister(As = typeof(IQueryExecutor))]
 public sealed class LinqQueryExecutor : IQueryExecutor
 {
-    private const string ApplicationName = "Querify";
-
-    private static readonly Quill.Code.CSharp.Linq.LinqQueryExecutor Executor = new(ApplicationName);
-
     private readonly IDatabaseSchemaCache _schemas;
 
     public LinqQueryExecutor(IDatabaseSchemaCache schemas)
@@ -34,19 +30,21 @@ public sealed class LinqQueryExecutor : IQueryExecutor
     public Task<QueryExecutionResult> ExecuteAsync(DatabaseConnectionInfo connection, string query, IProgress<LogEntry>? liveMessages = null, CancellationToken cancellationToken = default)
     {
         var connectionString = GetConnectionString(connection);
+        var executor = GetExecutor(connection);
 
-        return QueryExecutionCollector.CollectAsync(options => RunAsync(connection, connectionString, query, options, cancellationToken), liveMessages);
+        return QueryExecutionCollector.CollectAsync(options => RunAsync(executor, connection, connectionString, query, options, cancellationToken), liveMessages);
     }
 
     public async Task<QueryResultSet> ReadAsync(DatabaseConnectionInfo connection, string? database, string query, IReadOnlyList<QueryParameter> parameters, int maxRows, CancellationToken cancellationToken = default)
     {
         var connectionString = GetConnectionString(connection);
+        var executor = GetExecutor(connection);
         var schema = await _schemas.GetSchemaAsync(connection, string.IsNullOrWhiteSpace(database) ? null : database, cancellationToken);
 
-        return await Executor.ReadAsync(connectionString, database, schema, query, parameters, maxRows, cancellationToken);
+        return await executor.ReadAsync(connectionString, database, schema, query, parameters, maxRows, cancellationToken);
     }
 
-    private async Task RunAsync(DatabaseConnectionInfo connection, string connectionString, string query, DataRunOptions options, CancellationToken cancellationToken)
+    private async Task RunAsync(Quill.Code.CSharp.Linq.LinqQueryExecutor executor, DatabaseConnectionInfo connection, string connectionString, string query, DataRunOptions options, CancellationToken cancellationToken)
     {
         SqlDatabaseSchema schema;
         try
@@ -60,8 +58,13 @@ public sealed class LinqQueryExecutor : IQueryExecutor
             return;
         }
 
-        await Executor.RunAsync(connectionString, schema, query, options, cancellationToken);
+        await executor.RunAsync(connectionString, schema, query, options, cancellationToken);
     }
+
+    /// <summary>Executeur de Quill sur le moteur de la connexion (meme fournisseur que l'editeur).</summary>
+    private static Quill.Code.CSharp.Linq.LinqQueryExecutor GetExecutor(DatabaseConnectionInfo connection)
+        => new(LinqDatabaseProviders.Find(connection)
+            ?? throw new NotSupportedException($"Aucun moteur LINQ pour {connection.Provider}."));
 
     private static string GetConnectionString(DatabaseConnectionInfo connection)
     {
