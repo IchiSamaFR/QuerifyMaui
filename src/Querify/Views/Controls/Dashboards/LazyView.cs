@@ -6,8 +6,10 @@ namespace Querify.Views.Controls.Dashboards;
 /// Contenu cree seulement la premiere fois que <see cref="IsActive"/> passe a vrai, puis simplement masque.
 /// Un element masque par IsVisible garde sa vue native : les outils du concepteur (champs, menus, poignees)
 /// etaient crees pour chaque carte a chaque ouverture, meme en consultation.
+/// Un Grid et non un ContentView : CascadeInputTransparent n'agit que sur un Layout, un ContentView transparent
+/// coupait les clics de tout son contenu (poignees, titre, type de carte).
 /// </summary>
-public sealed partial class LazyView : ContentView
+public sealed partial class LazyView : Grid
 {
     [BindableProperty(PropertyChangedMethodName = nameof(OnStateChanged))]
     public partial bool IsActive { get; set; }
@@ -25,8 +27,8 @@ public sealed partial class LazyView : ContentView
 
     private void Update()
     {
-        if (IsActive && Content is null && ContentTemplate?.CreateContent() is View content)
-            Content = content;
+        if (IsActive && Children.Count == 0 && ContentTemplate?.CreateContent() is View content)
+            Children.Add(content);
 
         IsVisible = IsActive;
     }
