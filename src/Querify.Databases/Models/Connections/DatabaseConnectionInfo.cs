@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
+using Querify.Databases.Common;
 using Querify.Databases.Enums;
 
 namespace Querify.Databases.Models.Connections;
@@ -26,6 +27,8 @@ public sealed partial class DatabaseConnectionInfo : ObservableObject
     public partial string Name { get; set; } = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProviderLabel))]
+    [NotifyPropertyChangedFor(nameof(ConnectionStringExample))]
     public partial DatabaseProvider Provider { get; set; } = DatabaseProvider.SqlServer;
 
     /// <summary>Serveur extrait de la chaine, pour l'affichage uniquement.</summary>
@@ -60,11 +63,11 @@ public sealed partial class DatabaseConnectionInfo : ObservableObject
     };
 
     [JsonIgnore]
-    public string ProviderLabel => Provider switch
-    {
-        DatabaseProvider.SqlServer => "SQL Server",
-        _ => Provider.ToString(),
-    };
+    public string ProviderLabel => DatabaseProviders.GetLabel(Provider);
+
+    /// <summary>Exemple de chaine du moteur, en filigrane du formulaire.</summary>
+    [JsonIgnore]
+    public string ConnectionStringExample => DatabaseProviders.GetConnectionStringExample(Provider);
 
     // Etat du formulaire, deduit de l'Id : rien a ecrire dans connections.json.
     [JsonIgnore]

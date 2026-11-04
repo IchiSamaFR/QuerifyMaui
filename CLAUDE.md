@@ -29,7 +29,7 @@ Cette source unique est partagée entre Claude et Copilot. Consulte ce fichier p
 
 Respecter **absolument** :
 1. L'architecture MVVM — les ViewModels héritent de `AbstractVM`, les pages de `AbstractPage`
-2. La stratification des couches — Views, ViewModels, Services (app), `Querify.Core` (modèles, enums, contrats applicatifs), `Querify.Databases` (librairie indépendante, sans référence aux projets de l'appli : moteurs de base, connexion, cache du catalogue, et leurs modèles ; la structure d'une base et sa lecture viennent de `Quill.Data.Sql` / `Quill.Data.Sql.[Moteur]`, l'exécution des requêtes et ses résultats de `Quill.Code.SqlServer` ; `Core` la référence), `Querify.Languages.Commons` (contrats communs aux langages), `Querify.Languages.[Nom]` (une implémentation par langage), `Querify.Languages` (agrège les langages et fournit les résolveurs) et `Querify.UI` pour le générique
+2. La stratification des couches — Views, ViewModels, Services (app), `Querify.Core` (modèles, enums, contrats applicatifs), `Querify.Databases` (librairie indépendante, sans référence aux projets de l'appli : moteurs de base, connexion, cache du catalogue, et leurs modèles ; la structure d'une base et sa lecture viennent de `Quill.Data.Sql` / `Quill.Data.Sql.[Moteur]`, l'exécution des requêtes et ses résultats de `Quill.Code.SqlServer` / `Quill.Code.[Moteur]` ; `Core` la référence), `Querify.Languages.Commons` (contrats communs aux langages), `Querify.Languages.[Nom]` (une implémentation par langage), `Querify.Languages` (agrège les langages et fournit les résolveurs) et `Querify.UI` pour le générique
 3. L'injection de dépendances — déclaration par `[AutoRegister]` sur la classe (scan dans `Ioc/ServiceCollectionExtensions.cs`), injection par constructeur
 4. Les anti-patterns à éviter — pas de logique dans le code-behind, pas de ViewModel connu d'un contrôle, pas d'API Xamarin.Forms
 
@@ -112,9 +112,9 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 5. Si un nouveau dossier de namespace est créé, mettre `Properties/AppXmlns.cs` à jour (le T4 ne tourne pas au build)
 
 ### Ajouter un moteur SQL
-1. Dans `Databases/[Moteur]/` : implémentation de `IConnectionTester` ; lecture du catalogue par un `ISqlSchemaReader` de `Quill.Data.Sql.[Moteur]` (dépôt Quill.Code), associé au moteur par `DatabaseSchemaReaderRegistration` ; le tout enregistré dans `DatabasesServiceCollectionExtensions.AddDatabases()` (pas d'`[AutoRegister]` dans cette librairie ; les résolveurs les découvrent seuls)
-2. Exécution : un `ISqlQueryExecutor` dans `Quill.Code.SqlServer` (dépôt Quill.Code), ajouté à la table `Executors` de `Languages.Sql/Queries/SqlQueryExecutor` ; LINQ : un `ILinqDatabaseProvider` dans `Quill.Code.CSharp.Linq.[Moteur]` (dépôt Quill.Code), ajouté à `Languages.Linq/LinqDatabaseProviders`
-3. Ajouter la valeur à `DatabaseProvider` (`Databases/Enums`)
+1. Dans `Databases/[Moteur]/` : implémentation de `IConnectionTester` (sur `DbConnectionTester`) ; lecture du catalogue par un `ISqlSchemaReader` de `Quill.Data.Sql.[Moteur]` (dépôt Quill.Code), associé au moteur par `DatabaseSchemaReaderRegistration` ; le tout enregistré dans `DatabasesServiceCollectionExtensions.AddDatabases()` (pas d'`[AutoRegister]` dans cette librairie ; les résolveurs les découvrent seuls)
+2. Exécution : un `ISqlQueryExecutor` (contrat de `Quill.Code`, base `DbQueryExecutor`) dans `Quill.Code.[Moteur]` (dépôt Quill.Code), ajouté à la table `Executors` de `Languages.Sql/Queries/SqlQueryExecutor` ; LINQ : un `ILinqDatabaseProvider` dans `Quill.Code.CSharp.Linq.[Moteur]` (dépôt Quill.Code), ajouté à `Languages.Linq/LinqDatabaseProviders`
+3. Ajouter la valeur à `DatabaseProvider` (`Databases/Enums`, jamais renumérotée) et son libellé / exemple de chaîne à `Databases/Common/DatabaseProviders`
 
 ### Ajouter un langage
 1. Créer `Querify.Languages.[Nom]` (référence `Languages.Commons` uniquement, jamais un autre langage)

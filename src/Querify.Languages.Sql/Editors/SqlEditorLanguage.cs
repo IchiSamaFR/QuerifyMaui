@@ -1,5 +1,6 @@
 ﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
+using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
 using Querify.Databases.Schemas;
 using Querify.Languages.Editors;
@@ -31,6 +32,8 @@ public sealed class SqlEditorLanguage : IEditorLanguage
             Catalog = new QuerifySqlCatalog(_cache, connection),
             Database = database,
             Variables = [.. parameters.Select(p => new SqlVariable(p.Name, SqlTypeName(p.Type), "Paramètre du dashboard"))],
+            // Le controle de syntaxe est celui de T-SQL : il signalerait a tort LIMIT, les backticks... des autres moteurs.
+            CheckSyntax = connection is null || connection.Provider == DatabaseProvider.SqlServer,
         });
 
     /// <summary>Catalogue de la base par defaut et liste des bases : charges des la connexion, pas a la premiere frappe.</summary>

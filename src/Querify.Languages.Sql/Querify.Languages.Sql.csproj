@@ -10,6 +10,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- Execution SQL des moteurs autres que SQL Server (depot Quill.Code, en attendant le paquet NuGet). -->
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.MySql\Quill.Code.MySql.csproj" />
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.Oracle\Quill.Code.Oracle.csproj" />
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.PostgreSql\Quill.Code.PostgreSql.csproj" />
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.Sqlite\Quill.Code.Sqlite.csproj" />
 	  <ProjectReference Include="..\Querify.Core\Querify.Core.csproj" />
 	  <ProjectReference Include="..\Querify.Languages\Querify.Languages.csproj" />
 	</ItemGroup>

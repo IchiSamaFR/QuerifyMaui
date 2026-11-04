@@ -19,12 +19,17 @@
                        Placeholder="Production, Recette, ..."
                        HorizontalOptions="Fill" />
 
-        <inp:EditorField Title="Chaine de connexion"
-                         Text="{Binding Draft.ConnectionString, Mode=TwoWay}"
-                         Placeholder="Server=.;Database=MaBase;Trusted_Connection=True;TrustServerCertificate=True"
+        <inp:PickerField Title="Moteur"
+                         ItemsSource="{Binding Providers}"
+                         SelectedKey="{Binding Draft.Info.Provider, Mode=TwoWay}"
                          HorizontalOptions="Fill" />
 
-        <Label Text="Moteur : SQL Server. La chaine est conservee chiffree dans le coffre de Windows, jamais dans le fichier de configuration."
+        <inp:EditorField Title="Chaine de connexion"
+                         Text="{Binding Draft.ConnectionString, Mode=TwoWay}"
+                         Placeholder="{Binding Draft.Info.ConnectionStringExample}"
+                         HorizontalOptions="Fill" />
+
+        <Label Text="La chaine est conservee chiffree dans le coffre de Windows, jamais dans le fichier de configuration."
                Style="{StaticResource LabelTertiaryStyle}" />
 
         <!-- Message de validation / resultat du test -->

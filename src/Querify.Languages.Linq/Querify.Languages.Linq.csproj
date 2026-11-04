@@ -7,6 +7,10 @@
 
 	<ItemGroup>
 		<!-- Generation, compilation et execution LINQ / EF Core (depot Quill.Code, en attendant le paquet NuGet). -->
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.CSharp.Linq.MySql\Quill.Code.CSharp.Linq.MySql.csproj" />
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.CSharp.Linq.Oracle\Quill.Code.CSharp.Linq.Oracle.csproj" />
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.CSharp.Linq.PostgreSql\Quill.Code.CSharp.Linq.PostgreSql.csproj" />
+		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.CSharp.Linq.Sqlite\Quill.Code.CSharp.Linq.Sqlite.csproj" />
 		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.CSharp.Linq.SqlServer\Quill.Code.CSharp.Linq.SqlServer.csproj" />
 		<ProjectReference Include="..\Querify.Core\Querify.Core.csproj" />
 		<ProjectReference Include="..\Querify.Languages\Querify.Languages.csproj" />

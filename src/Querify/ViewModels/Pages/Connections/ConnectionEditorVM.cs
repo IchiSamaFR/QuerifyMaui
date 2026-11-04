@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Databases.Connections;
+using Querify.Databases.Common;
 using Querify.Databases.Connections;
 using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
@@ -41,6 +42,9 @@ public partial class ConnectionEditorVM : AbstractVM
     public partial bool IsStatusError { get; set; }
 
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
+
+    /// <summary>Moteurs proposes dans le formulaire (cle : moteur, valeur : libelle).</summary>
+    public IReadOnlyDictionary<DatabaseProvider, string> Providers => DatabaseProviders.Labels;
 
     public ConnectionEditorVM(IConnectionStore store, IConnectionTesterResolver testerResolver, IPopupService popupService)
     {
