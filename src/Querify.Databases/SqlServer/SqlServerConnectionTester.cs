@@ -1,95 +1,30 @@
 ﻿using Microsoft.Data.SqlClient;
 using Querify.Databases.Connections;
 using Querify.Databases.Enums;
-using Querify.Databases.Models.Connections;
-using System.Diagnostics;
+using System.Data.Common;
 
 namespace Querify.Databases.SqlServer;
 
-/// <summary>
-/// Testeur SQL Server : s'appuie sur <see cref="SqlConnectionStringBuilder"/> pour
-/// l'analyse, puis ouvre la connexion avec un timeout court afin que le bouton
-/// "Tester" ne bloque pas l'UI pendant 30 secondes.
-/// </summary>
-public sealed class SqlServerConnectionTester : IConnectionTester
+/// <summary>Testeur SQL Server (Microsoft.Data.SqlClient).</summary>
+public sealed class SqlServerConnectionTester : DbConnectionTester
 {
-    private const int TestConnectTimeoutSeconds = 8;
+    public override DatabaseProvider Provider => DatabaseProvider.SqlServer;
 
-    public DatabaseProvider Provider => DatabaseProvider.SqlServer;
+    protected override string ServerKeywords => "Server / Data Source";
 
-    public string? Validate(string connectionString, DatabaseConnectionInfo info)
+    protected override DbConnectionStringBuilder Parse(string connectionString) => new SqlConnectionStringBuilder(connectionString);
+
+    protected override (string Server, string Database) Describe(DbConnectionStringBuilder builder)
     {
-        ArgumentNullException.ThrowIfNull(info);
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-            return "La chaine de connexion est vide.";
-
-        SqlConnectionStringBuilder builder;
-        try
-        {
-            builder = new SqlConnectionStringBuilder(connectionString);
-        }
-        catch (ArgumentException ex)
-        {
-            return $"Chaine de connexion invalide : {ex.Message}";
-        }
-        catch (FormatException ex)
-        {
-            return $"Chaine de connexion invalide : {ex.Message}";
-        }
-
-        if (string.IsNullOrWhiteSpace(builder.DataSource))
-            return "La chaine ne precise aucun serveur (Server / Data Source).";
-
-        info.Server = builder.DataSource;
-        info.Database = builder.InitialCatalog;
-        return null;
+        var sql = (SqlConnectionStringBuilder)builder;
+        return (sql.DataSource, sql.InitialCatalog);
     }
 
-    public async Task<ConnectionTestResult> TestAsync(string connectionString, CancellationToken cancellationToken = default)
-    {
-        string effective;
-        try
-        {
-            var builder = new SqlConnectionStringBuilder(connectionString)
-            {
-                ConnectTimeout = TestConnectTimeoutSeconds,
-            };
-            effective = builder.ConnectionString;
-        }
-        catch (Exception ex) when (ex is ArgumentException or FormatException)
-        {
-            return ConnectionTestResult.Fail($"Chaine de connexion invalide : {ex.Message}");
-        }
+    protected override void SetConnectTimeout(DbConnectionStringBuilder builder, int seconds)
+        => ((SqlConnectionStringBuilder)builder).ConnectTimeout = seconds;
 
-        var stopwatch = Stopwatch.StartNew();
-        try
-        {
-            await using var connection = new SqlConnection(effective);
-            await connection.OpenAsync(cancellationToken);
+    protected override DbConnection CreateConnection(string connectionString) => new SqlConnection(connectionString);
 
-            stopwatch.Stop();
-            var target = string.IsNullOrEmpty(connection.Database)
-                ? connection.DataSource
-                : $"{connection.DataSource} / {connection.Database}";
-
-            return ConnectionTestResult.Ok(
-                stopwatch.Elapsed,
-                $"Connexion etablie a {target} (SQL Server {connection.ServerVersion}).");
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (SqlException ex)
-        {
-            stopwatch.Stop();
-            return ConnectionTestResult.Fail($"Echec SQL Server ({ex.Number}) : {ex.Message}", stopwatch.Elapsed);
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            return ConnectionTestResult.Fail($"Echec : {ex.Message}", stopwatch.Elapsed);
-        }
-    }
+    protected override string FormatError(DbException exception)
+        => exception is SqlException sql ? $"Echec SQL Server ({sql.Number}) : {sql.Message}" : base.FormatError(exception);
 }

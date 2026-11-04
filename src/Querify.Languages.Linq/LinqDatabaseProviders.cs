@@ -1,6 +1,10 @@
 ﻿using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
 using Quill.Code.CSharp.Linq;
+using Quill.Code.CSharp.Linq.MySql;
+using Quill.Code.CSharp.Linq.Oracle;
+using Quill.Code.CSharp.Linq.PostgreSql;
+using Quill.Code.CSharp.Linq.Sqlite;
 using Quill.Code.CSharp.Linq.SqlServer;
 
 namespace Querify.Languages.Linq;
@@ -14,6 +18,10 @@ internal static class LinqDatabaseProviders
     private static readonly Dictionary<DatabaseProvider, ILinqDatabaseProvider> Providers = new()
     {
         [DatabaseProvider.SqlServer] = new SqlServerLinqProvider(ApplicationName),
+        [DatabaseProvider.MySql] = new MySqlLinqProvider(ApplicationName),
+        [DatabaseProvider.PostgreSql] = new PostgreSqlLinqProvider(ApplicationName),
+        [DatabaseProvider.Oracle] = new OracleLinqProvider(),
+        [DatabaseProvider.Sqlite] = new SqliteLinqProvider(),
     };
 
     /// <summary>Moteur LINQ de la connexion, null s'il n'en a pas.</summary>

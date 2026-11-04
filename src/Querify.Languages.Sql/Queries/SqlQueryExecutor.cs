@@ -5,7 +5,11 @@ using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
 using Querify.Languages.Queries;
 using Quill.Code.Execution;
+using Quill.Code.MySql;
+using Quill.Code.Oracle;
+using Quill.Code.PostgreSql;
 using Quill.Code.Scripting;
+using Quill.Code.Sqlite;
 using Quill.Code.SqlServer;
 
 namespace Querify.Languages.Sql.Queries;
@@ -20,6 +24,10 @@ public sealed class SqlQueryExecutor : IQueryExecutor
     private static readonly Dictionary<DatabaseProvider, ISqlQueryExecutor> Executors = new()
     {
         [DatabaseProvider.SqlServer] = new SqlServerQueryExecutor(ApplicationName),
+        [DatabaseProvider.MySql] = new MySqlQueryExecutor(ApplicationName),
+        [DatabaseProvider.PostgreSql] = new PostgreSqlQueryExecutor(ApplicationName),
+        [DatabaseProvider.Oracle] = new OracleQueryExecutor(),
+        [DatabaseProvider.Sqlite] = new SqliteQueryExecutor(),
     };
 
     public SyntaxLanguage Language => SyntaxLanguage.Sql;
