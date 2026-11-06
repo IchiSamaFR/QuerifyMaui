@@ -46,7 +46,8 @@ public static class MauiProgram
             .UseSkiaSharp()
             .UseLiveCharts()
             .UseMauiCommunityToolkit(options => options.SetShouldEnableSnackbarOnWindows(true))
-            .UseMauiCommunityToolkitMarkup();
+            .UseMauiCommunityToolkitMarkup()
+            .UseQuerifyInputs();
 
         builder.Services.AddApplicationServices();
 

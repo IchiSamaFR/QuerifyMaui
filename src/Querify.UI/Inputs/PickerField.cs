@@ -23,7 +23,7 @@ namespace Querify.UI.Inputs;
 public partial class PickerField : InputField
 {
     private bool _isSyncing;
-    private readonly List<PickerEntry> _entries = new();
+    private List<PickerEntry> _entries = new();
 
     private readonly BorderlessPicker _pickerView = new BorderlessPicker
     {
@@ -31,6 +31,8 @@ public partial class PickerField : InputField
         BackgroundColor = Colors.Transparent,
         VerticalOptions = LayoutOptions.Center,
         HorizontalOptions = LayoutOptions.Fill,
+        // Valeur locale : écarte la hauteur du style implicite des Picker, c'est PickerField qui la porte.
+        HeightRequest = -1,
     };
 
     public BorderlessPicker PickerView => _pickerView;
@@ -65,7 +67,7 @@ public partial class PickerField : InputField
 
     private void RebuildEntries()
     {
-        _entries.Clear();
+        _entries = new List<PickerEntry>();
 
         switch (ItemsSource)
         {
@@ -92,9 +94,11 @@ public partial class PickerField : InputField
                 break;
         }
 
-        // Réaffecte la source pour forcer le Picker à relire les libellés.
-        _pickerView.ItemsSource = null;
+        // Nouvelle liste à chaque fois : le Picker natif ne voit pas les modifications d'une liste qu'il détient déjà.
+        // La remise à zéro de l'index natif ne doit pas effacer la sélection liée.
+        _isSyncing = true;
         _pickerView.ItemsSource = _entries;
+        _isSyncing = false;
 
         RestoreSelection();
     }
@@ -155,11 +159,7 @@ public partial class PickerField : InputField
             ?? (SelectedKey is null ? null : _entries.FirstOrDefault(x => Equals(x.Key, SelectedKey)))
             ?? (SelectedValue is null ? null : _entries.FirstOrDefault(x => Equals(x.Value, SelectedValue)));
 
-        _isSyncing = true;
-        _pickerView.SelectedItem = match;
-        _isSyncing = false;
-
-        OnSelectionUpdated();
+        ApplyBoundSelection(SelectedItem ?? SelectedKey ?? SelectedValue, match);
     }
 
     private void OnSelectionUpdated()
@@ -179,7 +179,7 @@ public partial class PickerField : InputField
         if (_isSyncing)
             return;
 
-        SelectEntry(_entries.FirstOrDefault(x => Equals(x.Item, SelectedItem)));
+        ApplyBoundSelection(SelectedItem, _entries.FirstOrDefault(x => Equals(x.Item, SelectedItem)));
     }
 
     private void OnSelectedValueChanged()
@@ -187,7 +187,7 @@ public partial class PickerField : InputField
         if (_isSyncing)
             return;
 
-        SelectEntry(_entries.FirstOrDefault(x => Equals(x.Value, SelectedValue)));
+        ApplyBoundSelection(SelectedValue, _entries.FirstOrDefault(x => Equals(x.Value, SelectedValue)));
     }
 
     private void OnSelectedKeyChanged()
@@ -195,7 +195,23 @@ public partial class PickerField : InputField
         if (_isSyncing)
             return;
 
-        SelectEntry(_entries.FirstOrDefault(x => Equals(x.Key, SelectedKey)));
+        ApplyBoundSelection(SelectedKey, _entries.FirstOrDefault(x => Equals(x.Key, SelectedKey)));
+    }
+
+    private void ApplyBoundSelection(object? boundValue, PickerEntry? match)
+    {
+        if (match is not null || boundValue is null)
+        {
+            SelectEntry(match);
+            return;
+        }
+
+        // Valeur liée absente de la liste (pas encore chargée) : conservée pour le prochain ItemsSource.
+        _isSyncing = true;
+        _pickerView.SelectedItem = null;
+        _isSyncing = false;
+
+        OnSelectionUpdated();
     }
 
     protected override object? GetValueForValidator() => SelectedItem;

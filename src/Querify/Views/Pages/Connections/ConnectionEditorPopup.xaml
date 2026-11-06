@@ -19,10 +19,15 @@
                        Placeholder="Production, Recette, ..."
                        HorizontalOptions="Fill" />
 
-        <inp:PickerField Title="Moteur"
-                         ItemsSource="{Binding Providers}"
-                         SelectedKey="{Binding Draft.Info.Provider, Mode=TwoWay}"
-                         HorizontalOptions="Fill" />
+        <VerticalStackLayout Spacing="2">
+            <Label Text="Moteur"
+                   TextColor="{StaticResource LabelPrimary}"
+                   Style="{StaticResource LabelTertiaryStyle}" />
+
+            <Picker ItemsSource="{Binding Providers}"
+                    SelectedItem="{Binding Draft.Info.Provider, Mode=TwoWay}"
+                    HorizontalOptions="Fill" />
+        </VerticalStackLayout>
 
         <inp:EditorField Title="Chaine de connexion"
                          Text="{Binding Draft.ConnectionString, Mode=TwoWay}"
