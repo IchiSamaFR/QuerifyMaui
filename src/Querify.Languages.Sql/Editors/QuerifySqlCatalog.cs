@@ -1,6 +1,6 @@
 ﻿using Querify.Databases.Models.Connections;
 using Querify.Databases.Schemas;
-using Quill.Code.SqlServer.Schema;
+using Quill.Code.Sql.SqlServer.Schema;
 using Quill.Data.Sql;
 using System.Data.Common;
 

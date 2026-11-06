@@ -3,7 +3,7 @@ using Querify.Databases;
 using Querify.Languages;
 using Querify.Languages.Linq.Queries;
 using Querify.Languages.Sql.Queries;
-using Quill.Code.SqlServer;
+using Quill.Code.Sql.SqlServer;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 

@@ -9,15 +9,14 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+		<PackageReference Include="QuillCode" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Querify.Helpers\Querify.Helpers.csproj" />
 		<ProjectReference Include="..\Querify.Databases\Querify.Databases.csproj" />
 		<!-- Modeles communs des editeurs de code (depot Quill.Code, en attendant le paquet NuGet). -->
-		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code\Quill.Code.csproj" />
 		<!-- Contexte de saisie T-SQL (SqlContext), partage par tous les fournisseurs d'autocompletion. -->
-		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Code.SqlServer\Quill.Code.SqlServer.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -5,12 +5,13 @@ using Querify.Databases.Enums;
 using Querify.Databases.Models.Connections;
 using Querify.Languages.Queries;
 using Quill.Code.Execution;
-using Quill.Code.MySql;
-using Quill.Code.Oracle;
-using Quill.Code.PostgreSql;
+using Quill.Code.Sql.Execution;
+using Quill.Code.Sql.MySql;
+using Quill.Code.Sql.Oracle;
+using Quill.Code.Sql.PostgreSql;
 using Quill.Code.Scripting;
-using Quill.Code.Sqlite;
-using Quill.Code.SqlServer;
+using Quill.Code.Sql.Sqlite;
+using Quill.Code.Sql.SqlServer;
 
 namespace Querify.Languages.Sql.Queries;
 
