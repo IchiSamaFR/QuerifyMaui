@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:inp="clr-namespace:Querify.UI.Inputs"
+             xmlns:ic="clr-namespace:Querify.UI.Inputs.Converters"
+             xmlns:conv="clr-namespace:Querify.UI.Converters"
+             x:Class="Querify.UI.Inputs.FormField">
+
+    <ContentView.Resources>
+        <conv:IsStringNullOrEmptyConverter x:Key="IsStringNullOrEmptyConverter" />
+        <ic:CornerRadiusToStrokeShapeConverter x:Key="CornerRadiusToStrokeShapeConverter" />
+    </ContentView.Resources>
+
+    <ContentView.ControlTemplate>
+        <ControlTemplate x:DataType="inp:FormField">
+            <Grid RowDefinitions="Auto,Auto,Auto"
+                  RowSpacing="2">
+
+                <Label Text="{Binding Title, Source={RelativeSource TemplatedParent}}"
+                       IsVisible="{Binding Title, Source={RelativeSource TemplatedParent}, Converter={StaticResource IsStringNullOrEmptyConverter}, ConverterParameter=invert}"
+                       FontSize="{Binding TitleFontSize, Source={RelativeSource TemplatedParent}}"
+                       TextColor="{Binding TitleColor, Source={RelativeSource TemplatedParent}}"
+                       LineBreakMode="NoWrap" />
+
+                <Border Grid.Row="1"
+                        Padding="0"
+                        StrokeThickness="{Binding BorderThickness, Source={RelativeSource TemplatedParent}}"
+                        Stroke="{Binding BorderColor, Source={RelativeSource TemplatedParent}}"
+                        BackgroundColor="{Binding InputBackgroundColor, Source={RelativeSource TemplatedParent}}"
+                        StrokeShape="{Binding CornerRadius, Source={RelativeSource TemplatedParent}, Converter={StaticResource CornerRadiusToStrokeShapeConverter}}"
+                        HeightRequest="{Binding InputHeight, Source={RelativeSource TemplatedParent}}">
+                    <!-- Ordre voulu : le focus l'emporte sur l'erreur -->
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border"
+                                     Binding="{Binding ErrorText, Source={RelativeSource TemplatedParent}, Converter={StaticResource IsStringNullOrEmptyConverter}, ConverterParameter=invert}"
+                                     Value="True">
+                            <Setter Property="Stroke"
+                                    Value="{Binding ErrorColor, Source={RelativeSource TemplatedParent}}" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Border"
+                                     Binding="{Binding IsContentFocused, Source={RelativeSource TemplatedParent}}"
+                                     Value="True">
+                            <Setter Property="Stroke"
+                                    Value="{Binding AccentColor, Source={RelativeSource TemplatedParent}}" />
+                        </DataTrigger>
+                    </Border.Triggers>
+
+                    <ContentPresenter />
+                </Border>
+
+                <Label Grid.Row="2"
+                       Text="{Binding ErrorText, Source={RelativeSource TemplatedParent}}"
+                       IsVisible="{Binding ErrorText, Source={RelativeSource TemplatedParent}, Converter={StaticResource IsStringNullOrEmptyConverter}, ConverterParameter=invert}"
+                       FontSize="{Binding TitleFontSize, Source={RelativeSource TemplatedParent}}"
+                       TextColor="{Binding ErrorColor, Source={RelativeSource TemplatedParent}}"
+                       LineBreakMode="WordWrap" />
+            </Grid>
+        </ControlTemplate>
+    </ContentView.ControlTemplate>
+</ContentView>

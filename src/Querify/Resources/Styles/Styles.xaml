@@ -6,6 +6,7 @@
         <ResourceDictionary Source="./Controls/ButtonStyles.xaml" />
         <ResourceDictionary Source="./Controls/DataGridStyles.xaml" />
         <ResourceDictionary Source="./Controls/EditorFieldStyles.xaml" />
+        <ResourceDictionary Source="./Controls/FormFieldStyles.xaml" />
         <ResourceDictionary Source="./Controls/ImageStyles.xaml" />
         <ResourceDictionary Source="./Controls/LabelStyles.xaml" />
         <ResourceDictionary Source="./Controls/LayoutStyles.xaml" />

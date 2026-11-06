@@ -17,6 +17,18 @@ public static class ElementExtensions
         "TextControlBorderBrushPointerOver",
         "TextControlBorderBrushFocused",
         "TextControlBorderBrushDisabled",
+        "ComboBoxBackground",
+        "ComboBoxBackgroundPointerOver",
+        "ComboBoxBackgroundPressed",
+        "ComboBoxBackgroundFocused",
+        "ComboBoxBackgroundUnfocused",
+        "ComboBoxBackgroundDisabled",
+        "ComboBoxBorderBrush",
+        "ComboBoxBorderBrushPointerOver",
+        "ComboBoxBorderBrushPressed",
+        "ComboBoxBorderBrushFocused",
+        "ComboBoxBorderBrushUnfocused",
+        "ComboBoxBorderBrushDisabled",
     };
 
     /// <summary>

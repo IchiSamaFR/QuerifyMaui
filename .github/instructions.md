@@ -43,7 +43,7 @@ Querify (nom affiché : **Querify**) est une application **desktop Windows** .NE
 
 **Bibliothèque UI (`Querify.UI`)** — générique, sans métier SQL :
 * `ViewModels/` (`AbstractVM`, `AbstractVM_Busy`), `Views/` (`AbstractPage`, `AbstractContentView`, `Controls/` : `DataGrids`, `Layouts`, `Menus`, `Tabs`, `Trees`, `ViewSelector`).
-* `Inputs/` (contrôles de saisie maison : `ButtonView`, `TextField`, `PickerField`, `EditorField`, chacun scindé en `X.cs` + `X.bindable.cs`), `Converters/`, `Behaviors/`, `MarkupExtensions/`.
+* `Inputs/` (contrôles de saisie : `TextInput` / `SelectInput`, sous-classes minces d'`Entry` / `Picker` habillées par les mappings de `BorderlessHandlers`, encadrées par `FormField` (titre, bordure, erreur) — à privilégier ; anciens champs `ButtonView`, `TextField`, `PickerField`, `EditorField` en cours de migration, chacun scindé en `X.cs` + `X.bindable.cs`), `Converters/`, `Behaviors/`, `MarkupExtensions/`.
 * `Extensions/` : `WeakReferenceMessengerExtensions` (journalisation), `FireAndForgetExtensions`. `Models/Messagings/WeakLog`.
 
 **Noyau (`Querify.Core`)** : modèles et énumérations de l'application par domaine (`Dashboards/`, `Databases/`, `Editors/`, `Queries/`, `Settings/`), `Serialization/` (`DashboardSerializer`, System.Text.Json source-gen), `Ioc/AutoRegisterAttribute`. Aucun service.

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Maui.Controls.Handlers.Items;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
+using Querify.UI.Extensions;
 
 namespace Querify.UI.Inputs.Core;
 
@@ -80,23 +81,38 @@ internal static class BorderlessHandlers
             handler.PlatformView.Background = null;
         });
 
-        // Picker natif : même hauteur et même padding que PickerField, le rendu Fluent (bordure, fond) est conservé.
-        PickerHandler.Mapper.AppendToMapping("Querify.Compact", (handler, view) =>
+        // SelectInput / TextInput : compacts et sans fond ni bordure, le cadre est dessiné par FormField.
+        PickerHandler.Mapper.AppendToMapping("Querify.Input", (handler, view) =>
         {
-            if (view is BorderlessPicker)
+            if (view is not SelectInput)
                 return;
 
             ApplyWindowsCompactComboBox(handler.PlatformView);
+            handler.PlatformView.ApplyTransparentResources();
+        });
+
+        EntryHandler.Mapper.AppendToMapping("Querify.Input", (handler, view) =>
+        {
+            if (view is not TextInput)
+                return;
+
+            ApplyWindowsCompactTextBox(handler.PlatformView);
+            handler.PlatformView.ApplyTransparentResources();
+        });
+
+        EntryHandler.Mapper.AppendToMapping(nameof(TextInput.Padding), (handler, view) =>
+        {
+            if (view is TextInput input)
+                handler.PlatformView.Padding = ToWindowsThickness(input.Padding);
         });
 
         // Le padding est appliqué au ComboBox natif (et non en Margin MAUI) : seul le texte est décalé.
         PickerHandler.Mapper.AppendToMapping(nameof(BorderlessPicker.Padding), (handler, view) =>
         {
-            if (view is not BorderlessPicker picker)
-                return;
-
-            var p = picker.Padding;
-            handler.PlatformView.Padding = new Microsoft.UI.Xaml.Thickness(p.Left, p.Top, p.Right, p.Bottom);
+            if (view is BorderlessPicker picker)
+                handler.PlatformView.Padding = ToWindowsThickness(picker.Padding);
+            else if (view is SelectInput input)
+                handler.PlatformView.Padding = ToWindowsThickness(input.Padding);
         });
 
         // Windows : la bordure basse du TextBox en focus utilise l'accent systeme (bleu).
@@ -139,21 +155,21 @@ internal static class BorderlessHandlers
         textBox.Resources["TextControlThemePadding"] = new Microsoft.UI.Xaml.Thickness(0);
     }
 
+    private static Microsoft.UI.Xaml.Thickness ToWindowsThickness(Thickness t) => new(t.Left, t.Top, t.Right, t.Bottom);
+
     /// <summary>
     /// Le ComboBox WinUI impose une hauteur min. (32) et un padding de template : sous 32 de haut,
-    /// le texte est rogné. On les annule pour que la hauteur MAUI (celle de PickerField) s'applique.
+    /// le texte est rogné. On les annule pour que la hauteur du cadre (FormField) s'applique.
     /// </summary>
     private static void ApplyWindowsCompactComboBox(Microsoft.UI.Xaml.Controls.ComboBox comboBox)
     {
-        var padding = new Microsoft.UI.Xaml.Thickness(12, 0, 12, 0);
-
         comboBox.MinHeight = 0;
         comboBox.Margin = new Microsoft.UI.Xaml.Thickness(0);
-        comboBox.Padding = new Microsoft.UI.Xaml.Thickness(0); ;
+        comboBox.HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch;
         comboBox.VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch;
         comboBox.VerticalContentAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center;
         comboBox.Resources["ComboBoxMinHeight"] = 0d;
-        comboBox.Resources["ComboBoxPadding"] = new Microsoft.UI.Xaml.Thickness(0); ;
+        comboBox.Resources["ComboBoxPadding"] = new Microsoft.UI.Xaml.Thickness(0);
 
         comboBox.Loaded -= OnCompactComboBoxLoaded;
         comboBox.Loaded += OnCompactComboBoxLoaded;

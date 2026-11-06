@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Style TargetType="inp:FormField"
+           x:Key="FormFieldStyle"
+           ApplyToDerivedTypes="True">
+        <Setter Property="TitleFontSize"
+                Value="{DynamicResource FontSize_Caption}" />
+        <Setter Property="TitleColor"
+                Value="{DynamicResource TextFillColorPrimary}" />
+        <Setter Property="BorderColor"
+                Value="{DynamicResource InputBorder}" />
+        <Setter Property="InputBackgroundColor"
+                Value="{DynamicResource InputBackground}" />
+        <Setter Property="AccentColor"
+                Value="{DynamicResource Info}" />
+        <Setter Property="ErrorColor"
+                Value="{DynamicResource ErrorDark}" />
+        <Setter Property="CornerRadius"
+                Value="{DynamicResource ControlCornerRadius}" />
+        <Setter Property="InputHeight"
+                Value="{DynamicResource TextFieldHeight}" />
+    </Style>
+
+    <!-- Default Styles -->
+    <Style TargetType="inp:FormField"
+           BasedOn="{StaticResource FormFieldStyle}"
+           ApplyToDerivedTypes="True" />
+
+</ResourceDictionary>
