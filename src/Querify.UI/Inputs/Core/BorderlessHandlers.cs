@@ -80,6 +80,15 @@ internal static class BorderlessHandlers
             handler.PlatformView.Background = null;
         });
 
+        // Picker natif : même hauteur et même padding que PickerField, le rendu Fluent (bordure, fond) est conservé.
+        PickerHandler.Mapper.AppendToMapping("Querify.Compact", (handler, view) =>
+        {
+            if (view is BorderlessPicker)
+                return;
+
+            ApplyWindowsCompactComboBox(handler.PlatformView);
+        });
+
         // Le padding est appliqué au ComboBox natif (et non en Margin MAUI) : seul le texte est décalé.
         PickerHandler.Mapper.AppendToMapping(nameof(BorderlessPicker.Padding), (handler, view) =>
         {
@@ -128,6 +137,39 @@ internal static class BorderlessHandlers
         textBox.VerticalContentAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center;
         textBox.Resources["TextControlThemeMinHeight"] = 0d;
         textBox.Resources["TextControlThemePadding"] = new Microsoft.UI.Xaml.Thickness(0);
+    }
+
+    /// <summary>
+    /// Le ComboBox WinUI impose une hauteur min. (32) et un padding de template : sous 32 de haut,
+    /// le texte est rogné. On les annule pour que la hauteur MAUI (celle de PickerField) s'applique.
+    /// </summary>
+    private static void ApplyWindowsCompactComboBox(Microsoft.UI.Xaml.Controls.ComboBox comboBox)
+    {
+        var padding = new Microsoft.UI.Xaml.Thickness(12, 0, 12, 0);
+
+        comboBox.MinHeight = 0;
+        comboBox.Margin = new Microsoft.UI.Xaml.Thickness(0);
+        comboBox.Padding = new Microsoft.UI.Xaml.Thickness(0); ;
+        comboBox.VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch;
+        comboBox.VerticalContentAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center;
+        comboBox.Resources["ComboBoxMinHeight"] = 0d;
+        comboBox.Resources["ComboBoxPadding"] = new Microsoft.UI.Xaml.Thickness(0); ;
+
+        comboBox.Loaded -= OnCompactComboBoxLoaded;
+        comboBox.Loaded += OnCompactComboBoxLoaded;
+    }
+
+    /// <summary>Le ContentPresenter du template garde une marge verticale propre : retirée une fois le template appliqué.</summary>
+    private static void OnCompactComboBoxLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        var comboBox = (Microsoft.UI.Xaml.Controls.ComboBox)sender;
+        comboBox.Loaded -= OnCompactComboBoxLoaded;
+
+        if (ThemedPickerHandler.FindByName(comboBox, "ContentPresenter") is Microsoft.UI.Xaml.FrameworkElement presenter)
+        {
+            presenter.Margin = new Microsoft.UI.Xaml.Thickness(8,0,8,0);
+            presenter.VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center;
+        }
     }
 
     /// <summary>

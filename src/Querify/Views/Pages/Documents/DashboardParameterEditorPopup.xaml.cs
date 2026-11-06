@@ -8,7 +8,8 @@ public partial class DashboardParameterEditorPopup : Popup
 {
     public DashboardParameterEditorPopup(DashboardParameterEditorVM viewModel)
     {
-        BindingContext = viewModel;
+        // Contexte pose apres la construction, comme pour les pages : les bindings s'appliquent sur l'arbre complet.
         InitializeComponent();
+        BindingContext = viewModel;
     }
 }

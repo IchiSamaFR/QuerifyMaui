@@ -145,7 +145,7 @@ public partial class ThemedPickerHandler : PickerHandler
         }
     }
 
-    private static FrameworkElement? FindByName(DependencyObject root, string name)
+    internal static FrameworkElement? FindByName(DependencyObject root, string name)
     {
         for (var i = 0; i < Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(root); i++)
         {

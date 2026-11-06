@@ -49,9 +49,11 @@
                 Value="{DynamicResource LabelPlaceHolder}" />
     </Style>
 
-    <!-- Le ComboBox WinUI garde son rendu Fluent : seul le texte est aligne -->
+    <!-- Le ComboBox WinUI garde son rendu Fluent ; hauteur alignee sur PickerField (mapping compact de BorderlessHandlers) -->
     <Style TargetType="Picker"
            ApplyToDerivedTypes="True">
+        <Setter Property="HeightRequest"
+                Value="{DynamicResource TextFieldHeight}" />
         <Setter Property="FontSize"
                 Value="{DynamicResource FontSize_Body}" />
         <Setter Property="TextColor"

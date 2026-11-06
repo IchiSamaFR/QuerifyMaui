@@ -44,13 +44,18 @@ public partial class ConnectionEditorVM : AbstractVM
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
 
     /// <summary>Moteurs proposes dans le formulaire (cle : moteur, valeur : libelle).</summary>
-    public IReadOnlyDictionary<DatabaseProvider, string> Providers => DatabaseProviders.Labels;
+    [ObservableProperty]
+    public partial List<DatabaseProvider> Providers { get; private set; }
+
+    [ObservableProperty]
+    public partial List<DatabaseProvider> Test { get; set; } = new List<DatabaseProvider> { DatabaseProvider.SqlServer, DatabaseProvider.MySql, DatabaseProvider.PostgreSql };
 
     public ConnectionEditorVM(IConnectionStore store, IConnectionTesterResolver testerResolver, IPopupService popupService)
     {
         _store = store;
         _testerResolver = testerResolver;
         _popupService = popupService;
+        Providers = DatabaseProviders.Labels.Keys.ToList();
     }
 
     /// <summary>Prepare le formulaire avant l'ouverture de la popup.</summary>
