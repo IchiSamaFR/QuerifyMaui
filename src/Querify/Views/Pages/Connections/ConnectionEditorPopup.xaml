@@ -2,6 +2,7 @@
 <toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:db="clr-namespace:Querify.Databases.Enums;assembly=Querify.Databases"
                x:Class="Querify.Views.Pages.Connections.ConnectionEditorPopup"
                x:DataType="vm:ConnectionEditorVM"
                BackgroundColor="{DynamicResource FlyoutBackground}"
@@ -14,20 +15,16 @@
         <Label Text="{Binding Title}"
                Style="{StaticResource LabelHeaderStyle}" />
 
-        <inp:TextField Title="Nom"
-                       Text="{Binding Draft.Info.Name}"
-                       Placeholder="Production, Recette, ..."
-                       HorizontalOptions="Fill" />
+        <inp:FormField Title="Nom">
+            <inp:TextInput Text="{Binding Draft.Info.Name}"
+                           Placeholder="Production, Recette, ..." />
+        </inp:FormField>
 
-        <VerticalStackLayout Spacing="2">
-            <Label Text="Moteur"
-                   TextColor="{StaticResource LabelPrimary}"
-                   Style="{StaticResource LabelTertiaryStyle}" />
-
-            <Picker ItemsSource="{Binding Providers}"
-                    SelectedItem="{Binding Draft.Info.Provider, Mode=TwoWay}"
-                    HorizontalOptions="Fill" />
-        </VerticalStackLayout>
+        <inp:FormField Title="Moteur">
+            <inp:SelectInput ItemsSource="{Binding Providers}"
+                             SelectedItem="{Binding Draft.Info.Provider, Mode=TwoWay}"
+                             ItemDisplayBinding="{Binding ., Converter={StaticResource DatabaseProviderLabelConverter}, x:DataType=db:DatabaseProvider}" />
+        </inp:FormField>
 
         <inp:EditorField Title="Chaine de connexion"
                          Text="{Binding Draft.ConnectionString, Mode=TwoWay}"

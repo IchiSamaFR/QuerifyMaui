@@ -31,8 +31,6 @@ public partial class PickerField : InputField
         BackgroundColor = Colors.Transparent,
         VerticalOptions = LayoutOptions.Center,
         HorizontalOptions = LayoutOptions.Fill,
-        // Valeur locale : écarte la hauteur du style implicite des Picker, c'est PickerField qui la porte.
-        HeightRequest = -1,
     };
 
     public BorderlessPicker PickerView => _pickerView;
