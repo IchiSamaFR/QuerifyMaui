@@ -2,6 +2,7 @@
 using Querify.Core.Ioc;
 using Querify.Core.Models.Settings;
 using Querify.Helpers.Tools;
+using Querify.Services.Storage;
 using Querify.UI.Extensions;
 
 namespace Querify.Services.Settings;
@@ -12,7 +13,7 @@ public sealed class WorkspaceStore : IWorkspaceStore
 {
     private const string FileName = "workspace.json";
 
-    private readonly string _filePath = Path.Combine(FileSystem.AppDataDirectory, FileName);
+    private readonly string _filePath = Path.Combine(AppPaths.DataDirectory, FileName);
 
     /// <inheritdoc/>
     public async Task<WorkspaceState?> LoadAsync(CancellationToken cancellationToken = default)

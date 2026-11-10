@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Querify.Core.Ioc;
+using Querify.Services.Storage;
 using Querify.UI.Extensions;
 using Querify.UI.Models.Messagings;
 using System.Globalization;
@@ -9,7 +10,7 @@ namespace Querify.Services.Diagnostics;
 
 /// <summary>
 /// Ecrit chaque <see cref="WeakLog"/> dans un journal texte quotidien (logs/app-aaaaMMjj.log dans
-/// AppDataDirectory) : seule trace d'une erreur une fois la barre d'etat effacee ou l'application fermee.
+/// AppPaths.DataDirectory) : seule trace d'une erreur une fois la barre d'etat effacee ou l'application fermee.
 /// Instancie au demarrage (MauiProgram) pour etre abonne avant la premiere erreur.
 /// </summary>
 [AutoRegister]
@@ -17,7 +18,7 @@ public sealed class FileLogWriter
 {
     private const int RetainedDays = 14;
 
-    private readonly string _directory = Path.Combine(FileSystem.AppDataDirectory, "logs");
+    private readonly string _directory = Path.Combine(AppPaths.DataDirectory, "logs");
     private readonly Lock _gate = new();
 
     public FileLogWriter()

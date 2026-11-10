@@ -99,7 +99,7 @@ Querify/
 ### Erreurs et journalisation
 
 * **Un seul point d'entrée** : `WeakReferenceMessenger.Default.LogError(exception, message)` (ou `LogInfo`). Pas d'`ILogger`.
-* Abonnés : `StatusBarVM` affiche les erreurs (« Erreur : message ») ; `FileLogWriter` écrit `logs/app-aaaaMMjj.log` dans `AppDataDirectory` (14 jours). Le message est donc rédigé pour l'utilisateur.
+* Abonnés : `StatusBarVM` affiche les erreurs (« Erreur : message ») ; `FileLogWriter` écrit `logs/app-aaaaMMjj.log` dans `AppPaths.DataDirectory` (14 jours). Le message est donc rédigé pour l'utilisateur.
 * Une tâche lancée sans `await` passe par `.FireAndForget("message")` : jamais de `_ = XAsync()`.
 * Exceptions non gérées (AppDomain, thread UI WinUI, tâches non observées) : journalisées au démarrage (`MauiProgram`, `Platforms/Windows/App.xaml.cs`).
 
@@ -187,6 +187,11 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * Commentaires : français, succincts — le *pourquoi*, jamais le *quoi*.
 * Noms de classes/méthodes : anglais. Textes d'interface, messages de commit, documentation : français.
 
+### Messages de commit
+
+* Simples et concis : un titre court, et au besoin quelques lignes sur l'essentiel. Pas de trailer `Co-Authored-By`, pas de lien de session ni d'autre mention annexe.
+* Commits : Conventional Commits (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
+
 ---
 
 ## Directives d'implémentation
@@ -263,7 +268,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 ### Connexions
 
 * `ConnectionStore` vit dans `Querify.Databases` (testé sur Linux) ; l'app lui fournit `IConnectionSecretStore` (`SecureStorageConnectionSecretStore`) et `IConnectionDescriptorStorage` (`JsonConnectionDescriptorStorage`).
-* Stockage mixte : métadonnées dans `connections.json` (`AppDataDirectory`, `JsonFile`), chaîne complète chiffrée dans le `SecureStorage` (`connectionstring:{id}`). `DatabaseConnectionInfo.ConnectionString` n'est renseignée qu'**en mémoire** (connexion ouverte) et n'est jamais sérialisée.
+* Stockage mixte : métadonnées dans `connections.json` (`AppPaths.DataDirectory`, `JsonFile`), chaîne complète chiffrée dans le `SecureStorage` (`connectionstring:{id}`). `DatabaseConnectionInfo.ConnectionString` n'est renseignée qu'**en mémoire** (connexion ouverte) et n'est jamais sérialisée.
 * Fichier corrompu : copie `.corrupt-date` puis liste vide. Fichier illisible : rien n'est mis en cache et toute écriture est refusée, pour ne pas écraser les connexions.
 * Abonnement : `IConnectionStore.Subscribe` (appelé tout de suite puis à chaque ajout / modification / suppression) ; `DatabaseConnectionVM` et `ConnectionExplorerVM` s'y abonnent.
 * **Ajouter un moteur** = une implémentation de `IConnectionTester` dans `Databases/[Moteur]/` et un `ISqlSchemaReader` dans `Quill.Data.Sql.[Moteur]`, enregistrés dans `AddDatabases()` (le lecteur par `DatabaseSchemaReaderRegistration`).
@@ -279,8 +284,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 
 ### Identité de l'application
 
-* `ApplicationTitle` = Querify. `ApplicationId` (`fr.ichisamafr.querify`) nomme le dossier de données `%LOCALAPPDATA%\User Name\<ApplicationId>` (Data, Settings, coffre).
-* Changer l'`ApplicationId` déplace ce dossier : renseigner l'ancien dans `MauiProgram.PreviousApplicationId`, `AppDataMigration` le recopie au premier lancement (l'ancien reste en place).
+* `ApplicationTitle` = Querify. Dossier de données `%LOCALAPPDATA%\querify\Data` (`AppPaths.DataDirectory`, pas `AppPaths.DataDirectory`).
 
 ### Dépendances fragiles
 

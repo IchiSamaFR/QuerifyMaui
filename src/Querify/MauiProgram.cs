@@ -14,23 +14,8 @@ namespace Querify;
 
 public static class MauiProgram
 {
-    /// <summary>
-    /// Anciens dossiers de donnees (editeur\ApplicationId, voir csproj et Package.appxmanifest), du plus recent au plus ancien :
-    /// le premier trouve est repris.
-    /// </summary>
-    private static readonly string[] PreviousDataRoots =
-    [
-        @"User Name\fr.ichisamafr.querify",
-        @"User Name\com.companyname.sqltoolmanagermaui",
-    ];
-
     public static MauiApp CreateMauiApp()
     {
-#if WINDOWS
-        // Avant tout acces au dossier de donnees (stores, journal).
-        var migrationError = WinUI.AppDataMigration.MigrateFrom(PreviousDataRoots);
-#endif
-
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
@@ -59,10 +44,6 @@ public static class MauiProgram
         app.Services.GetRequiredService<FileLogWriter>();
         LogUnhandledExceptions();
 
-#if WINDOWS
-        if (migrationError is not null)
-            WeakReferenceMessenger.Default.LogError(migrationError, $"Données de l'ancienne version non reprises : {migrationError.Message}");
-#endif
 
         return app;
     }

@@ -15,7 +15,7 @@ Application Windows pour écrire et exécuter des requêtes **SQL** et **LINQ / 
 
 Aucun runtime à installer : .NET et le Windows App SDK sont embarqués. Windows 10 1809 ou plus récent, x64.
 
-Les données (connexions, préférences, journaux) sont dans `%LOCALAPPDATA%\IchiSamaFR\fr.ichisamafr.querify`.
+Les données (connexions, préférences, journaux) sont dans `%LOCALAPPDATA%\querify`.
 
 ## Sécurité
 

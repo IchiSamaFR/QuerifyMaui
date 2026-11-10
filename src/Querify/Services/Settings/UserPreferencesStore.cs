@@ -3,6 +3,7 @@ using Querify.Core.Ioc;
 using Querify.Core.Models.Settings;
 using Querify.Helpers.Extensions;
 using Querify.Helpers.Tools;
+using Querify.Services.Storage;
 using Querify.UI.Extensions;
 
 namespace Querify.Services.Settings;
@@ -17,7 +18,7 @@ public sealed class UserPreferencesStore : IUserPreferencesStore
     private static readonly TimeSpan SaveDelay = TimeSpan.FromMilliseconds(300);
 
     private readonly SemaphoreSlim _gate = new(1, 1);
-    private readonly string _filePath = Path.Combine(FileSystem.AppDataDirectory, FileName);
+    private readonly string _filePath = Path.Combine(AppPaths.DataDirectory, FileName);
 
     private bool _isLoaded;
 

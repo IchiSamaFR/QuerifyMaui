@@ -3,17 +3,18 @@ using Querify.Core.Ioc;
 using Querify.Databases.Connections;
 using Querify.Databases.Models.Connections;
 using Querify.Helpers.Tools;
+using Querify.Services.Storage;
 using Querify.UI.Extensions;
 
 namespace Querify.Services.Databases.Connections;
 
-/// <summary>Descripteurs de connexion dans connections.json (AppDataDirectory), sans chaine de connexion.</summary>
+/// <summary>Descripteurs de connexion dans connections.json (AppPaths.DataDirectory), sans chaine de connexion.</summary>
 [AutoRegister(As = typeof(IConnectionDescriptorStorage))]
 public sealed class JsonConnectionDescriptorStorage : IConnectionDescriptorStorage
 {
     private const string FileName = "connections.json";
 
-    private readonly string _filePath = Path.Combine(FileSystem.AppDataDirectory, FileName);
+    private readonly string _filePath = Path.Combine(AppPaths.DataDirectory, FileName);
 
     /// <inheritdoc/>
     public async Task<List<DatabaseConnectionInfo>?> ReadAsync(CancellationToken cancellationToken = default)
