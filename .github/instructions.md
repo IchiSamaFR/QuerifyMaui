@@ -191,6 +191,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 
 * Simples et concis : un titre court, et au besoin quelques lignes sur l'essentiel. Pas de trailer `Co-Authored-By`, pas de lien de session ni d'autre mention annexe.
 * Commits : Conventional Commits (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
+* Quand un message de commit est demandé : le fournir dans un bloc de code (```), sans commande git.
 
 ---
 

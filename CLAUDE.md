@@ -124,6 +124,7 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 
 ### Demandes
 1. Lors de la demande d'un commit message, soit conscis et note que le nécessaire. Pas de co-author et ce qui suis
+2. Le commit message est fourni dans un bloc de code (```), sans commande git
 
 ---
 
