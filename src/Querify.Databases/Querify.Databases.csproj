@@ -10,16 +10,11 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 		<PackageReference Include="Newtonsoft.Json" />
+		<PackageReference Include="QuillCode.Data.Sql" />
+		<PackageReference Include="QuillCode.Data.Sql.MySql" />
+		<PackageReference Include="QuillCode.Data.Sql.Oracle" />
+		<PackageReference Include="QuillCode.Data.Sql.PostgreSql" />
+		<PackageReference Include="QuillCode.Data.Sql.Sqlite" />
+		<PackageReference Include="QuillCode.Data.Sql.SqlServer" />
 	</ItemGroup>
-
-	<!-- Librairie independante : aucun projet de l'application (Core la reference, pas l'inverse) ; structure et lecture du catalogue par Quill (depot Quill.Code, en attendant le paquet NuGet) ; leurs pilotes (MySqlConnector, Npgsql, ODP.NET, Microsoft.Data.Sqlite) servent aussi aux testeurs. -->
-	<ItemGroup>
-		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Data.Sql\Quill.Data.Sql.csproj" />
-		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Data.Sql.MySql\Quill.Data.Sql.MySql.csproj" />
-		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Data.Sql.Oracle\Quill.Data.Sql.Oracle.csproj" />
-		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Data.Sql.PostgreSql\Quill.Data.Sql.PostgreSql.csproj" />
-		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Data.Sql.Sqlite\Quill.Data.Sql.Sqlite.csproj" />
-		<ProjectReference Include="..\..\..\Quill.Code\src\Quill.Data.Sql.SqlServer\Quill.Data.Sql.SqlServer.csproj" />
-	</ItemGroup>
-
 </Project>

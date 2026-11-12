@@ -30,6 +30,12 @@
     <PackageVersion Include="QuillCode.CSharp.Linq.PostgreSql" Version="0.1.0" />
     <PackageVersion Include="QuillCode.CSharp.Linq.Sqlite" Version="0.1.0" />
     <PackageVersion Include="QuillCode.CSharp.Linq.SqlServer" Version="0.1.0" />
+    <PackageVersion Include="QuillCode.Data.Sql" Version="0.1.1" />
+    <PackageVersion Include="QuillCode.Data.Sql.MySql" Version="0.1.1" />
+    <PackageVersion Include="QuillCode.Data.Sql.Oracle" Version="0.1.1" />
+    <PackageVersion Include="QuillCode.Data.Sql.PostgreSql" Version="0.1.1" />
+    <PackageVersion Include="QuillCode.Data.Sql.Sqlite" Version="0.1.1" />
+    <PackageVersion Include="QuillCode.Data.Sql.SqlServer" Version="0.1.1" />
     <PackageVersion Include="QuillCode.Sql.MySql" Version="0.1.0" />
     <PackageVersion Include="QuillCode.Sql.Oracle" Version="0.1.0" />
     <PackageVersion Include="QuillCode.Sql.PostgreSql" Version="0.1.0" />
