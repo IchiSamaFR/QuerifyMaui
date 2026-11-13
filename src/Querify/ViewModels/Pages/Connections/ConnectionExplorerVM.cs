@@ -20,7 +20,7 @@ namespace Querify.ViewModels.Pages.Connections;
 
 /// <summary>
 /// Explorateur d'objets facon SSMS : Serveur > Bases (+ dossier systeme) > Tables / Vues /
-/// Procedures stockees > objets, affiche par le TreeView de Querify.UI.
+/// Procedures stockees > objets, affiche par le TreeView de Fluentia.
 /// Le TreeView gere l'ouverture (IsExpanded) et appelle <see cref="ExpandNodeCommand"/> :
 /// chaque niveau est charge a la premiere ouverture du noeud. La creation et la modification
 /// des connexions passent par la popup "Se connecter" (<see cref="IConnectionDialogService"/>).

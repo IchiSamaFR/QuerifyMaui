@@ -50,13 +50,20 @@
                    IsVisible="{Binding Roots.Count, Converter={StaticResource IsEqualConverter}, ConverterParameter=0}" />
 
             <!-- ============ Arbre ============ -->
-            <v:TreeView Grid.Row="2"
-                        ItemsSource="{Binding Roots}"
-                        SelectedItem="{Binding SelectedNode}"
-                        ExpandingCommand="{Binding ExpandNodeCommand}"
-                        DeleteCommand="{Binding DeleteConnectionCommand}"
-                        IsVisible="{Binding Roots.Count, Converter={StaticResource IsNotEqualConverter}, ConverterParameter=0}">
-                <v:TreeView.ItemTemplate>
+            <!-- L'ouverture est portee par les noeuds (IsExpanded), le chevron par CanExpand : les enfants sont charges a l'ouverture -->
+            <fl:TreeView Grid.Row="2"
+                         ItemsSource="{Binding Roots}"
+                         SelectedItem="{Binding SelectedNode}"
+                         IsExpandedPropertyName="IsExpanded"
+                         HasChildrenPropertyName="CanExpand"
+                         ExpandingCommand="{Binding ExpandNodeCommand}"
+                         DeleteCommand="{Binding DeleteConnectionCommand}"
+                         IsVisible="{Binding Roots.Count, Converter={StaticResource IsNotEqualConverter}, ConverterParameter=0}">
+                <fl:TreeView.Resources>
+                    <!-- Lignes de 28 px dans l'arbre (24 ailleurs) -->
+                    <x:Double x:Key="FluentiaControlMinHeight">28</x:Double>
+                </fl:TreeView.Resources>
+                <fl:TreeView.ItemTemplate>
                     <DataTemplate x:DataType="m:ExplorerNode">
                         <Grid ColumnDefinitions="20,*,Auto"
                               ColumnSpacing="6"
@@ -182,8 +189,8 @@
                                                Margin="0,0,4,0" />
                         </Grid>
                     </DataTemplate>
-                </v:TreeView.ItemTemplate>
-            </v:TreeView>
+                </fl:TreeView.ItemTemplate>
+            </fl:TreeView>
         </Grid>
     </Border>
 </v:AbstractContentView>

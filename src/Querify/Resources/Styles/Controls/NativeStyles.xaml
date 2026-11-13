@@ -86,25 +86,6 @@
                 Value="{DynamicResource Info}" />
     </Style>
 
-    <!-- ============ TreeView (Querify.UI) : TreeViewItem WPF UI ============ -->
-    <Style TargetType="v:TreeView"
-           ApplyToDerivedTypes="True">
-        <Setter Property="ItemHeight"
-                Value="28" />
-        <Setter Property="Indent"
-                Value="16" />
-        <Setter Property="ItemCornerRadius"
-                Value="{DynamicResource ControlCornerRadius}" />
-        <Setter Property="ItemHoverColor"
-                Value="{DynamicResource SubtleFillColorTertiary}" />
-        <Setter Property="ItemSelectedColor"
-                Value="{DynamicResource SubtleFillColorSecondary}" />
-        <Setter Property="SelectionIndicatorColor"
-                Value="{DynamicResource Info}" />
-        <Setter Property="ChevronColor"
-                Value="{DynamicResource TextFillColorSecondary}" />
-    </Style>
-
     <!-- ============ Divers ============ -->
     <!-- Carte WPF UI : CardBackgroundFillColorDefault + CardStrokeColorDefault -->
     <Style TargetType="Border"

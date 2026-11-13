@@ -227,7 +227,8 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * Contrôles Fluentia (préfixe `fl:`, déclaré dans `Properties/AppXmlns.cs`) : champ = `Entry` / `Editor` / `Picker` natifs, dans un `fl:FormField Title="…"` s'il a un titre ; bouton-icône = `fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.Xxx}"` (couleur par `TextColor`) ; bascule = `fl:ToggleButton` ; séparateur de barre d'outils = `fl:CommandBarSeparator`. Ne plus utiliser `inp:TextField`, `inp:PickerField`, `inp:EditorField`, `inp:FormField`, `inp:ToggleButtonField`, `ImageButton` ni `v:Separator`.
 * **Listes déroulantes** : `Picker` natif piloté par `fl:FluentiaPicker.ItemsSource` (toute énumération, dictionnaire compris), `DisplayMemberPath`, `SelectedValuePath` (`"Key"` pour un dictionnaire, `"."` pour l'élément lui-même) et `SelectedValue` (TwoWay). Ne pas lier `Picker.SelectedItem` : le `Picker` déplace seul sa sélection quand sa liste change, `SelectedValue` n'écrit que le choix de l'utilisateur. Icône dans le champ : `Image` sous le `Picker` et `fl:FluentiaInput.Padding`.
 * **Onglets** : `fl:TabView` lié à une collection (`ItemsSource`, `SelectedSourceItem` en TwoWay) ; en-tête par `HeaderTemplate` ou `DisplayMemberPath`, contenu partagé entre les onglets par `ContentSelector` (vues déjà instanciées, la vue affichée reçoit l'élément en `BindingContext`) ou `SharedContent`, fin de barre par `TabStripFooter`, fermeture déléguée au VM par `TabCloseCommand`. Ne plus utiliser `v:TabBar`.
-* **Migration en cours** : `v:DataGrid` et `v:TreeView` restent en place tant que leur équivalent Fluentia ne couvre pas leurs fonctions ; un nouveau besoin générique se construit dans Fluentia.
+* **Arbres** : `fl:TreeView` ; l'ouverture et le chevron viennent des éléments (`IsExpandedPropertyName`, `HasChildrenPropertyName`), le chargement paresseux de `ExpandingCommand`, la touche Suppr de `DeleteCommand`. Ne plus utiliser `v:TreeView`.
+* **Migration en cours** : `v:DataGrid` reste en place tant que leur équivalent Fluentia ne couvre pas leurs fonctions ; un nouveau besoin générique se construit dans Fluentia.
 
 ### Shell et fenêtre
 
@@ -284,7 +285,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * Abonnement : `IConnectionStore.Subscribe` (appelé tout de suite puis à chaque ajout / modification / suppression) ; `DatabaseConnectionVM` et `ConnectionExplorerVM` s'y abonnent.
 * **Ajouter un moteur** = une implémentation de `IConnectionTester` dans `Databases/[Moteur]/` et un `ISqlSchemaReader` dans `Quill.Data.Sql.[Moteur]`, enregistrés dans `AddDatabases()` (le lecteur par `DatabaseSchemaReaderRegistration`).
 * La popup « Se connecter » (`ConnectionEditorPopup` + `ConnectionEditorVM`, transient) travaille sur un `DatabaseConnectionDraft` (clone) ; le mot de passe y est masqué (`ConnectionStringPasswordHelper`) et réinjecté tant que le masque n'est pas remplacé.
-* **Explorateur** : `ConnectionExplorerVM` garde l'arbre, affiché par le contrôle générique `v:TreeView` (chargement paresseux par `ExpandingCommand`). Aucun `ExplorerNode` ne porte la chaîne. Suppression confirmée par `IDialogService.ConfirmAsync`.
+* **Explorateur** : `ConnectionExplorerVM` garde l'arbre, affiché par `fl:TreeView` (chargement paresseux par `ExpandingCommand`). Aucun `ExplorerNode` ne porte la chaîne. Suppression confirmée par `IDialogService.ConfirmAsync`.
 
 ### Préférences utilisateur
 
