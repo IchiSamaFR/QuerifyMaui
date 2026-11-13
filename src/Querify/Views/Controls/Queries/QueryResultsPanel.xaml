@@ -12,14 +12,17 @@
                                         OutputStyle="{StaticResource QueryMessageOutputSpanStyle}" />
     </ContentView.Resources>
 
-    <v:TabBar ItemsSource="{Binding Tabs, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
-              SelectedItem="{Binding SelectedTab, Source={x:Reference root}, Mode=TwoWay, x:DataType=c:QueryResultsPanel}"
-              TitleMemberPath="Title">
+    <fl:TabView ItemsSource="{Binding Tabs, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+                SelectedSourceItem="{Binding SelectedTab, Source={x:Reference root}, Mode=TwoWay, x:DataType=c:QueryResultsPanel}"
+                DisplayMemberPath="Title"
+                CanCloseTabs="False"
+                CanReorderTabs="False">
 
         <!-- ============ Contenu partagé de l'onglet sélectionné ============ -->
         <!-- Declare avant le resume : celui-ci reference ResultGrid -->
-        <v:TabBar.DefaultContent>
-            <Grid RowDefinitions="*,Auto">
+        <fl:TabView.SharedContent>
+            <Grid RowDefinitions="*,Auto"
+                  Padding="{DynamicResource CardContentPadding}">
                 <v:DataGrid x:Name="ResultGrid"
                             ItemsSource="{Binding SelectedTab.ResultSet.Rows, Source={x:Reference root}, FallbackValue={x:Null}, x:DataType=c:QueryResultsPanel}"
                             Columns="{Binding SelectedTab.ResultSet, Source={x:Reference root}, FallbackValue={x:Null}, Converter={StaticResource QueryResultColumnsConverter}, x:DataType=c:QueryResultsPanel}"
@@ -46,10 +49,10 @@
                            Style="{StaticResource LabelTertiaryStyle}" />
                 </HorizontalStackLayout>
             </Grid>
-        </v:TabBar.DefaultContent>
+        </fl:TabView.SharedContent>
 
         <!-- ============ Resume + filtre + duree + fermeture ============ -->
-        <v:TabBar.TrailingContent>
+        <fl:TabView.TabStripFooter>
             <HorizontalStackLayout Spacing="12"
                                    VerticalOptions="Center">
                 <Label Text="{Binding SelectedTab.ResultSet.Summary, Source={x:Reference root}, FallbackValue='', x:DataType=c:QueryResultsPanel}"
@@ -77,6 +80,6 @@
                                      TextColor="{StaticResource LabelTertiary}"
                                      ToolTipProperties.Text="Fermer les résultats" />
             </HorizontalStackLayout>
-        </v:TabBar.TrailingContent>
-    </v:TabBar>
+        </fl:TabView.TabStripFooter>
+    </fl:TabView>
 </ContentView>

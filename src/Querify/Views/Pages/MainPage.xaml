@@ -6,15 +6,17 @@
                 x:Name="Page"
                 Shell.NavBarIsVisible="True">
     <v:AbstractPage.Resources>
-        <!-- Une vue par type de session, instanciee avec la page ; la TabBar la reaffiche d'un onglet a l'autre et la vue transmet la session a son VM -->
+        <!-- Une vue par type de session, instanciee avec la page ; le TabView la reaffiche d'un onglet a l'autre et la vue transmet la session a son VM -->
         <v:DocumentViewSelector x:Key="DocumentViewSelector">
             <v:DocumentViewSelector.CodeEditorView>
                 <v:CodeEditorView x:DataType="m:CodeEditorSession"
-                                  Session="{Binding .}" />
+                                  Session="{Binding .}"
+                                  Padding="{DynamicResource CardContentPadding}" />
             </v:DocumentViewSelector.CodeEditorView>
             <v:DocumentViewSelector.DashboardView>
                 <v:DashboardView x:DataType="m:DashboardSession"
-                                 Session="{Binding .}" />
+                                 Session="{Binding .}"
+                                 Padding="{DynamicResource CardContentPadding}" />
             </v:DocumentViewSelector.DashboardView>
         </v:DocumentViewSelector>
     </v:AbstractPage.Resources>
@@ -139,20 +141,18 @@
                         IsVisible="{Binding Preferences.Panels.IsObjectExplorerOpen}" />
         
         <!-- ============ Onglets : le contenu suit la session selectionnee ============ -->
-        <v:TabBar Grid.Column="2"
-                  ItemsSource="{Binding Sessions}"
-                  SelectedItem="{Binding SelectedSession}"
-                  ContentSelector="{StaticResource DocumentViewSelector}"
-                  IsClosable="True"
-                  CanReorderItems="True"
-                  CloseCommand="{Binding CloseCommand}">
+        <fl:TabView Grid.Column="2"
+                    ItemsSource="{Binding Sessions}"
+                    SelectedSourceItem="{Binding SelectedSession}"
+                    ContentSelector="{StaticResource DocumentViewSelector}"
+                    TabCloseCommand="{Binding CloseCommand}">
             <!-- En-tete avec menu contextuel : les commandes recoivent la session de l'onglet clique -->
-            <v:TabBar.ItemTemplate>
+            <fl:TabView.HeaderTemplate>
                 <DataTemplate x:DataType="m:AbstractSession">
-                    <v:TabBarHeader Title="{Binding Document.Title}"
-                                    ToolTip="{Binding Document.PathLabel}"
-                                    IsClosable="True"
-                                    CloseCommand="{Binding ViewModel.CloseCommand, Source={x:Reference Page}, x:DataType=v:MainPage}">
+                    <Label Text="{Binding Document.Title}"
+                           ToolTipProperties.Text="{Binding Document.PathLabel}"
+                           LineBreakMode="TailTruncation"
+                           VerticalOptions="Center">
                         <FlyoutBase.ContextFlyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Text="Fermer"
@@ -185,9 +185,9 @@
                                                 CommandParameter="{Binding .}" />
                             </MenuFlyout>
                         </FlyoutBase.ContextFlyout>
-                    </v:TabBarHeader>
+                    </Label>
                 </DataTemplate>
-            </v:TabBar.ItemTemplate>
-        </v:TabBar>
+            </fl:TabView.HeaderTemplate>
+        </fl:TabView>
     </Grid>
 </v:AbstractPage>
