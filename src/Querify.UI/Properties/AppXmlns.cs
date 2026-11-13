@@ -18,7 +18,6 @@
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/viewmodels", "Querify.UI.ViewModels")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/views", "Querify.UI.Views")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/views", "Querify.UI.Views.Controls")]
-[assembly: XmlnsDefinition("http://querify.app/dotnet/maui/views", "Querify.UI.Views.Controls.DataGrids")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/views", "Querify.UI.Views.Controls.Layouts")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/views", "Querify.UI.Views.Controls.Menus")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/views", "Querify.UI.Views.Controls.Tabs")]

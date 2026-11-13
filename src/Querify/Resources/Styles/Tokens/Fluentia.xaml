@@ -18,4 +18,17 @@
     <x:Double x:Key="FluentiaFontSizeBody">13</x:Double>
     <x:Double x:Key="FluentiaFontSizeTitle">18</x:Double>
 
+    <!-- fl:DataGrid : DataGridRowHeight, marge des cellules et FontSize_Small (32, 12,0 et 12 dans Fluentia) -->
+    <x:Double x:Key="FluentiaDataGridRowHeight">26</x:Double>
+    <Thickness x:Key="FluentiaDataGridCellPadding">8,0</Thickness>
+    <x:Double x:Key="FluentiaDataGridFontSize">11</x:Double>
+
+    <!-- Textes de fl:DataGrid (anglais dans Fluentia) -->
+    <x:String x:Key="FluentiaDataGridNoMatchText">Aucune ligne ne correspond aux filtres.</x:String>
+    <x:String x:Key="FluentiaDataGridFilterTitle">Filtrer</x:String>
+    <x:String x:Key="FluentiaDataGridFilterPlaceholder">Valeur</x:String>
+    <x:String x:Key="FluentiaDataGridFilterToolTip">Filtrer</x:String>
+    <x:String x:Key="FluentiaDataGridClearFilterToolTip">Effacer le filtre</x:String>
+    <x:String x:Key="FluentiaDataGridFilterHelp">texte : contient    !texte : ne contient pas&#10;=  !=  &gt;  &gt;=  &lt;  &lt;=  : nombres, dates&#10;NULL : vide    !NULL : renseigné</x:String>
+
 </ResourceDictionary>

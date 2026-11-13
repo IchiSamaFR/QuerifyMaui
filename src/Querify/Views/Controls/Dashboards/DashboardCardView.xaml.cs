@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using Querify.Converters;
 using Querify.Core.Models.Dashboards;
-using Querify.UI.Views.Controls.DataGrids;
+using Fluentia.Controls;
 using System.ComponentModel;
 using Querify.Diagnostics;
 using Querify.UI.Extensions;
