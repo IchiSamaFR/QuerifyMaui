@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<!-- Styles par defaut des controles MAUI natifs et des surfaces (Shell, pages), theme Dark WPF UI -->
+<!-- Surfaces (Shell, pages) et controles de Querify.UI. Les controles MAUI natifs (Button, Entry, Editor, Picker, CheckBox, RadioButton, Switch, Slider, ProgressBar, ActivityIndicator) prennent le style de Fluentia (FluentiaTheme, App.xaml). -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
@@ -21,15 +21,16 @@
                 Value="{DynamicResource ApplicationBackground}" />
     </Style>
 
-    <!-- Zone de contenu : calque LayerFillColorDefault -->
-    <Style TargetType="Page"
+    <!-- Zone de contenu : calque LayerFillColorDefault (ContentPage : meme cle que le style de Fluentia, remplace ici) -->
+    <Style TargetType="ContentPage"
            ApplyToDerivedTypes="True">
         <Setter Property="BackgroundColor"
                 Value="{DynamicResource LayerBackground}" />
     </Style>
 
-    <!-- ============ Saisie ============ -->
-    <Style TargetType="Entry"
+    <!-- ============ Saisie (Querify.UI) ============ -->
+    <!-- Les styles implicites de Fluentia ne visent pas les types derives : texte des champs de Querify.UI -->
+    <Style TargetType="inp:BorderlessEntry"
            ApplyToDerivedTypes="True">
         <Setter Property="FontSize"
                 Value="{DynamicResource FontSize_Body}" />
@@ -39,7 +40,7 @@
                 Value="{DynamicResource LabelPlaceHolder}" />
     </Style>
 
-    <Style TargetType="Editor"
+    <Style TargetType="inp:TextInput"
            ApplyToDerivedTypes="True">
         <Setter Property="FontSize"
                 Value="{DynamicResource FontSize_Body}" />
@@ -49,8 +50,17 @@
                 Value="{DynamicResource LabelPlaceHolder}" />
     </Style>
 
-    <!-- Le ComboBox WinUI garde son rendu Fluent : seul le texte est aligne -->
-    <Style TargetType="Picker"
+    <Style TargetType="inp:BorderlessEditor"
+           ApplyToDerivedTypes="True">
+        <Setter Property="FontSize"
+                Value="{DynamicResource FontSize_Body}" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource TextFillColorPrimary}" />
+        <Setter Property="PlaceholderColor"
+                Value="{DynamicResource LabelPlaceHolder}" />
+    </Style>
+
+    <Style TargetType="inp:BorderlessPicker"
            ApplyToDerivedTypes="True">
         <Setter Property="FontSize"
                 Value="{DynamicResource FontSize_Body}" />
@@ -60,47 +70,14 @@
                 Value="{DynamicResource TextFillColorSecondary}" />
     </Style>
 
-    <!-- ============ Selection / progression : accent Info ============ -->
-    <Style TargetType="CheckBox"
+    <Style TargetType="inp:SelectInput"
            ApplyToDerivedTypes="True">
-        <Setter Property="Color"
-                Value="{DynamicResource Info}" />
-    </Style>
-
-    <Style TargetType="RadioButton"
-           ApplyToDerivedTypes="True">
-        <Setter Property="TextColor"
-                Value="{DynamicResource TextFillColorPrimary}" />
         <Setter Property="FontSize"
                 Value="{DynamicResource FontSize_Body}" />
-    </Style>
-
-    <Style TargetType="Switch"
-           ApplyToDerivedTypes="True">
-        <Setter Property="OnColor"
-                Value="{DynamicResource Info}" />
-    </Style>
-
-    <Style TargetType="Slider"
-           ApplyToDerivedTypes="True">
-        <Setter Property="MinimumTrackColor"
-                Value="{DynamicResource Info}" />
-        <Setter Property="MaximumTrackColor"
-                Value="{DynamicResource ControlStrongStrokeColorDefault}" />
-        <Setter Property="ThumbColor"
-                Value="{DynamicResource Info}" />
-    </Style>
-
-    <Style TargetType="ProgressBar"
-           ApplyToDerivedTypes="True">
-        <Setter Property="ProgressColor"
-                Value="{DynamicResource Info}" />
-    </Style>
-
-    <Style TargetType="ActivityIndicator"
-           ApplyToDerivedTypes="True">
-        <Setter Property="Color"
-                Value="{DynamicResource Info}" />
+        <Setter Property="TextColor"
+                Value="{DynamicResource TextFillColorPrimary}" />
+        <Setter Property="TitleColor"
+                Value="{DynamicResource TextFillColorSecondary}" />
     </Style>
 
     <Style TargetType="RefreshView"

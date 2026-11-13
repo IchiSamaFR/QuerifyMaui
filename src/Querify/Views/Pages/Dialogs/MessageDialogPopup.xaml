@@ -28,19 +28,20 @@
               RowDefinitions="Auto">
             <HorizontalStackLayout Spacing="6"
                                    HorizontalOptions="End">
-                <Button x:Name="PrimaryButton"
-                        Style="{StaticResource PrimaryButtonStyle}"
+                <Button VerticalOptions="Center"
+                        x:Name="PrimaryButton"
+                        StyleClass="Accent"
                         Command="{Binding PrimaryCommand}"
                         Text="{Binding PrimaryButtonText}"
                         MinimumWidthRequest="120" />
 
-                <Button Style="{StaticResource SecondaryButtonStyle}"
+                <Button VerticalOptions="Center"
                         Command="{Binding SecondaryCommand}"
                         Text="{Binding SecondaryButtonText}"
                         IsVisible="{Binding HasSecondaryButton}"
                         MinimumWidthRequest="120" />
 
-                <Button Style="{StaticResource SecondaryButtonStyle}"
+                <Button VerticalOptions="Center"
                         Command="{Binding CloseCommand}"
                         Text="{Binding CloseButtonText}"
                         MinimumWidthRequest="120" />

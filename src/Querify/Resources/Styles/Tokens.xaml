@@ -6,5 +6,6 @@
         <ResourceDictionary Source="./Tokens/Colors.xaml" />
         <ResourceDictionary Source="./Tokens/FontSizes.xaml" />
         <ResourceDictionary Source="./Tokens/Thickness.xaml" />
+        <ResourceDictionary Source="./Tokens/Fluentia.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

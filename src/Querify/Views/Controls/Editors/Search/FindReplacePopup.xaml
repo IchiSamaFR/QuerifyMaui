@@ -71,7 +71,8 @@
                        VerticalOptions="Center" />
 
                 <!-- Respecter la casse -->
-                <Button Style="{DynamicResource TextButtonStyle}"
+                <Button VerticalOptions="Center"
+                        StyleClass="Subtle"
                         Text="Aa"
                         FontSize="{DynamicResource FontSize_Caption}"
                         Opacity="{DynamicResource DisabledOpacity}"

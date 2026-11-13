@@ -80,6 +80,8 @@
 		<ProjectReference Include="..\Querify.Languages.Sql\Querify.Languages.Sql.csproj" />
 		<ProjectReference Include="..\Querify.Languages\Querify.Languages.csproj" />
 		<ProjectReference Include="..\Querify.UI\Querify.UI.csproj" />
+		<!-- Librairie d'interface (depot voisin), en attendant son paquet NuGet -->
+		<ProjectReference Include="..\..\..\Fluentia\src\Fluentia\Fluentia.csproj" />
 	</ItemGroup>
 
 	<!-- ===================== Generation T4 (ne tourne pas au build) ===================== -->

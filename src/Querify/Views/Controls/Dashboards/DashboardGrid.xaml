@@ -101,9 +101,10 @@
                             </BindableLayout.ItemTemplate>
                         </v:WrapLayout>
 
-                        <Button Style="{StaticResource PrimaryButtonStyle}"
+                        <Button VerticalOptions="Center"
+                                StyleClass="Accent"
                                 Text="Ajouter"
-                                ImageSource="{mk:FluentFilledImage Icon=Add20Filled, IconSize=14}"
+                                ImageSource="{mk:FluentFilledImage Icon=Add20Filled, IconSize=14, IconColor={StaticResource TextOnInfo}}"
                                 Command="{Binding AddParameterCommand}"
                                 IsVisible="{Binding Session.IsDesigning}" />
                     </v:WrapLayout>
@@ -122,7 +123,7 @@
                                     Value="False" />
                         </DataTrigger>
                     </Grid.Triggers>
-                    <Button Style="{StaticResource SecondaryButtonStyle}"
+                    <Button VerticalOptions="Center"
                             Text="Retour"
                             Command="{Binding BackCommand}"
                             IsEnabled="{Binding Session.CanGoBack, FallbackValue=False}" />
@@ -138,7 +139,8 @@
                                         <Label Text="›"
                                                Style="{StaticResource LabelTertiaryStyle}"
                                                VerticalOptions="Center" />
-                                        <Button Style="{StaticResource TextButtonStyle}"
+                                        <Button VerticalOptions="Center"
+                                                StyleClass="Subtle"
                                                 Text="{Binding Title}"
                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=GoToStepCommand, x:DataType=c:DashboardGrid}"
                                                 CommandParameter="{Binding .}" />
@@ -312,9 +314,10 @@
                                                                            Placeholder="Titre de la carte..."
                                                                            IsVisible="{Binding IsSelected}" />
 
-                                                            <Button Grid.Column="1"
-                                                                    Style="{StaticResource PrimaryIconButtonStyle}"
-                                                                    ImageSource="{mk:FluentFilledImage Icon=Flowchart20Filled}"
+                                                            <Button VerticalOptions="Center"
+                                                                    Grid.Column="1"
+                                                                    StyleClass="Accent,Icon"
+                                                                    ImageSource="{mk:FluentFilledImage Icon=Flowchart20Filled, IconColor={StaticResource TextOnInfo}}"
                                                                     IsVisible="{Binding IsSelected}"
                                                                     Clicked="OnFlowchartButtonClicked">
                                                                 <FlyoutBase.ContextFlyout>
@@ -419,7 +422,8 @@
                     <Grid ColumnDefinitions="*,Auto"
                           Style="{StaticResource GridSpacingStyle}">
                         <HorizontalStackLayout IsEnabled="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}">
-                            <Button Style="{StaticResource SecondaryIconButtonStyle}"
+                            <Button VerticalOptions="Center"
+                                    StyleClass="Icon"
                                     ImageSource="{mk:FluentFilledImage Icon=Play16Filled}"
                                     Command="{Binding RunCardCommand}"
                                     CommandParameter="{Binding Session.SelectedCard}"
@@ -517,7 +521,8 @@
                         </HorizontalStackLayout>
 
                         <HorizontalStackLayout Grid.Column="1">
-                            <Button Style="{StaticResource DangerButtonStyle}"
+                            <Button VerticalOptions="Center"
+                                    StyleClass="Danger"
                                     Text="Supprimer"
                                     Command="{Binding DeleteCardCommand}"
                                     CommandParameter="{Binding Session.SelectedCard}" />

@@ -36,12 +36,13 @@
         <HorizontalStackLayout Grid.Row="1"
                                Spacing="6"
                                HorizontalOptions="End">
-            <Button Style="{StaticResource PrimaryButtonStyle}"
+            <Button VerticalOptions="Center"
+                    StyleClass="Accent"
                     Command="{Binding AcceptCommand}"
                     Text="{Binding AcceptButtonText}"
                     MinimumWidthRequest="120" />
 
-            <Button Style="{StaticResource SecondaryButtonStyle}"
+            <Button VerticalOptions="Center"
                     Command="{Binding CancelCommand}"
                     Text="Annuler"
                     MinimumWidthRequest="120" />

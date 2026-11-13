@@ -66,9 +66,10 @@
                     </Label.IsVisible>
                 </Label>
 
-                <Button Text="{Binding Card.ButtonText, FallbackValue=''}"
+                <Button VerticalOptions="Center"
+                        Text="{Binding Card.ButtonText, FallbackValue=''}"
                         Command="{Binding Card.PressCommand, FallbackValue={x:Null}}"
-                        Style="{StaticResource PrimaryButtonStyle}">
+                        StyleClass="Accent">
                     <Button.IsVisible>
                         <MultiBinding Converter="{StaticResource IsAllTrueConverter}">
                             <Binding Path="Card.IsButton"

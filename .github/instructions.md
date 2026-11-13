@@ -31,7 +31,7 @@ Querify (nom affiché : **Querify**) est une application **desktop Windows** .NE
 
 ### Couches et dépendances
 
-`Helpers` ← `Databases` (indépendante) ← `Core` ← `Languages.Commons` ← `Languages.Sql` / `Languages.Linq` ← `Languages` ← application. `UI` ne référence que `Helpers`. L'application référence `Core`, `Databases`, `Languages` et `UI`.
+`Helpers` ← `Databases` (indépendante) ← `Core` ← `Languages.Commons` ← `Languages.Sql` / `Languages.Linq` ← `Languages` ← application. `UI` ne référence que `Helpers`. L'application référence `Core`, `Databases`, `Languages`, `UI` et **Fluentia** (librairie d'interface maison, dépôt voisin `..\..\Fluentia`, en `ProjectReference` en attendant le paquet NuGet).
 
 **Application (`Querify`)** :
 * **Views/Pages** : `MainPage` (hérite de `AbstractPage`), `Connections/` (explorateur, popup de connexion), `Documents/` (`CodeEditorView`, `DashboardView`, `DocumentViewSelector`).
@@ -39,7 +39,7 @@ Querify (nom affiché : **Querify**) est une application **desktop Windows** .NE
 * **ViewModels** : `Pages/` (`MainVM` en trois fichiers partiels : base, `Files`, `Workspace`), `Pages/Documents/` (`DocumentVM<TSession>`, `CodeEditorVM`, `DashboardVM`), `Pages/Shared/` (`DatabaseConnectionVM`, `StatusBarVM`), `Pages/Connections/`, `Controls/Menus/MainMenuBarVM`.
 * **Services** (derrière une interface, par domaine) : `Databases/` (coffre `SecureStorage` et fichier `connections.json` fournis à `ConnectionStore`, dialogue de connexion), `Dialogs/` (`IDialogService` : questions posées depuis un VM), `Diagnostics/` (`FileLogWriter`), `Editors/` (fichiers, coloration, complétion), `Settings/` (préférences, onglets mémorisés).
 * **Ioc** : locator statique + scan des `[AutoRegister]`. **Platforms/Windows** : code WinUI (`WindowCloseGuard`).
-* **Resources/Styles** : tokens (couleurs, tailles, épaisseurs) et un fichier de styles par contrôle.
+* **Resources/Styles** : tokens (couleurs, tailles, épaisseurs) et un fichier de styles par contrôle, posés sur le thème de Fluentia (voir « Fluentia »).
 
 **Bibliothèque UI (`Querify.UI`)** — générique, sans métier SQL :
 * `ViewModels/` (`AbstractVM`, `AbstractVM_Busy`), `Views/` (`AbstractPage`, `AbstractContentView`, `Controls/` : `DataGrids`, `Layouts`, `Menus`, `Tabs`, `Trees`, `ViewSelector`).
@@ -178,7 +178,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * **Contrôles en XAML + code-behind** : tout contrôle visuel est un couple `X.xaml` / `X.xaml.cs`. Structure, bindings internes, triggers et gestes dans le XAML ; le code-behind ne garde que les `[BindableProperty]`, `InitializeComponent()` et ce que le XAML ne sait pas faire (colonnes connues à l'exécution, natif WinUI), construit dans un conteneur nommé. Exceptions : non-vues et `UI.Inputs`.
 * **Un contrôle ne connaît pas les ViewModels** : `BindableProperty` + liaison à soi-même (`x:Name="Root"` / `RelativeSource AncestorType`). La page hôte branche le VM.
 * **Menus** : déclarés dans `MainPage.xaml` (`MenuBarItems`), liés à `MainVM` (Fichier) et `MainMenuBarVM` (le reste). Entrée cochable : `v:CheckedMenuFlyoutItem` ; liste : `v:MenuFlyoutSubItemExtended`.
-* **Boutons** : `Button` avec styles `PrimaryButton`, `SecondaryButton`, `DangerButton`, `TextButton` ; `inp:ButtonView` pour un contenu personnalisé.
+* **Boutons** : `Button` stylé par Fluentia — défaut (secondaire), `StyleClass="Accent"` (action principale), `StyleClass="Subtle"` (sans cadre), plus `Danger` et `Icon` (icône seule) propres à Querify, cumulables (`StyleClass="Accent,Icon"`) ; toujours `VerticalOptions="Center"` (sinon le bouton s'étire) ; `inp:ButtonView` pour un contenu personnalisé.
 * **Icônes** : `{icons:Fluent Icon=Xxx}` / `{mk:FluentFilledImage Icon=Xxx}`.
 * **Styles et couleurs** : tokens (`Resources/Styles/Tokens/`), jamais de couleur en dur.
 
@@ -217,6 +217,14 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 ---
 
 ## Points clés spécifiques à ce projet
+
+### Fluentia (base de l'interface)
+
+* `App.xaml` fusionne `<fluentia:FluentiaTheme />` **en premier** : tokens `Fluentia*`, palette sombre et styles implicites des contrôles MAUI natifs (`Button`, `Entry`, `Editor`, `Picker`, `CheckBox`, `RadioButton`, `Switch`, `Slider`, `ProgressBar`, `ActivityIndicator`). `MauiProgram` appelle `.UseFluentia()` (handlers natifs, police d'icônes).
+* **Gabarits de Querify conservés** : `Resources/Styles/Tokens/Fluentia.xaml` surcharge les tokens de taille de Fluentia (contrôles de 24 px, texte de 13 px / 11 px). Pour changer une dimension d'un contrôle Fluentia, surcharger son token là, jamais un style.
+* Ne pas redéclarer de style implicite pour un contrôle natif stylé par Fluentia : le dernier dictionnaire fusionné remplace celui de Fluentia en entier. Une variante = un style de classe (`<Style TargetType="Button" Class="Danger">`).
+* Les styles implicites de Fluentia ne visent pas les types dérivés : les champs de `Querify.UI` (`BorderlessEntry`, `TextInput`…) gardent leurs styles dans `NativeStyles.xaml`.
+* **Migration en cours** : les contrôles de `Querify.UI` (champs `inp:*`, `ImageButton`, `DataGrid`, `TreeView`, `TabBar`, `Separator`) restent en place tant que leur équivalent Fluentia ne couvre pas leurs fonctions ; un nouveau besoin générique se construit dans Fluentia.
 
 ### Shell et fenêtre
 

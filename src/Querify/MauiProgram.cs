@@ -2,6 +2,7 @@
 using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Markup;
 using CommunityToolkit.Mvvm.Messaging;
+using Fluentia.Extensions;
 using LiveChartsCore.SkiaSharpView.Maui;
 using MauiIcons.Core;
 using MauiIcons.Fluent;
@@ -32,6 +33,7 @@ public static class MauiProgram
             .UseLiveCharts()
             .UseMauiCommunityToolkit(options => options.SetShouldEnableSnackbarOnWindows(true))
             .UseMauiCommunityToolkitMarkup()
+            .UseFluentia()
             .UseQuerifyInputs();
 
         builder.Services.AddApplicationServices();

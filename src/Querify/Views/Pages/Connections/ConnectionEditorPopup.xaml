@@ -51,8 +51,8 @@
         <!-- Actions : test a gauche, validation a droite (dialogue Fluent) -->
         <Grid ColumnDefinitions="Auto,*,Auto,Auto"
               Style="{StaticResource GridSpacingStyle}">
-            <Button Grid.Column="0"
-                    Style="{StaticResource SecondaryButtonStyle}"
+            <Button VerticalOptions="Center"
+                    Grid.Column="0"
                     Command="{Binding TestCommand}"
                     Text="Tester"
                     ImageSource="{mk:FluentFilledImage Icon=PlugConnected20Filled}" />
@@ -64,16 +64,17 @@
                                WidthRequest="20"
                                HeightRequest="20" />
 
-            <Button Grid.Column="2"
-                    Style="{StaticResource SecondaryButtonStyle}"
+            <Button VerticalOptions="Center"
+                    Grid.Column="2"
                     Command="{Binding CancelCommand}"
                     Text="Annuler" />
 
-            <Button Grid.Column="3"
-                    Style="{StaticResource PrimaryButtonStyle}"
+            <Button VerticalOptions="Center"
+                    Grid.Column="3"
+                    StyleClass="Accent"
                     Command="{Binding SaveCommand}"
                     Text="Enregistrer"
-                    ImageSource="{mk:FluentFilledImage Icon=Save20Filled}" />
+                    ImageSource="{mk:FluentFilledImage Icon=Save20Filled, IconColor={StaticResource TextOnInfo}}" />
         </Grid>
     </VerticalStackLayout>
 </toolkit:Popup>

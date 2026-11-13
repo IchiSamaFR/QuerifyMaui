@@ -38,16 +38,17 @@
 
         <Grid ColumnDefinitions="*,Auto,Auto"
               Style="{StaticResource GridSpacingStyle}">
-            <Button Grid.Column="1"
-                    Style="{StaticResource SecondaryButtonStyle}"
+            <Button VerticalOptions="Center"
+                    Grid.Column="1"
                     Command="{Binding CancelCommand}"
                     Text="Annuler" />
 
-            <Button Grid.Column="2"
-                    Style="{StaticResource PrimaryButtonStyle}"
+            <Button VerticalOptions="Center"
+                    Grid.Column="2"
+                    StyleClass="Accent"
                     Command="{Binding SaveCommand}"
                     Text="Enregistrer"
-                    ImageSource="{mk:FluentFilledImage Icon=Save20Filled}" />
+                    ImageSource="{mk:FluentFilledImage Icon=Save20Filled, IconColor={StaticResource TextOnInfo}}" />
         </Grid>
     </VerticalStackLayout>
 </toolkit:Popup>
