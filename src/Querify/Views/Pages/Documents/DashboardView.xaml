@@ -11,11 +11,13 @@
         <!-- ============ En-tete : chargement des cartes, connexion et vue ============ -->
         <HorizontalStackLayout>
             <!-- Langage de la carte selectionnee, modifiable dans le concepteur seulement ; LINQ : les parametres sont des variables C# (UserId ou @UserId) -->
-            <inp:PickerField ItemsSource="{x:Static vm:QueryLanguages.All}"
-                             SelectedKey="{Binding Session.SelectedCard.Language, Mode=TwoWay, FallbackValue={x:Null}}"
-                             WidthRequest="120"
-                             ToolTipProperties.Text="Langage de la requête de la carte sélectionnée">
-                <inp:PickerField.IsEnabled>
+            <Picker fl:FluentiaPicker.ItemsSource="{x:Static vm:QueryLanguages.All}"
+                    fl:FluentiaPicker.DisplayMemberPath="Value"
+                    fl:FluentiaPicker.SelectedValuePath="Key"
+                    fl:FluentiaPicker.SelectedValue="{Binding Session.SelectedCard.Language, Mode=TwoWay, FallbackValue={x:Null}}"
+                    WidthRequest="120"
+                    ToolTipProperties.Text="Langage de la requête de la carte sélectionnée">
+                <Picker.IsEnabled>
                     <MultiBinding Converter="{StaticResource IsAllTrueConverter}">
                         <Binding Path="Session.IsDesigning"
                                  FallbackValue="False" />
@@ -26,8 +28,8 @@
                         <Binding Path="Session.SelectedCard.UsesQuery"
                                  FallbackValue="False" />
                     </MultiBinding>
-                </inp:PickerField.IsEnabled>
-            </inp:PickerField>
+                </Picker.IsEnabled>
+            </Picker>
 
             <fl:CommandBarButton Command="{Binding ApplyParametersCommand}"
                                  Icon="{x:Static mi:FluentIcons.Play16}"
@@ -46,11 +48,12 @@
                                  TextColor="{StaticResource Danger}"
                                  ToolTipProperties.Text="Déconnecter la connexion" />
 
-            <inp:PickerField ItemsSource="{Binding Connection.Connections}"
-                             SelectedItem="{Binding Connection.SelectedConnection, Mode=TwoWay}"
-                             DisplayMemberPath="Name"
-                             WidthRequest="220"
-                             FontSize="{StaticResource FontSize_Caption}" />
+            <Picker fl:FluentiaPicker.ItemsSource="{Binding Connection.Connections}"
+                    fl:FluentiaPicker.DisplayMemberPath="Name"
+                    fl:FluentiaPicker.SelectedValuePath="."
+                    fl:FluentiaPicker.SelectedValue="{Binding Connection.SelectedConnection, Mode=TwoWay}"
+                    WidthRequest="220"
+                    FontSize="{StaticResource FontSize_Caption}" />
 
             <fl:CommandBarSeparator />
 

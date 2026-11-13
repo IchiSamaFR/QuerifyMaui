@@ -9,10 +9,12 @@
 
         <!-- ============ En-tete : execution et connexion ============ -->
         <HorizontalStackLayout>
-            <inp:PickerField ItemsSource="{x:Static vm:QueryLanguages.All}"
-                             SelectedKey="{Binding SelectedLanguageKey, Mode=TwoWay}"
-                             WidthRequest="120"
-                             ToolTipProperties.Text="Langage de l'onglet" />
+            <Picker fl:FluentiaPicker.ItemsSource="{x:Static vm:QueryLanguages.All}"
+                    fl:FluentiaPicker.DisplayMemberPath="Value"
+                    fl:FluentiaPicker.SelectedValuePath="Key"
+                    fl:FluentiaPicker.SelectedValue="{Binding SelectedLanguageKey, Mode=TwoWay}"
+                    WidthRequest="120"
+                    ToolTipProperties.Text="Langage de l'onglet" />
 
             <fl:CommandBarButton Command="{Binding ExecuteQueryCommand}"
                                  Icon="{x:Static mi:FluentIcons.Play16}"
@@ -31,10 +33,11 @@
                                  TextColor="{StaticResource Danger}"
                                  ToolTipProperties.Text="Déconnecter la connexion" />
 
-            <inp:PickerField ItemsSource="{Binding Connection.Connections}"
-                             SelectedItem="{Binding Connection.SelectedConnection, Mode=TwoWay}"
-                             DisplayMemberPath="Name"
-                             WidthRequest="220" />
+            <Picker fl:FluentiaPicker.ItemsSource="{Binding Connection.Connections}"
+                    fl:FluentiaPicker.DisplayMemberPath="Name"
+                    fl:FluentiaPicker.SelectedValuePath="."
+                    fl:FluentiaPicker.SelectedValue="{Binding Connection.SelectedConnection, Mode=TwoWay}"
+                    WidthRequest="220" />
         </HorizontalStackLayout>
 
         <Grid Grid.Row="1"
