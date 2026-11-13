@@ -68,11 +68,11 @@
                                               HeightRequest="{DynamicResource InputHeight}">
                                             <Label Text="{Binding DisplayName}"
                                                    VerticalOptions="Center" />
-                                            <inp:TextField Grid.Column="1"
-                                                           Text="{Binding Value, Mode=TwoWay}"
-                                                           Placeholder="{Binding Hint}"
-                                                           ReturnCommand="{Binding ApplyParametersCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
-                                                           WidthRequest="120" />
+                                            <Entry Grid.Column="1"
+                                                   Text="{Binding Value, Mode=TwoWay}"
+                                                   Placeholder="{Binding Hint}"
+                                                   ReturnCommand="{Binding ApplyParametersCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
+                                                   WidthRequest="120" />
                                             <v:MenuButton Grid.Column="1"
                                                           ImageSource="{mk:FluentFilledImage Icon=MoreHorizontal16Filled}"
                                                           IsVisible="{Binding Session.IsDesigning, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
@@ -179,11 +179,10 @@
                         </BindableLayout.ItemTemplate>
                     </HorizontalStackLayout>
 
-                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Source="{mk:FluentFilledImage Icon=Add20Filled, IconSize=14}"
-                                 Command="{Binding AddPageCommand}"
-                                 VerticalOptions="Center"
-                                 ToolTipProperties.Text="Nouvelle page" />
+                    <fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.Add20Filled}"
+                                         Command="{Binding AddPageCommand}"
+                                         VerticalOptions="Center"
+                                         ToolTipProperties.Text="Nouvelle page" />
                 </HorizontalStackLayout>
             </ScrollView>
 
@@ -300,19 +299,17 @@
                                                             </DataTrigger>
                                                         </Grid.Triggers>
 
-                                                        <inp:TextField Grid.Row="1"
-                                                                       VerticalOptions="Center"
-                                                                       Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
-                                                                       Background="{DynamicResource CardBackground}"
-                                                                       IsVisible="{Binding IsText}"
-                                                                       Placeholder="Texte saisi..." />
+                                                        <Entry Grid.Row="1"
+                                                               VerticalOptions="Center"
+                                                               Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
+                                                               IsVisible="{Binding IsText}"
+                                                               Placeholder="Texte saisi..." />
 
                                                         <Grid ColumnDefinitions="*,Auto"
                                                               ColumnSpacing="4">
-                                                            <inp:TextField Text="{Binding Title}"
-                                                                           Background="{DynamicResource CardBackground}"
-                                                                           Placeholder="Titre de la carte..."
-                                                                           IsVisible="{Binding IsSelected}" />
+                                                            <Entry Text="{Binding Title}"
+                                                                   Placeholder="Titre de la carte..."
+                                                                   IsVisible="{Binding IsSelected}" />
 
                                                             <Button VerticalOptions="Center"
                                                                     Grid.Column="1"
@@ -353,9 +350,8 @@
                                                                              IsVisible="{Binding IsButton}"
                                                                              Spacing="{DynamicResource DefaultCollectionSpacing}">
 
-                                                            <inp:TextField Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
-                                                                           Background="{DynamicResource CardBackground}"
-                                                                           Placeholder="Texte du bouton..." />
+                                                            <Entry Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
+                                                                   Placeholder="Texte du bouton..." />
 
                                                             <Grid>
                                                                 <Image Source="{mk:FluentFilledImage Icon=Link16Filled}"

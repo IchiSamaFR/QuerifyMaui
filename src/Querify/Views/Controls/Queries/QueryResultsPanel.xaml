@@ -62,20 +62,20 @@
                     <Label Text="{Binding DisplayedItemsCount, Source={x:Reference ResultGrid}, StringFormat='{0} après filtre', x:DataType=v:DataGrid}"
                            Style="{StaticResource LabelTertiaryStyle}"
                            VerticalOptions="Center" />
-                    <ImageButton Style="{StaticResource DataGridFilterButtonStyle}"
-                                 Command="{Binding ClearFiltersCommand, Source={x:Reference ResultGrid}, x:DataType=v:DataGrid}"
-                                 Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}, IconSize=10}"
-                                 ToolTipProperties.Text="Effacer tous les filtres" />
+                    <fl:CommandBarButton Command="{Binding ClearFiltersCommand, Source={x:Reference ResultGrid}, x:DataType=v:DataGrid}"
+                                         Icon="{x:Static mi:FluentFilledIcons.Dismiss16Filled}"
+                                         TextColor="{StaticResource LabelTertiary}"
+                                         ToolTipProperties.Text="Effacer tous les filtres" />
                 </HorizontalStackLayout>
 
                 <Label Text="{Binding Result.ElapsedLabel, Source={x:Reference root}, FallbackValue='', x:DataType=c:QueryResultsPanel}"
                        Style="{StaticResource LabelTertiaryStyle}"
                        VerticalOptions="Center" />
 
-                <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                             Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
-                             Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}, IconSize=12}"
-                             ToolTipProperties.Text="Fermer les résultats" />
+                <fl:CommandBarButton Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+                                     Icon="{x:Static mi:FluentFilledIcons.Dismiss16Filled}"
+                                     TextColor="{StaticResource LabelTertiary}"
+                                     ToolTipProperties.Text="Fermer les résultats" />
             </HorizontalStackLayout>
         </v:TabBar.TrailingContent>
     </v:TabBar>

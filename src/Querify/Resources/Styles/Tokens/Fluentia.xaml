@@ -10,6 +10,8 @@
     <x:Double x:Key="FluentiaControlMinHeight">24</x:Double>
     <!-- ButtonPadding -->
     <Thickness x:Key="FluentiaButtonPadding">11,0</Thickness>
+    <!-- Bouton reduit a son icone : carre de la hauteur des controles (icone de 16 px) -->
+    <Thickness x:Key="FluentiaIconButtonPadding">4,0</Thickness>
 
     <!-- FontSize_Caption, FontSize_Body, FontSize_Subtitle (12, 14 et 20 dans Fluentia) -->
     <x:Double x:Key="FluentiaFontSizeCaption">11</x:Double>

@@ -30,3 +30,4 @@
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://querify.app/dotnet/maui/views", "v")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://querify.app/dotnet/maui/viewmodels", "vm")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://www.aathifmahir.com/dotnet/2022/maui/icons", "mi")]
+[assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://schemas.fluentia.dev/maui", "fl")]

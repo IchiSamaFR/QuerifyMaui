@@ -13,29 +13,27 @@
                 <Label Text="Explorateur d'objets"
                        Style="{StaticResource LabelThirdHeaderStyle}"
                        VerticalOptions="Center" />
-                <ImageButton Grid.Column="1"
-                        Style="{StaticResource TextImageButtonStyle}"
-                        Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
-                        Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}}"
-                        ToolTipProperties.Text="Fermer l'explorateur" />
+                <fl:CommandBarButton Grid.Column="1"
+                                     Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
+                                     Icon="{x:Static mi:FluentFilledIcons.Dismiss16Filled}"
+                                     TextColor="{StaticResource LabelTertiary}"
+                                     ToolTipProperties.Text="Fermer l'explorateur" />
             </Grid>
 
             <Grid ColumnDefinitions="*,Auto"
                   Grid.Row="1">
                 <HorizontalStackLayout Spacing="4">
-                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Command="{Binding CollapseAllCommand}"
-                                 Source="{mk:FluentFilledImage Icon=ArrowCollapseAll20Filled}"
-                                 ToolTipProperties.Text="Reduire tout" />
-                    <v:Separator />
-                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Command="{Binding RefreshCommand}"
-                                 Source="{mk:FluentFilledImage Icon=ArrowSync20Filled}"
-                                 ToolTipProperties.Text="Actualiser" />
-                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Command="{Binding AddConnectionCommand}"
-                                 Source="{mk:FluentFilledImage Icon=PlugConnectedAdd20Filled, IconColor={StaticResource Secondary}}"
-                                 ToolTipProperties.Text="Se connecter..." />
+                    <fl:CommandBarButton Command="{Binding CollapseAllCommand}"
+                                         Icon="{x:Static mi:FluentFilledIcons.ArrowCollapseAll20Filled}"
+                                         ToolTipProperties.Text="Reduire tout" />
+                    <fl:CommandBarSeparator />
+                    <fl:CommandBarButton Command="{Binding RefreshCommand}"
+                                         Icon="{x:Static mi:FluentFilledIcons.ArrowSync20Filled}"
+                                         ToolTipProperties.Text="Actualiser" />
+                    <fl:CommandBarButton Command="{Binding AddConnectionCommand}"
+                                         Icon="{x:Static mi:FluentFilledIcons.PlugConnectedAdd20Filled}"
+                                         TextColor="{StaticResource Secondary}"
+                                         ToolTipProperties.Text="Se connecter..." />
                 </HorizontalStackLayout>
                 <HorizontalStackLayout Grid.Column="1"
                                        Spacing="4">

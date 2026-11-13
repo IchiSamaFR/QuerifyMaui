@@ -179,7 +179,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * **Un contrôle ne connaît pas les ViewModels** : `BindableProperty` + liaison à soi-même (`x:Name="Root"` / `RelativeSource AncestorType`). La page hôte branche le VM.
 * **Menus** : déclarés dans `MainPage.xaml` (`MenuBarItems`), liés à `MainVM` (Fichier) et `MainMenuBarVM` (le reste). Entrée cochable : `v:CheckedMenuFlyoutItem` ; liste : `v:MenuFlyoutSubItemExtended`.
 * **Boutons** : `Button` stylé par Fluentia — défaut (secondaire), `StyleClass="Accent"` (action principale), `StyleClass="Subtle"` (sans cadre), plus `Danger` et `Icon` (icône seule) propres à Querify, cumulables (`StyleClass="Accent,Icon"`) ; toujours `VerticalOptions="Center"` (sinon le bouton s'étire) ; `inp:ButtonView` pour un contenu personnalisé.
-* **Icônes** : `{icons:Fluent Icon=Xxx}` / `{mk:FluentFilledImage Icon=Xxx}`.
+* **Icônes** : `{x:Static mi:FluentIcons.Xxx}` / `{x:Static mi:FluentFilledIcons.Xxx}` sur les contrôles Fluentia (`Icon`) ; `{mk:FluentFilledImage Icon=Xxx}` pour une `ImageSource` (`Button.ImageSource`, `Image`).
 * **Styles et couleurs** : tokens (`Resources/Styles/Tokens/`), jamais de couleur en dur.
 
 ### Langue
@@ -224,7 +224,8 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * **Gabarits de Querify conservés** : `Resources/Styles/Tokens/Fluentia.xaml` surcharge les tokens de taille de Fluentia (contrôles de 24 px, texte de 13 px / 11 px). Pour changer une dimension d'un contrôle Fluentia, surcharger son token là, jamais un style.
 * Ne pas redéclarer de style implicite pour un contrôle natif stylé par Fluentia : le dernier dictionnaire fusionné remplace celui de Fluentia en entier. Une variante = un style de classe (`<Style TargetType="Button" Class="Danger">`).
 * Les styles implicites de Fluentia ne visent pas les types dérivés : les champs de `Querify.UI` (`BorderlessEntry`, `TextInput`…) gardent leurs styles dans `NativeStyles.xaml`.
-* **Migration en cours** : les contrôles de `Querify.UI` (champs `inp:*`, `ImageButton`, `DataGrid`, `TreeView`, `TabBar`, `Separator`) restent en place tant que leur équivalent Fluentia ne couvre pas leurs fonctions ; un nouveau besoin générique se construit dans Fluentia.
+* Contrôles Fluentia (préfixe `fl:`, déclaré dans `Properties/AppXmlns.cs`) : champ = `Entry` / `Editor` / `Picker` natifs, dans un `fl:FormField Title="…"` s'il a un titre ; bouton-icône = `fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.Xxx}"` (couleur par `TextColor`) ; bascule = `fl:ToggleButton` ; séparateur de barre d'outils = `fl:CommandBarSeparator`. Ne plus utiliser `inp:TextField`, `inp:EditorField`, `inp:FormField`, `inp:ToggleButtonField`, `ImageButton` ni `v:Separator`.
+* **Migration en cours** : `inp:PickerField` (sélection par clé), `v:DataGrid`, `v:TreeView` et `v:TabBar` restent en place tant que leur équivalent Fluentia ne couvre pas leurs fonctions ; un nouveau besoin générique se construit dans Fluentia.
 
 ### Shell et fenêtre
 

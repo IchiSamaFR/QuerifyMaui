@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Maui;
-using Querify.UI.Inputs;
 using System.Windows.Input;
 
 namespace Querify.Views.Controls.Editors.Search;
@@ -67,8 +66,9 @@ public partial class FindReplacePopup : ContentView
     /// <summary>Focus sur la recherche, texte selectionne pour etre remplace d'un coup.</summary>
     public void FocusSearch()
     {
-        SearchInput.EntryView.Focus();
-        SearchInput.SelectAllText();
+        SearchInput.Focus();
+        SearchInput.CursorPosition = 0;
+        SearchInput.SelectionLength = SearchInput.Text?.Length ?? 0;
     }
 
     private static void Execute(ICommand? command)
@@ -79,16 +79,16 @@ public partial class FindReplacePopup : ContentView
 
 #if WINDOWS
     // Entree, F3, Echap et Ctrl+F / Ctrl+H arrivent au TextBox natif : MAUI n'expose que Completed.
-    private void AttachKeys(TextField field)
+    private void AttachKeys(Entry field)
     {
-        field.EntryView.HandlerChanged += (_, _) =>
+        field.HandlerChanged += (_, _) =>
         {
-            if (field.EntryView.Handler?.PlatformView is Microsoft.UI.Xaml.UIElement element)
+            if (field.Handler?.PlatformView is Microsoft.UI.Xaml.UIElement element)
                 element.PreviewKeyDown += (_, e) => e.Handled |= HandleKey(field, e.Key);
         };
     }
 
-    private bool HandleKey(TextField field, Windows.System.VirtualKey key)
+    private bool HandleKey(Entry field, Windows.System.VirtualKey key)
     {
         var shift = IsDown(Windows.System.VirtualKey.Shift);
         var control = IsDown(Windows.System.VirtualKey.Control);

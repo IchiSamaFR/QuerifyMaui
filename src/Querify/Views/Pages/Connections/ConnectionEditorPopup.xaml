@@ -15,21 +15,23 @@
         <Label Text="{Binding Title}"
                Style="{StaticResource LabelHeaderStyle}" />
 
-        <inp:FormField Title="Nom">
-            <inp:TextInput Text="{Binding Draft.Info.Name}"
-                           Placeholder="Production, Recette, ..." />
-        </inp:FormField>
+        <fl:FormField Title="Nom">
+            <Entry Text="{Binding Draft.Info.Name}"
+                   Placeholder="Production, Recette, ..." />
+        </fl:FormField>
 
-        <inp:FormField Title="Moteur">
-            <inp:SelectInput ItemsSource="{Binding Providers}"
-                             SelectedItem="{Binding Draft.Info.Provider, Mode=TwoWay}"
-                             ItemDisplayBinding="{Binding ., Converter={StaticResource DatabaseProviderLabelConverter}, x:DataType=db:DatabaseProvider}" />
-        </inp:FormField>
+        <fl:FormField Title="Moteur">
+            <Picker ItemsSource="{Binding Providers}"
+                    SelectedItem="{Binding Draft.Info.Provider, Mode=TwoWay}"
+                    ItemDisplayBinding="{Binding ., Converter={StaticResource DatabaseProviderLabelConverter}, x:DataType=db:DatabaseProvider}" />
+        </fl:FormField>
 
-        <inp:EditorField Title="Chaine de connexion"
-                         Text="{Binding Draft.ConnectionString, Mode=TwoWay}"
-                         Placeholder="{Binding Draft.Info.ConnectionStringExample}"
-                         HorizontalOptions="Fill" />
+        <fl:FormField Title="Chaine de connexion">
+            <Editor Text="{Binding Draft.ConnectionString, Mode=TwoWay}"
+                    Placeholder="{Binding Draft.Info.ConnectionStringExample}"
+                    AutoSize="TextChanges"
+                    MinimumHeightRequest="72" />
+        </fl:FormField>
 
         <Label Text="La chaine est conservee chiffree dans le coffre de Windows, jamais dans le fichier de configuration."
                Style="{StaticResource LabelTertiaryStyle}" />
