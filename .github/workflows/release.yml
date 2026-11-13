@@ -24,12 +24,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
+      # SDK et workload MAUI de l'image (installes par Visual Studio) : un setup-dotnet changerait
+      # de feature band et forcerait la mise a jour de tous les workloads (~5 min).
+      - name: SDK
+        run: |
+          dotnet --version
+          dotnet workload list
 
-      - name: Workload MAUI
-        run: dotnet workload restore src/Querify.slnx --skip-manifest-update
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('src/Directory.Packages.props', 'src/**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
 
       - name: Version
         id: version
@@ -50,11 +57,15 @@ jobs:
           -p:Version=${{ steps.version.outputs.full }}
           -p:ApplicationDisplayVersion=${{ steps.version.outputs.numeric }}
           -p:QuerifySelfContained=true
+          -p:RunAnalyzers=false
+          -p:EnforceCodeStyleInBuild=false
+          -p:PublishReadyToRun=false
           -o publish
 
       - name: Archive
         shell: pwsh
-        run: Compress-Archive -Path publish\* -DestinationPath "Querify-${{ steps.version.outputs.full }}-win-x64.zip"
+        # 7-Zip (preinstalle) : Compress-Archive est tres lent sur un publish self-contained.
+        run: 7z a -tzip -mx=5 "Querify-${{ steps.version.outputs.full }}-win-x64.zip" .\publish\*
 
       - name: Release GitHub
         shell: pwsh
