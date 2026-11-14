@@ -362,10 +362,10 @@
                                                                        Margin="6" />
 
                                                                 <!-- Navigation : bouton, ou clic sur une ligne du tableau -->
-                                                                <Picker fl:FluentiaInput.Padding="26,0,0,0"
-                                                                        fl:FluentiaPicker.ItemsSource="{Binding Session.PageIds, Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, x:DataType=c:DashboardGrid}"
-                                                                        fl:FluentiaPicker.SelectedValuePath="."
-                                                                        fl:FluentiaPicker.SelectedValue="{Binding NavigationPage, Mode=TwoWay}" />
+                                                                <fl:FluentPicker Padding="26,0,0,0"
+                                                                                 ItemsSource="{Binding Session.PageIds, Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, x:DataType=c:DashboardGrid}"
+                                                                                 SelectedValuePath="."
+                                                                                 SelectedValue="{Binding NavigationPage, Mode=TwoWay}" />
                                                             </Grid>
                                                         </VerticalStackLayout>
                                                     </Grid>
@@ -436,12 +436,12 @@
                                        WidthRequest="16"
                                        HeightRequest="16"
                                        Margin="6,0,0,0" />
-                                <Picker fl:FluentiaInput.Padding="26,0,0,0"
-                                        fl:FluentiaPicker.ItemsSource="{Binding Session.SelectedCard.LabelColumnChoices, FallbackValue={x:Null}}"
-                                        fl:FluentiaPicker.DisplayMemberPath="Value"
-                                        fl:FluentiaPicker.SelectedValuePath="Key"
-                                        fl:FluentiaPicker.SelectedValue="{Binding Session.SelectedCard.LabelColumn, Mode=TwoWay, FallbackValue={x:Null}}"
-                                        IsEnabled="{Binding Session.SelectedCard.IsChart, FallbackValue=False}" />
+                                <fl:FluentPicker Padding="26,0,0,0"
+                                                 ItemsSource="{Binding Session.SelectedCard.LabelColumnChoices, FallbackValue={x:Null}}"
+                                                 DisplayMemberPath="Value"
+                                                 SelectedValuePath="Key"
+                                                 SelectedValue="{Binding Session.SelectedCard.LabelColumn, Mode=TwoWay, FallbackValue={x:Null}}"
+                                                 IsEnabled="{Binding Session.SelectedCard.IsChart, FallbackValue=False}" />
                             </Grid>
 
                             <!-- Colonnes de valeurs : une puce par colonne du resultat, cochees dans l'ordre des series -->

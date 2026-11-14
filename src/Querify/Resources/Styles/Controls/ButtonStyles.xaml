@@ -99,7 +99,8 @@
     <!-- L'apparence des Button vient de Fluentia : defaut (Secondary), StyleClass="Accent" (Primary), StyleClass="Subtle" (Text). Variantes propres a Querify ci-dessous. -->
     <!-- Action destructive (PaletteRedColor) -->
     <Style TargetType="Button"
-           Class="Danger">
+           Class="Danger"
+           ApplyToDerivedTypes="True">
         <Setter Property="BackgroundColor"
                 Value="{DynamicResource Danger}" />
         <Setter Property="BorderColor"
@@ -110,7 +111,8 @@
 
     <!-- Bouton reduit a son icone : carre de la hauteur des controles -->
     <Style TargetType="Button"
-           Class="Icon">
+           Class="Icon"
+           ApplyToDerivedTypes="True">
         <Setter Property="Padding"
                 Value="0" />
         <Setter Property="MinimumWidthRequest"
