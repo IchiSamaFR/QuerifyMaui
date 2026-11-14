@@ -65,7 +65,7 @@ public partial class DashboardParameterEditorVM : AbstractVM
     [RelayCommand]
     private Task SaveAsync()
     {
-        var name = Name.Trim().TrimStart('@');
+        var name = Name.Trim().TrimStart('@', ':');
         Error = Validate(name);
         if (Error is not null)
             return Task.CompletedTask;
@@ -83,12 +83,12 @@ public partial class DashboardParameterEditorVM : AbstractVM
         if (name.Length == 0)
             return "Le nom est obligatoire.";
 
-        // Le nom devient @Nom dans les requetes : un identifiant SQL simple.
+        // Le nom devient @Nom dans les requetes (:Nom sur Oracle) : un identifiant SQL simple.
         if (!(char.IsLetter(name[0]) || name[0] == '_') || !name.All(c => char.IsLetterOrDigit(c) || c == '_'))
             return "Le nom ne contient que des lettres, chiffres ou _, et ne commence pas par un chiffre.";
 
         if (_usedNames.Contains(name, StringComparer.OrdinalIgnoreCase))
-            return $"Le paramètre @{name} existe déjà.";
+            return $"Le paramètre {name} existe déjà.";
 
         return null;
     }

@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <!--
-  Coloration SQL (T-SQL) du prototype.
+  Coloration SQL : T-SQL, plus les mots, delimiteurs et parametres des autres moteurs (MySQL, PostgreSQL, Oracle, SQLite).
+  Un seul fichier pour tous : les mots proposes par l'autocompletion, eux, suivent le dialecte de la connexion (Quill).
   C'est ICI qu'on ajouterait plus tard les noms de tables / colonnes remontes
   du schema : il suffit d'injecter un <Keywords> supplementaire genere a chaud.
 -->
@@ -42,6 +43,14 @@
 			<End>\]</End>
 		</Span>
 
+		<!-- Identifiant entre backticks (MySQL, SQLite) ou guillemets doubles : `Ma Table`, "Ma Table" -->
+		<Span color="Bracketed">
+			<Begin>`</Begin>
+			<End>`</End>
+		</Span>
+
+		<Rule color="Bracketed">"(?:[^"]|"")*"?</Rule>
+
 		<Keywords color="Keyword">
 			<Word>SELECT</Word><Word>FROM</Word><Word>WHERE</Word><Word>GROUP</Word><Word>BY</Word>
 			<Word>HAVING</Word><Word>ORDER</Word><Word>ASC</Word><Word>DESC</Word><Word>TOP</Word>
@@ -68,6 +77,35 @@
 			<Word>NOLOCK</Word><Word>READUNCOMMITTED</Word>
 		</Keywords>
 
+		<!-- Autres moteurs : MySQL, PostgreSQL, Oracle, SQLite -->
+		<Keywords color="Keyword">
+			<Word>LIMIT</Word><Word>RETURNING</Word><Word>ILIKE</Word><Word>REGEXP</Word><Word>MINUS</Word>
+			<Word>ROWNUM</Word><Word>DUAL</Word><Word>CONNECT</Word><Word>PRIOR</Word><Word>LATERAL</Word>
+			<Word>NATURAL</Word><Word>USING</Word><Word>RECURSIVE</Word><Word>SAVEPOINT</Word><Word>CALL</Word>
+			<Word>PRAGMA</Word><Word>VACUUM</Word><Word>EXPLAIN</Word><Word>ANALYZE</Word><Word>SHOW</Word>
+			<Word>DESCRIBE</Word><Word>AUTO_INCREMENT</Word><Word>AUTOINCREMENT</Word><Word>ELSIF</Word><Word>ELSEIF</Word>
+			<Word>LOOP</Word><Word>EXCEPTION</Word><Word>PERCENT</Word><Word>TIES</Word><Word>NULLS</Word>
+			<Word>WINDOW</Word><Word>FILTER</Word><Word>CONFLICT</Word><Word>NOTHING</Word><Word>TEMPORARY</Word>
+			<Word>SEQUENCE</Word><Word>MATERIALIZED</Word><Word>CASCADE</Word><Word>INTERVAL</Word><Word>FOR</Word>
+		</Keywords>
+
+		<Keywords color="DataType">
+			<Word>INTEGER</Word><Word>NUMBER</Word><Word>VARCHAR2</Word><Word>NVARCHAR2</Word><Word>CLOB</Word>
+			<Word>NCLOB</Word><Word>BLOB</Word><Word>RAW</Word><Word>BOOLEAN</Word><Word>SERIAL</Word>
+			<Word>BIGSERIAL</Word><Word>UUID</Word><Word>JSON</Word><Word>JSONB</Word><Word>BYTEA</Word>
+			<Word>TIMESTAMP</Word><Word>TIMESTAMPTZ</Word><Word>DOUBLE</Word><Word>MEDIUMINT</Word><Word>TINYTEXT</Word>
+			<Word>MEDIUMTEXT</Word><Word>LONGTEXT</Word><Word>ENUM</Word>
+		</Keywords>
+
+		<Keywords color="Function">
+			<Word>NVL</Word><Word>NVL2</Word><Word>DECODE</Word><Word>TO_CHAR</Word><Word>TO_DATE</Word>
+			<Word>TO_NUMBER</Word><Word>TO_TIMESTAMP</Word><Word>SYSDATE</Word><Word>SYSTIMESTAMP</Word><Word>NOW</Word>
+			<Word>IFNULL</Word><Word>LENGTH</Word><Word>SUBSTR</Word><Word>INSTR</Word><Word>GROUP_CONCAT</Word>
+			<Word>LISTAGG</Word><Word>ARRAY_AGG</Word><Word>DATE_TRUNC</Word><Word>EXTRACT</Word><Word>CURRENT_DATE</Word>
+			<Word>CURRENT_TIMESTAMP</Word><Word>STRFTIME</Word><Word>GREATEST</Word><Word>LEAST</Word><Word>TRUNC</Word>
+			<Word>ABS</Word><Word>ROUND</Word><Word>FLOOR</Word><Word>CEIL</Word>
+		</Keywords>
+
 		<Keywords color="DataType">
 			<Word>INT</Word><Word>BIGINT</Word><Word>SMALLINT</Word><Word>TINYINT</Word><Word>BIT</Word>
 			<Word>DECIMAL</Word><Word>NUMERIC</Word><Word>MONEY</Word><Word>FLOAT</Word><Word>REAL</Word>
@@ -90,6 +128,9 @@
 
 		<!-- Variables et parametres : @x, @@ROWCOUNT -->
 		<Rule color="Variable">@@?[\w_]+</Rule>
+
+		<!-- Parametre Oracle :nom ; « :: » (conversion PostgreSQL) et « := » restent des operateurs -->
+		<Rule color="Variable">(?&lt;![:\w]):[A-Za-z_]\w*</Rule>
 
 		<Rule color="Number">\b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?</Rule>
 

@@ -113,7 +113,7 @@ Un `propertyChanged` est un dernier recours : le binding XAML d'abord.
 
 ### Ajouter un moteur SQL
 1. Dans `Databases/[Moteur]/` : implémentation de `IConnectionTester` (sur `DbConnectionTester`) ; lecture du catalogue par un `ISqlSchemaReader` de `Quill.Data.Sql.[Moteur]` (dépôt Quill.Code), associé au moteur par `DatabaseSchemaReaderRegistration` ; le tout enregistré dans `DatabasesServiceCollectionExtensions.AddDatabases()` (pas d'`[AutoRegister]` dans cette librairie ; les résolveurs les découvrent seuls)
-2. Exécution : un `ISqlQueryExecutor` (contrat de `Quill.Code.Sql`, base `DbQueryExecutor`) dans `Quill.Code.Sql.[Moteur]` (dépôt Quill.Code), ajouté à la table `Executors` de `Languages.Sql/Queries/SqlQueryExecutor` ; LINQ : un `ILinqDatabaseProvider` dans `Quill.Code.CSharp.Linq.[Moteur]` (dépôt Quill.Code), ajouté à `Languages.Linq/LinqDatabaseProviders`
+2. Exécution : un `ISqlQueryExecutor` (contrat de `Quill.Code.Sql`, base `DbQueryExecutor`) dans `Quill.Code.Sql.[Moteur]` (dépôt Quill.Code), ajouté à la table `Executors` de `Languages.Sql/Queries/SqlQueryExecutor` ; éditeur : son `[Moteur]Dialect` (même projet Quill : délimiteurs, paramètres, `TOP` / `LIMIT` / `FETCH FIRST`, mots proposés), ajouté à `Languages.Sql/Editors/SqlDialects` — aucun SQL propre à un moteur écrit en dur ailleurs ; LINQ : un `ILinqDatabaseProvider` dans `Quill.Code.CSharp.Linq.[Moteur]` (dépôt Quill.Code), ajouté à `Languages.Linq/LinqDatabaseProviders`
 3. Ajouter la valeur à `DatabaseProvider` (`Databases/Enums`, jamais renumérotée) et son libellé / exemple de chaîne à `Databases/Common/DatabaseProviders`
 
 ### Ajouter un langage

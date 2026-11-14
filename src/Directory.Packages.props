@@ -25,23 +25,23 @@
     <PackageVersion Include="LiveChartsCore.SkiaSharpView.Maui" Version="2.0.5" />
     <!-- Tests -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageVersion Include="QuillCode" Version="0.1.0" />
-    <PackageVersion Include="QuillCode.CSharp.Linq.MySql" Version="0.1.0" />
-    <PackageVersion Include="QuillCode.CSharp.Linq.Oracle" Version="0.1.0" />
-    <PackageVersion Include="QuillCode.CSharp.Linq.PostgreSql" Version="0.1.0" />
-    <PackageVersion Include="QuillCode.CSharp.Linq.Sqlite" Version="0.1.0" />
-    <PackageVersion Include="QuillCode.CSharp.Linq.SqlServer" Version="0.1.0" />
-    <PackageVersion Include="QuillCode.Data.Sql" Version="0.1.1" />
-    <PackageVersion Include="QuillCode.Data.Sql.MySql" Version="0.1.1" />
-    <PackageVersion Include="QuillCode.Data.Sql.Oracle" Version="0.1.1" />
-    <PackageVersion Include="QuillCode.Data.Sql.PostgreSql" Version="0.1.1" />
-    <PackageVersion Include="QuillCode.Data.Sql.Sqlite" Version="0.1.1" />
-    <PackageVersion Include="QuillCode.Data.Sql.SqlServer" Version="0.1.1" />
-    <PackageVersion Include="QuillCode.Sql.MySql" Version="0.1.0" />
-    <PackageVersion Include="QuillCode.Sql.Oracle" Version="0.1.0" />
-    <PackageVersion Include="QuillCode.Sql.PostgreSql" Version="0.1.0" />
-    <PackageVersion Include="QuillCode.Sql.Sqlite" Version="0.1.0" />
-    <PackageVersion Include="QuillCode.Sql.SqlServer" Version="0.1.0" />
+    <PackageVersion Include="QuillCode" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.CSharp.Linq.MySql" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.CSharp.Linq.Oracle" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.CSharp.Linq.PostgreSql" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.CSharp.Linq.Sqlite" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.CSharp.Linq.SqlServer" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.Data.Sql" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.Data.Sql.MySql" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.Data.Sql.Oracle" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.Data.Sql.PostgreSql" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.Data.Sql.Sqlite" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.Data.Sql.SqlServer" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.Sql.MySql" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.Sql.Oracle" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.Sql.PostgreSql" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.Sql.Sqlite" Version="0.2.0" />
+    <PackageVersion Include="QuillCode.Sql.SqlServer" Version="0.2.0" />
     <PackageVersion Include="xunit" Version="2.9.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>

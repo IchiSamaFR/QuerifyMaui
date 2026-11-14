@@ -30,7 +30,7 @@ public sealed partial class DashboardParameterValue : ObservableObject
     public string Name
     {
         get => Definition.Name;
-        set => Update(Definition.Name, value.Trim().TrimStart('@'), v => Definition.Name = v);
+        set => Update(Definition.Name, value.Trim().TrimStart('@', ':'), v => Definition.Name = v);
     }
 
     public DashboardParameterType Type
