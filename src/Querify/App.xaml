@@ -2,15 +2,18 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:Querify"
+             xmlns:fluentia="http://schemas.fluentia.dev/maui"
              x:Class="Querify.App">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!-- Base : tokens, palette et styles de Fluentia ; les dictionnaires suivants l'emportent -->
+                <fluentia:FluentiaTheme />
+
                 <ResourceDictionary Source="./Resources/Styles/Tokens.xaml" />
                 
                 <ResourceDictionary Source="./Resources/Styles/Converters.xaml" />
-                
-                <ResourceDictionary Source="./Resources/Styles/Controls/InputFieldStyles.xaml" />
+
                 <ResourceDictionary Source="./Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

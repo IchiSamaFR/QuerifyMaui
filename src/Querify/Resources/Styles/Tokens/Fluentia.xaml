@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Tokens de Fluentia surcharges : ce dictionnaire est fusionne apres FluentiaTheme (App.xaml) et l'emporte.
+    Querify garde ses gabarits compacts ; palette, rayons, espacements et etats restent ceux de Fluentia.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Hauteur des boutons, champs et listes : InputHeight / ButtonHeight (32 dans Fluentia) -->
+    <x:Double x:Key="FluentiaControlMinHeight">24</x:Double>
+    <!-- ButtonPadding -->
+    <Thickness x:Key="FluentiaButtonPadding">11,0</Thickness>
+    <!-- Bouton reduit a son icone : carre de la hauteur des controles (icone de 16 px) -->
+    <Thickness x:Key="FluentiaIconButtonPadding">4,0</Thickness>
+
+    <!-- FontSize_Caption, FontSize_Body, FontSize_Subtitle (12, 14 et 20 dans Fluentia) -->
+    <x:Double x:Key="FluentiaFontSizeCaption">11</x:Double>
+    <x:Double x:Key="FluentiaFontSizeBody">13</x:Double>
+    <x:Double x:Key="FluentiaFontSizeTitle">18</x:Double>
+
+    <!-- fl:DataGrid : DataGridRowHeight, marge des cellules et FontSize_Small (32, 12,0 et 12 dans Fluentia) -->
+    <x:Double x:Key="FluentiaDataGridRowHeight">26</x:Double>
+    <Thickness x:Key="FluentiaDataGridCellPadding">8,0</Thickness>
+    <x:Double x:Key="FluentiaDataGridFontSize">11</x:Double>
+
+    <!-- Textes de fl:DataGrid (anglais dans Fluentia) -->
+    <x:String x:Key="FluentiaDataGridNoMatchText">Aucune ligne ne correspond aux filtres.</x:String>
+    <x:String x:Key="FluentiaDataGridFilterTitle">Filtrer</x:String>
+    <x:String x:Key="FluentiaDataGridFilterPlaceholder">Valeur</x:String>
+    <x:String x:Key="FluentiaDataGridFilterToolTip">Filtrer</x:String>
+    <x:String x:Key="FluentiaDataGridClearFilterToolTip">Effacer le filtre</x:String>
+    <x:String x:Key="FluentiaDataGridFilterHelp">texte : contient    !texte : ne contient pas&#10;=  !=  &gt;  &gt;=  &lt;  &lt;=  : nombres, dates&#10;NULL : vide    !NULL : renseigné</x:String>
+
+</ResourceDictionary>

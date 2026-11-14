@@ -33,19 +33,19 @@
                    Margin="0,0,6,0"
                    IsVisible="{Binding IsCurrent, Source={x:Reference Root}, x:DataType=c:DashboardPageTab, Converter={StaticResource BooleanInvertConverter}}" />
 
-            <inp:TextField Text="{Binding Title, Mode=TwoWay, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
-                           Placeholder="Titre de la page..."
-                           WidthRequest="180"
-                           VerticalOptions="Center"
-                           IsVisible="{Binding IsCurrent, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}" />
+            <Entry Text="{Binding Title, Mode=TwoWay, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
+                   Placeholder="Titre de la page..."
+                   WidthRequest="180"
+                   VerticalOptions="Center"
+                   IsVisible="{Binding IsCurrent, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}" />
 
-            <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                         Source="{mk:FluentFilledImage Icon=Delete16Filled, IconSize=14, IconColor={StaticResource Danger}}"
-                         Command="{Binding DeleteCommand, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
-                         CommandParameter="{Binding CommandParameter, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
-                         VerticalOptions="Center"
-                         ToolTipProperties.Text="Supprimer cette page"
-                         IsVisible="{Binding IsCurrent, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}" />
+            <fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.Delete16Filled}"
+                                 TextColor="{StaticResource Danger}"
+                                 Command="{Binding DeleteCommand, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
+                                 CommandParameter="{Binding CommandParameter, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
+                                 VerticalOptions="Center"
+                                 ToolTipProperties.Text="Supprimer cette page"
+                                 IsVisible="{Binding IsCurrent, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}" />
         </HorizontalStackLayout>
     </Border>
 </ContentView>

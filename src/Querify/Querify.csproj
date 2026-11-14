@@ -68,6 +68,7 @@
 		<PackageReference Include="CommunityToolkit.Maui" />
 		<PackageReference Include="CommunityToolkit.Maui.Markup" />
 		<PackageReference Include="CodeEdit.Maui" />
+		<PackageReference Include="Fluentia" />
 		<!-- Graphiques des cartes du dashboard (.schx) -->
 		<PackageReference Include="LiveChartsCore.SkiaSharpView.Maui" />
 		<PackageReference Include="Microsoft.Maui.Controls" />
@@ -80,6 +81,7 @@
 		<ProjectReference Include="..\Querify.Languages.Sql\Querify.Languages.Sql.csproj" />
 		<ProjectReference Include="..\Querify.Languages\Querify.Languages.csproj" />
 		<ProjectReference Include="..\Querify.UI\Querify.UI.csproj" />
+		<!-- Librairie d'interface (depot voisin), en attendant son paquet NuGet -->
 	</ItemGroup>
 
 	<!-- ===================== Generation T4 (ne tourne pas au build) ===================== -->

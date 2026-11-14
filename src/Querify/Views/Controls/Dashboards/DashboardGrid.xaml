@@ -68,11 +68,11 @@
                                               HeightRequest="{DynamicResource InputHeight}">
                                             <Label Text="{Binding DisplayName}"
                                                    VerticalOptions="Center" />
-                                            <inp:TextField Grid.Column="1"
-                                                           Text="{Binding Value, Mode=TwoWay}"
-                                                           Placeholder="{Binding Hint}"
-                                                           ReturnCommand="{Binding ApplyParametersCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
-                                                           WidthRequest="120" />
+                                            <Entry Grid.Column="1"
+                                                   Text="{Binding Value, Mode=TwoWay}"
+                                                   Placeholder="{Binding Hint}"
+                                                   ReturnCommand="{Binding ApplyParametersCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
+                                                   WidthRequest="120" />
                                             <v:MenuButton Grid.Column="1"
                                                           ImageSource="{mk:FluentFilledImage Icon=MoreHorizontal16Filled}"
                                                           IsVisible="{Binding Session.IsDesigning, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
@@ -101,9 +101,10 @@
                             </BindableLayout.ItemTemplate>
                         </v:WrapLayout>
 
-                        <Button Style="{StaticResource PrimaryButtonStyle}"
+                        <Button VerticalOptions="Center"
+                                StyleClass="Accent"
                                 Text="Ajouter"
-                                ImageSource="{mk:FluentFilledImage Icon=Add20Filled, IconSize=14}"
+                                ImageSource="{mk:FluentFilledImage Icon=Add20Filled, IconSize=14, IconColor={StaticResource TextOnInfo}}"
                                 Command="{Binding AddParameterCommand}"
                                 IsVisible="{Binding Session.IsDesigning}" />
                     </v:WrapLayout>
@@ -122,7 +123,7 @@
                                     Value="False" />
                         </DataTrigger>
                     </Grid.Triggers>
-                    <Button Style="{StaticResource SecondaryButtonStyle}"
+                    <Button VerticalOptions="Center"
                             Text="Retour"
                             Command="{Binding BackCommand}"
                             IsEnabled="{Binding Session.CanGoBack, FallbackValue=False}" />
@@ -138,7 +139,8 @@
                                         <Label Text="›"
                                                Style="{StaticResource LabelTertiaryStyle}"
                                                VerticalOptions="Center" />
-                                        <Button Style="{StaticResource TextButtonStyle}"
+                                        <Button VerticalOptions="Center"
+                                                StyleClass="Subtle"
                                                 Text="{Binding Title}"
                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=GoToStepCommand, x:DataType=c:DashboardGrid}"
                                                 CommandParameter="{Binding .}" />
@@ -177,11 +179,10 @@
                         </BindableLayout.ItemTemplate>
                     </HorizontalStackLayout>
 
-                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Source="{mk:FluentFilledImage Icon=Add20Filled, IconSize=14}"
-                                 Command="{Binding AddPageCommand}"
-                                 VerticalOptions="Center"
-                                 ToolTipProperties.Text="Nouvelle page" />
+                    <fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.Add20Filled}"
+                                         Command="{Binding AddPageCommand}"
+                                         VerticalOptions="Center"
+                                         ToolTipProperties.Text="Nouvelle page" />
                 </HorizontalStackLayout>
             </ScrollView>
 
@@ -298,23 +299,22 @@
                                                             </DataTrigger>
                                                         </Grid.Triggers>
 
-                                                        <inp:TextField Grid.Row="1"
-                                                                       VerticalOptions="Center"
-                                                                       Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
-                                                                       Background="{DynamicResource CardBackground}"
-                                                                       IsVisible="{Binding IsText}"
-                                                                       Placeholder="Texte saisi..." />
+                                                        <Entry Grid.Row="1"
+                                                               VerticalOptions="Center"
+                                                               Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
+                                                               IsVisible="{Binding IsText}"
+                                                               Placeholder="Texte saisi..." />
 
                                                         <Grid ColumnDefinitions="*,Auto"
                                                               ColumnSpacing="4">
-                                                            <inp:TextField Text="{Binding Title}"
-                                                                           Background="{DynamicResource CardBackground}"
-                                                                           Placeholder="Titre de la carte..."
-                                                                           IsVisible="{Binding IsSelected}" />
+                                                            <Entry Text="{Binding Title}"
+                                                                   Placeholder="Titre de la carte..."
+                                                                   IsVisible="{Binding IsSelected}" />
 
-                                                            <Button Grid.Column="1"
-                                                                    Style="{StaticResource PrimaryIconButtonStyle}"
-                                                                    ImageSource="{mk:FluentFilledImage Icon=Flowchart20Filled}"
+                                                            <Button VerticalOptions="Center"
+                                                                    Grid.Column="1"
+                                                                    StyleClass="Accent,Icon"
+                                                                    ImageSource="{mk:FluentFilledImage Icon=Flowchart20Filled, IconColor={StaticResource TextOnInfo}}"
                                                                     IsVisible="{Binding IsSelected}"
                                                                     Clicked="OnFlowchartButtonClicked">
                                                                 <FlyoutBase.ContextFlyout>
@@ -350,9 +350,8 @@
                                                                              IsVisible="{Binding IsButton}"
                                                                              Spacing="{DynamicResource DefaultCollectionSpacing}">
 
-                                                            <inp:TextField Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
-                                                                           Background="{DynamicResource CardBackground}"
-                                                                           Placeholder="Texte du bouton..." />
+                                                            <Entry Text="{Binding Text, Mode=TwoWay, FallbackValue=''}"
+                                                                   Placeholder="Texte du bouton..." />
 
                                                             <Grid>
                                                                 <Image Source="{mk:FluentFilledImage Icon=Link16Filled}"
@@ -363,9 +362,10 @@
                                                                        Margin="6" />
 
                                                                 <!-- Navigation : bouton, ou clic sur une ligne du tableau -->
-                                                                <inp:PickerField ContentPadding="18,0,0,2"
+                                                                <fl:FluentPicker Padding="26,0,0,0"
                                                                                  ItemsSource="{Binding Session.PageIds, Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, x:DataType=c:DashboardGrid}"
-                                                                                 SelectedItem="{Binding NavigationPage, Mode=TwoWay}" />
+                                                                                 SelectedValuePath="."
+                                                                                 SelectedValue="{Binding NavigationPage, Mode=TwoWay}" />
                                                             </Grid>
                                                         </VerticalStackLayout>
                                                     </Grid>
@@ -419,20 +419,30 @@
                     <Grid ColumnDefinitions="*,Auto"
                           Style="{StaticResource GridSpacingStyle}">
                         <HorizontalStackLayout IsEnabled="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}">
-                            <Button Style="{StaticResource SecondaryIconButtonStyle}"
+                            <Button VerticalOptions="Center"
+                                    StyleClass="Icon"
                                     ImageSource="{mk:FluentFilledImage Icon=Play16Filled}"
                                     Command="{Binding RunCardCommand}"
                                     CommandParameter="{Binding Session.SelectedCard}"
                                     HorizontalOptions="Start"
                                     ToolTipProperties.Text="Exécuter : la liste des colonnes vient du résultat" />
 
-                            <!-- ItemsSource avant SelectedKey : au changement de carte, la liste suit avant la selection -->
-                            <inp:PickerField ItemsSource="{Binding Session.SelectedCard.LabelColumnChoices, FallbackValue={x:Null}}"
-                                             SelectedKey="{Binding Session.SelectedCard.LabelColumn, Mode=TwoWay, FallbackValue={x:Null}}"
-                                             Icon="{mk:FluentFilledImage Icon=Subtitles20Filled, IconSize=16}"
-                                             IsEnabled="{Binding Session.SelectedCard.IsChart, FallbackValue=False}"
-                                             WidthRequest="220"
-                                             ToolTipProperties.Text="Colonne des libellés (axe ou parts du graphique)" />
+                            <!-- Colonne des libelles : la selection suit la cle, meme quand la liste change avec la carte -->
+                            <Grid WidthRequest="220"
+                                  ToolTipProperties.Text="Colonne des libellés (axe ou parts du graphique)">
+                                <Image Source="{mk:FluentFilledImage Icon=Subtitles20Filled, IconSize=16}"
+                                       HorizontalOptions="Start"
+                                       VerticalOptions="Center"
+                                       WidthRequest="16"
+                                       HeightRequest="16"
+                                       Margin="6,0,0,0" />
+                                <fl:FluentPicker Padding="26,0,0,0"
+                                                 ItemsSource="{Binding Session.SelectedCard.LabelColumnChoices, FallbackValue={x:Null}}"
+                                                 DisplayMemberPath="Value"
+                                                 SelectedValuePath="Key"
+                                                 SelectedValue="{Binding Session.SelectedCard.LabelColumn, Mode=TwoWay, FallbackValue={x:Null}}"
+                                                 IsEnabled="{Binding Session.SelectedCard.IsChart, FallbackValue=False}" />
+                            </Grid>
 
                             <!-- Colonnes de valeurs : une puce par colonne du resultat, cochees dans l'ordre des series -->
                             <HorizontalStackLayout Spacing="6">
@@ -517,7 +527,8 @@
                         </HorizontalStackLayout>
 
                         <HorizontalStackLayout Grid.Column="1">
-                            <Button Style="{StaticResource DangerButtonStyle}"
+                            <Button VerticalOptions="Center"
+                                    StyleClass="Danger"
                                     Text="Supprimer"
                                     Command="{Binding DeleteCardCommand}"
                                     CommandParameter="{Binding Session.SelectedCard}" />

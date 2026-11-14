@@ -9,31 +9,34 @@
 
         <!-- ============ En-tete : execution et connexion ============ -->
         <HorizontalStackLayout>
-            <inp:PickerField ItemsSource="{x:Static vm:QueryLanguages.All}"
-                             SelectedKey="{Binding SelectedLanguageKey, Mode=TwoWay}"
+            <fl:FluentPicker ItemsSource="{x:Static vm:QueryLanguages.All}"
+                             DisplayMemberPath="Value"
+                             SelectedValuePath="Key"
+                             SelectedValue="{Binding SelectedLanguageKey, Mode=TwoWay}"
                              WidthRequest="120"
                              ToolTipProperties.Text="Langage de l'onglet" />
 
-            <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                         Command="{Binding ExecuteQueryCommand}"
-                         Source="{mk:FluentImage Icon=Play16, IconColor={StaticResource Success}}"
-                         ToolTipProperties.Text="Exécuter la requête" />
+            <fl:CommandBarButton Command="{Binding ExecuteQueryCommand}"
+                                 Icon="{x:Static mi:FluentIcons.Play16}"
+                                 TextColor="{StaticResource Success}"
+                                 ToolTipProperties.Text="Exécuter la requête" />
 
-            <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                         Command="{Binding ExecuteQueryCancelCommand}"
-                         Source="{mk:FluentImage Icon=Stop16, IconColor={StaticResource Danger}}"
-                         ToolTipProperties.Text="Arrêter l'exécution de la requête" />
+            <fl:CommandBarButton Command="{Binding ExecuteQueryCancelCommand}"
+                                 Icon="{x:Static mi:FluentIcons.Stop16}"
+                                 TextColor="{StaticResource Danger}"
+                                 ToolTipProperties.Text="Arrêter l'exécution de la requête" />
 
-            <v:Separator />
+            <fl:CommandBarSeparator />
 
-            <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                         Command="{Binding Connection.DisconnectCommand}"
-                         Source="{mk:FluentImage Icon=PlugDisconnected20, IconColor={StaticResource Danger}}"
-                         ToolTipProperties.Text="Déconnecter la connexion" />
+            <fl:CommandBarButton Command="{Binding Connection.DisconnectCommand}"
+                                 Icon="{x:Static mi:FluentIcons.PlugDisconnected20}"
+                                 TextColor="{StaticResource Danger}"
+                                 ToolTipProperties.Text="Déconnecter la connexion" />
 
-            <inp:PickerField ItemsSource="{Binding Connection.Connections}"
-                             SelectedItem="{Binding Connection.SelectedConnection, Mode=TwoWay}"
+            <fl:FluentPicker ItemsSource="{Binding Connection.Connections}"
                              DisplayMemberPath="Name"
+                             SelectedValuePath="."
+                             SelectedValue="{Binding Connection.SelectedConnection, Mode=TwoWay}"
                              WidthRequest="220" />
         </HorizontalStackLayout>
 

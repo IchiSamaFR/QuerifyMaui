@@ -13,6 +13,7 @@
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.Editors")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.Editors.Analysis")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.Editors.Completion")]
+[assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.Editors.Editing")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.Editors.Search")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.Queries")]
 [assembly: XmlnsDefinition("http://querify.app/dotnet/maui/controls", "Querify.Views.Controls.TitleBars")]
@@ -29,4 +30,5 @@
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://querify.app/dotnet/maui/controls", "c")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://querify.app/dotnet/maui/views", "v")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://querify.app/dotnet/maui/viewmodels", "vm")]
+[assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://schemas.fluentia.dev/maui", "fl")]
 [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://www.aathifmahir.com/dotnet/2022/maui/icons", "mi")]

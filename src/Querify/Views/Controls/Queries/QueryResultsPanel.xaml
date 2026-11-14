@@ -12,19 +12,22 @@
                                         OutputStyle="{StaticResource QueryMessageOutputSpanStyle}" />
     </ContentView.Resources>
 
-    <v:TabBar ItemsSource="{Binding Tabs, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
-              SelectedItem="{Binding SelectedTab, Source={x:Reference root}, Mode=TwoWay, x:DataType=c:QueryResultsPanel}"
-              TitleMemberPath="Title">
+    <fl:TabView ItemsSource="{Binding Tabs, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+                SelectedSourceItem="{Binding SelectedTab, Source={x:Reference root}, Mode=TwoWay, x:DataType=c:QueryResultsPanel}"
+                DisplayMemberPath="Title"
+                CanCloseTabs="False"
+                CanReorderTabs="False">
 
         <!-- ============ Contenu partagé de l'onglet sélectionné ============ -->
         <!-- Declare avant le resume : celui-ci reference ResultGrid -->
-        <v:TabBar.DefaultContent>
-            <Grid RowDefinitions="*,Auto">
-                <v:DataGrid x:Name="ResultGrid"
-                            ItemsSource="{Binding SelectedTab.ResultSet.Rows, Source={x:Reference root}, FallbackValue={x:Null}, x:DataType=c:QueryResultsPanel}"
-                            Columns="{Binding SelectedTab.ResultSet, Source={x:Reference root}, FallbackValue={x:Null}, Converter={StaticResource QueryResultColumnsConverter}, x:DataType=c:QueryResultsPanel}"
-                            AutoGenerateColumns="False"
-                            IsVisible="{Binding SelectedTab.IsResultSet, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}" />
+        <fl:TabView.SharedContent>
+            <Grid RowDefinitions="*,Auto"
+                  Padding="{DynamicResource CardContentPadding}">
+                <fl:DataGrid x:Name="ResultGrid"
+                             ItemsSource="{Binding SelectedTab.ResultSet.Rows, Source={x:Reference root}, FallbackValue={x:Null}, x:DataType=c:QueryResultsPanel}"
+                             Columns="{Binding SelectedTab.ResultSet, Source={x:Reference root}, FallbackValue={x:Null}, Converter={StaticResource QueryResultColumnsConverter}, x:DataType=c:QueryResultsPanel}"
+                             AutoGenerateColumns="False"
+                             IsVisible="{Binding SelectedTab.IsResultSet, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}" />
 
                 <ScrollView IsVisible="{Binding SelectedTab.IsMessages, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}"
                             Padding="12,4">
@@ -46,37 +49,37 @@
                            Style="{StaticResource LabelTertiaryStyle}" />
                 </HorizontalStackLayout>
             </Grid>
-        </v:TabBar.DefaultContent>
+        </fl:TabView.SharedContent>
 
         <!-- ============ Resume + filtre + duree + fermeture ============ -->
-        <v:TabBar.TrailingContent>
+        <fl:TabView.TabStripFooter>
             <HorizontalStackLayout Spacing="12"
                                    VerticalOptions="Center">
                 <Label Text="{Binding SelectedTab.ResultSet.Summary, Source={x:Reference root}, FallbackValue='', x:DataType=c:QueryResultsPanel}"
                        Style="{StaticResource LabelTertiaryStyle}"
                        VerticalOptions="Center" />
 
-                <HorizontalStackLayout IsVisible="{Binding IsFiltered, Source={x:Reference ResultGrid}, x:DataType=v:DataGrid}"
+                <HorizontalStackLayout IsVisible="{Binding IsFiltered, Source={x:Reference ResultGrid}, x:DataType=fl:DataGrid}"
                                        Spacing="4"
                                        VerticalOptions="Center">
-                    <Label Text="{Binding DisplayedItemsCount, Source={x:Reference ResultGrid}, StringFormat='{0} après filtre', x:DataType=v:DataGrid}"
+                    <Label Text="{Binding DisplayedItemsCount, Source={x:Reference ResultGrid}, StringFormat='{0} après filtre', x:DataType=fl:DataGrid}"
                            Style="{StaticResource LabelTertiaryStyle}"
                            VerticalOptions="Center" />
-                    <ImageButton Style="{StaticResource DataGridFilterButtonStyle}"
-                                 Command="{Binding ClearFiltersCommand, Source={x:Reference ResultGrid}, x:DataType=v:DataGrid}"
-                                 Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}, IconSize=10}"
-                                 ToolTipProperties.Text="Effacer tous les filtres" />
+                    <fl:CommandBarButton Command="{Binding ClearFiltersCommand, Source={x:Reference ResultGrid}, x:DataType=fl:DataGrid}"
+                                         Icon="{x:Static mi:FluentFilledIcons.Dismiss16Filled}"
+                                         TextColor="{StaticResource LabelTertiary}"
+                                         ToolTipProperties.Text="Effacer tous les filtres" />
                 </HorizontalStackLayout>
 
                 <Label Text="{Binding Result.ElapsedLabel, Source={x:Reference root}, FallbackValue='', x:DataType=c:QueryResultsPanel}"
                        Style="{StaticResource LabelTertiaryStyle}"
                        VerticalOptions="Center" />
 
-                <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                             Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
-                             Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}, IconSize=12}"
-                             ToolTipProperties.Text="Fermer les résultats" />
+                <fl:CommandBarButton Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=c:QueryResultsPanel}"
+                                     Icon="{x:Static mi:FluentFilledIcons.Dismiss16Filled}"
+                                     TextColor="{StaticResource LabelTertiary}"
+                                     ToolTipProperties.Text="Fermer les résultats" />
             </HorizontalStackLayout>
-        </v:TabBar.TrailingContent>
-    </v:TabBar>
+        </fl:TabView.TabStripFooter>
+    </fl:TabView>
 </ContentView>

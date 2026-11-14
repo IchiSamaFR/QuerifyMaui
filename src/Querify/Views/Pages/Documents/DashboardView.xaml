@@ -11,11 +11,13 @@
         <!-- ============ En-tete : chargement des cartes, connexion et vue ============ -->
         <HorizontalStackLayout>
             <!-- Langage de la carte selectionnee, modifiable dans le concepteur seulement ; LINQ : les parametres sont des variables C# (UserId ou @UserId) -->
-            <inp:PickerField ItemsSource="{x:Static vm:QueryLanguages.All}"
-                             SelectedKey="{Binding Session.SelectedCard.Language, Mode=TwoWay, FallbackValue={x:Null}}"
+            <fl:FluentPicker ItemsSource="{x:Static vm:QueryLanguages.All}"
+                             DisplayMemberPath="Value"
+                             SelectedValuePath="Key"
+                             SelectedValue="{Binding Session.SelectedCard.Language, Mode=TwoWay, FallbackValue={x:Null}}"
                              WidthRequest="120"
                              ToolTipProperties.Text="Langage de la requête de la carte sélectionnée">
-                <inp:PickerField.IsEnabled>
+                <fl:FluentPicker.IsEnabled>
                     <MultiBinding Converter="{StaticResource IsAllTrueConverter}">
                         <Binding Path="Session.IsDesigning"
                                  FallbackValue="False" />
@@ -26,47 +28,66 @@
                         <Binding Path="Session.SelectedCard.UsesQuery"
                                  FallbackValue="False" />
                     </MultiBinding>
-                </inp:PickerField.IsEnabled>
-            </inp:PickerField>
+                </fl:FluentPicker.IsEnabled>
+            </fl:FluentPicker>
 
-            <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                         Command="{Binding ApplyParametersCommand}"
-                         Source="{mk:FluentImage Icon=Play16, IconColor={StaticResource Success}}"
-                         ToolTipProperties.Text="Appliquer les paramètres et recharger les cartes" />
+            <fl:CommandBarButton Command="{Binding ApplyParametersCommand}"
+                                 Icon="{x:Static mi:FluentIcons.Play16}"
+                                 TextColor="{StaticResource Success}"
+                                 ToolTipProperties.Text="Appliquer les paramètres et recharger les cartes" />
 
-            <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                         Command="{Binding CancelLoadingCommand}"
-                         Source="{mk:FluentImage Icon=Stop16, IconColor={StaticResource Danger}}"
-                         ToolTipProperties.Text="Arrêter le chargement des cartes" />
+            <fl:CommandBarButton Command="{Binding CancelLoadingCommand}"
+                                 Icon="{x:Static mi:FluentIcons.Stop16}"
+                                 TextColor="{StaticResource Danger}"
+                                 ToolTipProperties.Text="Arrêter le chargement des cartes" />
 
-            <v:Separator />
+            <fl:CommandBarSeparator />
 
-            <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                         Command="{Binding Connection.DisconnectCommand}"
-                         Source="{mk:FluentImage Icon=PlugDisconnected20, IconColor={StaticResource Danger}}"
-                         ToolTipProperties.Text="Déconnecter la connexion" />
+            <fl:CommandBarButton Command="{Binding Connection.DisconnectCommand}"
+                                 Icon="{x:Static mi:FluentIcons.PlugDisconnected20}"
+                                 TextColor="{StaticResource Danger}"
+                                 ToolTipProperties.Text="Déconnecter la connexion" />
 
-            <inp:PickerField ItemsSource="{Binding Connection.Connections}"
-                             SelectedItem="{Binding Connection.SelectedConnection, Mode=TwoWay}"
+            <fl:FluentPicker ItemsSource="{Binding Connection.Connections}"
                              DisplayMemberPath="Name"
+                             SelectedValuePath="."
+                             SelectedValue="{Binding Connection.SelectedConnection, Mode=TwoWay}"
                              WidthRequest="220"
                              FontSize="{StaticResource FontSize_Caption}" />
 
-            <v:Separator />
+            <fl:CommandBarSeparator />
 
-            <inp:ToggleButtonField IsToggled="{Binding IsDesignMode}"
-                                   OffIcon="{mk:FluentImage Icon=ContentView20}"
-                                   OffText="Dashboard"
-                                   OnIcon="{mk:FluentImage Icon=ResizeSmall20}"
-                                   OnText="Concepteur"
-                                   LabelWidthRequest="70"
-                                   OffToolTip="Passer au concepteur"
-                                   OnToolTip="Revenir au dashboard" />
+            <fl:ToggleButton IsChecked="{Binding IsDesignMode}"
+                             Icon="{x:Static mi:FluentIcons.ContentView20}"
+                             Text="Dashboard"
+                             MinimumWidthRequest="116"
+                             ToolTipProperties.Text="Passer au concepteur">
+                <fl:ToggleButton.Triggers>
+                    <Trigger TargetType="fl:ToggleButton"
+                             Property="IsChecked"
+                             Value="True">
+                        <Setter Property="Icon"
+                                Value="{x:Static mi:FluentIcons.ResizeSmall20}" />
+                        <Setter Property="Text"
+                                Value="Concepteur" />
+                        <Setter Property="ToolTipProperties.Text"
+                                Value="Revenir au dashboard" />
+                    </Trigger>
+                </fl:ToggleButton.Triggers>
+            </fl:ToggleButton>
 
-            <inp:ToggleButtonField IsToggled="{Binding Preferences.Panels.IsDashboardParamsOpen}"
-                                   OnIcon="{mk:FluentImage Icon=EditSettings20}"
-                                   OffToolTip="Afficher les paramètres"
-                                   OnToolTip="Cacher les paramètres" />
+            <fl:ToggleButton IsChecked="{Binding Preferences.Panels.IsDashboardParamsOpen}"
+                             Icon="{x:Static mi:FluentIcons.EditSettings20}"
+                             ToolTipProperties.Text="Afficher les paramètres">
+                <fl:ToggleButton.Triggers>
+                    <Trigger TargetType="fl:ToggleButton"
+                             Property="IsChecked"
+                             Value="True">
+                        <Setter Property="ToolTipProperties.Text"
+                                Value="Cacher les paramètres" />
+                    </Trigger>
+                </fl:ToggleButton.Triggers>
+            </fl:ToggleButton>
         </HorizontalStackLayout>
 
         <!-- ============ Source : JSON du fichier ============ -->

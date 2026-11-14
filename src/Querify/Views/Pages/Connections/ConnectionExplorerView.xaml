@@ -13,29 +13,27 @@
                 <Label Text="Explorateur d'objets"
                        Style="{StaticResource LabelThirdHeaderStyle}"
                        VerticalOptions="Center" />
-                <ImageButton Grid.Column="1"
-                        Style="{StaticResource TextImageButtonStyle}"
-                        Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
-                        Source="{mk:FluentFilledImage Icon=Dismiss16Filled, IconColor={StaticResource LabelTertiary}}"
-                        ToolTipProperties.Text="Fermer l'explorateur" />
+                <fl:CommandBarButton Grid.Column="1"
+                                     Command="{Binding CloseCommand, Source={x:Reference root}, x:DataType=v:ConnectionExplorerView}"
+                                     Icon="{x:Static mi:FluentFilledIcons.Dismiss16Filled}"
+                                     TextColor="{StaticResource LabelTertiary}"
+                                     ToolTipProperties.Text="Fermer l'explorateur" />
             </Grid>
 
             <Grid ColumnDefinitions="*,Auto"
                   Grid.Row="1">
                 <HorizontalStackLayout Spacing="4">
-                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Command="{Binding CollapseAllCommand}"
-                                 Source="{mk:FluentFilledImage Icon=ArrowCollapseAll20Filled}"
-                                 ToolTipProperties.Text="Reduire tout" />
-                    <v:Separator />
-                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Command="{Binding RefreshCommand}"
-                                 Source="{mk:FluentFilledImage Icon=ArrowSync20Filled}"
-                                 ToolTipProperties.Text="Actualiser" />
-                    <ImageButton Style="{StaticResource TextImageButtonStyle}"
-                                 Command="{Binding AddConnectionCommand}"
-                                 Source="{mk:FluentFilledImage Icon=PlugConnectedAdd20Filled, IconColor={StaticResource Secondary}}"
-                                 ToolTipProperties.Text="Se connecter..." />
+                    <fl:CommandBarButton Command="{Binding CollapseAllCommand}"
+                                         Icon="{x:Static mi:FluentFilledIcons.ArrowCollapseAll20Filled}"
+                                         ToolTipProperties.Text="Reduire tout" />
+                    <fl:CommandBarSeparator />
+                    <fl:CommandBarButton Command="{Binding RefreshCommand}"
+                                         Icon="{x:Static mi:FluentFilledIcons.ArrowSync20Filled}"
+                                         ToolTipProperties.Text="Actualiser" />
+                    <fl:CommandBarButton Command="{Binding AddConnectionCommand}"
+                                         Icon="{x:Static mi:FluentFilledIcons.PlugConnectedAdd20Filled}"
+                                         TextColor="{StaticResource Secondary}"
+                                         ToolTipProperties.Text="Se connecter..." />
                 </HorizontalStackLayout>
                 <HorizontalStackLayout Grid.Column="1"
                                        Spacing="4">
@@ -52,13 +50,20 @@
                    IsVisible="{Binding Roots.Count, Converter={StaticResource IsEqualConverter}, ConverterParameter=0}" />
 
             <!-- ============ Arbre ============ -->
-            <v:TreeView Grid.Row="2"
-                        ItemsSource="{Binding Roots}"
-                        SelectedItem="{Binding SelectedNode}"
-                        ExpandingCommand="{Binding ExpandNodeCommand}"
-                        DeleteCommand="{Binding DeleteConnectionCommand}"
-                        IsVisible="{Binding Roots.Count, Converter={StaticResource IsNotEqualConverter}, ConverterParameter=0}">
-                <v:TreeView.ItemTemplate>
+            <!-- L'ouverture est portee par les noeuds (IsExpanded), le chevron par CanExpand : les enfants sont charges a l'ouverture -->
+            <fl:TreeView Grid.Row="2"
+                         ItemsSource="{Binding Roots}"
+                         SelectedItem="{Binding SelectedNode}"
+                         IsExpandedPropertyName="IsExpanded"
+                         HasChildrenPropertyName="CanExpand"
+                         ExpandingCommand="{Binding ExpandNodeCommand}"
+                         DeleteCommand="{Binding DeleteConnectionCommand}"
+                         IsVisible="{Binding Roots.Count, Converter={StaticResource IsNotEqualConverter}, ConverterParameter=0}">
+                <fl:TreeView.Resources>
+                    <!-- Lignes de 28 px dans l'arbre (24 ailleurs) -->
+                    <x:Double x:Key="FluentiaControlMinHeight">28</x:Double>
+                </fl:TreeView.Resources>
+                <fl:TreeView.ItemTemplate>
                     <DataTemplate x:DataType="m:ExplorerNode">
                         <Grid ColumnDefinitions="20,*,Auto"
                               ColumnSpacing="6"
@@ -184,8 +189,8 @@
                                                Margin="0,0,4,0" />
                         </Grid>
                     </DataTemplate>
-                </v:TreeView.ItemTemplate>
-            </v:TreeView>
+                </fl:TreeView.ItemTemplate>
+            </fl:TreeView>
         </Grid>
     </Border>
 </v:AbstractContentView>

@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="Querify.Views.Controls.Editors.Search.FindReplacePopup"
              x:Name="Root"
              HorizontalOptions="End"
@@ -36,32 +37,33 @@
             </Grid.Triggers>
             
             <!-- Bascule Rechercher / Remplacer -->
-            <ImageButton Style="{DynamicResource TextImageButtonStyle}"
-                         VerticalOptions="Start"
-                         Source="{mk:FluentFilledImage Icon=ChevronRight24Filled, IconSize=12}"
-                         Command="{Binding ToggleReplaceCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
-                         Padding="0,2,0,0"
-                         ToolTipProperties.Text="Afficher le remplacement (Ctrl+H)">
-                <ImageButton.Triggers>
-                    <DataTrigger TargetType="ImageButton"
+            <fl:CommandBarButton VerticalOptions="Start"
+                                 Icon="{x:Static mi:FluentFilledIcons.ChevronRight24Filled}"
+                                 Command="{Binding ToggleReplaceCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
+                                 ToolTipProperties.Text="Afficher le remplacement (Ctrl+H)">
+                <fl:CommandBarButton.Triggers>
+                    <DataTrigger TargetType="fl:CommandBarButton"
                                  Binding="{Binding IsReplaceMode, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
                                  Value="True">
-                        <Setter Property="Source"
-                                Value="{mk:FluentFilledImage Icon=ChevronDown24Filled, IconSize=12}" />
+                        <Setter Property="Icon"
+                                Value="{x:Static mi:FluentFilledIcons.ChevronDown24Filled}" />
                         <Setter Property="ToolTipProperties.Text"
                                 Value="Masquer le remplacement" />
                     </DataTrigger>
-                </ImageButton.Triggers>
-            </ImageButton>
+                </fl:CommandBarButton.Triggers>
+            </fl:CommandBarButton>
 
             <!-- ============ Rechercher ============ -->
             <Grid Grid.Column="1">
-                <inp:TextField x:Name="SearchInput"
-                               Text="{Binding SearchText, Source={x:Reference Root}, Mode=TwoWay, x:DataType=c:FindReplacePopup}"
-                               Placeholder="Rechercher"
-                               ClearButtonVisibility="Never"
-                               SelectAllTextOnFocus="True"
-                               FontSize="{DynamicResource FontSize_Small}" />
+                <Entry x:Name="SearchInput"
+                       Text="{Binding SearchText, Source={x:Reference Root}, Mode=TwoWay, x:DataType=c:FindReplacePopup}"
+                       Placeholder="Rechercher"
+                       ClearButtonVisibility="Never"
+                       FontSize="{DynamicResource FontSize_Small}">
+                    <Entry.Behaviors>
+                        <toolkit:SelectAllTextBehavior />
+                    </Entry.Behaviors>
+                </Entry>
             </Grid>
 
             <HorizontalStackLayout Grid.Column="2">
@@ -71,7 +73,8 @@
                        VerticalOptions="Center" />
 
                 <!-- Respecter la casse -->
-                <Button Style="{DynamicResource TextButtonStyle}"
+                <Button VerticalOptions="Center"
+                        StyleClass="Subtle"
                         Text="Aa"
                         FontSize="{DynamicResource FontSize_Caption}"
                         Opacity="{DynamicResource DisabledOpacity}"
@@ -89,22 +92,19 @@
                     </Button.Triggers>
                 </Button>
 
-                <ImageButton Style="{DynamicResource TextImageButtonStyle}"
-                             Source="{mk:FluentFilledImage Icon=ArrowUp20Filled}"
-                             Command="{Binding FindPreviousCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
-                             ToolTipProperties.Text="Précédent (Maj+F3)" />
+                <fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.ArrowUp20Filled}"
+                                     Command="{Binding FindPreviousCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
+                                     ToolTipProperties.Text="Précédent (Maj+F3)" />
 
-                <ImageButton Style="{DynamicResource TextImageButtonStyle}"
-                             Source="{mk:FluentFilledImage Icon=ArrowDown20Filled}"
-                             Command="{Binding FindNextCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
-                             ToolTipProperties.Text="Suivant (F3)" />
+                <fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.ArrowDown20Filled}"
+                                     Command="{Binding FindNextCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
+                                     ToolTipProperties.Text="Suivant (F3)" />
             </HorizontalStackLayout>
 
             <HorizontalStackLayout Grid.Column="3">
-                <ImageButton Style="{DynamicResource TextImageButtonStyle}"
-                             Source="{mk:FluentFilledImage Icon=Dismiss16Filled}"
-                             Command="{Binding CloseCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
-                             ToolTipProperties.Text="Fermer (Échap)" />
+                <fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.Dismiss16Filled}"
+                                     Command="{Binding CloseCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
+                                     ToolTipProperties.Text="Fermer (Échap)" />
             </HorizontalStackLayout>
 
             <!-- ============ Remplacer ============ -->
@@ -113,26 +113,27 @@
                   ColumnDefinitions="*,Auto,Auto"
                   ColumnSpacing="2"
                   IsVisible="{Binding IsReplaceMode, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}">
-                <inp:TextField x:Name="ReplaceInput"
-                               Text="{Binding ReplaceText, Source={x:Reference Root}, Mode=TwoWay, x:DataType=c:FindReplacePopup}"
-                               Placeholder="Remplacer"
-                               ClearButtonVisibility="Never"
-                               SelectAllTextOnFocus="True"
-                               FontSize="{DynamicResource FontSize_Small}" />
+                <Entry x:Name="ReplaceInput"
+                       Text="{Binding ReplaceText, Source={x:Reference Root}, Mode=TwoWay, x:DataType=c:FindReplacePopup}"
+                       Placeholder="Remplacer"
+                       ClearButtonVisibility="Never"
+                       FontSize="{DynamicResource FontSize_Small}">
+                    <Entry.Behaviors>
+                        <toolkit:SelectAllTextBehavior />
+                    </Entry.Behaviors>
+                </Entry>
             </Grid>
 
             <HorizontalStackLayout Grid.Column="2"
                                    Grid.Row="1">
 
-                <ImageButton Style="{DynamicResource TextImageButtonStyle}"
-                             Source="{mk:FluentFilledImage Icon=SlideText20Filled}"
-                             Command="{Binding ReplaceCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
-                             ToolTipProperties.Text="Remplacer l'occurrence courante et passer à la suivante" />
+                <fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.SlideText20Filled}"
+                                     Command="{Binding ReplaceCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
+                                     ToolTipProperties.Text="Remplacer l'occurrence courante et passer à la suivante" />
 
-                <ImageButton Style="{DynamicResource TextImageButtonStyle}"
-                             Source="{mk:FluentFilledImage Icon=SlideTextMultiple20Filled}"
-                             Command="{Binding ReplaceAllCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
-                             ToolTipProperties.Text="Tout remplacer (une seule étape d'annulation)" />
+                <fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.SlideTextMultiple20Filled}"
+                                     Command="{Binding ReplaceAllCommand, Source={x:Reference Root}, x:DataType=c:FindReplacePopup}"
+                                     ToolTipProperties.Text="Tout remplacer (une seule étape d'annulation)" />
             </HorizontalStackLayout>
         </Grid>
     </Border>

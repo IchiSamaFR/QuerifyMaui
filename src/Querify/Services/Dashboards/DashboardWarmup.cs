@@ -2,7 +2,7 @@
 using Querify.Core.Models.Dashboards;
 using Querify.Core.Serialization;
 using Querify.Diagnostics;
-using Querify.UI.Views.Controls.DataGrids;
+using Fluentia.Controls;
 using Querify.Views.Controls.Dashboards;
 using SkiaSharp;
 using System.Diagnostics;
