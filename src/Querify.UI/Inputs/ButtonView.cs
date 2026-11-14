@@ -59,8 +59,7 @@ public partial class ButtonView : Border
 
     /// <summary>
     /// Branche les parties internes (bordure, voile de survol) sur les proprietes bindables
-    /// du controle, plutot que de les resynchroniser a la main dans OnPropertyChanged :
-    /// meme approche que <c>InputField.RegisterBindings</c>.
+    /// du controle, plutot que de les resynchroniser a la main dans OnPropertyChanged.
     /// </summary>
     private void RegisterBindings()
     {

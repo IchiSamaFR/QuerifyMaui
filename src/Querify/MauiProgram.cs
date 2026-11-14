@@ -33,8 +33,7 @@ public static class MauiProgram
             .UseLiveCharts()
             .UseMauiCommunityToolkit(options => options.SetShouldEnableSnackbarOnWindows(true))
             .UseMauiCommunityToolkitMarkup()
-            .UseFluentia()
-            .UseQuerifyInputs();
+            .UseFluentia();
 
         builder.Services.AddApplicationServices();
 

@@ -4,16 +4,11 @@
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="./Controls/ButtonStyles.xaml" />
-        <ResourceDictionary Source="./Controls/EditorFieldStyles.xaml" />
-        <ResourceDictionary Source="./Controls/FormFieldStyles.xaml" />
         <ResourceDictionary Source="./Controls/ImageStyles.xaml" />
         <ResourceDictionary Source="./Controls/LabelStyles.xaml" />
         <ResourceDictionary Source="./Controls/LayoutStyles.xaml" />
         <ResourceDictionary Source="./Controls/NativeStyles.xaml" />
-        <ResourceDictionary Source="./Controls/PickerStyles.xaml" />
         <ResourceDictionary Source="./Controls/QueryResultStyles.xaml" />
-        <ResourceDictionary Source="./Controls/TextFieldStyles.xaml" />
-        <ResourceDictionary Source="./Controls/ToggleButtonFieldStyles.xaml" />
     </ResourceDictionary.MergedDictionaries>
     
 </ResourceDictionary>

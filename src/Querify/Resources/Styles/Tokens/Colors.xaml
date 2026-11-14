@@ -19,7 +19,7 @@
     <!-- Apercu d'un depot (accent a 15 %) -->
     <Color x:Key="InfoPreviewBackground">#264CC2FF</Color>
 
-    <!-- Alias historiques de l'accent (ThemedPickerHandler lit "Primary") -->
+    <!-- Alias historiques de l'accent -->
     <Color x:Key="Primary">#4CC2FF</Color>
     <Color x:Key="Secondary">#99EBFF</Color>
     <Color x:Key="Accent">#4CC2FF</Color>
@@ -37,9 +37,6 @@
     <Color x:Key="LabelPlaceHolder">#87FFFFFF</Color>
     <Color x:Key="LabelDisabled">#5DFFFFFF</Color>
 
-    <!-- Lus par Querify.UI (InputColors) pour teinter les icones des champs -->
-    <Color x:Key="OnBackground">#E4000000</Color>
-    <Color x:Key="OnBackgroundDark">#C5FFFFFF</Color>
 
     <!-- ============ Fonds ============ -->
     <!-- ApplicationBackgroundColor : base Mica (rail, barre de menus) -->

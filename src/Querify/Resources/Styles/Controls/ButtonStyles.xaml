@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <!--
     Button : styles de Fluentia (defaut, Accent, Subtle), completes ici par Danger et Icon.
-    ButtonView et ImageButton : styles de Querify calques sur WPF UI (Controls/Button/Button.xaml), theme Dark.
+    ButtonView : styles de Querify calques sur WPF UI (Controls/Button/Button.xaml), theme Dark.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
@@ -68,35 +68,10 @@
         </Setter>
     </Style>
 
-    <!-- Apparence Primary de WPF UI, en couleur Info -->
-    <Style x:Key="PrimaryButtonViewStyle"
-           TargetType="inp:ButtonView"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource BaseButtonViewStyle}">
-        <Setter Property="BackgroundColor"
-                Value="{DynamicResource Info}" />
-        <Setter Property="BorderColor"
-                Value="{DynamicResource InfoStroke}" />
-        <Setter Property="HoverOverlayColor"
-                Value="{DynamicResource AccentHoverOverlay}" />
-    </Style>
-
     <Style x:Key="SecondaryButtonViewStyle"
            TargetType="inp:ButtonView"
            ApplyToDerivedTypes="True"
            BasedOn="{StaticResource BaseButtonViewStyle}">
-    </Style>
-
-    <Style x:Key="DangerButtonViewStyle"
-           TargetType="inp:ButtonView"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource BaseButtonViewStyle}">
-        <Setter Property="BackgroundColor"
-                Value="{DynamicResource Danger}" />
-        <Setter Property="BorderColor"
-                Value="{DynamicResource InfoStroke}" />
-        <Setter Property="HoverOverlayColor"
-                Value="{DynamicResource AccentHoverOverlay}" />
     </Style>
 
     <Style x:Key="OutlinedButtonViewStyle"
@@ -118,16 +93,6 @@
                 Value="Transparent" />
         <Setter Property="BorderThickness"
                 Value="0" />
-    </Style>
-
-    <Style x:Key="NavTextButtonViewStyle"
-           TargetType="inp:ButtonView"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource TextButtonViewStyle}">
-        <Setter Property="Padding"
-                Value="0" />
-        <Setter Property="HeightRequest"
-                Value="{DynamicResource ButtonHeight}" />
     </Style>
 
     <!-- ============ Button ============ -->
@@ -152,81 +117,8 @@
                 Value="{DynamicResource FluentiaControlMinHeight}" />
     </Style>
 
-    <!-- ============ Image Button Styles ============ -->
-    <Style x:Key="PrimaryImageButtonStyle"
-           TargetType="ImageButton"
-           ApplyToDerivedTypes="True">
-        <Setter Property="beh:ImageButtonIcon.DisabledColor"
-                Value="{StaticResource Gray500}" />
-        <Setter Property="Background"
-                Value="{DynamicResource Primary}" />
-        <Setter Property="BorderColor"
-                Value="{DynamicResource Primary}" />
-        <Setter Property="HeightRequest"
-                Value="{DynamicResource ButtonHeight}" />
-        <Setter Property="WidthRequest"
-                Value="{DynamicResource ButtonHeight}" />
-        <Setter Property="Padding"
-                Value="0" />
-        <Setter Property="Margin"
-                Value="0" />
-        <Setter Property="VerticalOptions"
-                Value="Center" />
-        <Setter Property="HorizontalOptions"
-                Value="Center" />
-
-        <Setter Property="VisualStateManager.VisualStateGroups">
-            <VisualStateGroupList>
-                <VisualStateGroup x:Name="CommonStates">
-                    <VisualState x:Name="Normal" />
-                    <VisualState x:Name="PointerOver">
-                        <VisualState.Setters>
-                            <Setter Property="Opacity"
-                                    Value="{DynamicResource PointerOverOpacity}" />
-                        </VisualState.Setters>
-                    </VisualState>
-                    <VisualState x:Name="Pressed">
-                        <VisualState.Setters>
-                            <Setter Property="Opacity"
-                                    Value="{DynamicResource PressedOpacity}" />
-                        </VisualState.Setters>
-                    </VisualState>
-                    <VisualState x:Name="Disabled">
-                        <VisualState.Setters>
-                            <Setter Property="Opacity"
-                                    Value="{DynamicResource DisabledOpacity}" />
-                        </VisualState.Setters>
-                    </VisualState>
-                </VisualStateGroup>
-            </VisualStateGroupList>
-        </Setter>
-    </Style>
-    
-    <Style x:Key="SecondaryImageButtonStyle"
-           TargetType="ImageButton"
-           BasedOn="{StaticResource PrimaryImageButtonStyle}"
-           ApplyToDerivedTypes="True">
-        <Setter Property="Background"
-                Value="{DynamicResource ButtonBackground}" />
-        <Setter Property="BorderColor"
-                Value="{DynamicResource ButtonBackground}" />
-    </Style>
-    
-    <Style x:Key="TextImageButtonStyle"
-           TargetType="ImageButton"
-           ApplyToDerivedTypes="True"
-           BasedOn="{StaticResource PrimaryImageButtonStyle}">
-        <Setter Property="Background"
-                Value="Transparent" />
-        <Setter Property="BorderWidth"
-                Value="0" />
-    </Style>
-
     <!-- ============ Styles par defaut ============ -->
     <Style TargetType="inp:ButtonView"
            BasedOn="{StaticResource SecondaryButtonViewStyle}" />
-
-    <Style TargetType="ImageButton"
-           BasedOn="{StaticResource SecondaryImageButtonStyle}" />
 
 </ResourceDictionary>
