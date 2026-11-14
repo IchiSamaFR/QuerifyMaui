@@ -16,5 +16,6 @@
 		<PackageReference Include="QuillCode.Data.Sql.PostgreSql" />
 		<PackageReference Include="QuillCode.Data.Sql.Sqlite" />
 		<PackageReference Include="QuillCode.Data.Sql.SqlServer" />
+		<PackageReference Include="QuillCode.Sql.MySql" />
 	</ItemGroup>
 </Project>

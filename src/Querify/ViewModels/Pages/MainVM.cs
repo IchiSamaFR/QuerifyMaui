@@ -6,6 +6,7 @@ using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Core.Ioc;
 using Querify.Core.Models.Editors;
 using Querify.Core.Models.Settings;
+using Querify.Languages.Editors;
 using Querify.Languages.Queries;
 using Querify.Services.Dialogs;
 using Querify.Services.Editors;
@@ -35,6 +36,7 @@ public partial class MainVM : AbstractVM
     private readonly IUserPreferencesStore _preferencesStore;
     private readonly IDialogService _dialogs;
     private readonly IDocumentTemplateStore _templates;
+    private readonly IEditorLanguageResolver _languages;
 
     /// <summary>Onglets ouverts, dans l'ordre d'ouverture.</summary>
     [ObservableProperty]
@@ -57,7 +59,8 @@ public partial class MainVM : AbstractVM
         MainMenuBarVM mainMenuBar,
         IWorkspaceStore workspace,
         IDialogService dialogs,
-        IDocumentTemplateStore templates)
+        IDocumentTemplateStore templates,
+        IEditorLanguageResolver languages)
     {
         _files = files;
         _syntaxConfigurations = syntaxConfigurations;
@@ -68,6 +71,7 @@ public partial class MainVM : AbstractVM
         _preferencesStore = preferences;
         _dialogs = dialogs;
         _templates = templates;
+        _languages = languages;
         Preferences = preferences.Preferences;
         MainMenuBar = mainMenuBar;
 
@@ -116,6 +120,9 @@ public partial class MainVM : AbstractVM
 
         _connection.Select(message.Connection.Id);
         var document = session.Document;
-        document.InsertBlock(document.Language == SyntaxLanguage.Linq ? message.ToLinq() : message.ToSql());
+
+        // Un onglet sans langage d'editeur recoit du SQL, ecrit pour le moteur de la connexion.
+        if ((_languages.Find(document.Language) ?? _languages.Find(SyntaxLanguage.Sql)) is { } language)
+            document.InsertBlock(language.CreateSelectFirstRows(message));
     }
 }

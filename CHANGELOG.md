@@ -4,6 +4,13 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), ver
 
 ## [Non publié]
 
+### Ajouté
+
+- Éditeur SQL dans le dialecte du moteur de la connexion : mots-clés, types et fonctions proposés (`LIMIT`, `FETCH FIRST n ROWS ONLY`, `NVL`…), identifiants délimités à la façon du moteur (`[nom]`, `` `nom` ``, `"nom"`) et selon sa casse, paramètres `@nom` ou `:nom` (Oracle) proposés et décrits au survol.
+- Explorateur ▸ « Sélectionner les N premières lignes » : requête écrite pour le moteur (`TOP`, `LIMIT`, `FETCH FIRST`), nom qualifié comme il l'attend.
+- Modèle des nouveaux scripts SQL propre à MySQL, PostgreSQL, Oracle et SQLite.
+- Coloration : backticks, identifiants entre guillemets doubles, paramètres `:nom`, mots des autres moteurs.
+
 ### Modifié
 
 - Licence : passage de MIT à PolyForm Noncommercial 1.0.0 (usage personnel et non commercial). La version 0.1.0 reste sous MIT.

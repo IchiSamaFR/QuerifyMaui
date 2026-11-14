@@ -1,5 +1,6 @@
 ﻿using Querify.Core.Enums.Editors.Highlighting;
 using Querify.Databases.Models.Connections;
+using Querify.Languages.Queries;
 using Quill.Code;
 using Quill.Code.Execution;
 
@@ -17,6 +18,9 @@ public interface IEditorLanguage
     /// <param name="database">Base interrogee par le texte ; null = base de la connexion.</param>
     /// <param name="parameters">Parametres fournis a l'execution (dashboard), connus avant d'etre ecrits.</param>
     ICodeLanguageService CreateService(DatabaseConnectionInfo? connection, string? database, IReadOnlyList<QueryParameter> parameters);
+
+    /// <summary>Requete qui lit les premieres lignes d'une table (explorateur d'objets), ecrite pour le moteur de sa connexion.</summary>
+    string CreateSelectFirstRows(InsertQueryMessage message);
 
     /// <summary>Precharge ce dont la premiere demande aura besoin (catalogue, Roslyn...) ; n'echoue jamais.</summary>
     Task WarmUpAsync(DatabaseConnectionInfo? connection, CancellationToken cancellationToken = default);

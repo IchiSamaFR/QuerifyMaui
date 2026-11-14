@@ -25,7 +25,7 @@ public partial class MainVM
     private async Task NewAsync(SyntaxLanguage? language)
     {
         var target = language ?? SyntaxLanguage.Sql;
-        var template = Preferences.Editor.InsertTemplateOnNew ? await _templates.GetAsync(target, LifetimeToken) : string.Empty;
+        var template = Preferences.Editor.InsertTemplateOnNew ? await _templates.GetAsync(target, _connection.ActiveConnection?.Provider, LifetimeToken) : string.Empty;
         AddUntitled(target, template);
     }
 
