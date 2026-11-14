@@ -157,8 +157,8 @@
                         Orientation="Horizontal"
                         HorizontalScrollBarVisibility="Never"
                         IsVisible="{Binding Session.IsDesigning, FallbackValue=False}">
-                <HorizontalStackLayout Spacing="2">
-                    <HorizontalStackLayout Spacing="2"
+                <HorizontalStackLayout Spacing="8">
+                    <HorizontalStackLayout Spacing="8"
                                            BindableLayout.ItemsSource="{Binding Session.Pages}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="m:DashboardPageDefinition">
