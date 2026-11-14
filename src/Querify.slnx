@@ -1,7 +1,4 @@
 <Solution>
-  <Folder Name="/Modules/">
-    <Project Path="../../Fluentia/src/Fluentia/Fluentia.csproj" />
-  </Folder>
   <Folder Name="/Tests/">
     <Project Path="Querify.Tests/Querify.Tests.csproj" />
   </Folder>

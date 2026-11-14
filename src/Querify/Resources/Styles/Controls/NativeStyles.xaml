@@ -39,7 +39,7 @@
     <Style TargetType="Border"
            x:Key="CardStyle">
         <Setter Property="BackgroundColor"
-                Value="{DynamicResource CardBackground}" />
+                Value="{DynamicResource CardBackgroundSecondary}" />
         <Setter Property="Stroke"
                 Value="{DynamicResource CardStroke}" />
         <Setter Property="StrokeThickness"
