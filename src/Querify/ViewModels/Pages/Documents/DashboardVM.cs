@@ -112,7 +112,7 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
 
             // Premier affichage : lecture du fichier et connexion qu'il nomme.
             if (newValue.LoadedText is null)
-                Open(newValue);
+                OpenAsync(newValue).FireAndForget($"Ouverture de {newValue.Document.FileName} en échec.");
         }
 
         RefreshCanExecute();
@@ -124,11 +124,18 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
             RefreshCanExecute();
     }
 
-    private void Open(DashboardSession session)
+    private async Task OpenAsync(DashboardSession session)
     {
-        bool loaded;
-        using (PerfTrace.Measure("Open > Load"))
-            loaded = Load(session);
+        // Analyse du JSON hors thread UI : l'onglet s'affiche tout de suite, ses cartes suivent.
+        var text = session.Document.EditorText;
+        var (definition, error) = await PerfTrace.MeasureAsync($"Open > Deserialize ({text.Length} car.)", () => Task.Run(() => Parse(text)));
+
+        // Onglet quitte entre-temps (il sera ouvert a son retour), ou deja lu par une bascule de vue.
+        if (!ReferenceEquals(Session, session) || session.LoadedText is not null)
+            return;
+
+        using (PerfTrace.Measure("Open > session.Load"))
+            session.Load(definition, text, error);
 
         // La connexion du fichier est choisie AVANT d'ouvrir la page : sinon les cartes etaient lues
         // une premiere fois sans connexion (ou sur la precedente), puis relues apres le changement.
@@ -141,8 +148,7 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
             Connection.SelectByName(name);
         }
 
-        if (loaded)
-            OpenStartPage(session);
+        OpenStartPage(session);
 
         if (session.HasError)
             Status.Set($"{session.Document.FileName} : fichier invalide, corrigez-le dans la vue Source.", isError: true);
@@ -165,22 +171,23 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
         if (string.Equals(session.LoadedText, text, StringComparison.Ordinal))
             return false;
 
-        DashboardDefinition? definition = null;
-        string? error = null;
+        var (definition, error) = Parse(text);
+        session.Load(definition, text, error);
+
+        return true;
+    }
+
+    /// <summary>Definition lue dans le JSON, ou le message d'un fichier illisible.</summary>
+    private static (DashboardDefinition? Definition, string? Error) Parse(string text)
+    {
         try
         {
-            using var _ = PerfTrace.Measure($"Load > Deserialize ({text.Length} car.)");
-            definition = DashboardSerializer.Deserialize(text);
+            return (DashboardSerializer.Deserialize(text), null);
         }
         catch (FormatException ex)
         {
-            error = ex.Message;
+            return (null, ex.Message);
         }
-
-        using (PerfTrace.Measure("Load > session.Load"))
-            session.Load(definition, text, error);
-
-        return true;
     }
 
     /// <summary>Ouvre la page de depart du fichier relu (et lit ses cartes).</summary>

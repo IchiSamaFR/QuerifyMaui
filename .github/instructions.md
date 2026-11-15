@@ -276,7 +276,9 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * Les listes des modèles `.schx` sont en `{ get; set; } = []` et **jamais** `init` : le générateur System.Text.Json remet à null une propriété `init` absente du JSON.
 * **Paramètres** : envoyés en paramètres typés (`DashboardParameterValue.TryGetQueryParameter`), jamais concaténés. Chaque étape du fil d'Ariane garde ses valeurs et ses résultats.
 * **Lecture d'une carte** : premier jeu ayant des colonnes, 1 000 lignes max, cartes lues en parallèle ; une nouvelle lecture annule la précédente ; changer de connexion relit la page affichée.
+* **Rien de long sur le thread UI** : le JSON est analysé (`DashboardVM.OpenAsync`) et chaque carte lue (`LoadCardAsync`) dans un `Task.Run` ; seule l'affectation de `Result` revient sur le thread UI.
 * **Rendu** : `DashboardView` assemble `DashboardGrid`, `DashboardCardView`, `DashboardChartView` (LiveCharts2), `DashboardDesignerPanel`.
+* **Vues de carte réutilisées** : `DashboardGrid` crée ses vues depuis la ressource `CardTemplate` (pas de `BindableLayout`) et les garde ; changer d'onglet ou de page relie les vues existantes aux nouvelles cartes (`BindingContext`), une vue en trop est masquée sans carte, seules les manquantes sont créées, une par tour du thread UI. Quitter les dashboards (`Session` null) laisse les cartes en place : y revenir ne recrée rien. `DashboardCardView` lie son tableau / graphique à sa propriété `Card`, jamais à une carte précise.
 * Lecture d'une carte = `IQueryExecutor.ReadAsync`, soit `ISqlQueryExecutor.ReadAsync` de Quill pour SQL.
 
 ### Connexions

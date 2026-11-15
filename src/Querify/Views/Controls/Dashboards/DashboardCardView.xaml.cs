@@ -33,11 +33,16 @@ public partial class DashboardCardView : ContentView
         if (oldCard is not null)
             oldCard.PropertyChanged -= OnCardStatePropertyChanged;
 
-        // Le rendu precedent est lie a l'ancienne carte : il est jete.
-        ResultHost.Content = null;
-
         if (newCard is not null)
             newCard.PropertyChanged += OnCardStatePropertyChanged;
+
+        // Tableau repris par une autre carte : le tri et les filtres etaient ceux de la precedente.
+        if (newCard is not null && ResultHost.Content is DataGrid grid)
+        {
+            grid.ClearValue(DataGrid.SortMemberProperty);
+            if (grid.ClearFiltersCommand?.CanExecute(null) == true)
+                grid.ClearFiltersCommand.Execute(null);
+        }
 
         UpdateResultView();
     }
@@ -49,22 +54,22 @@ public partial class DashboardCardView : ContentView
     }
 
     /// <summary>
-    /// Cree le seul rendu lourd dont la carte a besoin, et le garde tant que son type ne change pas.
-    /// Le rendu est cree un tour plus tard : la carte (titre, indicateur de chargement) s'affiche d'abord.
+    /// Cree le seul rendu lourd dont la carte a besoin, et le garde tant que son type ne change pas : la vue
+    /// est reutilisee d'une carte a l'autre (liaisons sur <see cref="Card"/>), un tableau ou un graphique deja
+    /// cree sert donc la carte suivante. Le rendu est cree un tour plus tard : la carte s'affiche d'abord.
     /// </summary>
     private void UpdateResultView()
     {
         var version = ++_resultVersion;
-        switch (Card)
-        {
-            case { IsGrid: true } when ResultHost.Content is not DataGrid:
-            case { IsChart: true } when ResultHost.Content is not DashboardChartView:
-                CreateResultViewLaterAsync(version).FireAndForget("Rendu de la carte non créé.");
-                break;
-            case { IsGrid: false, IsChart: false } or null:
-                ResultHost.Content = null;
-                break;
-        }
+        var content = ResultHost.Content;
+
+        // Vue en reserve (sans carte) ou rendu deja du bon type : rien a creer.
+        if (Card is not { } card || (card.IsGrid && content is DataGrid) || (card.IsChart && content is DashboardChartView))
+            return;
+
+        ResultHost.Content = null;
+        if (card.IsGrid || card.IsChart)
+            CreateResultViewLaterAsync(version).FireAndForget("Rendu de la carte non créé.");
     }
 
     private async Task CreateResultViewLaterAsync(int version)
@@ -78,31 +83,32 @@ public partial class DashboardCardView : ContentView
         if (card.IsGrid && ResultHost.Content is not DataGrid)
         {
             using (PerfTrace.Measure($"Carte '{card.Definition.Title}' : creation DataGrid"))
-                ResultHost.Content = CreateGrid(card);
+                ResultHost.Content = CreateGrid();
         }
         else if (card.IsChart && ResultHost.Content is not DashboardChartView)
         {
             using (PerfTrace.Measure($"Carte '{card.Definition.Title}' : creation graphique"))
-                ResultHost.Content = CreateChart(card);
+                ResultHost.Content = CreateChart();
         }
     }
 
-    private static DataGrid CreateGrid(DashboardCardState card)
+    // Liaisons sur Card (et non sur la carte du moment) : le rendu suit la carte quand la vue est reutilisee.
+    private DataGrid CreateGrid()
     {
         var grid = new DataGrid { AutoGenerateColumns = false };
-        grid.SetBinding(DataGrid.ItemsSourceProperty, new Binding($"{nameof(DashboardCardState.GridResult)}.{nameof(QueryResultSet.Rows)}", source: card));
-        grid.SetBinding(DataGrid.ColumnsProperty, new Binding(nameof(DashboardCardState.GridResult), converter: ColumnsConverter, source: card));
-        grid.SetBinding(DataGrid.ItemTappedCommandProperty, new Binding(nameof(DashboardCardState.ActivateRowCommand), source: card));
+        grid.SetBinding(DataGrid.ItemsSourceProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.GridResult)}.{nameof(QueryResultSet.Rows)}", source: this));
+        grid.SetBinding(DataGrid.ColumnsProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.GridResult)}", converter: ColumnsConverter, source: this));
+        grid.SetBinding(DataGrid.ItemTappedCommandProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.ActivateRowCommand)}", source: this));
         return grid;
     }
 
-    private static DashboardChartView CreateChart(DashboardCardState card)
+    private DashboardChartView CreateChart()
     {
         var chart = new DashboardChartView();
-        chart.SetBinding(DashboardChartView.ViewProperty, new Binding(nameof(DashboardCardState.View), source: card));
-        chart.SetBinding(DashboardChartView.LabelColumnProperty, new Binding(nameof(DashboardCardState.LabelColumn), source: card));
-        chart.SetBinding(DashboardChartView.ValueColumnsProperty, new Binding(nameof(DashboardCardState.ValueColumnsText), source: card));
-        chart.SetBinding(DashboardChartView.ResultSetProperty, new Binding(nameof(DashboardCardState.Result), source: card));
+        chart.SetBinding(DashboardChartView.ViewProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.View)}", source: this));
+        chart.SetBinding(DashboardChartView.LabelColumnProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.LabelColumn)}", source: this));
+        chart.SetBinding(DashboardChartView.ValueColumnsProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.ValueColumnsText)}", source: this));
+        chart.SetBinding(DashboardChartView.ResultSetProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.Result)}", source: this));
         return chart;
     }
 }

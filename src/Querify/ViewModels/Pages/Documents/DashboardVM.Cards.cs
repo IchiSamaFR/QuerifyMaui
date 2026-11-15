@@ -167,8 +167,13 @@ public partial class DashboardVM
         try
         {
             var label = $"Carte '{card.Definition.Title}' ({card.Language})";
+            var executor = _executors.Resolve(card.Language);
+            string query = card.Definition.Query;
+
+            // Hors thread UI : l'ouverture de la connexion et la compilation LINQ ont une partie synchrone, et
+            // sans contexte de synchronisation la lecture des lignes ne repasse plus par le thread UI.
             var result = await PerfTrace.MeasureAsync($"{label} ReadAsync",
-                () => _executors.Resolve(card.Language).ReadAsync(connection, database, card.Definition.Query, parameters, CARD_MAX_ROWS, token));
+                () => Task.Run(() => executor.ReadAsync(connection, database, query, parameters, CARD_MAX_ROWS, token), token));
 
             // Affectation = mise a jour des liaisons (DataGrid / graphique) sur le thread UI.
             using (PerfTrace.Measure($"{label} affectation Result ({result.Rows.Count} lignes)"))
