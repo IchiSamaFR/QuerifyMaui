@@ -169,14 +169,12 @@
               x:DataType="c:DashboardGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <VerticalStackLayout>
                 <!-- ============ Fichier illisible / saisie invalide ============ -->
-                <Border
-                        BackgroundColor="{StaticResource WarningBackground}"
+                <Border BackgroundColor="{StaticResource WarningBackground}"
                         StrokeThickness="0"
                         StrokeShape="RoundRectangle 4"
                         Padding="12,0"
@@ -187,8 +185,7 @@
                 </Border>
 
                 <!-- ============ Parametres d'entree ============ -->
-                <Border
-                        IsVisible="False"
+                <Border IsVisible="False"
                         Style="{StaticResource CardStyle}">
                     <Border.Triggers>
                         <!-- Dans le concepteur, la barre reste affichee sans parametre pour en declarer un -->
@@ -269,8 +266,7 @@
                 </Border>
 
                 <!-- ============ Fil d'Ariane ============ -->
-                <Grid
-                      ColumnDefinitions="Auto,*"
+                <Grid ColumnDefinitions="Auto,*"
                       Style="{StaticResource GridSpacingStyle}"
                       IsVisible="{Binding DisplayedSession.HasCurrent, FallbackValue=False}">
                     <Grid.Triggers>
@@ -308,46 +304,45 @@
                         </HorizontalStackLayout>
                     </ScrollView>
                 </Grid>
-            </VerticalStackLayout>
 
-            <!-- ============ Concepteur : onglets des pages (a la place du fil d'Ariane) ============ -->
-            <ScrollView Grid.Row="1"
-                        Orientation="Horizontal"
-                        HorizontalScrollBarVisibility="Never"
-                        IsVisible="{Binding DisplayedSession.IsDesigning, FallbackValue=False}">
-                <HorizontalStackLayout Spacing="8">
-                    <HorizontalStackLayout Spacing="8"
-                                           BindableLayout.ItemsSource="{Binding DisplayedSession.Pages}">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="m:DashboardPageDefinition">
-                                <c:DashboardPageTab Title="{Binding Title, Mode=TwoWay}"
-                                                    CommandParameter="{Binding .}"
-                                                    OpenCommand="{Binding OpenPageCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
-                                                    DeleteCommand="{Binding DeletePageCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}">
-                                    <c:DashboardPageTab.IsCurrent>
-                                        <MultiBinding Converter="{StaticResource IsSameMultiConverter}">
-                                            <Binding Path="." />
-                                            <Binding Path="DisplayedSession.Current.Definition"
-                                                     Source="{x:Reference Root}"
-                                                     x:DataType="c:DashboardGrid" />
-                                        </MultiBinding>
-                                    </c:DashboardPageTab.IsCurrent>
-                                </c:DashboardPageTab>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
+                <!-- ============ Concepteur : onglets des pages (a la place du fil d'Ariane) ============ -->
+                <ScrollView Orientation="Horizontal"
+                            HorizontalScrollBarVisibility="Never"
+                            IsVisible="{Binding DisplayedSession.IsDesigning, FallbackValue=False}">
+                    <HorizontalStackLayout Spacing="8">
+                        <HorizontalStackLayout Spacing="8"
+                                               BindableLayout.ItemsSource="{Binding DisplayedSession.Pages}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="m:DashboardPageDefinition">
+                                    <c:DashboardPageTab Title="{Binding Title, Mode=TwoWay}"
+                                                        CommandParameter="{Binding .}"
+                                                        OpenCommand="{Binding OpenPageCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
+                                                        DeleteCommand="{Binding DeletePageCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}">
+                                        <c:DashboardPageTab.IsCurrent>
+                                            <MultiBinding Converter="{StaticResource IsSameMultiConverter}">
+                                                <Binding Path="." />
+                                                <Binding Path="DisplayedSession.Current.Definition"
+                                                         Source="{x:Reference Root}"
+                                                         x:DataType="c:DashboardGrid" />
+                                            </MultiBinding>
+                                        </c:DashboardPageTab.IsCurrent>
+                                    </c:DashboardPageTab>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </HorizontalStackLayout>
+
+                        <fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.Add20Filled}"
+                                             Command="{Binding AddPageCommand}"
+                                             VerticalOptions="Center"
+                                             ToolTipProperties.Text="Nouvelle page" />
                     </HorizontalStackLayout>
-
-                    <fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.Add20Filled}"
-                                         Command="{Binding AddPageCommand}"
-                                         VerticalOptions="Center"
-                                         ToolTipProperties.Text="Nouvelle page" />
-                </HorizontalStackLayout>
-            </ScrollView>
+                </ScrollView>
+            </VerticalStackLayout>
 
             <!-- ============ Grille ============ -->
             <Grid RowDefinitions="*,2,260"
                   Style="{StaticResource GridSpacingStyle}"
-                  Grid.Row="2">
+                  Grid.Row="1">
                 <ScrollView x:Name="GridScroll"
                             Grid.Row="0"
                             Orientation="Vertical"
