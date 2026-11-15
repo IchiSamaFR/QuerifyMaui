@@ -383,13 +383,30 @@ public sealed partial class DashboardSession : AbstractSession
         RowCount = rows;
     }
 
-    /// <summary>Le picker Fluentia relit sa liste et garde la page choisie (par Id) a chaque changement.</summary>
+    /// <summary>Mise a jour sur place, sans vider la liste : un picker lie perdrait sa selection (et la reecrirait a vide).</summary>
     private void RefreshPageChoices()
     {
-        PageChoices.Clear();
-        PageChoices.Add(new DashboardPageChoice(string.Empty, "Aucune"));
-        foreach (var page in Pages)
-            PageChoices.Add(new DashboardPageChoice(page.Id, string.IsNullOrWhiteSpace(page.Title) ? page.Id : page.Title));
+        if (PageChoices.Count == 0)
+            PageChoices.Add(new DashboardPageChoice(string.Empty, "Aucune"));
+
+        for (var i = PageChoices.Count - 1; i > 0; i--)
+        {
+            if (!Pages.Any(p => string.Equals(p.Id, PageChoices[i].Id, StringComparison.Ordinal)))
+                PageChoices.RemoveAt(i);
+        }
+
+        for (var i = 0; i < Pages.Count; i++)
+        {
+            var choice = new DashboardPageChoice(Pages[i].Id, Pages[i].DisplayTitle);
+            var n = 1;
+            while (n < PageChoices.Count && !string.Equals(PageChoices[n].Id, choice.Id, StringComparison.Ordinal))
+                n++;
+
+            if (n == PageChoices.Count)
+                PageChoices.Insert(Math.Min(i + 1, PageChoices.Count), choice);
+            else if (PageChoices[n] != choice)
+                PageChoices[n] = choice;
+        }
     }
 
     private DashboardCardState Wire(DashboardCardState card)

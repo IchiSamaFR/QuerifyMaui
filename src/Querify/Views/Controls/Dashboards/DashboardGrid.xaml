@@ -316,6 +316,7 @@
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="m:DashboardPageDefinition">
                                     <c:DashboardPageTab Title="{Binding Title, Mode=TwoWay}"
+                                                        DisplayTitle="{Binding DisplayTitle, Mode=OneWay}"
                                                         CommandParameter="{Binding .}"
                                                         OpenCommand="{Binding OpenPageCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
                                                         DeleteCommand="{Binding DeletePageCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}">

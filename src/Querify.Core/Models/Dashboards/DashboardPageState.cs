@@ -24,7 +24,7 @@ public sealed partial class DashboardPageState : ObservableObject
             Cards.Add(new DashboardCardState(card));
     }
 
-    public string Title => Definition.Title;
+    public string Title => Definition.DisplayTitle;
 
     /// <summary>La page a ete renommee (depuis son onglet du concepteur).</summary>
     public void NotifyTitleChanged() => OnPropertyChanged(nameof(Title));

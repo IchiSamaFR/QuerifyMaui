@@ -26,7 +26,7 @@
 
         <!-- Page editee : libelle modifiable sur place, suppression dans les options ; les autres : simple libelle -->
         <Grid>
-            <Label Text="{Binding Title, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
+            <Label Text="{Binding DisplayTitle, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
                    Style="{StaticResource LabelStyle}"
                    VerticalOptions="Center"
                    IsVisible="{Binding IsCurrent, Source={x:Reference Root}, x:DataType=c:DashboardPageTab, Converter={StaticResource BooleanInvertConverter}}" />
