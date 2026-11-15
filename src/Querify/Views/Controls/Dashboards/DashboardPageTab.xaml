@@ -24,7 +24,7 @@
                                   CommandParameter="{Binding CommandParameter, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}" />
         </Border.GestureRecognizers>
 
-        <!-- Page editee : libelle modifiable sur place, cle et suppression dans les options ; les autres : simple libelle -->
+        <!-- Page editee : libelle modifiable sur place, suppression dans les options ; les autres : simple libelle -->
         <Grid>
             <Label Text="{Binding Title, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
                    Style="{StaticResource LabelStyle}"
@@ -42,12 +42,9 @@
                           VerticalOptions="Center"
                           HorizontalOptions="End"
                           Margin="0,4,4,0"
-                          ToolTipProperties.Text="Options du paramètre">
+                          ToolTipProperties.Text="Options de la page">
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
-                        <MenuFlyoutItem Text="Modifier"
-                                        Command="{Binding EditCommand, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
-                                        CommandParameter="{Binding CommandParameter, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}" />
                         <MenuFlyoutItem Text="Supprimer"
                                         Command="{Binding DeleteCommand, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
                                         CommandParameter="{Binding CommandParameter, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}" />

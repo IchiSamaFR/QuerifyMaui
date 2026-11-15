@@ -149,8 +149,9 @@
 
                                         <!-- Navigation : bouton, ou clic sur une ligne du tableau -->
                                         <fl:FluentPicker Padding="26,0,0,0"
-                                                         ItemsSource="{Binding DisplayedSession.PageIds, Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, x:DataType=c:DashboardGrid}"
-                                                         SelectedValuePath="."
+                                                         ItemsSource="{Binding DisplayedSession.PageChoices, Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, x:DataType=c:DashboardGrid}"
+                                                         DisplayMemberPath="Title"
+                                                         SelectedValuePath="Id"
                                                          SelectedValue="{Binding NavigationPage, Mode=TwoWay}" />
                                     </Grid>
                                 </VerticalStackLayout>
@@ -317,7 +318,6 @@
                                     <c:DashboardPageTab Title="{Binding Title, Mode=TwoWay}"
                                                         CommandParameter="{Binding .}"
                                                         OpenCommand="{Binding OpenPageCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
-                                                        EditCommand="{Binding EditPageCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
                                                         DeleteCommand="{Binding DeletePageCommand, Source={x:Reference Root}, x:DataType=c:DashboardGrid}">
                                         <c:DashboardPageTab.IsCurrent>
                                             <MultiBinding Converter="{StaticResource IsSameMultiConverter}">

@@ -355,9 +355,6 @@ public sealed partial class DashboardCardState : ObservableObject
     }
 
     /// <summary>Les proprietes derivees suivent, puis l'hote reecrit le fichier.</summary>
-    /// <summary>La page cible a change de cle : le choix du concepteur suit.</summary>
-    public void NotifyNavigationPageChanged() => OnPropertyChanged(nameof(NavigationPage));
-
     private void Changed()
     {
         RefreshColumnChoices();

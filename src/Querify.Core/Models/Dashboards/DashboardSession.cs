@@ -41,8 +41,8 @@ public sealed partial class DashboardSession : AbstractSession
     /// <summary>Pages du fichier (choix de la page editee, cible des boutons).</summary>
     public ObservableCollection<DashboardPageDefinition> Pages { get; } = [];
 
-    /// <summary>Identifiants des pages, precedes d'un vide (« aucune ») : cible d'un bouton dans le concepteur.</summary>
-    public ObservableCollection<string> PageIds { get; } = [];
+    /// <summary>Pages par libelle, precedees de « Aucune » : cible d'un bouton dans le concepteur.</summary>
+    public ObservableCollection<DashboardPageChoice> PageChoices { get; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasDefinition), nameof(ColumnCount))]
@@ -141,7 +141,7 @@ public sealed partial class DashboardSession : AbstractSession
             Parameters.Add(Wire(new DashboardParameterValue(parameter)));
         foreach (var page in definition?.Pages ?? [])
             Pages.Add(Wire(page));
-        RefreshPageIds();
+        RefreshPageChoices();
 
         OnPropertyChanged(nameof(HasParameters));
         OnPropertyChanged(nameof(ParameterDeclarations));
@@ -321,7 +321,7 @@ public sealed partial class DashboardSession : AbstractSession
 
         Definition.Pages.Add(page);
         Pages.Add(Wire(page));
-        RefreshPageIds();
+        RefreshPageChoices();
         NotifyDefinitionChanged();
     }
 
@@ -332,40 +332,10 @@ public sealed partial class DashboardSession : AbstractSession
 
         Pages.Remove(page);
         page.PropertyChanged -= OnPageDefinitionChanged;
-        RefreshPageIds();
+        RefreshPageChoices();
         if (string.Equals(Definition.StartPage, page.Id, StringComparison.OrdinalIgnoreCase))
             Definition.StartPage = Definition.Pages[0].Id;
         NotifyDefinitionChanged();
-    }
-
-    /// <summary>Change la cle et le libelle d'une page ; les boutons et la page de depart qui la visaient suivent.</summary>
-    public void UpdatePage(DashboardPageDefinition page, string id, string title)
-    {
-        ArgumentNullException.ThrowIfNull(page);
-        if (Definition is null)
-            return;
-
-        page.Title = title;
-        var oldId = page.Id;
-        if (string.Equals(oldId, id, StringComparison.Ordinal))
-            return;
-
-        foreach (var navigation in Definition.Pages.SelectMany(p => p.Cards).Select(c => c.Navigation))
-        {
-            if (navigation is not null && string.Equals(navigation.Page, oldId, StringComparison.OrdinalIgnoreCase))
-                navigation.Page = id;
-        }
-
-        if (string.Equals(Definition.StartPage, oldId, StringComparison.OrdinalIgnoreCase))
-            Definition.StartPage = id;
-
-        // Nouvelle cle proposee avant le retrait de l'ancienne : un Picker lie perdrait sinon sa selection.
-        var index = PageIds.IndexOf(oldId);
-        PageIds.Insert(index < 0 ? PageIds.Count : index + 1, id);
-        page.Id = id;
-        foreach (var card in Steps.SelectMany(s => s.Cards))
-            card.NotifyNavigationPageChanged();
-        RefreshPageIds();
     }
 
     public void AddParameter(DashboardParameterDefinition parameter)
@@ -413,20 +383,13 @@ public sealed partial class DashboardSession : AbstractSession
         RowCount = rows;
     }
 
-    /// <summary>Mise a jour sans vider la liste : un Picker lie perdrait sa selection (et la reecrirait a null).</summary>
-    private void RefreshPageIds()
+    /// <summary>Le picker Fluentia relit sa liste et garde la page choisie (par Id) a chaque changement.</summary>
+    private void RefreshPageChoices()
     {
-        if (PageIds.Count == 0)
-            PageIds.Add(string.Empty);
-
-        for (var i = PageIds.Count - 1; i > 0; i--)
-        {
-            if (!Pages.Any(p => string.Equals(p.Id, PageIds[i], StringComparison.Ordinal)))
-                PageIds.RemoveAt(i);
-        }
-
-        foreach (var page in Pages.Where(p => !PageIds.Contains(p.Id)))
-            PageIds.Add(page.Id);
+        PageChoices.Clear();
+        PageChoices.Add(new DashboardPageChoice(string.Empty, "Aucune"));
+        foreach (var page in Pages)
+            PageChoices.Add(new DashboardPageChoice(page.Id, string.IsNullOrWhiteSpace(page.Title) ? page.Id : page.Title));
     }
 
     private DashboardCardState Wire(DashboardCardState card)
@@ -456,9 +419,10 @@ public sealed partial class DashboardSession : AbstractSession
         NotifyDefinitionChanged();
     }
 
-    /// <summary>Page renommee : son titre suit dans le fil d'Ariane.</summary>
+    /// <summary>Page renommee : son titre suit dans le fil d'Ariane et le choix de page des boutons.</summary>
     private void OnPageDefinitionChanged(object? sender, PropertyChangedEventArgs e)
     {
+        RefreshPageChoices();
         foreach (var step in Steps.Where(s => ReferenceEquals(s.Definition, sender)))
             step.NotifyTitleChanged();
         NotifyDefinitionChanged();
