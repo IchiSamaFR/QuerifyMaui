@@ -28,7 +28,7 @@
                 <c:DashboardCardView Card="{Binding .}" />
 
                 <!-- Concepteur : clic = selection, glisser = deplacement -->
-                <c:LazyView IsActive="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=Session.IsDesigning, FallbackValue=False, x:DataType=c:DashboardGrid}">
+                <c:LazyView IsActive="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=DisplayedSession.IsDesigning, FallbackValue=False, x:DataType=c:DashboardGrid}">
                     <c:LazyView.ContentTemplate>
                         <DataTemplate x:DataType="m:DashboardCardState">
                             <inp:ButtonView Style="{StaticResource TextButtonViewStyle}"
@@ -78,7 +78,7 @@
                                 <!-- Masquee pendant le glisser : ses champs de texte captent le survol -->
                                 <Grid.Triggers>
                                     <DataTrigger TargetType="Grid"
-                                                 Binding="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=Session.IsDraggingCard, FallbackValue=False, x:DataType=c:DashboardGrid}"
+                                                 Binding="{Binding Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, Path=DisplayedSession.IsDraggingCard, FallbackValue=False, x:DataType=c:DashboardGrid}"
                                                  Value="True">
                                         <Setter Property="IsVisible"
                                                 Value="False" />
@@ -149,7 +149,7 @@
 
                                         <!-- Navigation : bouton, ou clic sur une ligne du tableau -->
                                         <fl:FluentPicker Padding="26,0,0,0"
-                                                         ItemsSource="{Binding Session.PageIds, Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, x:DataType=c:DashboardGrid}"
+                                                         ItemsSource="{Binding DisplayedSession.PageIds, Source={RelativeSource AncestorType={x:Type c:DashboardGrid}}, x:DataType=c:DashboardGrid}"
                                                          SelectedValuePath="."
                                                          SelectedValue="{Binding NavigationPage, Mode=TwoWay}" />
                                     </Grid>
@@ -180,8 +180,8 @@
                         StrokeThickness="0"
                         StrokeShape="RoundRectangle 4"
                         Padding="12,0"
-                        IsVisible="{Binding Session.HasError, FallbackValue=False}">
-                    <Label Text="{Binding Session.Error, FallbackValue=''}"
+                        IsVisible="{Binding DisplayedSession.HasError, FallbackValue=False}">
+                    <Label Text="{Binding DisplayedSession.Error, FallbackValue=''}"
                            TextColor="{StaticResource Warning}"
                            LineBreakMode="WordWrap" />
                 </Border>
@@ -197,9 +197,9 @@
                                 <BindingCondition Value="True">
                                     <BindingCondition.Binding>
                                         <MultiBinding Converter="{StaticResource IsOneTrueConverter}">
-                                            <Binding Path="Session.HasParameters"
+                                            <Binding Path="DisplayedSession.HasParameters"
                                                      FallbackValue="False" />
-                                            <Binding Path="Session.IsDesigning"
+                                            <Binding Path="DisplayedSession.IsDesigning"
                                                      FallbackValue="False" />
                                         </MultiBinding>
                                     </BindingCondition.Binding>
@@ -216,8 +216,8 @@
                     <v:WrapLayout HorizontalSpacing="12"
                                   HorizontalOptions="Start">
                         <v:WrapLayout HorizontalSpacing="12"
-                                      IsVisible="{Binding Session.HasParameters}"
-                                      BindableLayout.ItemsSource="{Binding Session.Parameters}">
+                                      IsVisible="{Binding DisplayedSession.HasParameters}"
+                                      BindableLayout.ItemsSource="{Binding DisplayedSession.Parameters}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="m:DashboardParameterValue">
                                     <VerticalStackLayout Spacing="2">
@@ -233,7 +233,7 @@
                                                    WidthRequest="120" />
                                             <v:MenuButton Grid.Column="1"
                                                           ImageSource="{mk:FluentFilledImage Icon=MoreHorizontal16Filled}"
-                                                          IsVisible="{Binding Session.IsDesigning, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
+                                                          IsVisible="{Binding DisplayedSession.IsDesigning, Source={x:Reference Root}, x:DataType=c:DashboardGrid}"
                                                           VerticalOptions="Center"
                                                           HorizontalOptions="End"
                                                           Margin="0,4,4,0"
@@ -264,7 +264,7 @@
                                 Text="Ajouter"
                                 ImageSource="{mk:FluentFilledImage Icon=Add20Filled, IconSize=14, IconColor={StaticResource TextOnInfo}}"
                                 Command="{Binding AddParameterCommand}"
-                                IsVisible="{Binding Session.IsDesigning}" />
+                                IsVisible="{Binding DisplayedSession.IsDesigning}" />
                     </v:WrapLayout>
                 </Border>
 
@@ -272,10 +272,10 @@
                 <Grid
                       ColumnDefinitions="Auto,*"
                       Style="{StaticResource GridSpacingStyle}"
-                      IsVisible="{Binding Session.HasCurrent, FallbackValue=False}">
+                      IsVisible="{Binding DisplayedSession.HasCurrent, FallbackValue=False}">
                     <Grid.Triggers>
                         <DataTrigger TargetType="Grid"
-                                     Binding="{Binding Session.IsDesigning, FallbackValue=False}"
+                                     Binding="{Binding DisplayedSession.IsDesigning, FallbackValue=False}"
                                      Value="True">
                             <Setter Property="IsVisible"
                                     Value="False" />
@@ -284,13 +284,13 @@
                     <Button VerticalOptions="Center"
                             Text="Retour"
                             Command="{Binding BackCommand}"
-                            IsEnabled="{Binding Session.CanGoBack, FallbackValue=False}" />
+                            IsEnabled="{Binding DisplayedSession.CanGoBack, FallbackValue=False}" />
 
                     <ScrollView Grid.Column="1"
                                 Orientation="Horizontal"
                                 HorizontalScrollBarVisibility="Never"
                                 VerticalOptions="Center">
-                        <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Session.Steps}">
+                        <HorizontalStackLayout BindableLayout.ItemsSource="{Binding DisplayedSession.Steps}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="m:DashboardPageState">
                                     <HorizontalStackLayout>
@@ -314,10 +314,10 @@
             <ScrollView Grid.Row="1"
                         Orientation="Horizontal"
                         HorizontalScrollBarVisibility="Never"
-                        IsVisible="{Binding Session.IsDesigning, FallbackValue=False}">
+                        IsVisible="{Binding DisplayedSession.IsDesigning, FallbackValue=False}">
                 <HorizontalStackLayout Spacing="8">
                     <HorizontalStackLayout Spacing="8"
-                                           BindableLayout.ItemsSource="{Binding Session.Pages}">
+                                           BindableLayout.ItemsSource="{Binding DisplayedSession.Pages}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="m:DashboardPageDefinition">
                                 <c:DashboardPageTab Title="{Binding Title, Mode=TwoWay}"
@@ -327,7 +327,7 @@
                                     <c:DashboardPageTab.IsCurrent>
                                         <MultiBinding Converter="{StaticResource IsSameMultiConverter}">
                                             <Binding Path="." />
-                                            <Binding Path="Session.Current.Definition"
+                                            <Binding Path="DisplayedSession.Current.Definition"
                                                      Source="{x:Reference Root}"
                                                      x:DataType="c:DashboardGrid" />
                                         </MultiBinding>
@@ -353,7 +353,7 @@
                             Orientation="Vertical"
                             HandlerChanged="OnGridScrollHandlerChanged">
                     <ScrollView.Triggers>
-                        <DataTrigger Binding="{Binding Session.SelectedCard, Converter={StaticResource IsNullObjectConverter}, FallbackValue=True}"
+                        <DataTrigger Binding="{Binding DisplayedSession.SelectedCard, Converter={StaticResource IsNullObjectConverter}, FallbackValue=True}"
                                      TargetType="ScrollView"
                                      Value="True">
                             <Setter Property="Grid.RowSpan"
@@ -364,7 +364,7 @@
                     <Grid x:Name="DropArea"
                           Padding="0,0,12,12">
                         <Grid.GestureRecognizers>
-                            <DropGestureRecognizer AllowDrop="{Binding Session.IsDesigning, FallbackValue=False}"
+                            <DropGestureRecognizer AllowDrop="{Binding DisplayedSession.IsDesigning, FallbackValue=False}"
                                                    DragOver="OnCellsDragOver"
                                                    DragLeave="OnCellsDragLeave"
                                                    Drop="OnCellsDrop" />
@@ -372,7 +372,7 @@
 
                         <!-- Concepteur : cases libres (ajout au double clic, depot d'une carte glissee), dessinees sur un seul canevas -->
                         <GraphicsView x:Name="CellsCanvas"
-                                      IsVisible="{Binding Session.IsDesigning, FallbackValue=False}"
+                                      IsVisible="{Binding DisplayedSession.IsDesigning, FallbackValue=False}"
                                       ToolTipProperties.Text="Double-cliquer sur une case pour y ajouter une carte">
                             <GraphicsView.GestureRecognizers>
                                 <TapGestureRecognizer NumberOfTapsRequired="2"
@@ -397,12 +397,12 @@
                                     StrokeThickness="2"
                                     StrokeDashArray="4,2"
                                     StrokeShape="RoundRectangle 4"
-                                    IsVisible="{Binding Session.HasDropPreview, FallbackValue=False}">
+                                    IsVisible="{Binding DisplayedSession.HasDropPreview, FallbackValue=False}">
                                 <Border.Behaviors>
-                                    <beh:GridPlacementBehavior Column="{Binding Session.DropPreview.Column, FallbackValue=0}"
-                                                               Row="{Binding Session.DropPreview.Row, FallbackValue=0}"
-                                                               ColumnSpan="{Binding Session.DropPreview.ColumnSpan, FallbackValue=1}"
-                                                               RowSpan="{Binding Session.DropPreview.RowSpan, FallbackValue=1}" />
+                                    <beh:GridPlacementBehavior Column="{Binding DisplayedSession.DropPreview.Column, FallbackValue=0}"
+                                                               Row="{Binding DisplayedSession.DropPreview.Row, FallbackValue=0}"
+                                                               ColumnSpan="{Binding DisplayedSession.DropPreview.ColumnSpan, FallbackValue=1}"
+                                                               RowSpan="{Binding DisplayedSession.DropPreview.RowSpan, FallbackValue=1}" />
                                 </Border.Behaviors>
                             </Border>
                         </Grid>
@@ -414,27 +414,27 @@
                                HorizontalOptions="Center"
                                VerticalOptions="Start"
                                Margin="0,48,0,0"
-                               IsVisible="{Binding Session.Current.Cards.Count, FallbackValue=False, Converter={StaticResource IsDefaultToBooleanConverter}}" />
+                               IsVisible="{Binding DisplayedSession.Current.Cards.Count, FallbackValue=False, Converter={StaticResource IsDefaultToBooleanConverter}}" />
                     </Grid>
                 </ScrollView>
 
                 <v:GridSplitter Grid.Row="1"
-                                IsVisible="{Binding Session.SelectedCard, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert, FallbackValue=False}" />
+                                IsVisible="{Binding DisplayedSession.SelectedCard, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert, FallbackValue=False}" />
 
                 <!-- ============ Concepteur : carte selectionnee ============ -->
                 <Grid Grid.Row="2"
                       RowDefinitions="Auto,*"
                       Style="{StaticResource GridSpacingStyle}"
-                      IsVisible="{Binding Session.SelectedCard, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert, FallbackValue=False}">
+                      IsVisible="{Binding DisplayedSession.SelectedCard, Converter={StaticResource IsNullObjectConverter}, ConverterParameter=invert, FallbackValue=False}">
 
                     <Grid ColumnDefinitions="*,Auto"
                           Style="{StaticResource GridSpacingStyle}">
-                        <HorizontalStackLayout IsEnabled="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}">
+                        <HorizontalStackLayout IsEnabled="{Binding DisplayedSession.SelectedCard.UsesQuery, FallbackValue=False}">
                             <Button VerticalOptions="Center"
                                     StyleClass="Icon"
                                     ImageSource="{mk:FluentFilledImage Icon=Play16Filled}"
                                     Command="{Binding RunCardCommand}"
-                                    CommandParameter="{Binding Session.SelectedCard}"
+                                    CommandParameter="{Binding DisplayedSession.SelectedCard}"
                                     HorizontalOptions="Start"
                                     ToolTipProperties.Text="Exécuter : la liste des colonnes vient du résultat" />
 
@@ -448,11 +448,11 @@
                                        HeightRequest="16"
                                        Margin="6,0,0,0" />
                                 <fl:FluentPicker Padding="26,0,0,0"
-                                                 ItemsSource="{Binding Session.SelectedCard.LabelColumnChoices, FallbackValue={x:Null}}"
+                                                 ItemsSource="{Binding DisplayedSession.SelectedCard.LabelColumnChoices, FallbackValue={x:Null}}"
                                                  DisplayMemberPath="Value"
                                                  SelectedValuePath="Key"
-                                                 SelectedValue="{Binding Session.SelectedCard.LabelColumn, Mode=TwoWay, FallbackValue={x:Null}}"
-                                                 IsEnabled="{Binding Session.SelectedCard.IsChart, FallbackValue=False}" />
+                                                 SelectedValue="{Binding DisplayedSession.SelectedCard.LabelColumn, Mode=TwoWay, FallbackValue={x:Null}}"
+                                                 IsEnabled="{Binding DisplayedSession.SelectedCard.IsChart, FallbackValue=False}" />
                             </Grid>
 
                             <!-- Colonnes de valeurs : une puce par colonne du resultat, cochees dans l'ordre des series -->
@@ -467,14 +467,14 @@
                                        Text="Exécutez la requête pour choisir ses colonnes de valeurs."
                                        Style="{StaticResource LabelTertiaryStyle}"
                                        VerticalOptions="Center"
-                                       IsVisible="{Binding Session.SelectedCard.ValueColumnChoices.Count, FallbackValue=False, Converter={StaticResource IsDefaultToBooleanConverter}}" />
+                                       IsVisible="{Binding DisplayedSession.SelectedCard.ValueColumnChoices.Count, FallbackValue=False, Converter={StaticResource IsDefaultToBooleanConverter}}" />
 
                                 <ScrollView Grid.Column="1"
                                             Orientation="Horizontal"
                                             HorizontalScrollBarVisibility="Never"
                                             VerticalOptions="Center">
                                     <HorizontalStackLayout Spacing="4"
-                                                           BindableLayout.ItemsSource="{Binding Session.SelectedCard.ValueColumnChoices, FallbackValue={x:Null}}">
+                                                           BindableLayout.ItemsSource="{Binding DisplayedSession.SelectedCard.ValueColumnChoices, FallbackValue={x:Null}}">
                                         <BindableLayout.ItemTemplate>
                                             <DataTemplate x:DataType="m:DashboardColumnChoice">
                                                 <Border Padding="8,3"
@@ -484,7 +484,7 @@
                                                         BackgroundColor="{DynamicResource ControlFillColorDefault}"
                                                         ToolTipProperties.Text="Cliquer pour ajouter ou retirer la colonne">
                                                     <Border.GestureRecognizers>
-                                                        <TapGestureRecognizer Command="{Binding Session.SelectedCard.ToggleValueColumnCommand, Source={x:Reference Root}, FallbackValue={x:Null}, x:DataType=c:DashboardGrid}"
+                                                        <TapGestureRecognizer Command="{Binding DisplayedSession.SelectedCard.ToggleValueColumnCommand, Source={x:Reference Root}, FallbackValue={x:Null}, x:DataType=c:DashboardGrid}"
                                                                               CommandParameter="{Binding .}" />
                                                     </Border.GestureRecognizers>
                                                     <Border.Triggers>
@@ -542,7 +542,7 @@
                                     StyleClass="Danger"
                                     Text="Supprimer"
                                     Command="{Binding DeleteCardCommand}"
-                                    CommandParameter="{Binding Session.SelectedCard}" />
+                                    CommandParameter="{Binding DisplayedSession.SelectedCard}" />
                         </HorizontalStackLayout>
                     </Grid>
 
@@ -552,17 +552,17 @@
 
                         <!-- Conteneur à hauteur fixe : l'éditeur ne peut plus faire varier la ligne -->
                         <Grid IsClippedToBounds="True"
-                              IsVisible="{Binding Session.SelectedCard.UsesQuery, FallbackValue=False}">
-                            <c:CodeEditor DocumentKey="{Binding Session.SelectedCard}"
-                                          Text="{Binding Session.SelectedCard.Query, Mode=TwoWay, FallbackValue=''}"
+                              IsVisible="{Binding DisplayedSession.SelectedCard.UsesQuery, FallbackValue=False}">
+                            <c:CodeEditor DocumentKey="{Binding DisplayedSession.SelectedCard}"
+                                          Text="{Binding DisplayedSession.SelectedCard.Query, Mode=TwoWay, FallbackValue=''}"
                                           SyntaxConfiguration="{Binding SyntaxConfiguration}"
                                           EditorPreferences="{Binding EditorPreferences}"
                                           Connection="{Binding Connection}"
-                                          Database="{Binding Session.Definition.Database, FallbackValue={x:Null}}"
-                                          QueryParameters="{Binding Session.ParameterDeclarations, FallbackValue={x:Null}}">
+                                          Database="{Binding DisplayedSession.Definition.Database, FallbackValue={x:Null}}"
+                                          QueryParameters="{Binding DisplayedSession.ParameterDeclarations, FallbackValue={x:Null}}">
                                 <c:CodeEditor.Triggers>
                                     <DataTrigger TargetType="c:CodeEditor"
-                                                 Binding="{Binding Session.SelectedCard.IsLinq, FallbackValue=False}"
+                                                 Binding="{Binding DisplayedSession.SelectedCard.IsLinq, FallbackValue=False}"
                                                  Value="True">
                                         <Setter Property="SyntaxConfiguration"
                                                 Value="{Binding LinqSyntaxConfiguration}" />
@@ -573,30 +573,30 @@
 
                         <!-- Texte libre : sans configuration de syntaxe, ni coloration ni autocompletion -->
                         <Grid IsClippedToBounds="True"
-                              IsVisible="{Binding Session.SelectedCard.IsText, FallbackValue=False}">
-                            <c:CodeEditor DocumentKey="{Binding Session.SelectedCard}"
-                                          Text="{Binding Session.SelectedCard.Text, Mode=TwoWay, FallbackValue=''}"
+                              IsVisible="{Binding DisplayedSession.SelectedCard.IsText, FallbackValue=False}">
+                            <c:CodeEditor DocumentKey="{Binding DisplayedSession.SelectedCard}"
+                                          Text="{Binding DisplayedSession.SelectedCard.Text, Mode=TwoWay, FallbackValue=''}"
                                           EditorPreferences="{Binding EditorPreferences}" />
                         </Grid>
 
                         <Label Text="Texte du bouton et page cible : directement sur la carte."
                                VerticalOptions="End"
                                Style="{StaticResource LabelTertiaryStyle}"
-                               IsVisible="{Binding Session.SelectedCard.IsButton, FallbackValue=False}" />
+                               IsVisible="{Binding DisplayedSession.SelectedCard.IsButton, FallbackValue=False}" />
 
                         <!-- Navigation (bouton ou clic sur une ligne) : parametres transmis a la page cible -->
                         <Grid Grid.Column="1"
                               RowDefinitions="Auto,*"
                               RowSpacing="4"
-                              IsVisible="{Binding Session.SelectedCard.HasNavigation, FallbackValue=False}">
+                              IsVisible="{Binding DisplayedSession.SelectedCard.HasNavigation, FallbackValue=False}">
                             <Label Text="Paramètres transmis, un par ligne : Param = Colonne, Param = @Autre, Param = 'texte'"
                                    Style="{StaticResource LabelTertiaryStyle}"
                                    LineBreakMode="WordWrap" />
                             <!-- Syntaxe SQL : @Param et 'texte' colores, colonnes proposees -->
                             <Grid Grid.Row="1"
                                   IsClippedToBounds="True">
-                                <c:CodeEditor DocumentKey="{Binding Session.SelectedCard}"
-                                              Text="{Binding Session.SelectedCard.NavigationParametersText, Mode=TwoWay, FallbackValue=''}"
+                                <c:CodeEditor DocumentKey="{Binding DisplayedSession.SelectedCard}"
+                                              Text="{Binding DisplayedSession.SelectedCard.NavigationParametersText, Mode=TwoWay, FallbackValue=''}"
                                               IsDiagnosticsEnabled="False"
                                               SyntaxConfiguration="{Binding SyntaxConfiguration}"
                                               EditorPreferences="{Binding EditorPreferences}"

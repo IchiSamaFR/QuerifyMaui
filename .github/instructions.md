@@ -190,7 +190,7 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 ### Messages de commit
 
 * Simples et concis : un titre court, et au besoin quelques lignes sur l'essentiel. Pas de trailer `Co-Authored-By`, pas de lien de session ni d'autre mention annexe.
-* Commits : Conventional Commits (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
+* Commits : Conventional Commits (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `perf:`).
 * Quand un message de commit est demandé : le fournir dans un bloc de code (```), sans commande git.
 
 ---
@@ -274,11 +274,11 @@ public partial SyntaxLanguage Language { get; set; } = SyntaxLanguage.Sql;
 * `DashboardVM` est découpé en `DashboardVM.cs` (bascule des vues), `.Cards.cs` (consultation, lecture des cartes) et `.Designer.cs` (concepteur).
 * **Format** (`Core/Models/Dashboards/DashboardDefinition`) : `connection` (nom d'une connexion enregistrée, jamais la chaîne), `database`, `columns` (12) / `rows` (6 minimum), `parameters` (`name`, `label`, `type` : Text, Integer, Decimal, Date, DateTime, Boolean, Guid, `default`), `startPage`, `pages` (`id`, `title`, `cards`). Carte : `column` / `row` (base 0), `columnSpan` / `rowSpan`, `view` (Grid, Value, BarChart, LineChart, PieChart, Text, Button), `query`, `text`, `labelColumn`, `valueColumns`, `navigation` (`page` + `parameters`).
 * Les listes des modèles `.schx` sont en `{ get; set; } = []` et **jamais** `init` : le générateur System.Text.Json remet à null une propriété `init` absente du JSON.
-* **Paramètres** : envoyés en paramètres typés (`DashboardParameterValue.TryGetQueryParameter`), jamais concaténés. Chaque étape du fil d'Ariane garde ses valeurs et ses résultats.
+* **Paramètres** : envoyés en paramètres typés (`DashboardParameterValue.TryGetQueryParameter`), jamais concaténés. Chaque étape du fil d'Ariane garde ses valeurs ; seules les 3 dernières gardent leurs résultats (`DashboardSession.STEPS_KEEPING_RESULTS`), une étape plus ancienne est relue au retour (`DashboardPageState.NeedsReload`) : une navigation en boucle ne retient pas les lignes de chaque page traversée.
 * **Lecture d'une carte** : premier jeu ayant des colonnes, 1 000 lignes max, cartes lues en parallèle ; une nouvelle lecture annule la précédente ; changer de connexion relit la page affichée.
 * **Rien de long sur le thread UI** : le JSON est analysé (`DashboardVM.OpenAsync`) et chaque carte lue (`LoadCardAsync`) dans un `Task.Run` ; seule l'affectation de `Result` revient sur le thread UI.
 * **Rendu** : `DashboardView` assemble `DashboardGrid`, `DashboardCardView`, `DashboardChartView` (LiveCharts2), `DashboardDesignerPanel`.
-* **Vues de carte réutilisées** : `DashboardGrid` crée ses vues depuis la ressource `CardTemplate` (pas de `BindableLayout`) et les garde ; changer d'onglet ou de page relie les vues existantes aux nouvelles cartes (`BindingContext`), une vue en trop est masquée sans carte, seules les manquantes sont créées, une par tour du thread UI. Quitter les dashboards (`Session` null) laisse les cartes en place : y revenir ne recrée rien. `DashboardCardView` lie son tableau / graphique à sa propriété `Card`, jamais à une carte précise.
+* **Vues de carte réutilisées** : `DashboardGrid` crée ses vues depuis la ressource `CardTemplate` (pas de `BindableLayout`) et les garde ; changer d'onglet ou de page relie les vues existantes aux nouvelles cartes (`BindingContext`), une vue en trop est masquée sans carte, seules les manquantes sont créées, une par tour du thread UI. Quitter les dashboards (`Session` null) laisse tout en place : le XAML de la grille se lie à `DisplayedSession` (dernier onglet reçu, libéré à sa fermeture), jamais à `Session` ; y revenir ne recrée ni cartes, ni paramètres, ni fil d'Ariane. `DashboardCardView` lie son tableau / graphique à sa propriété `Card`, jamais à une carte précise. Un tableau ou un graphique abandonné (carte qui change de rendu) est libéré par `ReleaseResultView` (`DisconnectHandlers`) : une vue seulement retirée de l'arbre garde ses vues natives.
 * Lecture d'une carte = `IQueryExecutor.ReadAsync`, soit `ISqlQueryExecutor.ReadAsync` de Quill pour SQL.
 
 ### Connexions

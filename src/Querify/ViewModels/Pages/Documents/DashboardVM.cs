@@ -89,7 +89,7 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
 
     protected override void OnSessionSwitched(DashboardSession? oldValue, DashboardSession? newValue)
     {
-        PerfTrace.Mark($"OnSessionSwitched -> {newValue?.Document.FileName ?? "null"}");
+        PerfTrace.MarkMemory($"OnSessionSwitched -> {newValue?.Document.FileName ?? "null"}");
         using var _ = PerfTrace.Measure("OnSessionSwitched (total)");
 
         OnPropertyChanged(nameof(IsDesignMode));

@@ -40,14 +40,31 @@ public partial class DashboardVM
     private void CancelLoading() => Session?.CancelLoad();
 
     [RelayCommand]
-    private void Back() => Session?.Back();
+    private void Back()
+    {
+        Session?.Back();
+        ReloadReleasedPage();
+    }
 
-    /// <summary>Les etapes du fil d'Ariane gardent leurs resultats : rien n'est relu.</summary>
+    /// <summary>Les etapes recentes du fil d'Ariane gardent leurs resultats : rien n'est relu, sauf pour une etape ancienne.</summary>
     [RelayCommand]
     private void GoToStep(DashboardPageState? step)
     {
-        if (step is not null)
-            Session?.GoTo(step);
+        if (step is null)
+            return;
+
+        Session?.GoTo(step);
+        ReloadReleasedPage();
+    }
+
+    /// <summary>Retour sur une etape dont les resultats ont ete liberes : ses cartes sont relues avec ses valeurs.</summary>
+    private void ReloadReleasedPage()
+    {
+        if (Session is not { Current: { NeedsReload: true } page } session)
+            return;
+
+        page.MarkReloaded();
+        LoadCardsAsync(session, page.Cards).FireAndForget("Lecture des cartes du dashboard en échec.");
     }
 
     /// <summary>Bouton, ou ligne cliquee : les parametres prennent les valeurs prevues et la page cible s'ouvre.</summary>
@@ -76,6 +93,7 @@ public partial class DashboardVM
         DashboardPageState state;
         using (PerfTrace.Measure($"OpenPage > session.Open({page.Title})"))
             state = session.Open(page, asRoot);
+        PerfTrace.MarkMemory($"Page {page.Title}");
         LoadCardsAsync(session, state.Cards).FireAndForget("Lecture des cartes du dashboard en échec.");
     }
 

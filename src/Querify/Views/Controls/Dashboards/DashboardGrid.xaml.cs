@@ -26,6 +26,14 @@ public partial class DashboardGrid : ContentView
     [BindableProperty(PropertyChangedMethodName = nameof(OnSessionChanged))]
     public partial DashboardSession? Session { get; set; }
 
+    /// <summary>
+    /// Onglet dont la grille montre le contenu : le dernier recu, garde quand <see cref="Session"/> repasse a null
+    /// (onglet d'un autre type affiche). Les liaisons du XAML s'y rattachent : revenir sur le meme onglet ne
+    /// reconstruit ni les parametres, ni le fil d'Ariane, ni les onglets de page.
+    /// </summary>
+    [BindableProperty]
+    public partial DashboardSession? DisplayedSession { get; private set; }
+
     [BindableProperty]
     public partial SyntaxConfiguration? SyntaxConfiguration { get; set; }
 
@@ -180,10 +188,12 @@ public partial class DashboardGrid : ContentView
         {
             StopObserving();
             _observedSession = session;
+            DisplayedSession = session;
             session.PropertyChanged += OnObservedSessionPropertyChanged;
             _sessionClosed = session.LifetimeToken.Register(() => Dispatcher.Dispatch(() => ReleaseSession(session)));
         }
 
+        ApplyGridSize();
         ShowCards(session.Current?.Cards);
     }
 
@@ -205,6 +215,7 @@ public partial class DashboardGrid : ContentView
             return;
 
         StopObserving();
+        DisplayedSession = null;
         ShowCards(null);
     }
 
@@ -424,22 +435,32 @@ public partial class DashboardGrid : ContentView
     /// <summary>Les calques (cases, cartes, apercu) partagent les memes colonnes et lignes.</summary>
     private void ApplyGridSize()
     {
-        _cells.ColumnCount = Math.Max(1, ColumnCount);
-        _cells.RowCount = Math.Max(1, RowCount);
+        // Taille de l'onglet garde : vue masquee, les liaisons de la page retombent sur leur valeur par defaut.
+        var columns = Math.Max(1, _observedSession?.ColumnCount ?? ColumnCount);
+        var rows = Math.Max(1, _observedSession?.RowCount ?? RowCount);
+        var isRowHeightChanged = _cells.RowHeight != RowHeight;
+
+        _cells.ColumnCount = columns;
+        _cells.RowCount = rows;
         _cells.RowHeight = RowHeight;
         _cells.ColumnSpacing = CardsLayer.ColumnSpacing;
         _cells.RowSpacing = CardsLayer.RowSpacing;
         _cells.HoveredCell = null;
         CellsCanvas.Invalidate();
 
+        // Seulement l'ecart : tout vider puis recreer relancait la mise en page de chaque carte a chaque changement d'onglet.
         foreach (var layer in new[] { CardsLayer, PreviewLayer })
         {
-            layer.ColumnDefinitions.Clear();
-            for (var i = 0; i < Math.Max(1, ColumnCount); i++)
+            while (layer.ColumnDefinitions.Count > columns)
+                layer.ColumnDefinitions.RemoveAt(layer.ColumnDefinitions.Count - 1);
+            while (layer.ColumnDefinitions.Count < columns)
                 layer.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
 
-            layer.RowDefinitions.Clear();
-            for (var i = 0; i < Math.Max(1, RowCount); i++)
+            if (isRowHeightChanged)
+                layer.RowDefinitions.Clear();
+            while (layer.RowDefinitions.Count > rows)
+                layer.RowDefinitions.RemoveAt(layer.RowDefinitions.Count - 1);
+            while (layer.RowDefinitions.Count < rows)
                 layer.RowDefinitions.Add(new RowDefinition(RowHeight));
         }
     }

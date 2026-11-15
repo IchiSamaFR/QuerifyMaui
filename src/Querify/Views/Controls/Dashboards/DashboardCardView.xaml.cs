@@ -67,9 +67,29 @@ public partial class DashboardCardView : ContentView
         if (Card is not { } card || (card.IsGrid && content is DataGrid) || (card.IsChart && content is DashboardChartView))
             return;
 
-        ResultHost.Content = null;
+        ReleaseResultView();
         if (card.IsGrid || card.IsChart)
             CreateResultViewLaterAsync(version).FireAndForget("Rendu de la carte non créé.");
+    }
+
+    /// <summary>
+    /// Retire le rendu et deconnecte ses handlers : une vue seulement retiree de l'arbre garde ses vues natives
+    /// (canevas Skia du graphique, liste du tableau) et ses liaisons, donc la carte et son resultat.
+    /// </summary>
+    private void ReleaseResultView()
+    {
+        if (ResultHost.Content is not { } content)
+            return;
+
+        ResultHost.Content = null;
+        content.RemoveBinding(DataGrid.ItemsSourceProperty);
+        content.RemoveBinding(DataGrid.ColumnsProperty);
+        content.RemoveBinding(DataGrid.ItemTappedCommandProperty);
+        content.RemoveBinding(DashboardChartView.ResultSetProperty);
+        content.RemoveBinding(DashboardChartView.ViewProperty);
+        content.RemoveBinding(DashboardChartView.LabelColumnProperty);
+        content.RemoveBinding(DashboardChartView.ValueColumnsProperty);
+        content.DisconnectHandlers();
     }
 
     private async Task CreateResultViewLaterAsync(int version)
