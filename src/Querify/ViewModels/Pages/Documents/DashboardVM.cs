@@ -36,6 +36,7 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
     private readonly IQueryExecutorResolver _executors;
     private readonly IConnectionStore _connectionStore;
     private readonly IDashboardParameterDialogService _parameterDialogs;
+    private readonly IDashboardPageDialogService _pageDialogs;
     private readonly IDialogService _dialogs;
 
     /// <summary>Sessions dont la definition a change depuis la derniere reecriture du texte.</summary>
@@ -57,12 +58,14 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
         IQueryExecutorResolver executors,
         IConnectionStore connectionStore,
         IDashboardParameterDialogService parameterDialogs,
+        IDashboardPageDialogService pageDialogs,
         IDialogService dialogs)
         : base(connection, status, preferences)
     {
         _executors = executors;
         _connectionStore = connectionStore;
         _parameterDialogs = parameterDialogs;
+        _pageDialogs = pageDialogs;
         _dialogs = dialogs;
 
         LoadSyntaxConfigurationsAsync(syntaxConfigurations).FireAndForget("Coloration des requêtes du concepteur indisponible.");

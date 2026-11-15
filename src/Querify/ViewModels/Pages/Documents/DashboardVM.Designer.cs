@@ -130,6 +130,18 @@ public partial class DashboardVM
         OpenPage(session, page, asRoot: true);
     }
 
+    /// <summary>Options de la page : cle et libelle (le libelle se modifie aussi depuis l'onglet).</summary>
+    [RelayCommand]
+    private async Task EditPageAsync(DashboardPageDefinition? page)
+    {
+        if (page is null || Session is not { IsDesigning: true, Definition: { } definition } session)
+            return;
+
+        var usedIds = definition.Pages.Where(p => p != page).Select(p => p.Id).ToList();
+        if (await _pageDialogs.EditAsync(page, usedIds) is { } edited)
+            session.UpdatePage(page, edited.Id, edited.Title);
+    }
+
     /// <summary>Supprime une page apres confirmation (la derniere page restante est conservee).</summary>
     [RelayCommand]
     private async Task DeletePageAsync(DashboardPageDefinition? page)

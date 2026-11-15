@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="Querify.Views.Pages.Documents.DashboardPageEditorPopup"
+               x:DataType="vm:DashboardPageEditorVM"
+               BackgroundColor="{DynamicResource FlyoutBackground}"
+               Background="{DynamicResource FlyoutBackground}"
+               Padding="24"
+               WidthRequest="420">
+
+    <VerticalStackLayout Spacing="16">
+
+        <Label Text="Options de la page"
+               Style="{StaticResource LabelHeaderStyle}" />
+
+        <fl:FormField Title="Libellé"
+                      HorizontalOptions="Fill">
+            <Entry Text="{Binding Title, Mode=TwoWay}"
+                   Placeholder="Vide : la clé"
+                   ReturnCommand="{Binding SaveCommand}" />
+        </fl:FormField>
+
+        <fl:FormField Title="Clé"
+                      HorizontalOptions="Fill">
+            <Entry Text="{Binding Id, Mode=TwoWay}"
+                   Placeholder="accueil"
+                   ReturnCommand="{Binding SaveCommand}" />
+        </fl:FormField>
+
+        <Label Text="Les boutons qui ouvrent cette page suivent le changement de clé."
+               Style="{StaticResource LabelTertiaryStyle}"
+               LineBreakMode="WordWrap" />
+
+        <Label Text="{Binding Error}"
+               IsVisible="{Binding HasError}"
+               Style="{StaticResource LabelErrorStyle}"
+               LineBreakMode="WordWrap" />
+
+        <Grid ColumnDefinitions="*,Auto,Auto"
+              Style="{StaticResource GridSpacingStyle}">
+            <Button VerticalOptions="Center"
+                    Grid.Column="1"
+                    Command="{Binding CancelCommand}"
+                    Text="Annuler" />
+
+            <Button VerticalOptions="Center"
+                    Grid.Column="2"
+                    StyleClass="Accent"
+                    Command="{Binding SaveCommand}"
+                    Text="Enregistrer"
+                    ImageSource="{mk:FluentFilledImage Icon=Save20Filled, IconColor={StaticResource TextOnInfo}}" />
+        </Grid>
+    </VerticalStackLayout>
+</toolkit:Popup>

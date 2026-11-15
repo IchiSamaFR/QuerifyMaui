@@ -123,6 +123,7 @@
                          EndDragCommand="{Binding EndDragCommand}"
                          OpenPageCommand="{Binding OpenDesignerPageCommand}"
                          AddPageCommand="{Binding AddPageCommand}"
+                         EditPageCommand="{Binding EditPageCommand}"
                          DeletePageCommand="{Binding DeletePageCommand}"
                          AddParameterCommand="{Binding AddParameterCommand}"
                          EditParameterCommand="{Binding EditParameterCommand}"

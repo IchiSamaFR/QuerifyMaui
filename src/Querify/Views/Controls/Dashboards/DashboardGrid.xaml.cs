@@ -119,6 +119,10 @@ public partial class DashboardGrid : ContentView
     [BindableProperty]
     public partial ICommand? AddPageCommand { get; set; }
 
+    /// <summary>Concepteur : options de la page, cle et libelle (parametre : <see cref="DashboardPageDefinition"/>).</summary>
+    [BindableProperty]
+    public partial ICommand? EditPageCommand { get; set; }
+
     /// <summary>Concepteur : supprime une page (parametre : <see cref="DashboardPageDefinition"/>).</summary>
     [BindableProperty]
     public partial ICommand? DeletePageCommand { get; set; }

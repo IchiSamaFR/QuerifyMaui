@@ -338,6 +338,36 @@ public sealed partial class DashboardSession : AbstractSession
         NotifyDefinitionChanged();
     }
 
+    /// <summary>Change la cle et le libelle d'une page ; les boutons et la page de depart qui la visaient suivent.</summary>
+    public void UpdatePage(DashboardPageDefinition page, string id, string title)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        if (Definition is null)
+            return;
+
+        page.Title = title;
+        var oldId = page.Id;
+        if (string.Equals(oldId, id, StringComparison.Ordinal))
+            return;
+
+        foreach (var navigation in Definition.Pages.SelectMany(p => p.Cards).Select(c => c.Navigation))
+        {
+            if (navigation is not null && string.Equals(navigation.Page, oldId, StringComparison.OrdinalIgnoreCase))
+                navigation.Page = id;
+        }
+
+        if (string.Equals(Definition.StartPage, oldId, StringComparison.OrdinalIgnoreCase))
+            Definition.StartPage = id;
+
+        // Nouvelle cle proposee avant le retrait de l'ancienne : un Picker lie perdrait sinon sa selection.
+        var index = PageIds.IndexOf(oldId);
+        PageIds.Insert(index < 0 ? PageIds.Count : index + 1, id);
+        page.Id = id;
+        foreach (var card in Steps.SelectMany(s => s.Cards))
+            card.NotifyNavigationPageChanged();
+        RefreshPageIds();
+    }
+
     public void AddParameter(DashboardParameterDefinition parameter)
     {
         ArgumentNullException.ThrowIfNull(parameter);
