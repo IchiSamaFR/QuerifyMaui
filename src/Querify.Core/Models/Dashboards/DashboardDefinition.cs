@@ -37,11 +37,15 @@ public sealed class DashboardDefinition
         => Pages.FirstOrDefault(p => string.Equals(p.Id, id, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Dashboard vide : une page, aucune carte.</summary>
-    public static DashboardDefinition CreateEmpty(string? connection, string? database) => new()
+    public static DashboardDefinition CreateEmpty(string? connection, string? database)
     {
-        Connection = connection,
-        Database = database,
-        StartPage = "accueil",
-        Pages = [new DashboardPageDefinition { Id = "accueil", Title = "Accueil" }],
-    };
+        var page = new DashboardPageDefinition { Id = DashboardPageDefinition.NewId(), Title = "Accueil" };
+        return new()
+        {
+            Connection = connection,
+            Database = database,
+            StartPage = page.Id,
+            Pages = [page],
+        };
+    }
 }

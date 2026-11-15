@@ -3,9 +3,12 @@ using System.Windows.Input;
 
 namespace Querify.Views.Controls.Dashboards;
 
-/// <summary>Onglet d'une page dans le concepteur : clic = ouverture ; la page editee se renomme et se supprime sur place.</summary>
+/// <summary>Onglet d'une page dans le concepteur : clic = ouverture ; la page editee se renomme sur place, ses options portent la suppression.</summary>
 public partial class DashboardPageTab : ContentView
 {
+    [BindableProperty(DefaultBindingMode = BindingMode.OneWay)]
+    public partial string? DisplayTitle { get; set; }
+
     [BindableProperty(DefaultBindingMode = BindingMode.TwoWay)]
     public partial string? Title { get; set; }
 
@@ -19,7 +22,7 @@ public partial class DashboardPageTab : ContentView
     [BindableProperty]
     public partial ICommand? DeleteCommand { get; set; }
 
-    /// <summary>Transmis a <see cref="OpenCommand"/> et <see cref="DeleteCommand"/> (la page).</summary>
+    /// <summary>Transmis aux commandes de l'onglet (la page).</summary>
     [BindableProperty]
     public partial object? CommandParameter { get; set; }
 

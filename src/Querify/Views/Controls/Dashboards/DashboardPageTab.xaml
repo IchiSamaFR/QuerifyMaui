@@ -24,9 +24,9 @@
                                   CommandParameter="{Binding CommandParameter, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}" />
         </Border.GestureRecognizers>
 
-        <!-- Page editee : titre modifiable sur place et suppression ; les autres : simple libelle -->
-        <HorizontalStackLayout Spacing="4">
-            <Label Text="{Binding Title, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
+        <!-- Page editee : libelle modifiable sur place, suppression dans les options ; les autres : simple libelle -->
+        <Grid>
+            <Label Text="{Binding DisplayTitle, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
                    Style="{StaticResource LabelStyle}"
                    VerticalOptions="Center"
                    IsVisible="{Binding IsCurrent, Source={x:Reference Root}, x:DataType=c:DashboardPageTab, Converter={StaticResource BooleanInvertConverter}}" />
@@ -36,14 +36,21 @@
                    WidthRequest="180"
                    VerticalOptions="Center"
                    IsVisible="{Binding IsCurrent, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}" />
-
-            <fl:CommandBarButton Icon="{x:Static mi:FluentFilledIcons.Delete16Filled}"
-                                 TextColor="{StaticResource Danger}"
-                                 Command="{Binding DeleteCommand, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
-                                 CommandParameter="{Binding CommandParameter, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
-                                 VerticalOptions="Center"
-                                 ToolTipProperties.Text="Supprimer cette page"
-                                 IsVisible="{Binding IsCurrent, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}" />
-        </HorizontalStackLayout>
+            <v:MenuButton Grid.Column="1"
+                          ImageSource="{mk:FluentFilledImage Icon=MoreHorizontal16Filled}"
+                          IsVisible="{Binding IsCurrent, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
+                          VerticalOptions="Center"
+                          HorizontalOptions="End"
+                          Margin="0,4,4,0"
+                          ToolTipProperties.Text="Options de la page">
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Supprimer"
+                                        Command="{Binding DeleteCommand, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}"
+                                        CommandParameter="{Binding CommandParameter, Source={x:Reference Root}, x:DataType=c:DashboardPageTab}" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+            </v:MenuButton>
+        </Grid>
     </Border>
 </ContentView>

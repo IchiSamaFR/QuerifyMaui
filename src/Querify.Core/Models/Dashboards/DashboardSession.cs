@@ -41,8 +41,8 @@ public sealed partial class DashboardSession : AbstractSession
     /// <summary>Pages du fichier (choix de la page editee, cible des boutons).</summary>
     public ObservableCollection<DashboardPageDefinition> Pages { get; } = [];
 
-    /// <summary>Identifiants des pages, precedes d'un vide (« aucune ») : cible d'un bouton dans le concepteur.</summary>
-    public ObservableCollection<string> PageIds { get; } = [];
+    /// <summary>Pages par libelle, precedees de « Aucune » : cible d'un bouton dans le concepteur.</summary>
+    public ObservableCollection<DashboardPageChoice> PageChoices { get; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasDefinition), nameof(ColumnCount))]
@@ -141,7 +141,7 @@ public sealed partial class DashboardSession : AbstractSession
             Parameters.Add(Wire(new DashboardParameterValue(parameter)));
         foreach (var page in definition?.Pages ?? [])
             Pages.Add(Wire(page));
-        RefreshPageIds();
+        RefreshPageChoices();
 
         OnPropertyChanged(nameof(HasParameters));
         OnPropertyChanged(nameof(ParameterDeclarations));
@@ -321,7 +321,7 @@ public sealed partial class DashboardSession : AbstractSession
 
         Definition.Pages.Add(page);
         Pages.Add(Wire(page));
-        RefreshPageIds();
+        RefreshPageChoices();
         NotifyDefinitionChanged();
     }
 
@@ -332,7 +332,7 @@ public sealed partial class DashboardSession : AbstractSession
 
         Pages.Remove(page);
         page.PropertyChanged -= OnPageDefinitionChanged;
-        RefreshPageIds();
+        RefreshPageChoices();
         if (string.Equals(Definition.StartPage, page.Id, StringComparison.OrdinalIgnoreCase))
             Definition.StartPage = Definition.Pages[0].Id;
         NotifyDefinitionChanged();
@@ -383,20 +383,30 @@ public sealed partial class DashboardSession : AbstractSession
         RowCount = rows;
     }
 
-    /// <summary>Mise a jour sans vider la liste : un Picker lie perdrait sa selection (et la reecrirait a null).</summary>
-    private void RefreshPageIds()
+    /// <summary>Mise a jour sur place, sans vider la liste : un picker lie perdrait sa selection (et la reecrirait a vide).</summary>
+    private void RefreshPageChoices()
     {
-        if (PageIds.Count == 0)
-            PageIds.Add(string.Empty);
+        if (PageChoices.Count == 0)
+            PageChoices.Add(new DashboardPageChoice(string.Empty, "Aucune"));
 
-        for (var i = PageIds.Count - 1; i > 0; i--)
+        for (var i = PageChoices.Count - 1; i > 0; i--)
         {
-            if (!Pages.Any(p => string.Equals(p.Id, PageIds[i], StringComparison.Ordinal)))
-                PageIds.RemoveAt(i);
+            if (!Pages.Any(p => string.Equals(p.Id, PageChoices[i].Id, StringComparison.Ordinal)))
+                PageChoices.RemoveAt(i);
         }
 
-        foreach (var page in Pages.Where(p => !PageIds.Contains(p.Id)))
-            PageIds.Add(page.Id);
+        for (var i = 0; i < Pages.Count; i++)
+        {
+            var choice = new DashboardPageChoice(Pages[i].Id, Pages[i].DisplayTitle);
+            var n = 1;
+            while (n < PageChoices.Count && !string.Equals(PageChoices[n].Id, choice.Id, StringComparison.Ordinal))
+                n++;
+
+            if (n == PageChoices.Count)
+                PageChoices.Insert(Math.Min(i + 1, PageChoices.Count), choice);
+            else if (PageChoices[n] != choice)
+                PageChoices[n] = choice;
+        }
     }
 
     private DashboardCardState Wire(DashboardCardState card)
@@ -426,9 +436,10 @@ public sealed partial class DashboardSession : AbstractSession
         NotifyDefinitionChanged();
     }
 
-    /// <summary>Page renommee : son titre suit dans le fil d'Ariane.</summary>
+    /// <summary>Page renommee : son titre suit dans le fil d'Ariane et le choix de page des boutons.</summary>
     private void OnPageDefinitionChanged(object? sender, PropertyChangedEventArgs e)
     {
+        RefreshPageChoices();
         foreach (var step in Steps.Where(s => ReferenceEquals(s.Definition, sender)))
             step.NotifyTitleChanged();
         NotifyDefinitionChanged();

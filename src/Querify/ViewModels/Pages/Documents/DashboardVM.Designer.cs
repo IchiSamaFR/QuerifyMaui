@@ -12,7 +12,6 @@ using Querify.Services.Editors.Highlighting;
 using Querify.Services.Settings;
 using Querify.UI.Extensions;
 using Querify.ViewModels.Pages.Shared;
-using System.Globalization;
 
 namespace Querify.ViewModels.Pages.Documents;
 
@@ -121,11 +120,7 @@ public partial class DashboardVM
         if (Session is not { Definition: { } definition } session)
             return;
 
-        var number = definition.Pages.Count + 1;
-        while (definition.FindPage($"page{number.ToString(CultureInfo.InvariantCulture)}") is not null)
-            number++;
-
-        var page = new DashboardPageDefinition { Id = $"page{number.ToString(CultureInfo.InvariantCulture)}", Title = "Nouvelle page" };
+        var page = new DashboardPageDefinition { Id = DashboardPageDefinition.NewId(), Title = "Nouvelle page" };
         session.AddPage(page);
         OpenPage(session, page, asRoot: true);
     }

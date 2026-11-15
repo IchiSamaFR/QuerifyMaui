@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Querify.Diagnostics;
 using Querify.UI.Extensions;
 using Quill.Code.Execution;
+using CommunityToolkit.Maui.Converters;
 
 namespace Querify.Views.Controls.Dashboards;
 
@@ -13,6 +14,9 @@ namespace Querify.Views.Controls.Dashboards;
 public partial class DashboardCardView : ContentView
 {
     private static readonly QueryResultColumnsConverter ColumnsConverter = new();
+
+    // Carte avec navigation : un clic sur une ligne ouvre la page cible, la multiselection n'y a pas de sens.
+    private static readonly BoolToObjectConverter<SelectionMode> SelectionModeConverter = new() { TrueObject = SelectionMode.Single, FalseObject = SelectionMode.Multiple };
 
     /// <summary>Incremente a chaque mise a jour : seule la derniere creation differee s'applique.</summary>
     private int _resultVersion;
@@ -85,6 +89,7 @@ public partial class DashboardCardView : ContentView
         content.RemoveBinding(DataGrid.ItemsSourceProperty);
         content.RemoveBinding(DataGrid.ColumnsProperty);
         content.RemoveBinding(DataGrid.ItemTappedCommandProperty);
+        content.RemoveBinding(DataGrid.SelectionModeProperty);
         content.RemoveBinding(DashboardChartView.ResultSetProperty);
         content.RemoveBinding(DashboardChartView.ViewProperty);
         content.RemoveBinding(DashboardChartView.LabelColumnProperty);
@@ -115,7 +120,8 @@ public partial class DashboardCardView : ContentView
     // Liaisons sur Card (et non sur la carte du moment) : le rendu suit la carte quand la vue est reutilisee.
     private DataGrid CreateGrid()
     {
-        var grid = new DataGrid { AutoGenerateColumns = false };
+        var grid = new DataGrid { AutoGenerateColumns = false, SelectionMode = SelectionMode.Multiple };
+        grid.SetBinding(DataGrid.SelectionModeProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.HasNavigation)}", converter: SelectionModeConverter, source: this));
         grid.SetBinding(DataGrid.ItemsSourceProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.GridResult)}.{nameof(QueryResultSet.Rows)}", source: this));
         grid.SetBinding(DataGrid.ColumnsProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.GridResult)}", converter: ColumnsConverter, source: this));
         grid.SetBinding(DataGrid.ItemTappedCommandProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.ActivateRowCommand)}", source: this));
