@@ -27,7 +27,8 @@
                              ItemsSource="{Binding SelectedTab.ResultSet.Rows, Source={x:Reference root}, FallbackValue={x:Null}, x:DataType=c:QueryResultsPanel}"
                              Columns="{Binding SelectedTab.ResultSet, Source={x:Reference root}, FallbackValue={x:Null}, Converter={StaticResource QueryResultColumnsConverter}, x:DataType=c:QueryResultsPanel}"
                              AutoGenerateColumns="False"
-                             IsVisible="{Binding SelectedTab.IsResultSet, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}" />
+                             IsVisible="{Binding SelectedTab.IsResultSet, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}" 
+                             SelectionMode="Multiple" />
 
                 <ScrollView IsVisible="{Binding SelectedTab.IsMessages, Source={x:Reference root}, FallbackValue=False, x:DataType=c:QueryResultsPanel}"
                             Padding="12,4">

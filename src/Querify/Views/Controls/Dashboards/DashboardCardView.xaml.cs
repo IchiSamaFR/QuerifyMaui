@@ -115,7 +115,7 @@ public partial class DashboardCardView : ContentView
     // Liaisons sur Card (et non sur la carte du moment) : le rendu suit la carte quand la vue est reutilisee.
     private DataGrid CreateGrid()
     {
-        var grid = new DataGrid { AutoGenerateColumns = false };
+        var grid = new DataGrid { AutoGenerateColumns = false, SelectionMode = SelectionMode.Multiple };
         grid.SetBinding(DataGrid.ItemsSourceProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.GridResult)}.{nameof(QueryResultSet.Rows)}", source: this));
         grid.SetBinding(DataGrid.ColumnsProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.GridResult)}", converter: ColumnsConverter, source: this));
         grid.SetBinding(DataGrid.ItemTappedCommandProperty, new Binding($"{nameof(Card)}.{nameof(DashboardCardState.ActivateRowCommand)}", source: this));
