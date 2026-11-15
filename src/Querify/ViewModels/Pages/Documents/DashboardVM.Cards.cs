@@ -40,14 +40,37 @@ public partial class DashboardVM
     private void CancelLoading() => Session?.CancelLoad();
 
     [RelayCommand]
-    private void Back() => Session?.Back();
+    private void Back()
+    {
+        Session?.Back();
+        ReloadReleasedPage();
+    }
 
-    /// <summary>Les etapes du fil d'Ariane gardent leurs resultats : rien n'est relu.</summary>
+    /// <summary>Les etapes recentes du fil d'Ariane gardent leurs resultats : rien n'est relu, sauf pour une etape ancienne.</summary>
     [RelayCommand]
     private void GoToStep(DashboardPageState? step)
     {
-        if (step is not null)
-            Session?.GoTo(step);
+        if (step is null)
+            return;
+
+        Session?.GoTo(step);
+        ReloadReleasedPage();
+    }
+
+    /// <summary>Retour sur une etape dont les resultats ont ete liberes : ses cartes sont relues avec ses valeurs.</summary>
+    private void ReloadReleasedPage()
+    {
+        if (Session is not { Current: { NeedsReload: true } page } session)
+            return;
+
+        page.MarkReloaded();
+        ReloadPageAsync(session, page).FireAndForget("Lecture des cartes du dashboard en échec.");
+    }
+
+    private async Task ReloadPageAsync(DashboardSession session, DashboardPageState page)
+    {
+        if (!await LoadCardsAsync(session, page.Cards))
+            page.MarkNeedsReload();
     }
 
     /// <summary>Bouton, ou ligne cliquee : les parametres prennent les valeurs prevues et la page cible s'ouvre.</summary>
@@ -76,18 +99,20 @@ public partial class DashboardVM
         DashboardPageState state;
         using (PerfTrace.Measure($"OpenPage > session.Open({page.Title})"))
             state = session.Open(page, asRoot);
+        PerfTrace.MarkMemory($"Page {page.Title}");
         LoadCardsAsync(session, state.Cards).FireAndForget("Lecture des cartes du dashboard en échec.");
     }
 
     // ---------- Lecture des cartes ----------
 
     /// <summary>Cartes lues en parallele, chacune affichee des qu'elle arrive ; une nouvelle lecture annule la precedente.</summary>
-    private async Task LoadCardsAsync(DashboardSession session, IEnumerable<DashboardCardState> cards)
+    /// <returns>false si aucune lecture n'a pu partir (rien n'a ete relu).</returns>
+    private async Task<bool> LoadCardsAsync(DashboardSession session, IEnumerable<DashboardCardState> cards)
     {
         var queried = cards.Where(c => c.UsesQuery).ToList();
         PerfTrace.Mark($"LoadCardsAsync : {queried.Count} carte(s) avec requete");
         if (queried.Count == 0)
-            return;
+            return true;
 
         // Sans connexion : message direct, sans passer par une exception (couteuse, surtout sous debogueur).
         if (Connection.ActiveConnection is null)
@@ -95,20 +120,20 @@ public partial class DashboardVM
             foreach (var card in queried)
                 card.Error = NoConnectionMessage;
             Status.Set(NoConnectionMessage, isError: true);
-            return;
+            return false;
         }
 
         if (!await PerfTrace.MeasureAsync("EnsureApproved", () => EnsureApprovedAsync(session)))
         {
             foreach (var card in queried)
                 card.Error = "Requêtes non autorisées pour ce fichier : appliquez les paramètres pour les autoriser.";
-            return;
+            return false;
         }
 
         var token = session.BeginLoad();
         try
         {
-            await LoadQueriedCardsAsync(session, queried, token);
+            return await LoadQueriedCardsAsync(session, queried, token);
         }
         finally
         {
@@ -116,7 +141,7 @@ public partial class DashboardVM
         }
     }
 
-    private async Task LoadQueriedCardsAsync(DashboardSession session, List<DashboardCardState> queried, CancellationToken token)
+    private async Task<bool> LoadQueriedCardsAsync(DashboardSession session, List<DashboardCardState> queried, CancellationToken token)
     {
         List<QueryParameter> parameters = [];
         var isValid = true;
@@ -129,7 +154,7 @@ public partial class DashboardVM
         if (!isValid)
         {
             Status.Set("Paramètres invalides : corrigez la saisie puis appliquez.", isError: true);
-            return;
+            return false;
         }
 
         DatabaseConnectionInfo connection;
@@ -139,18 +164,19 @@ public partial class DashboardVM
         }
         catch (OperationCanceledException)
         {
-            return;
+            return true;
         }
         catch (InvalidOperationException ex)
         {
             foreach (var card in queried)
                 card.Error = ex.Message;
             Status.Set(ex.Message, isError: true);
-            return;
+            return false;
         }
 
         var database = session.Definition?.Database;
         await PerfTrace.MeasureAsync("Toutes les cartes", () => Task.WhenAll(queried.Select(card => LoadCardAsync(connection, database, card, parameters, token))));
+        return true;
     }
 
     private async Task LoadCardAsync(DatabaseConnectionInfo connection, string? database, DashboardCardState card, IReadOnlyList<QueryParameter> parameters, CancellationToken token)
@@ -167,8 +193,13 @@ public partial class DashboardVM
         try
         {
             var label = $"Carte '{card.Definition.Title}' ({card.Language})";
+            var executor = _executors.Resolve(card.Language);
+            string query = card.Definition.Query;
+
+            // Hors thread UI : l'ouverture de la connexion et la compilation LINQ ont une partie synchrone, et
+            // sans contexte de synchronisation la lecture des lignes ne repasse plus par le thread UI.
             var result = await PerfTrace.MeasureAsync($"{label} ReadAsync",
-                () => _executors.Resolve(card.Language).ReadAsync(connection, database, card.Definition.Query, parameters, CARD_MAX_ROWS, token));
+                () => Task.Run(() => executor.ReadAsync(connection, database, query, parameters, CARD_MAX_ROWS, token), token));
 
             // Affectation = mise a jour des liaisons (DataGrid / graphique) sur le thread UI.
             using (PerfTrace.Measure($"{label} affectation Result ({result.Rows.Count} lignes)"))

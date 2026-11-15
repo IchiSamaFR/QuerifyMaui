@@ -13,6 +13,12 @@ namespace Querify.Core.Models.Dashboards;
 /// </summary>
 public sealed partial class DashboardSession : AbstractSession
 {
+    /// <summary>
+    /// Etapes du fil d'Ariane qui gardent leurs resultats (la page affichee comprise) ; les plus anciennes
+    /// sont relues au retour : une navigation en boucle gardait sinon les lignes de chaque page traversee.
+    /// </summary>
+    private const int STEPS_KEEPING_RESULTS = 3;
+
     public DashboardSession(EditorDocument document)
         : base(document)
     {
@@ -162,6 +168,9 @@ public sealed partial class DashboardSession : AbstractSession
             Steps.Clear();
 
         Steps.Add(state);
+        for (var i = 0; i < Steps.Count - STEPS_KEEPING_RESULTS; i++)
+            Steps[i].ReleaseResults();
+
         Current = state;
         SelectedCard = null;
         OnPropertyChanged(nameof(CanGoBack));
@@ -248,8 +257,14 @@ public sealed partial class DashboardSession : AbstractSession
     public CancellationToken BeginLoad()
     {
         // Pas de Dispose : la lecture remplacee peut encore utiliser son jeton.
+        // Pas de jeton lie a LifetimeToken non plus : sans Dispose, chaque lecture y laissait un abonnement
+        // jusqu'a la fermeture de l'onglet, qui annule deja la lecture en cours (Dispose).
         _loadCancellation?.Cancel();
-        _loadCancellation = CancellationTokenSource.CreateLinkedTokenSource(LifetimeToken);
+        _loadCancellation = new CancellationTokenSource();
+
+        // Onglet deja ferme (lecture lancee apres un await) : rien ne doit partir.
+        if (LifetimeToken.IsCancellationRequested)
+            _loadCancellation.Cancel();
 
         _activeLoads++;
         IsLoading = true;

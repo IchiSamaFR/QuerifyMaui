@@ -27,10 +27,12 @@ public partial class DashboardGrid : ContentView
     public partial DashboardSession? Session { get; set; }
 
     /// <summary>
-    /// Cartes de la page courante reellement affichees : ajoutees une par une, en rendant la main au thread UI
-    /// entre deux (creer toutes les cartes d'un bloc figeait l'application a l'ouverture d'un dashboard).
+    /// Onglet dont la grille montre le contenu : le dernier recu, garde quand <see cref="Session"/> repasse a null
+    /// (onglet d'un autre type affiche). Les liaisons du XAML s'y rattachent : revenir sur le meme onglet ne
+    /// reconstruit ni les parametres, ni le fil d'Ariane, ni les onglets de page.
     /// </summary>
-    public ObservableCollection<DashboardCardState> DisplayedCards { get; } = [];
+    [BindableProperty]
+    public partial DashboardSession? DisplayedSession { get; private set; }
 
     [BindableProperty]
     public partial SyntaxConfiguration? SyntaxConfiguration { get; set; }
@@ -145,7 +147,15 @@ public partial class DashboardGrid : ContentView
 
     /// <summary>Incremente a chaque changement de page : un remplissage en cours d'une page quittee s'arrete.</summary>
     private int _fillVersion;
-    private bool _isFilling;
+
+    /// <summary>Gabarit d'une vue de carte (ressource du XAML).</summary>
+    private DataTemplate? _cardTemplate;
+
+    /// <summary>Rendu de la derniere carte portee par chaque vue : une vue libre sert d'abord une carte du meme rendu.</summary>
+    private readonly Dictionary<View, DashboardCardKind> _viewKinds = [];
+
+    /// <summary>Fermeture de l'onglet observe : ses cartes sont alors liberees.</summary>
+    private CancellationTokenRegistration _sessionClosed;
 
     /// <summary>Case visee par la carte glissee, pour ne relayer que les changements de case.</summary>
     private DashboardCell? _dragCell;
@@ -163,21 +173,50 @@ public partial class DashboardGrid : ContentView
     private static void OnGridSizeChanged(BindableObject bindable, object oldValue, object newValue)
         => ((DashboardGrid)bindable).ApplyGridSize();
 
-    // ---------- Affichage progressif des cartes ----------
+    // ---------- Affichage des cartes (vues reutilisees) ----------
 
     private static void OnSessionChanged(BindableObject bindable, object oldValue, object newValue)
         => ((DashboardGrid)bindable).ObserveSession(newValue as DashboardSession);
 
     private void ObserveSession(DashboardSession? session)
     {
+        // Vue masquee (onglet d'un autre type) : les cartes restent en place, revenir sur le meme onglet ne recree rien.
+        if (session is null)
+            return;
+
+        if (!ReferenceEquals(session, _observedSession))
+        {
+            StopObserving();
+            _observedSession = session;
+            DisplayedSession = session;
+            session.PropertyChanged += OnObservedSessionPropertyChanged;
+            _sessionClosed = session.LifetimeToken.Register(() => Dispatcher?.Dispatch(() => ReleaseSession(session)));
+        }
+
+        ApplyGridSize();
+        ShowCards(session.Current?.Cards);
+    }
+
+    private void StopObserving()
+    {
+        _sessionClosed.Dispose();
+        _sessionClosed = default;
+
         if (_observedSession is not null)
             _observedSession.PropertyChanged -= OnObservedSessionPropertyChanged;
 
-        _observedSession = session;
-        if (session is not null)
-            session.PropertyChanged += OnObservedSessionPropertyChanged;
+        _observedSession = null;
+    }
 
-        ShowCards(session?.Current?.Cards);
+    /// <summary>Onglet ferme alors que la vue est masquee : ses cartes et leurs resultats ne sont plus retenus.</summary>
+    private void ReleaseSession(DashboardSession session)
+    {
+        if (!ReferenceEquals(session, _observedSession))
+            return;
+
+        StopObserving();
+        DisplayedSession = null;
+        ShowCards(null);
     }
 
     private void OnObservedSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -186,7 +225,7 @@ public partial class DashboardGrid : ContentView
             ShowCards(_observedSession?.Current?.Cards);
     }
 
-    /// <summary>Change de jeu de cartes : la grille est videe puis remplie progressivement.</summary>
+    /// <summary>Change de jeu de cartes : les vues en place sont reliees aux nouvelles cartes, seules les manquantes sont creees.</summary>
     private void ShowCards(ObservableCollection<DashboardCardState>? cards, bool force = false)
     {
         if (!force && ReferenceEquals(cards, _sourceCards))
@@ -199,29 +238,99 @@ public partial class DashboardGrid : ContentView
         if (cards is not null)
             cards.CollectionChanged += OnSourceCardsChanged;
 
-        DisplayedCards.Clear();
         FillCardsAsync(++_fillVersion).FireAndForget("Affichage des cartes du dashboard en échec.");
     }
 
+    /// <summary>
+    /// Creer une vue de carte coute bien plus cher que la relier : celles deja creees sont reprises, les autres
+    /// ajoutees une par une en rendant la main au thread UI entre deux (toutes d'un bloc, l'application figeait).
+    /// </summary>
     private async Task FillCardsAsync(int version)
     {
-        _isFilling = true;
-        try
+        var missing = _sourceCards?.ToList() ?? [];
+        List<View> free = [];
+        foreach (var view in CardsLayer.Children.OfType<View>())
         {
-            while (version == _fillVersion && _sourceCards?.FirstOrDefault(c => !DisplayedCards.Contains(c)) is { } card)
-            {
-                using (PerfTrace.Measure($"Carte '{card.Definition.Title}' : ajout a la grille"))
-                    DisplayedCards.Add(card);
+            // Carte deja affichee (retour sur l'onglet) : sa vue ne bouge pas.
+            if (view.BindingContext is not DashboardCardState card || !missing.Remove(card))
+                free.Add(view);
+        }
 
-                // Rend la main : le thread UI dessine et traite les clics entre deux cartes.
-                await Task.Delay(1);
-            }
-        }
-        finally
+        // D'abord une vue du meme rendu (son tableau ou son graphique est repris), sinon n'importe laquelle.
+        Reuse(missing, free, sameRenderOnly: true);
+        Reuse(missing, free, sameRenderOnly: false);
+
+        foreach (var view in free)
+            ParkView(view);
+
+        foreach (var card in missing)
         {
-            if (version == _fillVersion)
-                _isFilling = false;
+            if (version != _fillVersion)
+                return;
+
+            // Supprimee, ou deja affichee par le concepteur, depuis le debut du remplissage.
+            if (_sourceCards?.Contains(card) != true || FindView(card) is not null)
+                continue;
+
+            using (PerfTrace.Measure($"Carte '{card.Definition.Title}' : creation de la vue"))
+                CreateCardView(card);
+
+            // Rend la main : le thread UI dessine et traite les clics entre deux cartes.
+            await Task.Delay(1);
         }
+    }
+
+    private void Reuse(List<DashboardCardState> missing, List<View> free, bool sameRenderOnly)
+    {
+        for (var i = missing.Count - 1; i >= 0 && free.Count > 0; i--)
+        {
+            var card = missing[i];
+            var index = sameRenderOnly ? free.FindIndex(view => HasRenderOf(view, card)) : 0;
+            if (index < 0)
+                continue;
+
+            BindCard(free[index], card);
+            free.RemoveAt(index);
+            missing.RemoveAt(i);
+        }
+    }
+
+    private bool HasRenderOf(View view, DashboardCardState card)
+        => _viewKinds.TryGetValue(view, out var kind) && RenderOf(kind) == RenderOf(card.View);
+
+    /// <summary>Rendu lourd d'une carte : 1 = tableau, 2 = graphique, 0 = aucun.</summary>
+    private static int RenderOf(DashboardCardKind kind) => kind switch
+    {
+        DashboardCardKind.Grid => 1,
+        DashboardCardKind.BarChart or DashboardCardKind.LineChart or DashboardCardKind.PieChart => 2,
+        _ => 0,
+    };
+
+    private View? FindView(DashboardCardState card)
+        => CardsLayer.Children.OfType<View>().FirstOrDefault(view => ReferenceEquals(view.BindingContext, card));
+
+    private void CreateCardView(DashboardCardState card)
+    {
+        _cardTemplate ??= (DataTemplate)Resources["CardTemplate"];
+        var view = (View)_cardTemplate.CreateContent();
+
+        // Liee avant d'entrer dans le calque : elle n'herite jamais du contexte de la grille.
+        BindCard(view, card);
+        CardsLayer.Add(view);
+    }
+
+    private void BindCard(View view, DashboardCardState card)
+    {
+        _viewKinds[view] = card.View;
+        view.BindingContext = card;
+        view.IsVisible = true;
+    }
+
+    /// <summary>Vue mise en reserve : masquee et sans carte, elle servira la prochaine carte a afficher.</summary>
+    private static void ParkView(View view)
+    {
+        view.IsVisible = false;
+        view.BindingContext = null;
     }
 
     /// <summary>Concepteur : cartes ajoutees ou supprimees sur la page affichee.</summary>
@@ -230,21 +339,31 @@ public partial class DashboardGrid : ContentView
         switch (e.Action)
         {
             case NotifyCollectionChangedAction.Add:
-                // Pendant le remplissage, la boucle prend aussi les nouvelles cartes.
-                if (!_isFilling)
-                {
-                    foreach (DashboardCardState card in e.NewItems!)
-                        DisplayedCards.Add(card);
-                }
+                foreach (DashboardCardState card in e.NewItems!)
+                    ShowCard(card);
                 break;
             case NotifyCollectionChangedAction.Remove:
                 foreach (DashboardCardState card in e.OldItems!)
-                    DisplayedCards.Remove(card);
+                {
+                    if (FindView(card) is { } view)
+                        ParkView(view);
+                }
                 break;
             default:
                 ShowCards(_sourceCards, force: true);
                 break;
         }
+    }
+
+    private void ShowCard(DashboardCardState card)
+    {
+        if (FindView(card) is not null)
+            return;
+
+        if (CardsLayer.Children.OfType<View>().FirstOrDefault(view => view.BindingContext is not DashboardCardState) is { } parked)
+            BindCard(parked, card);
+        else
+            CreateCardView(card);
     }
 
     private static void OnSelectedCardChanged(BindableObject bindable, object oldValue, object newValue)
@@ -316,22 +435,32 @@ public partial class DashboardGrid : ContentView
     /// <summary>Les calques (cases, cartes, apercu) partagent les memes colonnes et lignes.</summary>
     private void ApplyGridSize()
     {
-        _cells.ColumnCount = Math.Max(1, ColumnCount);
-        _cells.RowCount = Math.Max(1, RowCount);
+        // Taille de l'onglet garde : vue masquee, les liaisons de la page retombent sur leur valeur par defaut.
+        var columns = Math.Max(1, _observedSession?.ColumnCount ?? ColumnCount);
+        var rows = Math.Max(1, _observedSession?.RowCount ?? RowCount);
+        var isRowHeightChanged = _cells.RowHeight != RowHeight;
+
+        _cells.ColumnCount = columns;
+        _cells.RowCount = rows;
         _cells.RowHeight = RowHeight;
         _cells.ColumnSpacing = CardsLayer.ColumnSpacing;
         _cells.RowSpacing = CardsLayer.RowSpacing;
         _cells.HoveredCell = null;
         CellsCanvas.Invalidate();
 
+        // Seulement l'ecart : tout vider puis recreer relancait la mise en page de chaque carte a chaque changement d'onglet.
         foreach (var layer in new[] { CardsLayer, PreviewLayer })
         {
-            layer.ColumnDefinitions.Clear();
-            for (var i = 0; i < Math.Max(1, ColumnCount); i++)
+            while (layer.ColumnDefinitions.Count > columns)
+                layer.ColumnDefinitions.RemoveAt(layer.ColumnDefinitions.Count - 1);
+            while (layer.ColumnDefinitions.Count < columns)
                 layer.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
 
-            layer.RowDefinitions.Clear();
-            for (var i = 0; i < Math.Max(1, RowCount); i++)
+            if (isRowHeightChanged)
+                layer.RowDefinitions.Clear();
+            while (layer.RowDefinitions.Count > rows)
+                layer.RowDefinitions.RemoveAt(layer.RowDefinitions.Count - 1);
+            while (layer.RowDefinitions.Count < rows)
                 layer.RowDefinitions.Add(new RowDefinition(RowHeight));
         }
     }

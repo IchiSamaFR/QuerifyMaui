@@ -30,6 +30,18 @@ public static class PerfTrace
         Write($"• {message}");
     }
 
+    /// <summary>
+    /// Memoire apres un ramassage complet : un tas manage stable d'une page a l'autre ecarte une fuite d'objets .NET
+    /// (le reste est natif : vues WinUI, Skia), une hausse reguliere la confirme.
+    /// </summary>
+    [Conditional("DEBUG")]
+    public static void MarkMemory(string message)
+    {
+        var managed = GC.GetTotalMemory(forceFullCollection: true) / (1024 * 1024);
+        using var process = Process.GetCurrentProcess();
+        Write($"• {message} : tas manage {managed} Mo, processus {process.PrivateMemorySize64 / (1024 * 1024)} Mo");
+    }
+
     /// <summary>Lance la mesure de l'appel jusqu'au premier await (partie synchrone, bloque l'appelant) puis jusqu'a la fin.</summary>
     public static async Task<T> MeasureAsync<T>(string step, Func<Task<T>> action)
     {

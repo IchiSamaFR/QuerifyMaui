@@ -176,7 +176,12 @@ public partial class CodeEditor : ContentView
         Loaded += (_, _) =>
         {
             StartHighlighting();
-            UpdateLanguageService();
+
+            // Garde d'un chargement a l'autre : le recreer (et reprechauffer Roslyn) a chaque retour sur l'onglet
+            // ne servait a rien. Un changement recu hors de l'arbre l'a remis a null.
+            if (_languageService is null)
+                UpdateLanguageService();
+
             StartCompletion();
             StartAnalysis();
             StartEditing();
@@ -234,7 +239,11 @@ public partial class CodeEditor : ContentView
     private void OnAnalysisContextChanged()
     {
         if (!IsLoaded)
+        {
+            // Perime : recree au prochain chargement.
+            _languageService = null;
             return;
+        }
 
         UpdateLanguageService();
         _diagnostics?.Refresh();
@@ -500,6 +509,7 @@ public partial class CodeEditor : ContentView
         StopHighlighting();
         StopCompletion();
         StopAnalysis();
+        _languageService = null;
 
         if (IsLoaded)
         {

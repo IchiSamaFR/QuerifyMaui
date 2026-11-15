@@ -182,6 +182,24 @@ public class DashboardTests
     }
 
     [Fact]
+    public void OldStepsReleaseTheirResults()
+    {
+        var session = new DashboardSession(new EditorDocument("Dashboard", filePath: null, fileText: string.Empty));
+        var definition = DashboardSerializer.Deserialize(SHOWS_DASHBOARD);
+        session.Load(definition, SHOWS_DASHBOARD, error: null);
+        var home = session.Open(definition.Pages[0], asRoot: true);
+        home.Cards[0].Result = new QueryResultSet(1, [new QueryResultColumn("Id", "int")], [], isTruncated: false);
+
+        // Navigation en boucle : seules les dernieres etapes gardent leurs lignes.
+        for (var i = 1; i <= 3; i++)
+            session.Open(definition.Pages[i % 2], asRoot: false);
+
+        Assert.True(home.NeedsReload);
+        Assert.Null(home.Cards[0].Result);
+        Assert.False(session.Current!.NeedsReload);
+    }
+
+    [Fact]
     public void CommittedParameterValuesAreWrittenAsDefaults()
     {
         var session = new DashboardSession(new EditorDocument("Dashboard", filePath: null, fileText: string.Empty));
