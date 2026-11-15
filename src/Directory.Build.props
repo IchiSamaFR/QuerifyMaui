@@ -1,8 +1,8 @@
-<Project>
+﻿<Project>
 	<!-- Reglages communs a tous les projets : chaque csproj ne garde que ce qui lui est propre. -->
 	<PropertyGroup>
 		<!-- Version de l'application et des assemblies ; surchargee en CI par -p:Version=<tag>. -->
-		<Version>0.1.0</Version>
+		<Version>0.3.0</Version>
 		<Authors>IchiSamaFR</Authors>
 		<Company>IchiSamaFR</Company>
 		<Product>Querify</Product>
