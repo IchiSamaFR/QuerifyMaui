@@ -262,6 +262,10 @@ public sealed partial class DashboardSession : AbstractSession
         _loadCancellation?.Cancel();
         _loadCancellation = new CancellationTokenSource();
 
+        // Onglet deja ferme (lecture lancee apres un await) : rien ne doit partir.
+        if (LifetimeToken.IsCancellationRequested)
+            _loadCancellation.Cancel();
+
         _activeLoads++;
         IsLoading = true;
         return _loadCancellation.Token;

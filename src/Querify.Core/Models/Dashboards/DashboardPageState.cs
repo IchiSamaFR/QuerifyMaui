@@ -46,6 +46,9 @@ public sealed partial class DashboardPageState : ObservableObject
     /// <summary>La relecture des cartes est lancee.</summary>
     public void MarkReloaded() => NeedsReload = false;
 
+    /// <summary>La relecture n'a pas pu partir (connexion absente, parametres invalides...) : a refaire au prochain retour.</summary>
+    public void MarkNeedsReload() => NeedsReload = true;
+
     /// <summary>Premiere ligne libre sous la derniere carte.</summary>
     public int BottomRow => Cards.Count == 0 ? 0 : Cards.Max(c => c.Row + c.RowSpan);
 }

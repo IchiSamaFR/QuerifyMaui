@@ -184,8 +184,9 @@ public partial class DashboardVM : DocumentVM<DashboardSession>
         {
             return (DashboardSerializer.Deserialize(text), null);
         }
-        catch (FormatException ex)
+        catch (Exception ex)
         {
+            // Tout fichier illisible s'affiche comme invalide : sinon l'erreur se repetait a chaque bascule d'onglet.
             return (null, ex.Message);
         }
     }

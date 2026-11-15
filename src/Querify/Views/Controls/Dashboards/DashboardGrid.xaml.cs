@@ -190,7 +190,7 @@ public partial class DashboardGrid : ContentView
             _observedSession = session;
             DisplayedSession = session;
             session.PropertyChanged += OnObservedSessionPropertyChanged;
-            _sessionClosed = session.LifetimeToken.Register(() => Dispatcher.Dispatch(() => ReleaseSession(session)));
+            _sessionClosed = session.LifetimeToken.Register(() => Dispatcher?.Dispatch(() => ReleaseSession(session)));
         }
 
         ApplyGridSize();
